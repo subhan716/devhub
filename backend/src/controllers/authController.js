@@ -33,13 +33,18 @@ const registerUser = async (req, res) => {
       user.refreshToken = refreshToken;
       await user.save();
 
+      res.cookie('jwt', accessToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV !== 'development',
+        sameSite: 'strict',
+        maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+      });
+
       res.status(201).json({
         _id: user.id,
         name: user.name,
         email: user.email,
         role: user.role,
-        accessToken,
-        refreshToken,
       });
     } else {
       res.status(400).json({ message: 'Invalid user data' });
@@ -66,13 +71,18 @@ const loginUser = async (req, res) => {
       user.refreshToken = refreshToken;
       await user.save();
 
+      res.cookie('jwt', accessToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV !== 'development',
+        sameSite: 'strict',
+        maxAge: 30 * 24 * 60 * 60 * 1000,
+      });
+
       res.status(200).json({
         _id: user.id,
         name: user.name,
         email: user.email,
         role: user.role,
-        accessToken,
-        refreshToken,
       });
     } else {
       res.status(401).json({ message: 'Invalid credentials' });
@@ -92,6 +102,10 @@ const logoutUser = async (req, res) => {
       user.refreshToken = '';
       await user.save();
     }
+    res.cookie('jwt', '', {
+      httpOnly: true,
+      expires: new Date(0),
+    });
     res.status(200).json({ message: 'Logged out successfully' });
   } catch (error) {
     res.status(500).json({ message: error.message });

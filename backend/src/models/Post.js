@@ -16,6 +16,10 @@ const postSchema = new mongoose.Schema(
       public_id: String,
       url: String,
     },
+    codeSnippet: {
+      code: String,
+      language: { type: String, default: 'javascript' },
+    },
     likes: [
       {
         type: mongoose.Schema.Types.ObjectId,
@@ -28,6 +32,10 @@ const postSchema = new mongoose.Schema(
       default: 0,
     },
     commentsCount: {
+      type: Number,
+      default: 0,
+    },
+    repostsCount: {
       type: Number,
       default: 0,
     },

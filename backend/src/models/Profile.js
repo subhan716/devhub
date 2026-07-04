@@ -23,9 +23,18 @@ const profileSchema = new mongoose.Schema(
       type: String,
       maxlength: [100, 'Location cannot exceed 100 characters'],
     },
+    status: {
+      type: String,
+    },
+    company: {
+      type: String,
+    },
+    githubusername: {
+      type: String,
+    },
     skills: {
       type: [String],
-      required: [true, 'Please add at least one skill'],
+      default: [],
     },
     experience: [
       {

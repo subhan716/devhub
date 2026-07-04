@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
+const cookieParser = require('cookie-parser');
 
 const app = express();
 
@@ -16,6 +17,8 @@ app.use(
 
 // Body Parser
 app.use(express.json());
+// Cookie Parser
+app.use(cookieParser());
 
 // Logger
 if (process.env.NODE_ENV === 'development') {
@@ -23,14 +26,15 @@ if (process.env.NODE_ENV === 'development') {
 }
 
 // Routes
-const authRoutes = require('./routes/authRoutes');
+app.use('/api/auth', require('./routes/authRoutes'));
+app.use('/api/profile', require('./routes/profileRoutes'));
+app.use('/api/posts', require('./routes/postRoutes'));
 
-// Basic Route for testing
+// Basic health check route
 app.get('/api', (req, res) => {
   res.status(200).json({ message: 'Welcome to the DevHub API!' });
 });
 
 // Mount Routes
-app.use('/api/auth', authRoutes);
 
 module.exports = app;

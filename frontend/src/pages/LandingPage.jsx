@@ -14,7 +14,7 @@ const LandingPage = () => {
         <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff0a_1px,transparent_1px),linear-gradient(to_bottom,#ffffff0a_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] pointer-events-none" />
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 flex flex-col lg:flex-row items-center">
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }}
             className="w-full lg:w-1/2 pt-10 text-center lg:text-left z-20"
           >
@@ -40,7 +40,7 @@ const LandingPage = () => {
             </div>
           </motion.div>
 
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 1.2, delay: 0.2 }}
             className="w-full lg:w-1/2 h-[400px] lg:h-[600px] mt-12 lg:mt-0 relative"
           >
@@ -106,7 +106,7 @@ const LandingPage = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-12 relative">
             {/* Connecting line for desktop */}
             <div className="hidden md:block absolute top-12 left-[15%] right-[15%] h-[2px] bg-gradient-to-r from-[#00F0FF] via-[#8A2BE2] to-[#FF0055] opacity-20" />
-            
+
             {[{
               icon: TerminalSquare, step: "01", title: 'Create Identity', desc: 'Build your developer profile. Add your tech stack, bio, and social links.'
             }, {
@@ -166,7 +166,7 @@ const LandingPage = () => {
           <h2 className="text-4xl md:text-6xl font-bold mb-6">Ready to elevate your tech career?</h2>
           <p className="text-xl text-gray-400 mb-10">Join thousands of developers building the future.</p>
           <Link to="/register" className="inline-block px-10 py-5 rounded-lg bg-white text-black font-bold text-lg transition-transform hover:scale-105 shadow-[0_0_40px_rgba(255,255,255,0.3)]">
-            Create Your Developer Profile
+            Create Your Profile
           </Link>
         </div>
       </section>
