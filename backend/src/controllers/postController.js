@@ -40,6 +40,12 @@ const getPosts = async (req, res) => {
     // We'll map through posts and fetch the profile for each author to get their handle/status.
     
     const postsWithProfiles = await Promise.all(posts.map(async (post) => {
+      if (!post.author) {
+        return {
+          ...post._doc,
+          authorProfile: { status: 'Deleted User', handle: 'deleted' }
+        };
+      }
       const profile = await Profile.findOne({ user: post.author._id });
       return {
         ...post._doc,

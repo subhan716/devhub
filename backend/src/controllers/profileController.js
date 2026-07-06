@@ -70,4 +70,109 @@ const getCurrentProfile = async (req, res) => {
   }
 };
 
-module.exports = { createOrUpdateProfile, getCurrentProfile };
+// @desc    Add profile experience
+// @route   PUT /api/profile/experience
+// @access  Private
+const addExperience = async (req, res) => {
+  try {
+    const profile = await Profile.findOne({ user: req.user.id });
+    profile.experience.unshift(req.body);
+    await profile.save();
+    res.json(profile);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server Error');
+  }
+};
+
+// @desc    Delete profile experience
+// @route   DELETE /api/profile/experience/:exp_id
+// @access  Private
+const deleteExperience = async (req, res) => {
+  try {
+    const profile = await Profile.findOne({ user: req.user.id });
+    profile.experience = profile.experience.filter(
+      (exp) => exp._id.toString() !== req.params.exp_id
+    );
+    await profile.save();
+    res.json(profile);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server Error');
+  }
+};
+
+// @desc    Add profile education
+// @route   PUT /api/profile/education
+// @access  Private
+const addEducation = async (req, res) => {
+  try {
+    const profile = await Profile.findOne({ user: req.user.id });
+    profile.education.unshift(req.body);
+    await profile.save();
+    res.json(profile);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server Error');
+  }
+};
+
+// @desc    Delete profile education
+// @route   DELETE /api/profile/education/:edu_id
+// @access  Private
+const deleteEducation = async (req, res) => {
+  try {
+    const profile = await Profile.findOne({ user: req.user.id });
+    profile.education = profile.education.filter(
+      (edu) => edu._id.toString() !== req.params.edu_id
+    );
+    await profile.save();
+    res.json(profile);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server Error');
+  }
+};
+
+// @desc    Add profile project
+// @route   PUT /api/profile/projects
+// @access  Private
+const addProject = async (req, res) => {
+  try {
+    const profile = await Profile.findOne({ user: req.user.id });
+    profile.projects.unshift(req.body);
+    await profile.save();
+    res.json(profile);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server Error');
+  }
+};
+
+// @desc    Delete profile project
+// @route   DELETE /api/profile/projects/:prj_id
+// @access  Private
+const deleteProject = async (req, res) => {
+  try {
+    const profile = await Profile.findOne({ user: req.user.id });
+    profile.projects = profile.projects.filter(
+      (prj) => prj._id.toString() !== req.params.prj_id
+    );
+    await profile.save();
+    res.json(profile);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server Error');
+  }
+};
+
+module.exports = { 
+  createOrUpdateProfile, 
+  getCurrentProfile,
+  addExperience,
+  deleteExperience,
+  addEducation,
+  deleteEducation,
+  addProject,
+  deleteProject
+};

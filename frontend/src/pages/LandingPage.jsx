@@ -145,7 +145,7 @@ const LandingPage = () => {
       <footer className="border-t border-white/10 py-12 bg-[#050505]">
         <div className="max-w-7xl mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-4">
           <div className="flex items-center gap-3">
-            <img src="/images/logo.png" alt="DevHub Logo" className="w-8 h-8 object-contain" />
+            <img src="/images/logo.png" alt="DevHub Logo" className="w-8 h-8 object-contain rounded-xl drop-shadow-[0_0_10px_rgba(0,240,255,0.5)]" />
             <span className="text-xl font-bold">Dev<span className="text-[#00F0FF]">Hub</span></span>
           </div>
           <p className="text-gray-500 text-sm">© 2026 DevHub. Built for the developer community.</p>

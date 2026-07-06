@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { TerminalSquare, Mail, Lock, User, ArrowRight } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -10,6 +10,16 @@ const RegisterPage = () => {
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
+
+  useEffect(() => {
+    const queryParams = new URLSearchParams(location.search);
+    if (queryParams.get('error') === 'account_exists') {
+      toast.error('Account already exists. Please login instead.', { id: 'account-exists-error' });
+      // Remove query param from URL cleanly
+      navigate('/register', { replace: true });
+    }
+  }, [location, navigate]);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -78,7 +88,7 @@ const RegisterPage = () => {
 
       <div className="sm:mx-auto sm:w-full sm:max-w-md relative z-10">
         <Link to="/" className="flex justify-center items-center gap-2 mb-8 hover:opacity-80 transition-opacity">
-          <img src="/images/logo.png" alt="DevHub Logo" className="w-10 h-10 object-contain" />
+          <img src="/images/logo.png" alt="DevHub Logo" className="w-10 h-10 object-contain rounded-xl drop-shadow-[0_0_10px_rgba(0,240,255,0.5)]" />
           <span className="text-3xl font-bold text-white tracking-tight">
             Dev<span className="text-[#00F0FF]">Hub</span>
           </span>
@@ -176,7 +186,7 @@ const RegisterPage = () => {
             </div>
             <div className="mt-6 grid grid-cols-2 gap-4">
               <button
-                onClick={() => window.location.href = 'http://localhost:5000/api/auth/google'}
+                onClick={() => window.location.href = 'http://localhost:5000/api/auth/google?intent=register'}
                 className="w-full flex justify-center items-center gap-2 py-3 px-4 border border-white/10 rounded-lg bg-white/5 hover:bg-white/10 text-sm font-medium text-white transition-all cursor-pointer"
               >
                 <svg className="w-5 h-5" viewBox="0 0 24 24">
@@ -189,7 +199,7 @@ const RegisterPage = () => {
               </button>
 
               <button
-                onClick={() => window.location.href = 'http://localhost:5000/api/auth/github'}
+                onClick={() => window.location.href = 'http://localhost:5000/api/auth/github?intent=register'}
                 className="w-full flex justify-center items-center gap-2 py-3 px-4 border border-white/10 rounded-lg bg-white/5 hover:bg-white/10 text-sm font-medium text-white transition-all cursor-pointer"
               >
                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">

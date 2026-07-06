@@ -8,7 +8,7 @@ const Navbar = () => {
         <div className="flex justify-between items-center h-20">
           {/* Logo */}
           <div className="flex items-center gap-3">
-            <img src="/images/logo.png" alt="DevHub Logo" className="w-10 h-10 object-contain drop-shadow-[0_0_10px_rgba(0,240,255,0.5)]" />
+            <img src="/images/logo.png" alt="DevHub Logo" className="w-10 h-10 object-contain rounded-xl drop-shadow-[0_0_10px_rgba(0,240,255,0.5)]" />
             <span className="text-2xl font-bold tracking-tight text-white">
               Dev<span className="text-[#00F0FF]">Hub</span>
             </span>

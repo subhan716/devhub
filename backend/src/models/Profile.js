@@ -15,6 +15,11 @@ const profileSchema = new mongoose.Schema(
         default: 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png'
       },
     },
+    coverImage: {
+      url: {
+        type: String,
+      }
+    },
     bio: {
       type: String,
       maxlength: [300, 'Bio cannot exceed 300 characters'],
@@ -56,6 +61,23 @@ const profileSchema = new mongoose.Schema(
         current: { type: Boolean, default: false },
       },
     ],
+    projects: [
+      {
+        title: { type: String, required: true },
+        description: { type: String, required: true },
+        repositoryUrl: { type: String },
+        liveUrl: { type: String },
+        technologies: { type: [String], default: [] },
+        image: {
+          public_id: String,
+          url: String,
+        },
+      },
+    ],
+    resume: {
+      url: { type: String },
+      originalName: { type: String },
+    },
     socialLinks: {
       github: { type: String },
       linkedin: { type: String },

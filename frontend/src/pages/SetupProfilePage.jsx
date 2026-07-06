@@ -37,8 +37,10 @@ const SetupProfilePage = () => {
   const [skillInput, setSkillInput] = useState('');
   const [skillSuggestions, setSkillSuggestions] = useState([]);
 
-  // Custom State for Custom Select Dropdown
-  const [isStatusDropdownOpen, setIsStatusDropdownOpen] = useState(false);
+  // Custom State for Status
+  const [statusInput, setStatusInput] = useState('');
+  const [statusSuggestions, setStatusSuggestions] = useState([]);
+  const [isStatusFocused, setIsStatusFocused] = useState(false);
   const statusOptions = [
     'Software Engineer', 'Frontend Developer', 'Backend Developer', 'Mobile Developer',
     'Product Manager', 'Project Manager', 'Scrum Master',
@@ -58,17 +60,7 @@ const SetupProfilePage = () => {
   const [isCompanyFocused, setIsCompanyFocused] = useState(false);
   const [selectedCompanyDomain, setSelectedCompanyDomain] = useState(null);
 
-  // Handle outside clicks for dropdowns
-  const statusDropdownRef = useRef(null);
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (statusDropdownRef.current && !statusDropdownRef.current.contains(event.target)) {
-        setIsStatusDropdownOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+  // Handle outside clicks is handled by onBlur with timeout now, so removing statusDropdownRef logic
 
   // Fetch from Clearbit
   useEffect(() => {
@@ -107,6 +99,18 @@ const SetupProfilePage = () => {
       setSkillSuggestions([]);
     }
   }, [skillInput, selectedSkills]);
+
+  // Handle Status Filtering
+  useEffect(() => {
+    if (statusInput.trim().length > 0 && isStatusFocused) {
+      const filtered = statusOptions.filter(
+        status => status.toLowerCase().includes(statusInput.toLowerCase())
+      );
+      setStatusSuggestions(filtered.slice(0, 5)); // Show top 5
+    } else {
+      setStatusSuggestions([]);
+    }
+  }, [statusInput, isStatusFocused]);
 
   const handleChange = (e) => {
     let value = e.target.value;
@@ -287,46 +291,51 @@ const SetupProfilePage = () => {
           <form onSubmit={handleSubmit} className="space-y-8" noValidate>
             {step === 1 && (
               <>
-                {/* Custom Select Dropdown */}
-                <div className="relative" ref={statusDropdownRef}>
+                {/* Searchable Custom Status Input */}
+                <div className="relative z-50">
                   <label className="block text-sm font-medium text-gray-300 mb-1">
                     Professional Status <span className="text-[#00F0FF]">*</span>
                   </label>
-                  <div 
-                    onClick={() => {
-                      setIsStatusDropdownOpen(!isStatusDropdownOpen);
-                      setErrors({ ...errors, status: null });
-                    }}
-                    className={`relative rounded-md shadow-sm cursor-pointer ${errors.status ? 'ring-1 ring-red-500' : ''}`}
-                  >
+                  <div className={`relative rounded-md shadow-sm ${errors.status ? 'ring-1 ring-red-500 rounded-lg' : ''}`}>
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                       <Briefcase className={errors.status ? "text-red-500" : "text-gray-500"} size={18} />
                     </div>
-                    <div className={`block w-full pl-10 pr-10 py-3 border ${errors.status ? 'border-red-500 bg-red-500/5' : isStatusDropdownOpen ? 'border-[#00F0FF]/50 ring-1 ring-[#00F0FF]/50' : 'border-white/10'} rounded-lg bg-black/50 text-white transition-all sm:text-sm`}>
-                      {formData.status || <span className="text-gray-600">* Select Professional Status</span>}
-                    </div>
-                    <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                      <ChevronDown className={`text-gray-500 transition-transform ${isStatusDropdownOpen ? 'rotate-180' : ''}`} size={18} />
-                    </div>
+                    <input
+                      type="text"
+                      name="status"
+                      value={statusInput}
+                      onChange={(e) => {
+                        setStatusInput(e.target.value);
+                        setFormData({ ...formData, status: e.target.value });
+                        setErrors({ ...errors, status: null });
+                      }}
+                      onFocus={() => setIsStatusFocused(true)}
+                      onBlur={() => setTimeout(() => setIsStatusFocused(false), 200)}
+                      className={`block w-full pl-10 pr-3 py-3 border ${errors.status ? 'border-red-500 bg-red-500/5' : 'border-white/10 focus:border-[#00F0FF]/50 focus:ring-1 focus:ring-[#00F0FF]/50'} rounded-lg bg-black/50 text-white placeholder-gray-600 outline-none transition-all sm:text-sm`}
+                      placeholder="e.g. Software Engineer"
+                      required
+                      autoComplete="off"
+                    />
                   </div>
                   {errors.status && <p className="mt-1 text-xs text-red-500">{errors.status}</p>}
-                  
+
                   <AnimatePresence>
-                    {isStatusDropdownOpen && (
-                      <motion.div 
+                    {statusSuggestions.length > 0 && isStatusFocused && (
+                      <motion.div
                         initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}
-                        className="absolute z-50 w-full mt-2 bg-[#111] border border-white/10 rounded-lg shadow-2xl py-1 max-h-60 overflow-y-auto scrollbar-thin scrollbar-thumb-[#00F0FF]/30 scrollbar-track-transparent"
+                        className="absolute z-50 w-full mt-2 bg-[#111] border border-white/10 rounded-lg shadow-2xl py-1 max-h-48 overflow-y-auto scrollbar-thin scrollbar-thumb-[#00F0FF]/30 scrollbar-track-transparent"
                       >
-                        {statusOptions.map((option) => (
+                        {statusSuggestions.map((status) => (
                           <div
-                            key={option}
+                            key={status}
                             onClick={() => {
-                              setFormData({ ...formData, status: option });
-                              setIsStatusDropdownOpen(false);
+                              setStatusInput(status);
+                              setFormData({ ...formData, status });
+                              setIsStatusFocused(false);
                             }}
-                            className={`px-4 py-2 text-sm cursor-pointer transition-colors ${formData.status === option ? 'bg-[#00F0FF]/10 text-[#00F0FF]' : 'text-gray-300 hover:bg-white/5 hover:text-white'}`}
+                            className="px-4 py-3 hover:bg-white/5 cursor-pointer transition-colors border-b border-white/5 last:border-0 text-white text-sm"
                           >
-                            {option}
+                            {status}
                           </div>
                         ))}
                       </motion.div>

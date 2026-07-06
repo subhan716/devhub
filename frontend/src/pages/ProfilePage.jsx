@@ -1,12 +1,24 @@
-import { useState, useEffect } from 'react';
-import { MapPin, Briefcase, Link as LinkIcon, Calendar, Edit3, Image, Heart, Repeat2, MessageCircle } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { MapPin, Briefcase, Calendar, Link as LinkIcon, Heart, MessageCircle, Repeat2, GraduationCap, FolderGit2, FileText, Trash2, Plus, Edit3, Image } from 'lucide-react';
 import { motion } from 'framer-motion';
 import axios from 'axios';
 import toast from 'react-hot-toast';
+import EditProfileModal from '../components/profile/EditProfileModal';
+import AddExperienceModal from '../components/profile/AddExperienceModal';
+import AddEducationModal from '../components/profile/AddEducationModal';
+import AddProjectModal from '../components/profile/AddProjectModal';
 
 const ProfilePage = () => {
   const [profile, setProfile] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isExpModalOpen, setIsExpModalOpen] = useState(false);
+  const [isEduModalOpen, setIsEduModalOpen] = useState(false);
+  const [isProjectModalOpen, setIsProjectModalOpen] = useState(false);
+  const [uploadingResume, setUploadingResume] = useState(false);
+  const resumeInputRef = useRef(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const isOwner = true; // Always true for /profile/me
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -14,13 +26,102 @@ const ProfilePage = () => {
         const { data } = await axios.get('http://localhost:5000/api/profile/me');
         setProfile(data);
       } catch (error) {
-        toast.error('Failed to load profile');
+        if (error.response && error.response.status === 404) {
+          // Expected for new users, don't show an error toast
+          console.log('No profile found. Please set one up.');
+        } else {
+          toast.error('Failed to load profile');
+        }
       } finally {
         setIsLoading(false);
       }
     };
     fetchProfile();
   }, []);
+
+  const handleImageUpload = async (e, type) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append('image', file);
+
+    setIsUploading(true);
+    const loadingToast = toast.loading(`Uploading ${type}...`);
+
+    try {
+      const endpoint = type === 'avatar' ? '/api/upload/avatar' : '/api/upload/cover';
+      const { data } = await axios.post(`http://localhost:5000${endpoint}`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+        withCredentials: true
+      });
+
+      if (type === 'avatar') {
+        setProfile(prev => ({ ...prev, user: { ...prev.user, avatar: { url: data.url } } }));
+      } else {
+        setProfile(prev => ({ ...prev, coverImage: { url: data.url } }));
+      }
+      
+      toast.success(`${type} updated successfully!`, { id: loadingToast });
+    } catch (error) {
+      toast.error(error.response?.data?.message || `Failed to upload ${type}`, { id: loadingToast });
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleResumeUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const uploadData = new FormData();
+    uploadData.append('document', file);
+
+    setUploadingResume(true);
+    const loadingToast = toast.loading(`Uploading Resume...`);
+    try {
+      const { data } = await axios.post('http://localhost:5000/api/upload/resume', uploadData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+        withCredentials: true
+      });
+      setProfile({ ...profile, resume: { url: data.url, originalName: data.originalName } });
+      toast.success('Resume uploaded successfully', { id: loadingToast });
+    } catch (error) {
+      toast.error('Failed to upload resume. Make sure it is a PDF or DOC.', { id: loadingToast });
+    } finally {
+      setUploadingResume(false);
+    }
+  };
+
+  const handleDeleteExperience = async (id) => {
+    try {
+      const { data } = await axios.delete(`http://localhost:5000/api/profile/experience/${id}`, { withCredentials: true });
+      setProfile(data);
+      toast.success('Experience deleted');
+    } catch (error) {
+      toast.error('Failed to delete experience');
+    }
+  };
+
+  const handleDeleteEducation = async (id) => {
+    try {
+      const { data } = await axios.delete(`http://localhost:5000/api/profile/education/${id}`, { withCredentials: true });
+      setProfile(data);
+      toast.success('Education deleted');
+    } catch (error) {
+      toast.error('Failed to delete education');
+    }
+  };
+
+  const handleDeleteProject = async (id) => {
+    try {
+      const { data } = await axios.delete(`http://localhost:5000/api/profile/projects/${id}`, { withCredentials: true });
+      setProfile(data);
+      toast.success('Project deleted');
+    } catch (error) {
+      toast.error('Failed to delete project');
+    }
+  };
 
   if (isLoading) {
     return (
@@ -44,11 +145,20 @@ const ProfilePage = () => {
       {/* Cover & Avatar Header */}
       <div className="relative rounded-2xl overflow-hidden mb-8 border border-white/10 bg-[#111]">
         {/* Cover Photo */}
-        <div className="h-48 w-full bg-gradient-to-r from-[#00F0FF]/20 via-[#8A2BE2]/20 to-[#00F0FF]/10 relative">
+        <div 
+          className="h-48 w-full relative" 
+          style={{ 
+            backgroundColor: profile.coverImage?.url ? 'transparent' : '#1a1a1a',
+            backgroundImage: profile.coverImage?.url ? `url(${profile.coverImage.url})` : 'none',
+            backgroundSize: 'cover',
+            backgroundPosition: 'center'
+          }}
+        >
           <div className="absolute inset-0 bg-black/20"></div>
-          <button className="absolute top-4 right-4 p-2 bg-black/50 hover:bg-black/80 rounded-full transition-colors cursor-pointer text-white">
+          <label className="absolute top-4 right-4 p-2 bg-black/50 hover:bg-black/80 rounded-full transition-colors cursor-pointer text-white z-10">
             <Edit3 size={16} />
-          </button>
+            <input type="file" className="hidden" accept="image/*" onChange={(e) => handleImageUpload(e, 'cover')} disabled={isUploading} />
+          </label>
         </div>
 
         {/* Profile Info Overlay */}
@@ -60,11 +170,15 @@ const ProfilePage = () => {
                 alt="Profile" 
                 className="w-32 h-32 rounded-full border-4 border-[#111] object-cover bg-[#111]"
               />
-              <button className="absolute bottom-0 right-0 p-2 bg-[#00F0FF] text-black rounded-full hover:bg-white transition-colors cursor-pointer shadow-lg">
+              <label className="absolute bottom-0 right-0 p-2 bg-[#00F0FF] text-black rounded-full hover:bg-white transition-colors cursor-pointer shadow-lg z-10">
                 <Image size={14} />
-              </button>
+                <input type="file" className="hidden" accept="image/*" onChange={(e) => handleImageUpload(e, 'avatar')} disabled={isUploading} />
+              </label>
             </div>
-            <button className="px-6 py-2 bg-white/10 hover:bg-white/20 text-white rounded-full font-medium transition-colors cursor-pointer border border-white/10">
+            <button 
+              onClick={() => setIsEditModalOpen(true)}
+              className="px-6 py-2 bg-white/10 hover:bg-white/20 text-white rounded-full font-medium transition-colors cursor-pointer border border-white/10"
+            >
               Edit Profile
             </button>
           </div>
@@ -143,50 +257,188 @@ const ProfilePage = () => {
               )}
             </div>
           </div>
-        </div>
 
-        {/* Right Column: Posts Tab (Dummy for now) */}
-        <div className="md:col-span-2">
+          {/* Resume Section */}
           <div className="bg-[#111] border border-white/5 rounded-2xl p-5 shadow-lg">
-            <h3 className="text-white font-bold mb-6 border-b border-white/10 pb-4">Recent Activity</h3>
-            
-            {/* Dummy Post */}
-            <div className="flex flex-col gap-4 border-b border-white/5 pb-6">
-              <div className="flex justify-between items-start">
-                <div className="flex gap-3">
-                  <img 
-                    src={profile.user?.avatar?.url || 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png'} 
-                    alt="Profile" 
-                    className="w-10 h-10 rounded-full object-cover border border-white/10 cursor-pointer"
-                  />
-                  <div className="flex flex-col leading-tight cursor-pointer">
-                    <span className="text-white font-medium text-sm">{profile.user?.name}</span>
-                    <span className="text-xs text-gray-500 mt-0.5">2 days ago</span>
-                  </div>
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-white font-bold flex items-center gap-2">
+                <FileText size={18} className="text-[#00F0FF]" /> Resume
+              </h3>
+              {isOwner && (
+                <div>
+                  <button onClick={() => resumeInputRef.current?.click()} disabled={uploadingResume} className="text-xs text-[#00F0FF] hover:underline cursor-pointer disabled:opacity-50">
+                    {uploadingResume ? 'Uploading...' : 'Update'}
+                  </button>
+                  <input type="file" ref={resumeInputRef} onChange={handleResumeUpload} accept=".pdf,.doc,.docx" className="hidden" />
                 </div>
-              </div>
-              <p className="text-sm text-gray-200">
-                Just updated my portfolio using React and Framer Motion! The animations are buttery smooth. 🚀
-              </p>
-              <div className="flex items-center gap-6 mt-2 text-xs font-medium text-gray-400">
-                <button className="flex items-center gap-2 hover:text-[#00F0FF] transition-colors cursor-pointer">
-                  <Heart size={16} /> 12
-                </button>
-                <button className="flex items-center gap-2 hover:text-white transition-colors cursor-pointer">
-                  <MessageCircle size={16} /> 3
-                </button>
-                <button className="flex items-center gap-2 hover:text-[#8A2BE2] transition-colors cursor-pointer">
-                  <Repeat2 size={16} /> 0
-                </button>
-              </div>
+              )}
             </div>
-
-            <div className="text-center text-sm text-gray-500 pt-6">
-              More posts will appear here once the feed backend is connected.
-            </div>
+            {profile.resume?.url ? (
+              <a href={profile.resume.url} target="_blank" rel="noreferrer" className="flex items-center justify-center gap-2 w-full py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-sm font-medium text-white transition-colors">
+                View {profile.resume.originalName || 'Resume'}
+              </a>
+            ) : (
+              <div className="text-sm text-gray-500 text-center py-2">
+                No resume uploaded
+              </div>
+            )}
           </div>
         </div>
+
+        {/* Right Column: Experience, Education, Projects */}
+        <div className="md:col-span-2 space-y-6">
+          
+          {/* Experience */}
+          <div className="bg-[#111] border border-white/5 rounded-2xl p-6 shadow-lg">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-white font-bold text-lg flex items-center gap-2">
+                <Briefcase size={20} className="text-[#00F0FF]" /> Experience
+              </h3>
+              {isOwner && (
+                <button onClick={() => setIsExpModalOpen(true)} className="p-1.5 bg-white/5 hover:bg-white/10 rounded-lg text-gray-300 hover:text-white transition-colors cursor-pointer">
+                  <Plus size={18} />
+                </button>
+              )}
+            </div>
+            <div className="space-y-6">
+              {profile.experience && profile.experience.length > 0 ? (
+                profile.experience.map(exp => (
+                  <div key={exp._id} className="relative group border-l-2 border-white/10 pl-4 pb-2">
+                    <div className="absolute w-3 h-3 bg-[#111] border-2 border-[#00F0FF] rounded-full -left-[7px] top-1.5"></div>
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <h4 className="text-white font-semibold">{exp.title}</h4>
+                        <p className="text-gray-400 text-sm">{exp.company}</p>
+                        <p className="text-xs text-gray-500 mt-1">
+                          {new Date(exp.from).toLocaleDateString()} - {exp.current ? 'Present' : (exp.to ? new Date(exp.to).toLocaleDateString() : '')}
+                        </p>
+                      </div>
+                      {isOwner && (
+                        <button onClick={() => handleDeleteExperience(exp._id)} className="opacity-0 group-hover:opacity-100 p-1.5 text-gray-500 hover:text-red-500 transition-all cursor-pointer">
+                          <Trash2 size={16} />
+                        </button>
+                      )}
+                    </div>
+                    {exp.description && <p className="text-sm text-gray-300 mt-3 whitespace-pre-wrap">{exp.description}</p>}
+                  </div>
+                ))
+              ) : (
+                <p className="text-sm text-gray-500 text-center py-4">No experience added yet.</p>
+              )}
+            </div>
+          </div>
+
+          {/* Education */}
+          <div className="bg-[#111] border border-white/5 rounded-2xl p-6 shadow-lg">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-white font-bold text-lg flex items-center gap-2">
+                <GraduationCap size={20} className="text-[#8A2BE2]" /> Education
+              </h3>
+              {isOwner && (
+                <button onClick={() => setIsEduModalOpen(true)} className="p-1.5 bg-white/5 hover:bg-white/10 rounded-lg text-gray-300 hover:text-white transition-colors cursor-pointer">
+                  <Plus size={18} />
+                </button>
+              )}
+            </div>
+            <div className="space-y-6">
+              {profile.education && profile.education.length > 0 ? (
+                profile.education.map(edu => (
+                  <div key={edu._id} className="relative group border-l-2 border-white/10 pl-4 pb-2">
+                    <div className="absolute w-3 h-3 bg-[#111] border-2 border-[#8A2BE2] rounded-full -left-[7px] top-1.5"></div>
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <h4 className="text-white font-semibold">{edu.school}</h4>
+                        <p className="text-gray-400 text-sm">{edu.degree} in {edu.fieldOfStudy}</p>
+                        <p className="text-xs text-gray-500 mt-1">
+                          {new Date(edu.from).toLocaleDateString()} - {edu.current ? 'Present' : (edu.to ? new Date(edu.to).toLocaleDateString() : '')}
+                        </p>
+                      </div>
+                      {isOwner && (
+                        <button onClick={() => handleDeleteEducation(edu._id)} className="opacity-0 group-hover:opacity-100 p-1.5 text-gray-500 hover:text-red-500 transition-all cursor-pointer">
+                          <Trash2 size={16} />
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <p className="text-sm text-gray-500 text-center py-4">No education added yet.</p>
+              )}
+            </div>
+          </div>
+
+          {/* Projects */}
+          <div className="bg-[#111] border border-white/5 rounded-2xl p-6 shadow-lg">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-white font-bold text-lg flex items-center gap-2">
+                <FolderGit2 size={20} className="text-white" /> Projects
+              </h3>
+              {isOwner && (
+                <button onClick={() => setIsProjectModalOpen(true)} className="p-1.5 bg-white/5 hover:bg-white/10 rounded-lg text-gray-300 hover:text-white transition-colors cursor-pointer">
+                  <Plus size={18} />
+                </button>
+              )}
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {profile.projects && profile.projects.length > 0 ? (
+                profile.projects.map(prj => (
+                  <div key={prj._id} className="group bg-black/30 border border-white/5 rounded-xl overflow-hidden hover:border-white/20 transition-all">
+                    {prj.image?.url && (
+                      <div className="w-full h-32 overflow-hidden bg-gray-900">
+                        <img src={prj.image.url} alt={prj.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                      </div>
+                    )}
+                    <div className="p-4 relative">
+                      {isOwner && (
+                        <button onClick={() => handleDeleteProject(prj._id)} className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 p-1.5 bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white rounded-lg transition-all cursor-pointer">
+                          <Trash2 size={14} />
+                        </button>
+                      )}
+                      <h4 className="text-white font-bold text-sm mb-1">{prj.title}</h4>
+                      <p className="text-xs text-gray-400 line-clamp-2 mb-3">{prj.description}</p>
+                      {prj.technologies && prj.technologies.length > 0 && (
+                        <div className="flex flex-wrap gap-1 mb-3">
+                          {prj.technologies.slice(0, 3).map(tech => (
+                            <span key={tech} className="px-2 py-0.5 bg-white/5 text-[10px] text-gray-300 rounded-sm">{tech}</span>
+                          ))}
+                          {prj.technologies.length > 3 && <span className="px-2 py-0.5 bg-white/5 text-[10px] text-gray-300 rounded-sm">+{prj.technologies.length - 3}</span>}
+                        </div>
+                      )}
+                      <div className="flex items-center gap-3 mt-auto">
+                        {prj.liveUrl && (
+                          <a href={prj.liveUrl} target="_blank" rel="noreferrer" className="text-xs font-medium text-[#00F0FF] hover:underline flex items-center gap-1">
+                            <LinkIcon size={12} /> Live
+                          </a>
+                        )}
+                        {prj.repositoryUrl && (
+                          <a href={prj.repositoryUrl} target="_blank" rel="noreferrer" className="text-xs font-medium text-gray-400 hover:text-white transition-colors flex items-center gap-1">
+                            <FolderGit2 size={12} /> Repo
+                          </a>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="col-span-full text-sm text-gray-500 text-center py-6">
+                  No projects added yet.
+                </div>
+              )}
+            </div>
+          </div>
+
+        </div>
       </div>
+
+      <EditProfileModal 
+        isOpen={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+        currentProfile={profile}
+        setProfile={setProfile}
+      />
+      <AddExperienceModal isOpen={isExpModalOpen} onClose={() => setIsExpModalOpen(false)} onAdd={setProfile} />
+      <AddEducationModal isOpen={isEduModalOpen} onClose={() => setIsEduModalOpen(false)} onAdd={setProfile} />
+      <AddProjectModal isOpen={isProjectModalOpen} onClose={() => setIsProjectModalOpen(false)} onAdd={setProfile} />
     </div>
   );
 };

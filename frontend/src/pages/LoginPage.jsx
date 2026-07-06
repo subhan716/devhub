@@ -84,7 +84,7 @@ const LoginPage = () => {
 
       <div className="sm:mx-auto sm:w-full sm:max-w-md relative z-10">
         <Link to="/" className="flex justify-center items-center gap-2 mb-8 hover:opacity-80 transition-opacity">
-          <img src="/images/logo.png" alt="DevHub Logo" className="w-10 h-10 object-contain" />
+          <img src="/images/logo.png" alt="DevHub Logo" className="w-10 h-10 object-contain rounded-xl drop-shadow-[0_0_10px_rgba(0,240,255,0.5)]" />
           <span className="text-3xl font-bold text-white tracking-tight">
             Dev<span className="text-[#00F0FF]">Hub</span>
           </span>

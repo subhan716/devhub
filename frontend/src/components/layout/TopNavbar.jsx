@@ -58,7 +58,7 @@ const TopNavbar = ({ setIsMobileMenuOpen, currentUser }) => {
 
         {/* Mobile/Tablet Logo (Visible when Sidebar is hidden) */}
         <Link to="/feed" className="flex items-center gap-3 md:hidden group">
-          <img src="/images/logo.png" alt="DevHub Logo" className="w-8 h-8 object-contain" />
+          <img src="/images/logo.png" alt="DevHub Logo" className="w-8 h-8 object-contain rounded-xl drop-shadow-[0_0_10px_rgba(0,240,255,0.5)]" />
         </Link>
         <h1 className="text-2xl font-bold text-white tracking-tight hidden md:block">Feed</h1>
       </div>
