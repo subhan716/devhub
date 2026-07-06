@@ -57,12 +57,12 @@ const LandingPage = () => {
         <div className="flex w-[200%] animate-[marquee_20s_linear_infinite]">
           {[...Array(2)].map((_, index) => (
             <div key={index} className="flex justify-around w-1/2 items-center text-gray-500 font-mono text-xl md:text-2xl font-bold opacity-50">
-              <span>React</span><span className="text-[#00F0FF]">●</span>
-              <span>Node.js</span><span className="text-[#FF0055]">●</span>
-              <span>Python</span><span className="text-[#8A2BE2]">●</span>
-              <span>Docker</span><span className="text-[#00F0FF]">●</span>
-              <span>MongoDB</span><span className="text-[#FF0055]">●</span>
-              <span>GraphQL</span><span className="text-[#8A2BE2]">●</span>
+              <span>Engineering</span><span className="text-[#00F0FF]">●</span>
+              <span>Business</span><span className="text-[#FF0055]">●</span>
+              <span>Design</span><span className="text-[#8A2BE2]">●</span>
+              <span>Marketing</span><span className="text-[#00F0FF]">●</span>
+              <span>Management</span><span className="text-[#FF0055]">●</span>
+              <span>Startups</span><span className="text-[#8A2BE2]">●</span>
             </div>
           ))}
         </div>
@@ -72,16 +72,16 @@ const LandingPage = () => {
       <section id="features" className="py-24 relative z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-5xl font-bold mb-4">Engineered for Engineers</h2>
-            <p className="text-gray-400 max-w-2xl mx-auto">Leave the corporate noise behind. A platform built specifically to highlight your technical skills and code.</p>
+            <h2 className="text-3xl md:text-5xl font-bold mb-4">Built for Professionals</h2>
+            <p className="text-gray-400 max-w-2xl mx-auto">A unified platform for professionals across every field to connect, showcase their best work, and grow their network.</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {[{
-              icon: Code2, color: '#00F0FF', title: 'Code-First Profiles', desc: 'Showcase your stack, your GitHub commits, and your best projects in a profile that actually matters.'
+              icon: Users, color: '#00F0FF', title: 'Professional Profiles', desc: 'Showcase your skills, your portfolio, and your best accomplishments in a profile that actually matters.'
             }, {
-              icon: Users, color: '#FF0055', title: 'Niche Networking', desc: 'Connect with developers based on their exact tech stack. Need a React native expert? Find them instantly.'
+              icon: Briefcase, color: '#FF0055', title: 'Global Networking', desc: 'Connect with professionals based on their exact expertise. Need a startup founder or a marketing expert? Find them instantly.'
             }, {
-              icon: Briefcase, color: '#8A2BE2', title: 'Career Growth', desc: 'Discover opportunities or let recruiters find you based on your actual code, not just your resume keywords.'
+              icon: Rocket, color: '#8A2BE2', title: 'Career Growth', desc: 'Discover opportunities or let recruiters find you based on your actual work, not just your resume keywords.'
             }].map((feature, i) => (
               <motion.div key={i} whileHover={{ y: -10 }} className="p-8 rounded-2xl border border-white/10 bg-white/[0.02] backdrop-blur-xl relative overflow-hidden group">
                 <div className={`absolute top-0 right-0 w-32 h-32 blur-3xl transition-all opacity-10 group-hover:opacity-20`} style={{ backgroundColor: feature.color }} />
@@ -108,11 +108,11 @@ const LandingPage = () => {
             <div className="hidden md:block absolute top-12 left-[15%] right-[15%] h-[2px] bg-gradient-to-r from-[#00F0FF] via-[#8A2BE2] to-[#FF0055] opacity-20" />
 
             {[{
-              icon: TerminalSquare, step: "01", title: 'Create Identity', desc: 'Build your developer profile. Add your tech stack, bio, and social links.'
+              icon: Users, step: "01", title: 'Create Identity', desc: 'Build your professional profile. Add your expertise, bio, and portfolio links.'
             }, {
-              icon: GitBranch, step: "02", title: 'Share Code', desc: 'Post code snippets, architecture diagrams, or discuss algorithms with peers.'
+              icon: Briefcase, step: "02", title: 'Share Work', desc: 'Post your achievements, articles, or discuss industry trends with peers.'
             }, {
-              icon: Rocket, step: "03", title: 'Get Discovered', desc: 'Collaborate on open source, find co-founders, or land your next big tech role.'
+              icon: Rocket, step: "03", title: 'Get Discovered', desc: 'Collaborate on new ventures, find co-founders, or land your next big role.'
             }].map((item, i) => (
               <div key={i} className="relative flex flex-col items-center text-center">
                 <div className="w-24 h-24 rounded-full bg-[#0A0A0A] border border-white/10 flex items-center justify-center mb-6 relative z-10 shadow-[0_0_30px_rgba(0,0,0,0.5)]">
@@ -123,36 +123,6 @@ const LandingPage = () => {
                 </div>
                 <h3 className="text-xl font-bold mb-2">{item.title}</h3>
                 <p className="text-gray-400">{item.desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* 5. Social Proof / Testimonials */}
-      <section className="py-24 relative z-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl md:text-5xl font-bold mb-16 text-center">Loved by Senior Engineers</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[{
-              quote: "DevHub is the only platform where my code speaks louder than my resume. The community here is unmatched.", name: "Sarah J.", role: "Senior Frontend Engineer"
-            }, {
-              quote: "Finally, a networking site without the corporate fluff. Found my technical co-founder within a week.", name: "David M.", role: "Fullstack Developer"
-            }, {
-              quote: "The profile setup is amazing. Being able to list my specific stack means recruiters reach out with relevant jobs.", name: "Ali K.", role: "DevOps Architect"
-            }].map((test, i) => (
-              <div key={i} className="p-8 rounded-2xl bg-white/[0.02] border border-white/5 relative">
-                <Quote className="absolute top-6 right-6 text-white/5" size={40} />
-                <p className="text-gray-300 mb-6 relative z-10 leading-relaxed">"{test.quote}"</p>
-                <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-r from-[#00F0FF] to-[#8A2BE2] p-[2px]">
-                    <div className="w-full h-full bg-[#0A0A0A] rounded-full flex items-center justify-center text-xs font-bold">{test.name.charAt(0)}</div>
-                  </div>
-                  <div>
-                    <h4 className="font-bold text-sm">{test.name}</h4>
-                    <span className="text-xs text-gray-500">{test.role}</span>
-                  </div>
-                </div>
               </div>
             ))}
           </div>

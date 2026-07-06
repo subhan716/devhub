@@ -1,33 +1,57 @@
-import { Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, User, Search, Briefcase, MessageSquare, Settings, TerminalSquare, FolderGit2 } from 'lucide-react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { LayoutDashboard, User, Search, Briefcase, MessageSquare, Settings, TerminalSquare, LogOut } from 'lucide-react';
+import axios from 'axios';
+import toast from 'react-hot-toast';
+import { X } from 'lucide-react';
 
-const Sidebar = () => {
+const Sidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
   const location = useLocation();
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    try {
+      await axios.post('http://localhost:5000/api/auth/logout');
+      localStorage.removeItem('isAuthenticated');
+      toast.success('Signed out successfully');
+      navigate('/');
+    } catch (error) {
+      toast.error('Failed to sign out');
+    }
+  };
 
   const navLinks = [
     { name: 'Feed', path: '/feed', icon: <LayoutDashboard size={20} /> },
     { name: 'Profile', path: '/profile', icon: <User size={20} /> },
-    { name: 'Search', path: '/search', icon: <Search size={20} /> },
     { name: 'Jobs', path: '/jobs', icon: <Briefcase size={20} /> },
     { name: 'Messages', path: '/messages', icon: <MessageSquare size={20} /> },
     { name: 'Settings', path: '/settings', icon: <Settings size={20} /> },
   ];
 
-  const myProjects = [
-    { name: 'DevNet', path: '#' },
-    { name: 'SyntaxUI', path: '#' },
-  ];
-
   return (
-    <div className="w-64 h-screen fixed left-0 top-0 border-r border-white/5 bg-[#0a0a0a] flex flex-col pt-8 pb-6 px-6 z-10 hidden md:flex">
-      {/* Logo */}
-      <Link to="/feed" className="flex items-center gap-3 mb-10 group">
-        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#00F0FF] to-[#8A2BE2] p-[1px] relative overflow-hidden flex items-center justify-center">
-          <div className="absolute inset-0 bg-black/50 z-0"></div>
-          <TerminalSquare className="text-white z-10 w-5 h-5 relative" />
+    <>
+      {/* Mobile Overlay */}
+      {isMobileMenuOpen && (
+        <div 
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 md:hidden"
+          onClick={() => setIsMobileMenuOpen(false)}
+        ></div>
+      )}
+
+      {/* Sidebar Drawer */}
+      <div className={`w-64 h-screen fixed left-0 top-0 border-r border-white/5 bg-[#0a0a0a] flex flex-col pt-8 pb-6 px-6 z-50 transform ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0 transition-transform duration-300`}>
+        {/* Logo and Close Button */}
+        <div className="flex items-center justify-between mb-10">
+          <Link to="/feed" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 group">
+            <img src="/images/logo.png" alt="DevHub Logo" className="w-10 h-10 object-contain" />
+            <span className="text-xl font-bold text-white tracking-tight">DevHub</span>
+          </Link>
+          <button 
+            onClick={() => setIsMobileMenuOpen(false)}
+            className="md:hidden text-gray-400 hover:text-white"
+          >
+            <X size={24} />
+          </button>
         </div>
-        <span className="text-xl font-bold text-white tracking-tight">DevHub</span>
-      </Link>
 
       {/* Main Navigation */}
       <div className="flex flex-col gap-2 flex-1">
@@ -52,23 +76,18 @@ const Sidebar = () => {
         })}
       </div>
 
-      {/* My Projects Section */}
-      <div className="mt-8">
-        <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-4 px-4">My Projects</h3>
-        <div className="flex flex-col gap-2">
-          {myProjects.map((project) => (
-            <Link
-              key={project.name}
-              to={project.path}
-              className="flex items-center gap-3 px-4 py-2 text-sm text-gray-400 hover:text-white transition-colors"
-            >
-              <FolderGit2 size={16} className="text-gray-600" />
-              {project.name}
-            </Link>
-          ))}
-        </div>
+      {/* Logout Button */}
+      <div className="mt-auto pt-8 border-t border-white/5">
+        <button 
+          onClick={handleLogout}
+          className="flex w-full items-center gap-4 px-4 py-3 rounded-xl font-medium text-red-400 hover:bg-red-500/10 hover:text-red-500 transition-colors group"
+        >
+          <LogOut size={20} className="text-red-400/70 group-hover:text-red-500 transition-colors" />
+          Sign Out
+        </button>
       </div>
-    </div>
+      </div>
+    </>
   );
 };
 

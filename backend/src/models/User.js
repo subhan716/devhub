@@ -30,6 +30,11 @@ const userSchema = new mongoose.Schema(
       unique: true,
       sparse: true, // Allows multiple null values for non-Google users
     },
+    githubId: {
+      type: String,
+      unique: true,
+      sparse: true,
+    },
     role: {
       type: String,
       enum: ['user', 'admin'],

@@ -79,8 +79,9 @@ const SetupProfilePage = () => {
       }
       setIsSearchingCompany(true);
       try {
-        const res = await axios.get(`https://autocomplete.clearbit.com/v1/companies/suggest?query=${formData.company}`);
-        setSuggestions(res.data);
+        const response = await fetch(`https://autocomplete.clearbit.com/v1/companies/suggest?query=${formData.company}`);
+        const data = await response.json();
+        setSuggestions(data);
       } catch (err) {
         setSuggestions([]);
       } finally {
@@ -520,7 +521,7 @@ const SetupProfilePage = () => {
                 <button
                   type="button"
                   onClick={handleSkipStep1}
-                  className="flex-1 py-3 px-4 border border-white/10 rounded-lg text-sm font-bold text-gray-400 hover:text-white hover:bg-white/5 transition-all"
+                  className="flex-1 py-3 px-4 border border-white/10 rounded-lg text-sm font-bold text-gray-400 hover:text-white hover:bg-white/5 transition-all cursor-pointer"
                 >
                   Skip Onboarding
                 </button>
@@ -530,14 +531,14 @@ const SetupProfilePage = () => {
                   <button
                     type="button"
                     onClick={() => setStep(1)}
-                    className="flex-1 py-3 px-4 border border-white/20 rounded-lg text-sm font-bold text-white hover:bg-white/5 transition-all"
+                    className="flex-1 py-3 px-4 border border-white/20 rounded-lg text-sm font-bold text-white hover:bg-white/5 transition-all cursor-pointer"
                   >
                     Back
                   </button>
                   <button
                     type="button"
                     onClick={handleSkipStep2}
-                    className="flex-1 py-3 px-4 border border-white/10 rounded-lg text-sm font-bold text-gray-400 hover:text-white hover:bg-white/5 transition-all"
+                    className="flex-1 py-3 px-4 border border-white/10 rounded-lg text-sm font-bold text-gray-400 hover:text-white hover:bg-white/5 transition-all cursor-pointer"
                   >
                     Skip for now
                   </button>
@@ -546,7 +547,7 @@ const SetupProfilePage = () => {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className={`${step === 1 ? 'flex-[2]' : 'flex-[2]'} flex justify-center items-center gap-2 py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-bold text-black bg-gradient-to-r from-[#00F0FF] to-[#8A2BE2] hover:opacity-90 focus:outline-none transition-all disabled:opacity-50`}
+                className={`${step === 1 ? 'flex-[2]' : 'flex-[2]'} flex justify-center items-center gap-2 py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-bold text-black bg-gradient-to-r from-[#00F0FF] to-[#8A2BE2] hover:opacity-90 focus:outline-none transition-all disabled:opacity-50 cursor-pointer`}
               >
                 {step === 1 ? (
                   <>Continue <ArrowRight size={18} /></>

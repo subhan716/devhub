@@ -1,5 +1,6 @@
 const User = require('../models/User');
 const { generateAccessToken, generateRefreshToken } = require('../utils/generateToken');
+const axios = require('axios');
 
 // @desc    Register a new user
 // @route   POST /api/auth/register
@@ -36,7 +37,7 @@ const registerUser = async (req, res) => {
       res.cookie('jwt', accessToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV !== 'development',
-        sameSite: 'strict',
+        sameSite: 'lax',
         maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
       });
 
@@ -74,7 +75,7 @@ const loginUser = async (req, res) => {
       res.cookie('jwt', accessToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV !== 'development',
-        sameSite: 'strict',
+        sameSite: 'lax',
         maxAge: 30 * 24 * 60 * 60 * 1000,
       });
 
@@ -112,8 +113,179 @@ const logoutUser = async (req, res) => {
   }
 };
 
+// @desc    Get current logged in user
+// @route   GET /api/auth/me
+// @access  Private
+const getMe = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+    if (user) {
+      res.json({
+        _id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        avatar: user.avatar || { url: 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png' }
+      });
+    } else {
+      res.status(404).json({ message: 'User not found' });
+    }
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc    Redirect to Google OAuth
+// @route   GET /api/auth/google
+// @access  Public
+const googleAuth = (req, res) => {
+  const url = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${process.env.GOOGLE_CLIENT_ID}&redirect_uri=${process.env.GOOGLE_CALLBACK_URL}&response_type=code&scope=profile email`;
+  res.redirect(url);
+};
+
+// @desc    Google OAuth Callback
+// @route   GET /api/auth/google/callback
+// @access  Public
+const googleCallback = async (req, res) => {
+  try {
+    const { code } = req.query;
+    if (!code) return res.status(400).send('No code provided');
+
+    const { data } = await axios.post('https://oauth2.googleapis.com/token', {
+      client_id: process.env.GOOGLE_CLIENT_ID,
+      client_secret: process.env.GOOGLE_CLIENT_SECRET,
+      code,
+      redirect_uri: process.env.GOOGLE_CALLBACK_URL,
+      grant_type: 'authorization_code',
+    });
+
+    const { access_token } = data;
+    const { data: profile } = await axios.get('https://www.googleapis.com/oauth2/v2/userinfo', {
+      headers: { Authorization: `Bearer ${access_token}` },
+    });
+
+    let isNewUser = false;
+    let user = await User.findOne({ email: profile.email });
+    if (!user) {
+      isNewUser = true;
+      user = await User.create({
+        name: profile.name,
+        email: profile.email,
+        googleId: profile.id,
+        isVerified: true,
+      });
+    } else if (!user.googleId) {
+      user.googleId = profile.id;
+      await user.save();
+    }
+
+    const accessToken = generateAccessToken(user._id);
+    const refreshToken = generateRefreshToken(user._id);
+    user.refreshToken = refreshToken;
+    await user.save();
+
+    res.cookie('jwt', accessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV !== 'development',
+      sameSite: 'lax',
+      maxAge: 30 * 24 * 60 * 60 * 1000,
+    });
+
+    // Redirect based on whether it's a new registration or login
+    if (isNewUser) {
+      res.redirect(`${process.env.CLIENT_URL}/setup-profile?oauth=success`);
+    } else {
+      res.redirect(`${process.env.CLIENT_URL}/feed?oauth=success`);
+    }
+  } catch (error) {
+    console.error('Google Auth Error:', error.response?.data || error.message);
+    res.redirect(`${process.env.CLIENT_URL}/login?error=oauth_failed`);
+  }
+};
+
+// @desc    Redirect to GitHub OAuth
+// @route   GET /api/auth/github
+// @access  Public
+const githubAuth = (req, res) => {
+  const url = `https://github.com/login/oauth/authorize?client_id=${process.env.GITHUB_CLIENT_ID}&redirect_uri=${process.env.GITHUB_CALLBACK_URL}&scope=user:email`;
+  res.redirect(url);
+};
+
+// @desc    GitHub OAuth Callback
+// @route   GET /api/auth/github/callback
+// @access  Public
+const githubCallback = async (req, res) => {
+  try {
+    const { code } = req.query;
+    if (!code) return res.status(400).send('No code provided');
+
+    const { data } = await axios.post('https://github.com/login/oauth/access_token', {
+      client_id: process.env.GITHUB_CLIENT_ID,
+      client_secret: process.env.GITHUB_CLIENT_SECRET,
+      code,
+      redirect_uri: process.env.GITHUB_CALLBACK_URL,
+    }, {
+      headers: { Accept: 'application/json' }
+    });
+
+    const { access_token } = data;
+    const { data: profile } = await axios.get('https://api.github.com/user', {
+      headers: { Authorization: `Bearer ${access_token}` },
+    });
+
+    // GitHub emails might be private, fetch separately
+    const { data: emails } = await axios.get('https://api.github.com/user/emails', {
+      headers: { Authorization: `Bearer ${access_token}` },
+    });
+    
+    const primaryEmail = emails.find(e => e.primary)?.email || emails[0]?.email;
+    if (!primaryEmail) throw new Error('No email found from GitHub');
+
+    let isNewUser = false;
+    let user = await User.findOne({ email: primaryEmail });
+    if (!user) {
+      isNewUser = true;
+      user = await User.create({
+        name: profile.name || profile.login,
+        email: primaryEmail,
+        githubId: profile.id.toString(),
+        isVerified: true,
+      });
+    } else if (!user.githubId) {
+      user.githubId = profile.id.toString();
+      await user.save();
+    }
+
+    const accessToken = generateAccessToken(user._id);
+    const refreshToken = generateRefreshToken(user._id);
+    user.refreshToken = refreshToken;
+    await user.save();
+
+    res.cookie('jwt', accessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV !== 'development',
+      sameSite: 'lax',
+      maxAge: 30 * 24 * 60 * 60 * 1000,
+    });
+
+    if (isNewUser) {
+      res.redirect(`${process.env.CLIENT_URL}/setup-profile?oauth=success`);
+    } else {
+      res.redirect(`${process.env.CLIENT_URL}/feed?oauth=success`);
+    }
+  } catch (error) {
+    console.error('GitHub Auth Error:', error.response?.data || error.message);
+    res.redirect(`${process.env.CLIENT_URL}/login?error=oauth_failed`);
+  }
+};
+
 module.exports = {
   registerUser,
   loginUser,
   logoutUser,
+  getMe,
+  googleAuth,
+  googleCallback,
+  githubAuth,
+  githubCallback,
 };

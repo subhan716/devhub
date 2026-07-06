@@ -10,7 +10,6 @@ const createOrUpdateProfile = async (req, res) => {
   const profileFields = {};
   profileFields.user = req.user.id;
   if (company) profileFields.company = company;
-  if (website) profileFields.website = website;
   if (location) profileFields.location = location;
   if (bio) profileFields.bio = bio;
   if (status) profileFields.status = status;
@@ -21,13 +20,14 @@ const createOrUpdateProfile = async (req, res) => {
     profileFields.skills = Array.isArray(skills) ? skills : skills.split(',').map((skill) => skill.trim());
   }
 
-  // Build social object
-  profileFields.social = {};
-  if (youtube) profileFields.social.youtube = youtube;
-  if (twitter) profileFields.social.twitter = twitter;
-  if (facebook) profileFields.social.facebook = facebook;
-  if (linkedin) profileFields.social.linkedin = linkedin;
-  if (instagram) profileFields.social.instagram = instagram;
+  // Build socialLinks object
+  profileFields.socialLinks = {};
+  if (website) profileFields.socialLinks.website = website;
+  if (youtube) profileFields.socialLinks.youtube = youtube;
+  if (twitter) profileFields.socialLinks.twitter = twitter;
+  if (facebook) profileFields.socialLinks.facebook = facebook;
+  if (linkedin) profileFields.socialLinks.linkedin = linkedin;
+  if (instagram) profileFields.socialLinks.instagram = instagram;
 
   try {
     let profile = await Profile.findOne({ user: req.user.id });
