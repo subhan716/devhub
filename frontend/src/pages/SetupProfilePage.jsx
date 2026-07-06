@@ -266,7 +266,7 @@ const SetupProfilePage = () => {
           </div>
           <div className="w-full bg-white/10 rounded-full h-2">
             <div 
-              className="bg-gradient-to-r from-[#00F0FF] to-[#8A2BE2] h-2 rounded-full transition-all duration-500"
+              className="bg-[#00F0FF] shadow-[0_0_10px_rgba(0,240,255,0.5)] h-2 rounded-full transition-all duration-500"
               style={{ width: step === 1 ? '50%' : '100%' }}
             />
           </div>
@@ -555,8 +555,7 @@ const SetupProfilePage = () => {
               )}
               <button
                 type="submit"
-                disabled={isSubmitting}
-                className={`${step === 1 ? 'flex-[2]' : 'flex-[2]'} flex justify-center items-center gap-2 py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-bold text-black bg-gradient-to-r from-[#00F0FF] to-[#8A2BE2] hover:opacity-90 focus:outline-none transition-all disabled:opacity-50 cursor-pointer`}
+                className={`${step === 1 ? 'flex-[2]' : 'flex-[2]'} flex justify-center items-center gap-2 py-3 px-4 border border-transparent rounded-lg shadow-[0_0_15px_rgba(0,240,255,0.3)] hover:shadow-[0_0_20px_rgba(0,240,255,0.4)] text-sm font-bold text-black bg-[#00F0FF] hover:opacity-90 focus:outline-none transition-all disabled:opacity-50 cursor-pointer`}
               >
                 {step === 1 ? (
                   <>Continue <ArrowRight size={18} /></>

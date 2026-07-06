@@ -1,22 +1,22 @@
 import { useState, useEffect, useRef } from 'react';
 import { MapPin, Briefcase, Calendar, Link as LinkIcon, Heart, MessageCircle, Repeat2, GraduationCap, FolderGit2, FileText, Trash2, Plus, Edit3, Image } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
 import toast from 'react-hot-toast';
-import EditProfileModal from '../components/profile/EditProfileModal';
-import AddExperienceModal from '../components/profile/AddExperienceModal';
-import AddEducationModal from '../components/profile/AddEducationModal';
-import AddProjectModal from '../components/profile/AddProjectModal';
+import AddExperienceInline from '../components/profile/AddExperienceInline';
+import AddEducationInline from '../components/profile/AddEducationInline';
+import AddProjectInline from '../components/profile/AddProjectInline';
 
 const ProfilePage = () => {
   const [profile, setProfile] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [isExpModalOpen, setIsExpModalOpen] = useState(false);
-  const [isEduModalOpen, setIsEduModalOpen] = useState(false);
-  const [isProjectModalOpen, setIsProjectModalOpen] = useState(false);
+  const [isAddExpOpen, setIsAddExpOpen] = useState(false);
+  const [isAddEduOpen, setIsAddEduOpen] = useState(false);
+  const [isAddProjectOpen, setIsAddProjectOpen] = useState(false);
   const [uploadingResume, setUploadingResume] = useState(false);
   const resumeInputRef = useRef(null);
+  const navigate = useNavigate();
   const [isUploading, setIsUploading] = useState(false);
   const isOwner = true; // Always true for /profile/me
 
@@ -176,7 +176,7 @@ const ProfilePage = () => {
               </label>
             </div>
             <button 
-              onClick={() => setIsEditModalOpen(true)}
+              onClick={() => navigate('/settings')}
               className="px-6 py-2 bg-white/10 hover:bg-white/20 text-white rounded-full font-medium transition-colors cursor-pointer border border-white/10"
             >
               Edit Profile
@@ -243,12 +243,7 @@ const ProfilePage = () => {
                   <LinkIcon size={18} /> Personal Website
                 </a>
               )}
-              {profile.socialLinks?.twitter && (
-                <a href={profile.socialLinks.twitter} target="_blank" rel="noreferrer" className="flex items-center gap-3 text-gray-400 hover:text-[#1DA1F2] transition-colors cursor-pointer text-sm">
-                  <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400"><path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z"></path></svg>
-                  Twitter
-                </a>
-              )}
+
               {profile.socialLinks?.linkedin && (
                 <a href={profile.socialLinks.linkedin} target="_blank" rel="noreferrer" className="flex items-center gap-3 text-gray-400 hover:text-[#0A66C2] transition-colors cursor-pointer text-sm">
                   <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path><rect x="2" y="9" width="4" height="12"></rect><circle cx="4" cy="4" r="2"></circle></svg>
@@ -295,12 +290,17 @@ const ProfilePage = () => {
                 <Briefcase size={20} className="text-[#00F0FF]" /> Experience
               </h3>
               {isOwner && (
-                <button onClick={() => setIsExpModalOpen(true)} className="p-1.5 bg-white/5 hover:bg-white/10 rounded-lg text-gray-300 hover:text-white transition-colors cursor-pointer">
-                  <Plus size={18} />
+                <button onClick={() => setIsAddExpOpen(!isAddExpOpen)} className={`p-1.5 rounded-lg transition-colors cursor-pointer ${isAddExpOpen ? 'bg-white/10 text-white' : 'bg-white/5 hover:bg-white/10 text-gray-300 hover:text-white'}`}>
+                  <Plus size={18} className={`transform transition-transform ${isAddExpOpen ? 'rotate-45' : ''}`} />
                 </button>
               )}
             </div>
-            <div className="space-y-6">
+            
+            <AnimatePresence>
+              {isAddExpOpen && <AddExperienceInline onClose={() => setIsAddExpOpen(false)} onAdd={setProfile} />}
+            </AnimatePresence>
+
+            <div className={`space-y-6 ${isAddExpOpen ? 'mt-6' : ''}`}>
               {profile.experience && profile.experience.length > 0 ? (
                 profile.experience.map(exp => (
                   <div key={exp._id} className="relative group border-l-2 border-white/10 pl-4 pb-2">
@@ -335,12 +335,17 @@ const ProfilePage = () => {
                 <GraduationCap size={20} className="text-[#8A2BE2]" /> Education
               </h3>
               {isOwner && (
-                <button onClick={() => setIsEduModalOpen(true)} className="p-1.5 bg-white/5 hover:bg-white/10 rounded-lg text-gray-300 hover:text-white transition-colors cursor-pointer">
-                  <Plus size={18} />
+                <button onClick={() => setIsAddEduOpen(!isAddEduOpen)} className={`p-1.5 rounded-lg transition-colors cursor-pointer ${isAddEduOpen ? 'bg-white/10 text-white' : 'bg-white/5 hover:bg-white/10 text-gray-300 hover:text-white'}`}>
+                  <Plus size={18} className={`transform transition-transform ${isAddEduOpen ? 'rotate-45' : ''}`} />
                 </button>
               )}
             </div>
-            <div className="space-y-6">
+
+            <AnimatePresence>
+              {isAddEduOpen && <AddEducationInline onClose={() => setIsAddEduOpen(false)} onAdd={setProfile} />}
+            </AnimatePresence>
+
+            <div className={`space-y-6 ${isAddEduOpen ? 'mt-6' : ''}`}>
               {profile.education && profile.education.length > 0 ? (
                 profile.education.map(edu => (
                   <div key={edu._id} className="relative group border-l-2 border-white/10 pl-4 pb-2">
@@ -374,12 +379,17 @@ const ProfilePage = () => {
                 <FolderGit2 size={20} className="text-white" /> Projects
               </h3>
               {isOwner && (
-                <button onClick={() => setIsProjectModalOpen(true)} className="p-1.5 bg-white/5 hover:bg-white/10 rounded-lg text-gray-300 hover:text-white transition-colors cursor-pointer">
-                  <Plus size={18} />
+                <button onClick={() => setIsAddProjectOpen(!isAddProjectOpen)} className={`p-1.5 rounded-lg transition-colors cursor-pointer ${isAddProjectOpen ? 'bg-white/10 text-white' : 'bg-white/5 hover:bg-white/10 text-gray-300 hover:text-white'}`}>
+                  <Plus size={18} className={`transform transition-transform ${isAddProjectOpen ? 'rotate-45' : ''}`} />
                 </button>
               )}
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+
+            <AnimatePresence>
+              {isAddProjectOpen && <AddProjectInline onClose={() => setIsAddProjectOpen(false)} onAdd={setProfile} />}
+            </AnimatePresence>
+
+            <div className={`grid grid-cols-1 sm:grid-cols-2 gap-4 ${isAddProjectOpen ? 'mt-6' : ''}`}>
               {profile.projects && profile.projects.length > 0 ? (
                 profile.projects.map(prj => (
                   <div key={prj._id} className="group bg-black/30 border border-white/5 rounded-xl overflow-hidden hover:border-white/20 transition-all">
@@ -429,16 +439,6 @@ const ProfilePage = () => {
 
         </div>
       </div>
-
-      <EditProfileModal 
-        isOpen={isEditModalOpen}
-        onClose={() => setIsEditModalOpen(false)}
-        currentProfile={profile}
-        setProfile={setProfile}
-      />
-      <AddExperienceModal isOpen={isExpModalOpen} onClose={() => setIsExpModalOpen(false)} onAdd={setProfile} />
-      <AddEducationModal isOpen={isEduModalOpen} onClose={() => setIsEduModalOpen(false)} onAdd={setProfile} />
-      <AddProjectModal isOpen={isProjectModalOpen} onClose={() => setIsProjectModalOpen(false)} onAdd={setProfile} />
     </div>
   );
 };

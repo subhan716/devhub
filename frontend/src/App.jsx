@@ -7,6 +7,7 @@ import SetupProfilePage from './pages/SetupProfilePage';
 import FeedPage from './pages/FeedPage';
 import NotificationsPage from './pages/NotificationsPage';
 import ProfilePage from './pages/ProfilePage';
+import SettingsPage from './pages/SettingsPage';
 import JobsPage from './pages/JobsPage';
 import MainLayout from './components/layout/MainLayout';
 
@@ -115,6 +116,17 @@ function App() {
             }
           >
             <Route index element={<JobsPage />} />
+          </Route>
+
+          <Route
+            path="/settings"
+            element={
+              <ProtectedRoute>
+                <MainLayout />
+              </ProtectedRoute>
+            }
+          >
+            <Route index element={<SettingsPage />} />
           </Route>
 
           {/* Default Catch-all redirect to feed if logged in, else landing */}

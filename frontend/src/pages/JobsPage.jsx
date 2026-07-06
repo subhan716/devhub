@@ -74,7 +74,7 @@ const JobsPage = () => {
               className="w-full bg-[#0a0a0a] border border-white/10 rounded-xl py-3 pl-12 pr-4 text-white placeholder-gray-500 focus:outline-none focus:border-[#00F0FF]/50 focus:ring-1 focus:ring-[#00F0FF]/50 transition-all"
             />
           </div>
-          <button className="px-8 py-3 bg-gradient-to-r from-[#00F0FF] to-[#8A2BE2] text-white font-bold rounded-xl hover:opacity-90 transition-opacity cursor-pointer">
+          <button className="px-8 py-3 bg-[#00F0FF] text-black font-bold rounded-xl hover:opacity-90 transition-opacity cursor-pointer shadow-[0_0_15px_rgba(0,240,255,0.4)]">
             Search
           </button>
         </div>

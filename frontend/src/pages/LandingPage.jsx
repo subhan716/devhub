@@ -31,7 +31,7 @@ const LandingPage = () => {
               Connect with elite developers, showcase your code, and build your professional portfolio in an ecosystem designed exclusively for engineers.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4">
-              <Link to="/register" className="w-full sm:w-auto px-8 py-4 rounded-lg bg-gradient-to-r from-[#00F0FF] to-[#8A2BE2] text-white font-bold text-lg transition-transform hover:scale-105 shadow-[0_0_40px_rgba(138,43,226,0.4)]">
+              <Link to="/register" className="w-full sm:w-auto px-8 py-4 rounded-lg bg-[#00F0FF] hover:bg-[#00F0FF]/90 text-black font-bold text-lg transition-transform hover:scale-105 shadow-[0_0_20px_rgba(0,240,255,0.4)]">
                 Start Networking
               </Link>
               <a href="#features" className="w-full sm:w-auto px-8 py-4 rounded-lg border border-white/20 bg-white/5 hover:bg-white/10 text-white font-bold text-lg backdrop-blur-md transition-all">
