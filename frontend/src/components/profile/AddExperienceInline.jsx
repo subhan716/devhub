@@ -32,9 +32,15 @@ const AddExperienceInline = ({ onClose, onAdd }) => {
   const [isSearchingCompany, setIsSearchingCompany] = useState(false);
   const [isTitleFocused, setIsTitleFocused] = useState(false);
 
-  const titleSuggestions = (formData.title.trim().length > 0 && isTitleFocused)
-    ? statusOptions.filter(status => status.toLowerCase().includes(formData.title.toLowerCase())).slice(0, 5)
-    : [];
+  let titleSuggestions = [];
+  if (formData.title.trim().length > 0 && isTitleFocused) {
+    const matches = statusOptions
+      .filter(status => status.toLowerCase().includes(formData.title.toLowerCase()))
+      .slice(0, 5);
+    
+    const exactMatch = matches.some(m => m.toLowerCase() === formData.title.toLowerCase());
+    titleSuggestions = exactMatch ? matches : [formData.title, ...matches];
+  }
 
   useEffect(() => {
     const fetchCompanySuggestions = async () => {
@@ -117,13 +123,16 @@ const AddExperienceInline = ({ onClose, onAdd }) => {
                   {titleSuggestions.map((suggestion, idx) => (
                     <div 
                       key={idx} 
-                      className="px-4 py-2.5 text-xs text-gray-300 hover:bg-[#00F0FF]/10 hover:text-white cursor-pointer transition-colors"
+                      className="px-4 py-2.5 text-xs text-gray-300 hover:bg-[#00F0FF]/10 hover:text-white cursor-pointer transition-colors flex justify-between items-center"
                       onClick={() => {
                         setFormData({ ...formData, title: suggestion });
                         setIsTitleFocused(false);
                       }}
                     >
-                      {suggestion}
+                      <span>{suggestion}</span>
+                      {suggestion === formData.title && !statusOptions.includes(suggestion) && (
+                        <span className="text-[#00F0FF] text-[10px]">Use as typed</span>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -163,9 +172,13 @@ const AddExperienceInline = ({ onClose, onAdd }) => {
                             alt={company.name} 
                             className="w-5 h-5 rounded object-contain bg-white" 
                             onError={(e) => {
-                              // Fallback if logo fails to load
-                              e.target.style.display = 'none';
-                              e.target.nextSibling.style.display = 'flex';
+                              if (!e.target.dataset.fallback) {
+                                e.target.dataset.fallback = 'true';
+                                e.target.src = `https://s2.googleusercontent.com/s2/favicons?domain=${company.domain}&sz=64`;
+                              } else {
+                                e.target.style.display = 'none';
+                                if (e.target.nextSibling) e.target.nextSibling.style.display = 'flex';
+                              }
                             }}
                           />
                         ) : null}

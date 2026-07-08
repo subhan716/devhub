@@ -5,10 +5,20 @@ import axios from 'axios';
 import toast from 'react-hot-toast';
 
 const degreeOptions = [
-  'High School Diploma', 'Associate Degree', 'Bachelor of Science (B.S.)',
-  'Bachelor of Arts (B.A.)', 'Master of Science (M.S.)', 'Master of Arts (M.A.)',
-  'Master of Business Administration (MBA)', 'Doctor of Philosophy (Ph.D.)',
-  'Bootcamp Certificate', 'Professional Certificate'
+  'High School Diploma', 'GED', 'Associate of Arts (A.A.)', 'Associate of Science (A.S.)', 
+  'Associate of Applied Science (A.A.S.)', 'Bachelor of Arts (B.A.)', 'Bachelor of Science (B.S.)',
+  'Bachelor of Fine Arts (B.F.A.)', 'Bachelor of Architecture (B.Arch.)', 'Bachelor of Business Administration (B.B.A.)',
+  'Bachelor of Computer Science (B.Comp.Sc.)', 'Bachelor of Engineering (B.Eng.)',
+  'Bachelor of Technology (B.Tech.)', 'Bachelor of Information Technology (B.I.T.)',
+  'Bachelor of Medicine, Bachelor of Surgery (MBBS)', 'Master of Arts (M.A.)', 
+  'Master of Science (M.S.)', 'Master of Business Administration (M.B.A.)',
+  'Master of Fine Arts (M.F.A.)', 'Master of Public Health (M.P.H.)',
+  'Master of Engineering (M.Eng.)', 'Master of Technology (M.Tech.)',
+  'Master of Computer Applications (M.C.A.)', 'Doctor of Philosophy (Ph.D.)',
+  'Juris Doctor (J.D.)', 'Doctor of Medicine (M.D.)', 'Doctor of Education (Ed.D.)',
+  'Doctor of Business Administration (D.B.A.)', 'Postgraduate Certificate', 
+  'Postgraduate Diploma', 'Bootcamp Certificate', 'Professional Certificate',
+  'Diploma in Engineering', 'Advanced Diploma', 'Higher National Diploma (HND)'
 ];
 
 const fieldOfStudyOptions = [
@@ -36,13 +46,23 @@ const AddEducationInline = ({ onClose, onAdd }) => {
   const [isDegreeFocused, setIsDegreeFocused] = useState(false);
   const [isFieldFocused, setIsFieldFocused] = useState(false);
 
-  const degreeSuggestions = (formData.degree.trim().length > 0 && isDegreeFocused)
-    ? degreeOptions.filter(d => d.toLowerCase().includes(formData.degree.toLowerCase())).slice(0, 5)
-    : [];
+  let degreeSuggestions = [];
+  if (formData.degree.trim().length > 0 && isDegreeFocused) {
+    const matches = degreeOptions
+      .filter(d => d.toLowerCase().includes(formData.degree.toLowerCase()))
+      .slice(0, 5);
+    const exactMatch = matches.some(m => m.toLowerCase() === formData.degree.toLowerCase());
+    degreeSuggestions = exactMatch ? matches : [formData.degree, ...matches];
+  }
 
-  const fieldSuggestions = (formData.fieldOfStudy.trim().length > 0 && isFieldFocused)
-    ? fieldOfStudyOptions.filter(f => f.toLowerCase().includes(formData.fieldOfStudy.toLowerCase())).slice(0, 5)
-    : [];
+  let fieldSuggestions = [];
+  if (formData.fieldOfStudy.trim().length > 0 && isFieldFocused) {
+    const matches = fieldOfStudyOptions
+      .filter(f => f.toLowerCase().includes(formData.fieldOfStudy.toLowerCase()))
+      .slice(0, 5);
+    const exactMatch = matches.some(m => m.toLowerCase() === formData.fieldOfStudy.toLowerCase());
+    fieldSuggestions = exactMatch ? matches : [formData.fieldOfStudy, ...matches];
+  }
 
   useEffect(() => {
     const fetchSchoolSuggestions = async () => {
@@ -167,13 +187,16 @@ const AddEducationInline = ({ onClose, onAdd }) => {
                   {degreeSuggestions.map((suggestion, idx) => (
                     <div 
                       key={idx} 
-                      className="px-4 py-2.5 text-xs text-gray-300 hover:bg-[#00F0FF]/10 hover:text-white cursor-pointer transition-colors"
+                      className="px-4 py-2.5 text-xs text-gray-300 hover:bg-[#00F0FF]/10 hover:text-white cursor-pointer transition-colors flex justify-between items-center"
                       onClick={() => {
                         setFormData({ ...formData, degree: suggestion });
                         setIsDegreeFocused(false);
                       }}
                     >
-                      {suggestion}
+                      <span>{suggestion}</span>
+                      {suggestion === formData.degree && !degreeOptions.includes(suggestion) && (
+                        <span className="text-[#00F0FF] text-[10px]">Use as typed</span>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -198,13 +221,16 @@ const AddEducationInline = ({ onClose, onAdd }) => {
                   {fieldSuggestions.map((suggestion, idx) => (
                     <div 
                       key={idx} 
-                      className="px-4 py-2.5 text-xs text-gray-300 hover:bg-[#00F0FF]/10 hover:text-white cursor-pointer transition-colors"
+                      className="px-4 py-2.5 text-xs text-gray-300 hover:bg-[#00F0FF]/10 hover:text-white cursor-pointer transition-colors flex justify-between items-center"
                       onClick={() => {
                         setFormData({ ...formData, fieldOfStudy: suggestion });
                         setIsFieldFocused(false);
                       }}
                     >
-                      {suggestion}
+                      <span>{suggestion}</span>
+                      {suggestion === formData.fieldOfStudy && !fieldOfStudyOptions.includes(suggestion) && (
+                        <span className="text-[#00F0FF] text-[10px]">Use as typed</span>
+                      )}
                     </div>
                   ))}
                 </div>

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { MapPin, Briefcase, Calendar, Link as LinkIcon, Heart, MessageCircle, Repeat2, GraduationCap, FolderGit2, FileText, Trash2, Plus, Edit3, Image } from 'lucide-react';
+import { MapPin, Briefcase, Calendar, Link as LinkIcon, Heart, MessageCircle, Repeat2, GraduationCap, FolderGit2, FileText, Trash2, Plus, Edit3, Image, Copy } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
@@ -7,6 +7,9 @@ import toast from 'react-hot-toast';
 import AddExperienceInline from '../components/profile/AddExperienceInline';
 import AddEducationInline from '../components/profile/AddEducationInline';
 import AddProjectInline from '../components/profile/AddProjectInline';
+import ResumeTemplate from '../components/profile/ResumeTemplate';
+import { jsPDF } from 'jspdf';
+import html2canvas from 'html2canvas';
 
 const ProfilePage = () => {
   const [profile, setProfile] = useState(null);
@@ -14,10 +17,20 @@ const ProfilePage = () => {
   const [isAddExpOpen, setIsAddExpOpen] = useState(false);
   const [isAddEduOpen, setIsAddEduOpen] = useState(false);
   const [isAddProjectOpen, setIsAddProjectOpen] = useState(false);
+  const [editingProjectId, setEditingProjectId] = useState(null);
   const [uploadingResume, setUploadingResume] = useState(false);
   const resumeInputRef = useRef(null);
+  const projectsScrollRef = useRef(null);
   const navigate = useNavigate();
   const [isUploading, setIsUploading] = useState(false);
+  
+  const [showAllExp, setShowAllExp] = useState(false);
+  const [showAllEdu, setShowAllEdu] = useState(false);
+  const [showAllProjects, setShowAllProjects] = useState(false);
+
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
+  const resumePdfRef = useRef(null);
+
   const isOwner = true; // Always true for /profile/me
 
   useEffect(() => {
@@ -38,6 +51,24 @@ const ProfilePage = () => {
     };
     fetchProfile();
   }, []);
+
+  useEffect(() => {
+    const el = projectsScrollRef.current;
+    if (!el) return;
+
+    const handleWheel = (e) => {
+      // If shift is pressed or it's a native horizontal scroll (like trackpad), let browser handle
+      if (e.shiftKey || Math.abs(e.deltaX) > Math.abs(e.deltaY)) return;
+
+      // Convert vertical scroll to horizontal and stop Lenis from scrolling the page
+      e.preventDefault();
+      e.stopPropagation();
+      el.scrollBy({ left: e.deltaY * 1.5, behavior: 'auto' });
+    };
+
+    el.addEventListener('wheel', handleWheel, { passive: false });
+    return () => el.removeEventListener('wheel', handleWheel);
+  }, [profile?.projects, showAllProjects]);
 
   const handleImageUpload = async (e, type) => {
     const file = e.target.files[0];
@@ -61,7 +92,7 @@ const ProfilePage = () => {
       } else {
         setProfile(prev => ({ ...prev, coverImage: { url: data.url } }));
       }
-      
+
       toast.success(`${type} updated successfully!`, { id: loadingToast });
     } catch (error) {
       toast.error(error.response?.data?.message || `Failed to upload ${type}`, { id: loadingToast });
@@ -117,9 +148,51 @@ const ProfilePage = () => {
     try {
       const { data } = await axios.delete(`http://localhost:5000/api/profile/projects/${id}`, { withCredentials: true });
       setProfile(data);
-      toast.success('Project deleted');
+      toast.success('Project removed');
     } catch (error) {
-      toast.error('Failed to delete project');
+      toast.error('Failed to remove project');
+    }
+  };
+
+  const handleDuplicateProject = async (prj) => {
+    try {
+      const duplicateData = {
+        title: prj.title + ' (Copy)',
+        description: prj.description,
+        repositoryUrl: prj.repositoryUrl,
+        liveUrl: prj.liveUrl,
+        technologies: Array.isArray(prj.technologies) ? prj.technologies.join(', ') : prj.technologies
+      };
+      const { data } = await axios.put('http://localhost:5000/api/profile/projects', duplicateData, { withCredentials: true });
+      setProfile(data);
+      toast.success('Project duplicated!');
+    } catch (error) {
+      toast.error('Failed to duplicate project');
+    }
+  };
+
+  const handleDownloadPdf = async () => {
+    if (!resumePdfRef.current) return;
+    setIsGeneratingPdf(true);
+    const toastId = toast.loading('Generating PDF...');
+    try {
+      // Unhide temporarily to capture perfectly without scrollbar issues
+      resumePdfRef.current.style.display = 'block';
+      const canvas = await html2canvas(resumePdfRef.current, { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
+      resumePdfRef.current.style.display = '';
+
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+      
+      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+      pdf.save(`${profile.user?.name.replace(/\s+/g, '_')}_DevHub_Resume.pdf`);
+      toast.success('Resume downloaded successfully!', { id: toastId });
+    } catch (error) {
+      toast.error('Failed to generate PDF', { id: toastId });
+    } finally {
+      setIsGeneratingPdf(false);
     }
   };
 
@@ -145,9 +218,9 @@ const ProfilePage = () => {
       {/* Cover & Avatar Header */}
       <div className="relative rounded-2xl overflow-hidden mb-8 border border-white/10 bg-[#111]">
         {/* Cover Photo */}
-        <div 
-          className="h-48 w-full relative" 
-          style={{ 
+        <div
+          className="h-48 w-full relative"
+          style={{
             backgroundColor: profile.coverImage?.url ? 'transparent' : '#1a1a1a',
             backgroundImage: profile.coverImage?.url ? `url(${profile.coverImage.url})` : 'none',
             backgroundSize: 'cover',
@@ -165,9 +238,9 @@ const ProfilePage = () => {
         <div className="px-6 pb-6 relative">
           <div className="flex justify-between items-end -mt-16 mb-4">
             <div className="relative">
-              <img 
-                src={profile.user?.avatar?.url || 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png'} 
-                alt="Profile" 
+              <img
+                src={profile.user?.avatar?.url || 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png'}
+                alt="Profile"
                 className="w-32 h-32 rounded-full border-4 border-[#111] object-cover bg-[#111]"
               />
               <label className="absolute bottom-0 right-0 p-2 bg-[#00F0FF] text-black rounded-full hover:bg-white transition-colors cursor-pointer shadow-lg z-10">
@@ -175,12 +248,28 @@ const ProfilePage = () => {
                 <input type="file" className="hidden" accept="image/*" onChange={(e) => handleImageUpload(e, 'avatar')} disabled={isUploading} />
               </label>
             </div>
-            <button 
-              onClick={() => navigate('/settings')}
-              className="px-6 py-2 bg-white/10 hover:bg-white/20 text-white rounded-full font-medium transition-colors cursor-pointer border border-white/10"
-            >
-              Edit Profile
-            </button>
+            {isOwner ? (
+              <div className="flex gap-2">
+                <button onClick={() => navigate('/settings')} className="bg-[#00F0FF] hover:bg-[#00F0FF]/90 text-black px-6 py-2 rounded-lg font-bold transition-all text-sm shadow-[0_0_15px_rgba(0,240,255,0.3)] cursor-pointer">
+                  Edit Profile
+                </button>
+                <button onClick={handleDownloadPdf} disabled={isGeneratingPdf} className="bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-lg font-bold transition-all flex items-center gap-2 text-sm border border-white/5 disabled:opacity-50 cursor-pointer">
+                  <FileText size={16} /> {isGeneratingPdf ? 'Wait...' : 'Save to PDF'}
+                </button>
+              </div>
+            ) : (
+              <div className="flex gap-2">
+                <button className="bg-[#00F0FF] hover:bg-[#00F0FF]/90 text-black px-6 py-2 rounded-lg font-bold transition-all text-sm shadow-[0_0_15px_rgba(0,240,255,0.3)] cursor-pointer">
+                  Follow
+                </button>
+                <button className="bg-white/10 hover:bg-white/20 p-2.5 rounded-lg text-white transition-all cursor-pointer">
+                  <MessageCircle size={18} />
+                </button>
+                <button onClick={handleDownloadPdf} disabled={isGeneratingPdf} title="Save to PDF" className="bg-white/10 hover:bg-white/20 p-2.5 rounded-lg text-white transition-all border border-white/5 disabled:opacity-50 cursor-pointer">
+                  <FileText size={18} />
+                </button>
+              </div>
+            )}
           </div>
 
           <div>
@@ -217,7 +306,7 @@ const ProfilePage = () => {
           {/* Skills */}
           {profile.skills && profile.skills.length > 0 && (
             <div className="bg-[#111] border border-white/5 rounded-2xl p-5 shadow-lg">
-              <h3 className="text-white font-bold mb-4">Tech Stack</h3>
+              <h3 className="text-white font-bold mb-4">Skills</h3>
               <div className="flex flex-wrap gap-2">
                 {profile.skills.map(skill => (
                   <span key={skill} className="px-3 py-1 bg-white/5 border border-white/10 rounded-full text-xs text-gray-300">
@@ -282,7 +371,7 @@ const ProfilePage = () => {
 
         {/* Right Column: Experience, Education, Projects */}
         <div className="md:col-span-2 space-y-6">
-          
+
           {/* Experience */}
           <div className="bg-[#111] border border-white/5 rounded-2xl p-6 shadow-lg">
             <div className="flex justify-between items-center mb-6">
@@ -295,33 +384,45 @@ const ProfilePage = () => {
                 </button>
               )}
             </div>
-            
+
             <AnimatePresence>
               {isAddExpOpen && <AddExperienceInline onClose={() => setIsAddExpOpen(false)} onAdd={setProfile} />}
             </AnimatePresence>
 
             <div className={`space-y-6 ${isAddExpOpen ? 'mt-6' : ''}`}>
               {profile.experience && profile.experience.length > 0 ? (
-                profile.experience.map(exp => (
-                  <div key={exp._id} className="relative group border-l-2 border-white/10 pl-4 pb-2">
-                    <div className="absolute w-3 h-3 bg-[#111] border-2 border-[#00F0FF] rounded-full -left-[7px] top-1.5"></div>
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <h4 className="text-white font-semibold">{exp.title}</h4>
-                        <p className="text-gray-400 text-sm">{exp.company}</p>
-                        <p className="text-xs text-gray-500 mt-1">
-                          {new Date(exp.from).toLocaleDateString()} - {exp.current ? 'Present' : (exp.to ? new Date(exp.to).toLocaleDateString() : '')}
-                        </p>
+                <>
+                  {(showAllExp ? profile.experience : profile.experience.slice(0, 3)).map(exp => (
+                    <div key={exp._id} className="relative group border-l-2 border-white/10 pl-4 pb-2">
+                      <div className="absolute w-3 h-3 bg-[#111] border-2 border-[#00F0FF] rounded-full -left-[7px] top-1.5"></div>
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <h4 className="text-white font-semibold">{exp.title}</h4>
+                          <p className="text-gray-400 text-sm">{exp.company}</p>
+                          <p className="text-xs text-gray-500 mt-1">
+                            {new Date(exp.from).toLocaleDateString()} - {exp.current ? 'Present' : (exp.to ? new Date(exp.to).toLocaleDateString() : '')}
+                          </p>
+                        </div>
+                        {isOwner && (
+                          <button onClick={() => handleDeleteExperience(exp._id)} className="opacity-0 group-hover:opacity-100 p-1.5 text-gray-500 hover:text-red-500 transition-all cursor-pointer">
+                            <Trash2 size={16} />
+                          </button>
+                        )}
                       </div>
-                      {isOwner && (
-                        <button onClick={() => handleDeleteExperience(exp._id)} className="opacity-0 group-hover:opacity-100 p-1.5 text-gray-500 hover:text-red-500 transition-all cursor-pointer">
-                          <Trash2 size={16} />
-                        </button>
-                      )}
+                      {exp.description && <p className="text-sm text-gray-300 mt-3 whitespace-pre-wrap">{exp.description}</p>}
                     </div>
-                    {exp.description && <p className="text-sm text-gray-300 mt-3 whitespace-pre-wrap">{exp.description}</p>}
-                  </div>
-                ))
+                  ))}
+                  {profile.experience.length > 3 && (
+                    <div className="flex justify-center mt-4">
+                      <button 
+                        onClick={() => setShowAllExp(!showAllExp)} 
+                        className="text-xs font-medium text-gray-400 hover:text-white transition-colors cursor-pointer"
+                      >
+                        {showAllExp ? 'Show Less' : `Show all ${profile.experience.length} experiences`}
+                      </button>
+                    </div>
+                  )}
+                </>
               ) : (
                 <p className="text-sm text-gray-500 text-center py-4">No experience added yet.</p>
               )}
@@ -347,25 +448,37 @@ const ProfilePage = () => {
 
             <div className={`space-y-6 ${isAddEduOpen ? 'mt-6' : ''}`}>
               {profile.education && profile.education.length > 0 ? (
-                profile.education.map(edu => (
-                  <div key={edu._id} className="relative group border-l-2 border-white/10 pl-4 pb-2">
-                    <div className="absolute w-3 h-3 bg-[#111] border-2 border-[#8A2BE2] rounded-full -left-[7px] top-1.5"></div>
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <h4 className="text-white font-semibold">{edu.school}</h4>
-                        <p className="text-gray-400 text-sm">{edu.degree} in {edu.fieldOfStudy}</p>
-                        <p className="text-xs text-gray-500 mt-1">
-                          {new Date(edu.from).toLocaleDateString()} - {edu.current ? 'Present' : (edu.to ? new Date(edu.to).toLocaleDateString() : '')}
-                        </p>
+                <>
+                  {(showAllEdu ? profile.education : profile.education.slice(0, 3)).map(edu => (
+                    <div key={edu._id} className="relative group border-l-2 border-white/10 pl-4 pb-2">
+                      <div className="absolute w-3 h-3 bg-[#111] border-2 border-[#8A2BE2] rounded-full -left-[7px] top-1.5"></div>
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <h4 className="text-white font-semibold">{edu.school}</h4>
+                          <p className="text-gray-400 text-sm">{edu.degree} in {edu.fieldOfStudy}</p>
+                          <p className="text-xs text-gray-500 mt-1">
+                            {new Date(edu.from).toLocaleDateString()} - {edu.current ? 'Present' : (edu.to ? new Date(edu.to).toLocaleDateString() : '')}
+                          </p>
+                        </div>
+                        {isOwner && (
+                          <button onClick={() => handleDeleteEducation(edu._id)} className="opacity-0 group-hover:opacity-100 p-1.5 text-gray-500 hover:text-red-500 transition-all cursor-pointer">
+                            <Trash2 size={16} />
+                          </button>
+                        )}
                       </div>
-                      {isOwner && (
-                        <button onClick={() => handleDeleteEducation(edu._id)} className="opacity-0 group-hover:opacity-100 p-1.5 text-gray-500 hover:text-red-500 transition-all cursor-pointer">
-                          <Trash2 size={16} />
-                        </button>
-                      )}
                     </div>
-                  </div>
-                ))
+                  ))}
+                  {profile.education.length > 3 && (
+                    <div className="flex justify-center mt-4">
+                      <button 
+                        onClick={() => setShowAllEdu(!showAllEdu)} 
+                        className="text-xs font-medium text-gray-400 hover:text-white transition-colors cursor-pointer"
+                      >
+                        {showAllEdu ? 'Show Less' : `Show all ${profile.education.length} educations`}
+                      </button>
+                    </div>
+                  )}
+                </>
               ) : (
                 <p className="text-sm text-gray-500 text-center py-4">No education added yet.</p>
               )}
@@ -386,49 +499,73 @@ const ProfilePage = () => {
             </div>
 
             <AnimatePresence>
-              {isAddProjectOpen && <AddProjectInline onClose={() => setIsAddProjectOpen(false)} onAdd={setProfile} />}
+              {(isAddProjectOpen || editingProjectId) && (
+                <AddProjectInline 
+                  initialData={editingProjectId ? profile.projects.find(p => p._id === editingProjectId) : null}
+                  onClose={() => {
+                    setIsAddProjectOpen(false);
+                    setEditingProjectId(null);
+                  }} 
+                  onAdd={(data) => {
+                    setProfile(data);
+                    setIsAddProjectOpen(false);
+                    setEditingProjectId(null);
+                  }} 
+                />
+              )}
             </AnimatePresence>
 
-            <div className={`grid grid-cols-1 sm:grid-cols-2 gap-4 ${isAddProjectOpen ? 'mt-6' : ''}`}>
+            <div ref={projectsScrollRef} data-lenis-prevent="true" className={`flex overflow-x-auto overscroll-none snap-x snap-mandatory gap-4 pb-6 scrollbar-thin scrollbar-thumb-[#00F0FF]/30 scrollbar-track-transparent hover:scrollbar-thumb-[#00F0FF]/50 ${isAddProjectOpen || editingProjectId ? 'mt-6' : ''}`}>
               {profile.projects && profile.projects.length > 0 ? (
-                profile.projects.map(prj => (
-                  <div key={prj._id} className="group bg-black/30 border border-white/5 rounded-xl overflow-hidden hover:border-white/20 transition-all">
-                    {prj.image?.url && (
-                      <div className="w-full h-32 overflow-hidden bg-gray-900">
-                        <img src={prj.image.url} alt={prj.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                      </div>
-                    )}
-                    <div className="p-4 relative">
-                      {isOwner && (
-                        <button onClick={() => handleDeleteProject(prj._id)} className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 p-1.5 bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white rounded-lg transition-all cursor-pointer">
-                          <Trash2 size={14} />
-                        </button>
-                      )}
-                      <h4 className="text-white font-bold text-sm mb-1">{prj.title}</h4>
-                      <p className="text-xs text-gray-400 line-clamp-2 mb-3">{prj.description}</p>
-                      {prj.technologies && prj.technologies.length > 0 && (
-                        <div className="flex flex-wrap gap-1 mb-3">
-                          {prj.technologies.slice(0, 3).map(tech => (
-                            <span key={tech} className="px-2 py-0.5 bg-white/5 text-[10px] text-gray-300 rounded-sm">{tech}</span>
-                          ))}
-                          {prj.technologies.length > 3 && <span className="px-2 py-0.5 bg-white/5 text-[10px] text-gray-300 rounded-sm">+{prj.technologies.length - 3}</span>}
+                <>
+                  {profile.projects.map(prj => (
+                    <div key={prj._id} className="min-w-[280px] sm:min-w-[340px] max-w-[280px] sm:max-w-[340px] flex-shrink-0 snap-start group bg-black/30 border border-white/5 rounded-xl overflow-hidden hover:border-white/20 transition-all flex flex-col">
+                      {prj.image?.url && (
+                        <div className="w-full h-32 overflow-hidden bg-gray-900">
+                          <img src={prj.image.url} alt={prj.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                         </div>
                       )}
-                      <div className="flex items-center gap-3 mt-auto">
-                        {prj.liveUrl && (
-                          <a href={prj.liveUrl} target="_blank" rel="noreferrer" className="text-xs font-medium text-[#00F0FF] hover:underline flex items-center gap-1">
-                            <LinkIcon size={12} /> Live
-                          </a>
+                      <div className="p-4 relative">
+                        {isOwner && (
+                          <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 flex items-center gap-1 bg-[#1a1a1a]/90 backdrop-blur-sm border border-white/10 rounded-lg p-1 shadow-[0_4px_12px_rgba(0,0,0,0.5)] transition-opacity duration-300">
+                            <button onClick={() => setEditingProjectId(prj._id)} title="Edit" className="p-1.5 text-blue-400 hover:bg-blue-500 hover:text-white rounded-md transition-all cursor-pointer">
+                              <Edit3 size={14} />
+                            </button>
+                            <button onClick={() => handleDuplicateProject(prj)} title="Duplicate" className="p-1.5 text-purple-400 hover:bg-purple-500 hover:text-white rounded-md transition-all cursor-pointer">
+                              <Copy size={14} />
+                            </button>
+                            <div className="w-[1px] h-4 bg-white/10 mx-0.5"></div>
+                            <button onClick={() => handleDeleteProject(prj._id)} title="Delete" className="p-1.5 text-red-500 hover:bg-red-500 hover:text-white rounded-md transition-all cursor-pointer">
+                              <Trash2 size={14} />
+                            </button>
+                          </div>
                         )}
-                        {prj.repositoryUrl && (
-                          <a href={prj.repositoryUrl} target="_blank" rel="noreferrer" className="text-xs font-medium text-gray-400 hover:text-white transition-colors flex items-center gap-1">
-                            <FolderGit2 size={12} /> Repo
-                          </a>
+                        <h4 className="text-white font-bold text-sm mb-1 pr-14">{prj.title}</h4>
+                        <p className="text-xs text-gray-400 line-clamp-2 mb-3">{prj.description}</p>
+                        {prj.technologies && prj.technologies.length > 0 && Array.isArray(prj.technologies) && (
+                          <div className="flex flex-wrap gap-1 mb-3">
+                            {prj.technologies.slice(0, 3).map(tech => (
+                              <span key={tech} className="px-2 py-0.5 bg-white/5 text-[10px] text-gray-300 rounded-sm">{tech}</span>
+                            ))}
+                            {prj.technologies.length > 3 && <span className="px-2 py-0.5 bg-white/5 text-[10px] text-gray-300 rounded-sm">+{prj.technologies.length - 3}</span>}
+                          </div>
                         )}
+                        <div className="flex items-center gap-3 mt-auto">
+                          {prj.liveUrl && (
+                            <a href={prj.liveUrl} target="_blank" rel="noreferrer" className="text-xs font-medium text-[#00F0FF] hover:underline flex items-center gap-1">
+                              <LinkIcon size={12} /> Live
+                            </a>
+                          )}
+                          {prj.repositoryUrl && (
+                            <a href={prj.repositoryUrl} target="_blank" rel="noreferrer" className="text-xs font-medium text-gray-400 hover:text-white transition-colors flex items-center gap-1">
+                              <FolderGit2 size={12} /> Repo
+                            </a>
+                          )}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))
+                  ))}
+                </>
               ) : (
                 <div className="col-span-full text-sm text-gray-500 text-center py-6">
                   No projects added yet.
@@ -439,6 +576,7 @@ const ProfilePage = () => {
 
         </div>
       </div>
+      <ResumeTemplate profile={profile} ref={resumePdfRef} />
     </div>
   );
 };

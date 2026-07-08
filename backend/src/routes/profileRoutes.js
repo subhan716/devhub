@@ -8,7 +8,8 @@ const {
   addEducation,
   deleteEducation,
   addProject,
-  deleteProject
+  deleteProject,
+  editProject
 } = require('../controllers/profileController');
 const { protect } = require('../middleware/authMiddleware');
 
@@ -25,6 +26,7 @@ router.delete('/education/:edu_id', protect, deleteEducation);
 
 // Projects routes
 router.put('/projects', protect, addProject);
+router.put('/projects/:prj_id', protect, editProject);
 router.delete('/projects/:prj_id', protect, deleteProject);
 
 module.exports = router;

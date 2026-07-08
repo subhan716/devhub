@@ -1,5 +1,8 @@
+import { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
+import Lenis from 'lenis';
+import 'lenis/dist/lenis.css';
 import LandingPage from './pages/LandingPage';
 import RegisterPage from './pages/RegisterPage';
 import LoginPage from './pages/LoginPage';
@@ -21,12 +24,35 @@ const ProtectedRoute = ({ children }) => {
 };
 
 function App() {
-  // Check for OAuth success in URL across the entire app on load
   if (typeof window !== 'undefined' && window.location.search.includes('oauth=success')) {
     localStorage.setItem('isAuthenticated', 'true');
     // Clean up the URL
     window.history.replaceState({}, document.title, window.location.pathname);
   }
+
+  useEffect(() => {
+    const lenis = new Lenis({
+      duration: 1.2,
+      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+      direction: 'vertical',
+      gestureDirection: 'vertical',
+      smooth: true,
+      mouseMultiplier: 1,
+      smoothTouch: false,
+      touchMultiplier: 2,
+    });
+
+    function raf(time) {
+      lenis.raf(time);
+      requestAnimationFrame(raf);
+    }
+
+    requestAnimationFrame(raf);
+
+    return () => {
+      lenis.destroy();
+    };
+  }, []);
 
   return (
     <>

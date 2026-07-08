@@ -17,6 +17,7 @@ This file documents all external libraries, frameworks, and packages installed i
 | `@react-three/drei` | Useful helpers for react-three-fiber |
 | `tailwind-scrollbar` | Custom cross-browser scrollbar styling |
 | `react-syntax-highlighter` | Syntax highlighting for code snippets in posts |
+| `lenis` | High-performance buttery smooth scrolling library |
 
 ## Backend (Node.js + Express)
 | Package Name | Purpose |

@@ -166,6 +166,29 @@ const deleteProject = async (req, res) => {
   }
 };
 
+// @desc    Edit profile project
+// @route   PUT /api/profile/projects/:prj_id
+// @access  Private
+const editProject = async (req, res) => {
+  try {
+    const profile = await Profile.findOne({ user: req.user.id });
+    const projectIndex = profile.projects.findIndex(
+      (prj) => prj._id.toString() === req.params.prj_id
+    );
+
+    if (projectIndex === -1) {
+      return res.status(404).json({ message: 'Project not found' });
+    }
+
+    profile.projects[projectIndex] = { _id: req.params.prj_id, ...req.body };
+    await profile.save();
+    res.json(profile);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server Error');
+  }
+};
+
 module.exports = { 
   createOrUpdateProfile, 
   getCurrentProfile,
@@ -174,5 +197,6 @@ module.exports = {
   addEducation,
   deleteEducation,
   addProject,
-  deleteProject
+  deleteProject,
+  editProject
 };
