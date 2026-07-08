@@ -63,4 +63,34 @@ const getPosts = async (req, res) => {
   }
 };
 
-module.exports = { createPost, getPosts };
+// @desc    Get user posts
+// @route   GET /api/posts/user/:user_id
+// @access  Private
+const getUserPosts = async (req, res) => {
+  try {
+    const posts = await Post.find({ author: req.params.user_id })
+      .sort({ createdAt: -1 })
+      .populate('author', 'name avatar');
+    
+    const postsWithProfiles = await Promise.all(posts.map(async (post) => {
+      const profile = await Profile.findOne({ user: post.author._id });
+      return {
+        ...post._doc,
+        authorProfile: profile ? {
+          status: profile.status,
+          handle: profile.githubusername || post.author.name.toLowerCase().replace(/\s+/g, ''),
+        } : { status: 'Developer', handle: 'dev' }
+      };
+    }));
+
+    res.json(postsWithProfiles);
+  } catch (err) {
+    console.error(err.message);
+    if (err.kind === 'ObjectId') {
+      return res.status(404).json({ msg: 'Post not found' });
+    }
+    res.status(500).send('Server Error');
+  }
+};
+
+module.exports = { createPost, getPosts, getUserPosts };

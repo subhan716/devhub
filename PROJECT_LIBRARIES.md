@@ -18,6 +18,9 @@ This file documents all external libraries, frameworks, and packages installed i
 | `tailwind-scrollbar` | Custom cross-browser scrollbar styling |
 | `react-syntax-highlighter` | Syntax highlighting for code snippets in posts |
 | `lenis` | High-performance buttery smooth scrolling library |
+| `jspdf` | Generating PDF files on the client side for Resume export |
+| `html2canvas` | Capturing DOM elements as images for PDF generation |
+| `react-github-calendar` | Rendering dynamic GitHub activity graphs |
 
 ## Backend (Node.js + Express)
 | Package Name | Purpose |

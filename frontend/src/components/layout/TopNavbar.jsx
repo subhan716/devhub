@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
 import toast from 'react-hot-toast';
+import ConfirmModal from '../common/ConfirmModal';
 
 // Dummy Notifications Data
 const DUMMY_NOTIFICATIONS = [
@@ -16,6 +17,10 @@ const DUMMY_NOTIFICATIONS = [
 const TopNavbar = ({ setIsMobileMenuOpen, currentUser }) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isNotifOpen, setIsNotifOpen] = useState(false);
+  const [notifications, setNotifications] = useState([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
+  
   const notifRef = useRef(null);
   const profileRef = useRef(null);
   const navigate = useNavigate();
@@ -187,8 +192,8 @@ const TopNavbar = ({ setIsMobileMenuOpen, currentUser }) => {
                 </Link>
                 <div className="h-px bg-white/10 my-1 w-full"></div>
                 <button 
-                  onClick={handleLogout}
-                  className="w-full flex items-center gap-2 px-4 py-3 text-sm text-red-400 hover:bg-red-500/10 transition-colors text-left"
+                  onClick={() => setIsLogoutModalOpen(true)}
+                  className="w-full flex items-center gap-2 px-4 py-3 text-sm text-red-400 hover:bg-red-500/10 transition-colors text-left cursor-pointer"
                 >
                   <LogOut size={16} /> Sign Out
                 </button>
@@ -197,6 +202,16 @@ const TopNavbar = ({ setIsMobileMenuOpen, currentUser }) => {
           </AnimatePresence>
         </div>
       </div>
+
+      <ConfirmModal 
+        isOpen={isLogoutModalOpen}
+        onClose={() => setIsLogoutModalOpen(false)}
+        onConfirm={handleLogout}
+        title="Sign Out"
+        message="Are you sure you want to sign out of DevHub?"
+        confirmText="Sign Out"
+        isDestructive={true}
+      />
     </div>
   );
 };

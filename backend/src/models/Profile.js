@@ -84,6 +84,9 @@ const profileSchema = new mongoose.Schema(
       twitter: { type: String },
       website: { type: String },
     },
+    followers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+    following: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+    views: { type: Number, default: 0 },
   },
   {
     timestamps: true,
