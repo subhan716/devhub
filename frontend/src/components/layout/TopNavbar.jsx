@@ -1,10 +1,11 @@
-import { Bell, Mail, LogOut, User as UserIcon, Search, Menu, Heart, MessageSquare, UserPlus } from 'lucide-react';
+import { Bell, Mail, LogOut, User as UserIcon, Search, Menu, Heart, MessageSquare, UserPlus, Eye, EyeOff } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import ConfirmModal from '../common/ConfirmModal';
+import { useSocket } from '../../context/SocketContext';
 
 // Dummy Notifications Data
 const DUMMY_NOTIFICATIONS = [
@@ -20,6 +21,9 @@ const TopNavbar = ({ setIsMobileMenuOpen, currentUser }) => {
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  
+  const { statusPref, toggleStatusPref } = useSocket() || {};
   
   const notifRef = useRef(null);
   const profileRef = useRef(null);
@@ -49,6 +53,15 @@ const TopNavbar = ({ setIsMobileMenuOpen, currentUser }) => {
       toast.error('Failed to sign out');
     }
   };
+
+  const handleSearch = (e) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      navigate(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
+      setSearchQuery('');
+    }
+  };
+
   return (
     <div className="h-20 border-b border-white/5 bg-[#0a0a0a]/80 backdrop-blur-md sticky top-0 z-20 flex items-center justify-between px-8 w-full">
       {/* Logo & Page Title */}
@@ -70,16 +83,18 @@ const TopNavbar = ({ setIsMobileMenuOpen, currentUser }) => {
 
       {/* Search Bar */}
       <div className="flex-1 max-w-lg mx-8 hidden lg:block">
-        <div className="relative group">
+        <form onSubmit={handleSearch} className="relative group">
           <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
             <Search className="text-gray-500 group-focus-within:text-[#00F0FF] transition-colors" size={18} />
           </div>
           <input 
             type="text" 
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search developers, posts, or tags..." 
             className="w-full bg-[#111] border border-white/10 rounded-full py-2.5 pl-11 pr-4 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-[#00F0FF]/50 focus:ring-1 focus:ring-[#00F0FF]/50 transition-all"
           />
-        </div>
+        </form>
       </div>
 
       {/* Right Actions */}
@@ -150,11 +165,6 @@ const TopNavbar = ({ setIsMobileMenuOpen, currentUser }) => {
             )}
           </AnimatePresence>
         </div>
-        
-        <button className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors group">
-          <Mail size={20} className="group-hover:text-[#8A2BE2] transition-colors" />
-          <span className="text-sm font-medium hidden sm:block">Messages</span>
-        </button>
 
         <div className="w-px h-8 bg-white/10 mx-2 hidden sm:block"></div>
 
@@ -190,6 +200,22 @@ const TopNavbar = ({ setIsMobileMenuOpen, currentUser }) => {
                 >
                   <UserIcon size={16} /> My Profile
                 </Link>
+                
+                {toggleStatusPref && (
+                  <button 
+                    onClick={toggleStatusPref}
+                    className="w-full flex items-center justify-between px-4 py-3 text-sm text-gray-300 hover:bg-white/5 hover:text-white transition-colors text-left cursor-pointer"
+                  >
+                    <div className="flex items-center gap-2">
+                      {statusPref === 'online' ? <Eye size={16} className="text-[#00F0FF]" /> : <EyeOff size={16} className="text-gray-500" />}
+                      <span>{statusPref === 'online' ? 'Online Mode' : 'Invisible Mode'}</span>
+                    </div>
+                    <div className={`w-8 h-4 rounded-full p-0.5 transition-colors ${statusPref === 'online' ? 'bg-[#00F0FF]' : 'bg-gray-600'}`}>
+                      <div className={`w-3 h-3 rounded-full bg-white transition-transform ${statusPref === 'online' ? 'translate-x-4' : 'translate-x-0'}`}></div>
+                    </div>
+                  </button>
+                )}
+
                 <div className="h-px bg-white/10 my-1 w-full"></div>
                 <button 
                   onClick={() => setIsLogoutModalOpen(true)}

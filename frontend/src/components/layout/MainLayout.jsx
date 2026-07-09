@@ -4,6 +4,7 @@ import axios from 'axios';
 import Sidebar from './Sidebar';
 import RightSidebar from './RightSidebar';
 import TopNavbar from './TopNavbar';
+import { SocketProvider } from '../../context/SocketContext';
 
 const MainLayout = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -22,19 +23,21 @@ const MainLayout = () => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-[#050505] text-white selection:bg-[#00F0FF]/30">
-      {/* 3-Column Layout structure matching the mockup */}
-      <Sidebar isMobileMenuOpen={isMobileMenuOpen} setIsMobileMenuOpen={setIsMobileMenuOpen} />
-      <RightSidebar />
-      
-      {/* Main Content Area */}
-      <main className="md:ml-64 lg:mr-80 flex flex-col min-h-screen relative">
-        <TopNavbar setIsMobileMenuOpen={setIsMobileMenuOpen} currentUser={currentUser} />
-        <div className="flex-1 w-full max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <Outlet context={{ currentUser }} />
-        </div>
-      </main>
-    </div>
+    <SocketProvider currentUser={currentUser}>
+      <div className="min-h-screen bg-[#050505] text-white selection:bg-[#00F0FF]/30">
+        {/* 3-Column Layout structure matching the mockup */}
+        <Sidebar isMobileMenuOpen={isMobileMenuOpen} setIsMobileMenuOpen={setIsMobileMenuOpen} />
+        <RightSidebar />
+        
+        {/* Main Content Area */}
+        <main className="md:ml-64 lg:mr-80 flex flex-col min-h-screen relative">
+          <TopNavbar setIsMobileMenuOpen={setIsMobileMenuOpen} currentUser={currentUser} />
+          <div className="flex-1 w-full max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            <Outlet context={{ currentUser }} />
+          </div>
+        </main>
+      </div>
+    </SocketProvider>
   );
 };
 

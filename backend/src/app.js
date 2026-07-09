@@ -36,6 +36,7 @@ app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/profile', require('./routes/profileRoutes'));
 app.use('/api/posts', require('./routes/postRoutes'));
 app.use('/api/upload', require('./routes/uploadRoutes'));
+app.use('/api/messages', require('./routes/messageRoutes'));
 
 // Basic health check route
 app.get('/api', (req, res) => {

@@ -21,6 +21,8 @@ This file documents all external libraries, frameworks, and packages installed i
 | `jspdf` | Generating PDF files on the client side for Resume export |
 | `html2canvas` | Capturing DOM elements as images for PDF generation |
 | `react-github-calendar` | Rendering dynamic GitHub activity graphs |
+| `date-fns` | Utility library for formatting relative and absolute dates |
+| `socket.io-client` | Real-time bidirectional event-based communication client |
 
 ## Backend (Node.js + Express)
 | Package Name | Purpose |
@@ -32,3 +34,4 @@ This file documents all external libraries, frameworks, and packages installed i
 | `bcryptjs` | Secure password hashing |
 | `jsonwebtoken` | JWT generation for authentication (OAuth 2.0 flow) |
 | `nodemon` | Development server auto-reloading |
+| `socket.io` | Real-time bidirectional event-based communication server |
