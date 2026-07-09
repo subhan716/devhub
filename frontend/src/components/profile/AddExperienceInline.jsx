@@ -98,14 +98,14 @@ const AddExperienceInline = ({ onClose, onAdd }) => {
       animate={{ height: 'auto', opacity: 1 }}
       exit={{ height: 0, opacity: 0 }}
       transition={{ duration: 0.3, ease: 'easeInOut' }}
-      className="overflow-hidden"
+      className={(isCompanyFocused || isTitleFocused) ? "!overflow-visible" : "overflow-hidden"}
     >
       <div className="bg-[#1a1a1a] border border-white/10 rounded-xl mt-4 p-5">
         <h3 className="text-lg font-bold text-white mb-4">Add Experience</h3>
         
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="space-y-1.5 relative">
+            <div className={`space-y-1.5 relative ${isTitleFocused ? 'z-50' : ''}`}>
               <label className="text-xs font-medium text-gray-400">Job Title *</label>
               <input 
                 type="text" 
@@ -119,7 +119,7 @@ const AddExperienceInline = ({ onClose, onAdd }) => {
                 placeholder="e.g. Senior Frontend Engineer" 
               />
               {titleSuggestions.length > 0 && isTitleFocused && (
-                <div className="absolute z-10 w-full mt-1 bg-[#1a1a1a] border border-white/10 rounded-xl shadow-2xl overflow-hidden max-h-48 overflow-y-auto">
+                <div className="absolute z-10 w-full mt-1 bg-[#1a1a1a] border border-white/10 rounded-xl shadow-2xl overflow-hidden max-h-48 overflow-y-auto overscroll-contain">
                   {titleSuggestions.map((suggestion, idx) => (
                     <div 
                       key={idx} 
@@ -139,7 +139,7 @@ const AddExperienceInline = ({ onClose, onAdd }) => {
               )}
             </div>
 
-            <div className="space-y-1.5 relative">
+            <div className={`space-y-1.5 relative ${isCompanyFocused ? 'z-50' : ''}`}>
               <label className="text-xs font-medium text-gray-400">Company *</label>
               <input 
                 type="text" 
@@ -153,7 +153,7 @@ const AddExperienceInline = ({ onClose, onAdd }) => {
                 placeholder="e.g. Google" 
               />
               {isCompanyFocused && (formData.company.length >= 2) && (
-                <div className="absolute z-10 w-full mt-1 bg-[#1a1a1a] border border-white/10 rounded-xl shadow-2xl overflow-hidden max-h-48 overflow-y-auto">
+                <div className="absolute z-10 w-full mt-1 bg-[#1a1a1a] border border-white/10 rounded-xl shadow-2xl overflow-hidden max-h-48 overflow-y-auto overscroll-contain">
                   {isSearchingCompany ? (
                     <div className="px-4 py-3 text-xs text-gray-400">Searching...</div>
                   ) : companySuggestions.length > 0 ? (
@@ -211,9 +211,22 @@ const AddExperienceInline = ({ onClose, onAdd }) => {
             </div>
           </div>
 
-          <label className="flex items-center gap-2 cursor-pointer mt-2 w-max">
-            <input type="checkbox" name="current" checked={formData.current} onChange={handleChange} className="w-4 h-4 rounded bg-[#0a0a0a] border-white/10 text-[#00F0FF] focus:ring-[#00F0FF]/50" />
-            <span className="text-sm text-gray-300">I currently work here</span>
+          <label className="flex items-center gap-3 cursor-pointer mt-2 w-max group">
+            <div className="relative">
+              <input
+                type="checkbox"
+                name="current"
+                checked={formData.current}
+                onChange={handleChange}
+                className="sr-only"
+              />
+              <div className={`w-10 h-5 rounded-full transition-all duration-300 ${formData.current ? 'bg-[#00F0FF]/30 border border-[#00F0FF]/60' : 'bg-white/10 border border-white/20'}`}>
+                <div className={`absolute top-0.5 w-4 h-4 rounded-full shadow transition-all duration-300 ${formData.current ? 'translate-x-5 bg-[#00F0FF] shadow-[0_0_8px_rgba(0,240,255,0.6)]' : 'translate-x-0.5 bg-gray-500'}`} />
+              </div>
+            </div>
+            <span className={`text-sm font-medium transition-colors duration-200 ${formData.current ? 'text-[#00F0FF]' : 'text-gray-400 group-hover:text-gray-300'}`}>
+              I currently work here
+            </span>
           </label>
 
           <div className="space-y-1.5 mt-4">

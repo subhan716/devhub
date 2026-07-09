@@ -1,12 +1,16 @@
 import { useState, useEffect, useRef } from 'react';
-import { MapPin, Briefcase, Calendar, Link as LinkIcon, Heart, MessageCircle, Repeat2, GraduationCap, FolderGit2, FileText, Trash2, Plus, Edit3, Image, Copy, MoreHorizontal, Users, Eye, Activity } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { MapPin, Briefcase, Calendar, Link as LinkIcon, Heart, MessageCircle, Repeat2, GraduationCap, FolderGit2, FileText, Trash2, Plus, Edit3, Image, Copy, MoreHorizontal, Users, Eye, Activity, Award, X } from 'lucide-react';
+import { useNavigate, useParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
 import toast from 'react-hot-toast';
+import Lenis from 'lenis';
 import AddExperienceInline from '../components/profile/AddExperienceInline';
 import AddEducationInline from '../components/profile/AddEducationInline';
+import AddCertificationInline from '../components/profile/AddCertificationInline';
 import AddProjectInline from '../components/profile/AddProjectInline';
+import EditProfileForm from '../components/profile/EditProfileForm';
+import AnalyticsModal from '../components/profile/AnalyticsModal';
 import ResumeTemplate from '../components/profile/ResumeTemplate';
 import ConfirmModal from '../components/common/ConfirmModal';
 import { jsPDF } from 'jspdf';
@@ -21,21 +25,67 @@ SyntaxHighlighter.registerLanguage('javascript', js);
 
 const ProfilePage = () => {
   const [profile, setProfile] = useState(null);
+  const [currentUserProfile, setCurrentUserProfile] = useState(null);
   const [userPosts, setUserPosts] = useState([]);
   const [activeTab, setActiveTab] = useState('overview');
   const [isLoading, setIsLoading] = useState(true);
   const [isPostsLoading, setIsPostsLoading] = useState(false);
   const [isAddExpOpen, setIsAddExpOpen] = useState(false);
   const [isAddEduOpen, setIsAddEduOpen] = useState(false);
+  const [isAddCertOpen, setIsAddCertOpen] = useState(false);
   const [isAddProjectOpen, setIsAddProjectOpen] = useState(false);
   const [editingProjectId, setEditingProjectId] = useState(null);
   const [uploadingResume, setUploadingResume] = useState(false);
+  const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  const [isAnalyticsOpen, setIsAnalyticsOpen] = useState(false);
   const resumeInputRef = useRef(null);
+  const drawerRef = useRef(null);
   const navigate = useNavigate();
   const [isUploading, setIsUploading] = useState(false);
+  const { id } = useParams();
+
+  // Disable body scroll when side panel is open, and init custom Lenis for drawer
+  useEffect(() => {
+    let drawerLenis;
+    
+    if (isEditProfileOpen) {
+      document.body.style.overflow = 'hidden';
+      
+      if (drawerRef.current) {
+        drawerLenis = new Lenis({
+          wrapper: drawerRef.current,
+          content: drawerRef.current.firstElementChild,
+          duration: 1.2,
+          easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+          direction: 'vertical',
+          gestureDirection: 'vertical',
+          smooth: true,
+          mouseMultiplier: 1,
+        });
+
+        function raf(time) {
+          drawerLenis.raf(time);
+          requestAnimationFrame(raf);
+        }
+        requestAnimationFrame(raf);
+      }
+      
+    } else {
+      document.body.style.overflow = '';
+    }
+    
+    return () => {
+      document.body.style.overflow = '';
+      if (drawerLenis) {
+        drawerLenis.destroy();
+      }
+    };
+  }, [isEditProfileOpen]);
 
   const [showAllExp, setShowAllExp] = useState(false);
   const [showAllEdu, setShowAllEdu] = useState(false);
+  const [showAllCert, setShowAllCert] = useState(false);
   const [visibleProjectsCount, setVisibleProjectsCount] = useState(6);
 
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
@@ -50,19 +100,34 @@ const ProfilePage = () => {
     onConfirm: () => {}
   });
 
-  const isOwner = true; // Always true for /profile/me
+  const isOwner = !id || (currentUserProfile && currentUserProfile.user._id === id);
+  const isFollowing = profile && currentUserProfile && profile.followers.includes(currentUserProfile.user._id);
 
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const { data } = await axios.get('http://localhost:5000/api/profile/me');
+        // Fetch the currently logged in user's profile first to know who they are
+        let currentProf = currentUserProfile;
+        if (!currentProf) {
+          const res = await axios.get('http://localhost:5000/api/profile/me', { withCredentials: true });
+          currentProf = res.data;
+          setCurrentUserProfile(currentProf);
+        }
+
+        let data;
+        if (id) {
+          const response = await axios.get(`http://localhost:5000/api/profile/user/${id}`, { withCredentials: true });
+          data = response.data;
+        } else {
+          data = currentProf;
+        }
+        
         setProfile(data);
-        if (data.user && data.user._id) {
+        if (data && data.user && data.user._id) {
           fetchUserPosts(data.user._id);
         }
       } catch (error) {
         if (error.response && error.response.status === 404) {
-          // Expected for new users, don't show an error toast
           console.log('No profile found. Please set one up.');
         } else {
           toast.error('Failed to load profile');
@@ -85,8 +150,28 @@ const ProfilePage = () => {
     };
 
     fetchProfile();
-  }, []);
+  }, [id]);
 
+  const handleFollowToggle = async () => {
+    if (!profile || !profile.user) return;
+    
+    const action = isFollowing ? 'unfollow' : 'follow';
+    try {
+      await axios.post(`http://localhost:5000/api/profile/${action}/${profile.user._id}`, {}, { withCredentials: true });
+      
+      // Optimistic UI Update
+      setProfile(prev => {
+        const newFollowers = isFollowing 
+          ? prev.followers.filter(followerId => followerId !== currentUserProfile.user._id)
+          : [...prev.followers, currentUserProfile.user._id];
+        return { ...prev, followers: newFollowers };
+      });
+      
+      toast.success(isFollowing ? 'Unfollowed user' : 'Following user');
+    } catch (error) {
+      toast.error(error.response?.data?.message || `Failed to ${action} user`);
+    }
+  };
 
   const handleImageUpload = async (e, type) => {
     const file = e.target.files[0];
@@ -175,6 +260,25 @@ const ProfilePage = () => {
           toast.success('Education deleted');
         } catch (error) {
           toast.error('Failed to delete education');
+        }
+      }
+    });
+  };
+
+  const handleDeleteCertification = (id) => {
+    setConfirmModal({
+      isOpen: true,
+      title: 'Delete Certification',
+      message: 'Are you sure you want to delete this certification? This action cannot be undone.',
+      confirmText: 'Delete',
+      isDestructive: true,
+      onConfirm: async () => {
+        try {
+          const { data } = await axios.delete(`http://localhost:5000/api/profile/certifications/${id}`, { withCredentials: true });
+          setProfile(data);
+          toast.success('Certification deleted');
+        } catch (error) {
+          toast.error('Failed to delete certification');
         }
       }
     });
@@ -269,6 +373,108 @@ const ProfilePage = () => {
 
   return (
     <div className="max-w-3xl mx-auto pb-20">
+
+      {/* ===== EDIT PROFILE SLIDE-OVER ===== */}
+      <AnimatePresence>
+        {isEditProfileOpen && (
+          <>
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50"
+              onClick={() => setIsEditProfileOpen(false)}
+            />
+            {/* Panel */}
+            <motion.div
+              ref={drawerRef}
+              initial={{ x: '100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '100%' }}
+              transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+              className="fixed top-0 right-0 h-full w-full max-w-md bg-[#0f0f0f] border-l border-white/10 z-50 overflow-y-auto"
+              data-lenis-prevent="true"
+            >
+              <div className="p-6">
+                {/* Header */}
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-xl font-bold text-white">Edit Profile</h2>
+                  <button onClick={() => setIsEditProfileOpen(false)} className="p-2 text-gray-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors cursor-pointer">
+                    <X size={18} />
+                  </button>
+                </div>
+
+                {/* Avatar Section */}
+                <div className="flex flex-col items-center gap-3 mb-8 p-5 bg-[#1a1a1a] rounded-2xl border border-white/10">
+                  <div className="relative">
+                    <img
+                      src={profile.user?.avatar?.url || 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png'}
+                      alt="Profile"
+                      className="w-24 h-24 rounded-full object-cover border-4 border-white/10"
+                    />
+                    <label className="absolute bottom-0 right-0 p-2 bg-[#00F0FF] text-black rounded-full hover:bg-white transition-colors cursor-pointer shadow-lg" title="Change profile picture">
+                      <Image size={14} />
+                      <input
+                        type="file"
+                        className="hidden"
+                        accept="image/*"
+                        onChange={(e) => handleImageUpload(e, 'avatar')}
+                        disabled={isUploading}
+                      />
+                    </label>
+                  </div>
+                  <p className="text-xs text-gray-500">Click the camera icon to change your photo</p>
+                </div>
+
+                {/* Edit Form */}
+                <EditProfileForm
+                  profile={profile}
+                  setProfile={setProfile}
+                  onClose={() => setIsEditProfileOpen(false)}
+                />
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
+      {/* ===== IMAGE PREVIEW MODAL ===== */}
+      <AnimatePresence>
+        {isPreviewOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-sm p-4"
+            onClick={() => setIsPreviewOpen(false)}
+          >
+            <button
+              onClick={() => setIsPreviewOpen(false)}
+              className="absolute top-6 right-6 text-white/70 hover:text-white bg-white/10 hover:bg-white/20 p-2 rounded-full transition-all"
+            >
+              <X size={24} />
+            </button>
+            <motion.img
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.8, opacity: 0 }}
+              transition={{ type: "spring", damping: 25, stiffness: 300 }}
+              src={profile.user?.avatar?.url || 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png'}
+              alt="Profile Preview"
+              className="w-80 h-80 sm:w-96 sm:h-96 object-cover rounded-full shadow-[0_0_50px_rgba(0,0,0,0.5)] border-4 border-white/10"
+              onClick={(e) => e.stopPropagation()}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Analytics Modal */}
+      <AnalyticsModal 
+        isOpen={isAnalyticsOpen} 
+        onClose={() => setIsAnalyticsOpen(false)} 
+      />
+
       {/* Cover & Avatar Header */}
       <div className="relative rounded-2xl overflow-hidden mb-8 border border-white/10 bg-[#111]">
         {/* Cover Photo */}
@@ -282,10 +488,12 @@ const ProfilePage = () => {
           }}
         >
           <div className="absolute inset-0 bg-black/20"></div>
-          <label className="absolute top-4 right-4 p-2 bg-black/50 hover:bg-black/80 rounded-full transition-colors cursor-pointer text-white z-10">
-            <Edit3 size={16} />
-            <input type="file" className="hidden" accept="image/*" onChange={(e) => handleImageUpload(e, 'cover')} disabled={isUploading} />
-          </label>
+          {isOwner && (
+            <label className="absolute top-4 right-4 p-2 bg-black/50 hover:bg-black/80 rounded-full transition-colors cursor-pointer text-white z-10">
+              <Edit3 size={16} />
+              <input type="file" className="hidden" accept="image/*" onChange={(e) => handleImageUpload(e, 'cover')} disabled={isUploading} />
+            </label>
+          )}
         </div>
 
         {/* Profile Info Overlay */}
@@ -295,26 +503,36 @@ const ProfilePage = () => {
               <img
                 src={profile.user?.avatar?.url || 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png'}
                 alt="Profile"
-                className="w-32 h-32 rounded-full border-4 border-[#111] object-cover bg-[#111]"
+                className="w-32 h-32 rounded-full border-4 border-[#111] object-cover bg-[#111] cursor-pointer hover:opacity-80 transition-opacity"
+                onClick={() => setIsPreviewOpen(true)}
               />
-              <label className="absolute bottom-0 right-0 p-2 bg-[#00F0FF] text-black rounded-full hover:bg-white transition-colors cursor-pointer shadow-lg z-10">
-                <Image size={14} />
-                <input type="file" className="hidden" accept="image/*" onChange={(e) => handleImageUpload(e, 'avatar')} disabled={isUploading} />
-              </label>
             </div>
             {isOwner ? (
-              <div className="flex gap-2">
-                <button onClick={() => navigate('/settings')} className="bg-[#00F0FF] hover:bg-[#00F0FF]/90 text-black px-6 py-2 rounded-lg font-bold transition-all text-sm shadow-[0_0_15px_rgba(0,240,255,0.3)] cursor-pointer">
-                  Edit Profile
+              <div className="flex flex-col items-end gap-3">
+                {/* Analytics Badge */}
+                <button 
+                  onClick={() => setIsAnalyticsOpen(true)}
+                  className="bg-white/5 hover:bg-white/10 border border-white/10 text-white px-3 py-1.5 rounded-full text-xs font-medium flex items-center gap-1.5 transition-colors cursor-pointer"
+                >
+                  <Eye size={14} className="text-[#00F0FF]" />
+                  {profile.views || 0} profile views
                 </button>
-                <button onClick={handleDownloadPdf} disabled={isGeneratingPdf} className="bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-lg font-bold transition-all flex items-center gap-2 text-sm border border-white/5 disabled:opacity-50 cursor-pointer">
-                  <FileText size={16} /> {isGeneratingPdf ? 'Wait...' : 'Save to PDF'}
-                </button>
+                <div className="flex gap-2">
+                  <button onClick={() => setIsEditProfileOpen(true)} className="bg-[#00F0FF] hover:bg-[#00F0FF]/90 text-black px-6 py-2 rounded-lg font-bold transition-all text-sm shadow-[0_0_15px_rgba(0,240,255,0.3)] cursor-pointer">
+                    Edit Profile
+                  </button>
+                  <button onClick={handleDownloadPdf} disabled={isGeneratingPdf} className="bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-lg font-bold transition-all flex items-center gap-2 text-sm border border-white/5 disabled:opacity-50 cursor-pointer">
+                    <FileText size={16} /> {isGeneratingPdf ? 'Wait...' : 'Save to PDF'}
+                  </button>
+                </div>
               </div>
             ) : (
               <div className="flex gap-2">
-                <button className="bg-[#00F0FF] hover:bg-[#00F0FF]/90 text-black px-6 py-2 rounded-lg font-bold transition-all text-sm shadow-[0_0_15px_rgba(0,240,255,0.3)] cursor-pointer">
-                  Follow
+                <button 
+                  onClick={handleFollowToggle}
+                  className={`${isFollowing ? 'bg-white/10 text-white hover:bg-white/20 border border-white/10' : 'bg-[#00F0FF] hover:bg-[#00F0FF]/90 text-black shadow-[0_0_15px_rgba(0,240,255,0.3)]'} px-6 py-2 rounded-lg font-bold transition-all text-sm cursor-pointer`}
+                >
+                  {isFollowing ? 'Unfollow' : 'Follow'}
                 </button>
                 <button className="bg-white/10 hover:bg-white/20 p-2.5 rounded-lg text-white transition-all cursor-pointer">
                   <MessageCircle size={18} />
@@ -608,6 +826,68 @@ const ProfilePage = () => {
                   )}
                 </div>
               </div>
+
+              {/* Certifications */}
+              <div className="bg-[#111] border border-white/5 rounded-2xl p-6 shadow-lg">
+                <div className="flex justify-between items-center mb-6">
+                  <h3 className="text-white font-bold text-lg flex items-center gap-2">
+                    <Award size={20} className="text-[#00F0FF]" /> Certifications
+                  </h3>
+                  {isOwner && (
+                    <button onClick={() => setIsAddCertOpen(!isAddCertOpen)} className={`p-1.5 rounded-lg transition-colors cursor-pointer ${isAddCertOpen ? 'bg-white/10 text-white' : 'bg-white/5 hover:bg-white/10 text-gray-300 hover:text-white'}`}>
+                      <Plus size={18} className={`transform transition-transform ${isAddCertOpen ? 'rotate-45' : ''}`} />
+                    </button>
+                  )}
+                </div>
+
+                <AnimatePresence>
+                  {isAddCertOpen && <AddCertificationInline onClose={() => setIsAddCertOpen(false)} setProfile={setProfile} />}
+                </AnimatePresence>
+
+                <div className={`space-y-6 ${isAddCertOpen ? 'mt-6' : ''}`}>
+                  {profile.certifications && profile.certifications.length > 0 ? (
+                    <>
+                      {(showAllCert ? profile.certifications : profile.certifications.slice(0, 3)).map(cert => (
+                        <div key={cert._id} className="relative group border-l-2 border-white/10 pl-4 pb-2">
+                          <div className="absolute w-3 h-3 bg-[#111] border-2 border-[#00F0FF] rounded-full -left-[7px] top-1.5"></div>
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <h4 className="text-white font-semibold">{cert.title}</h4>
+                              <p className="text-gray-400 text-sm">{cert.issuingOrganization}</p>
+                              <p className="text-xs text-gray-500 mt-1">
+                                Issued {new Date(cert.issueDate).toLocaleDateString()}
+                              </p>
+                              {cert.credentialUrl && (
+                                <a href={cert.credentialUrl} target="_blank" rel="noreferrer" className="text-[#00F0FF] text-xs hover:underline mt-2 inline-block">
+                                  View Credential
+                                </a>
+                              )}
+                            </div>
+                            {isOwner && (
+                              <button onClick={() => handleDeleteCertification(cert._id)} className="opacity-0 group-hover:opacity-100 p-1.5 text-gray-500 hover:text-red-500 transition-all cursor-pointer">
+                                <Trash2 size={16} />
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                      {profile.certifications.length > 3 && (
+                        <div className="flex justify-center mt-4">
+                          <button
+                            onClick={() => setShowAllCert(!showAllCert)}
+                            className="text-xs font-medium text-gray-400 hover:text-white transition-colors cursor-pointer"
+                          >
+                            {showAllCert ? 'Show Less' : `Show all ${profile.certifications.length} certifications`}
+                          </button>
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <p className="text-sm text-gray-500 text-center py-4">No certifications added yet.</p>
+                  )}
+                </div>
+              </div>
+
             </div>
           </div>
         </>

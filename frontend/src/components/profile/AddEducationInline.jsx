@@ -248,9 +248,22 @@ const AddEducationInline = ({ onClose, onAdd }) => {
             </div>
           </div>
 
-          <label className="flex items-center gap-2 cursor-pointer mt-2 w-max">
-            <input type="checkbox" name="current" checked={formData.current} onChange={handleChange} className="w-4 h-4 rounded bg-[#0a0a0a] border-white/10 text-[#00F0FF] focus:ring-[#00F0FF]/50" />
-            <span className="text-sm text-gray-300">I currently study here</span>
+          <label className="flex items-center gap-3 cursor-pointer mt-2 w-max group">
+            <div className="relative">
+              <input
+                type="checkbox"
+                name="current"
+                checked={formData.current}
+                onChange={handleChange}
+                className="sr-only"
+              />
+              <div className={`w-10 h-5 rounded-full transition-all duration-300 ${formData.current ? 'bg-[#00F0FF]/30 border border-[#00F0FF]/60' : 'bg-white/10 border border-white/20'}`}>
+                <div className={`absolute top-0.5 w-4 h-4 rounded-full shadow transition-all duration-300 ${formData.current ? 'translate-x-5 bg-[#00F0FF] shadow-[0_0_8px_rgba(0,240,255,0.6)]' : 'translate-x-0.5 bg-gray-500'}`} />
+              </div>
+            </div>
+            <span className={`text-sm font-medium transition-colors duration-200 ${formData.current ? 'text-[#00F0FF]' : 'text-gray-400 group-hover:text-gray-300'}`}>
+              I currently study here
+            </span>
           </label>
 
           <div className="space-y-1.5 mt-4">

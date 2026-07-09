@@ -37,4 +37,16 @@ const admin = (req, res, next) => {
   }
 };
 
-module.exports = { protect, admin };
+const protectOptional = async (req, res, next) => {
+  if (req.cookies.jwt) {
+    try {
+      const decoded = jwt.verify(req.cookies.jwt, process.env.JWT_ACCESS_SECRET);
+      req.user = await User.findById(decoded.id).select('-passwordHash');
+    } catch (error) {
+      // Ignore token errors for optional protection
+    }
+  }
+  next();
+};
+
+module.exports = { protect, protectOptional, admin };

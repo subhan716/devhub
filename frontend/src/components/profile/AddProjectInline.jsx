@@ -140,13 +140,13 @@ const AddProjectInline = ({ onClose, onAdd, initialData = null }) => {
       animate={{ height: 'auto', opacity: 1 }}
       exit={{ height: 0, opacity: 0 }}
       transition={{ duration: 0.3, ease: 'easeInOut' }}
-      className="overflow-hidden"
+      className={(isTitleFocused || showGithubRepos) ? "!overflow-visible" : "overflow-hidden"}
     >
       <div className="bg-[#1a1a1a] border border-white/10 rounded-xl mt-4 p-5">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-3">
           <h3 className="text-lg font-bold text-white">{initialData ? 'Edit Project' : 'Add Project'}</h3>
           
-          <div className="flex items-center gap-2 relative">
+          <div className={`flex items-center gap-2 relative ${showGithubRepos ? 'z-50' : 'z-10'}`}>
             <GitBranch size={16} className="text-gray-400 absolute left-2 pointer-events-none" />
             <input 
               type="text" 
@@ -167,7 +167,7 @@ const AddProjectInline = ({ onClose, onAdd, initialData = null }) => {
             {showRepoDropdown && githubRepos.length > 0 && (
               <>
                 <div className="fixed inset-0 z-10" onClick={() => setShowRepoDropdown(false)} />
-                <div className="absolute top-full right-0 mt-2 w-64 max-h-64 overflow-y-auto bg-[#1a1a1a] border border-white/10 rounded-xl shadow-[0_10px_40px_rgba(0,0,0,0.8)] z-20 scrollbar-thin scrollbar-thumb-[#00F0FF]/30 scrollbar-track-transparent hover:scrollbar-thumb-[#00F0FF]/50 transition-colors">
+                <div className="absolute top-full right-0 mt-2 w-64 max-h-64 overflow-y-auto bg-[#1a1a1a] border border-white/10 rounded-xl shadow-[0_10px_40px_rgba(0,0,0,0.8)] z-20 scrollbar-thin scrollbar-thumb-[#00F0FF]/30 scrollbar-track-transparent hover:scrollbar-thumb-[#00F0FF]/50 transition-colors overscroll-contain">
                   <div className="p-2 border-b border-white/5 text-[10px] text-gray-400 text-center bg-black/40 font-medium">
                     <span className="text-[#00F0FF] mr-1">ℹ</span> Only public repositories are displayed.
                   </div>
@@ -206,7 +206,7 @@ const AddProjectInline = ({ onClose, onAdd, initialData = null }) => {
                 placeholder="e.g. E-Commerce Platform" 
               />
               {titleSuggestions.length > 0 && isTitleFocused && (
-                <div className="absolute z-10 w-full mt-1 bg-[#1a1a1a] border border-white/10 rounded-xl shadow-2xl overflow-hidden max-h-48 overflow-y-auto">
+                <div className="absolute z-10 w-full mt-1 bg-[#1a1a1a] border border-white/10 rounded-xl shadow-2xl overflow-hidden max-h-48 overflow-y-auto overscroll-contain">
                   {titleSuggestions.map((suggestion, idx) => (
                     <div 
                       key={idx} 

@@ -65,6 +65,10 @@ const loginUser = async (req, res) => {
     // Find user and select passwordHash explicitly because we set select: false in schema
     const user = await User.findOne({ email }).select('+passwordHash');
 
+    if (user && !user.passwordHash) {
+      return res.status(401).json({ message: 'You registered using a social account. Please log in with Google or GitHub.' });
+    }
+
     if (user && (await user.matchPassword(password))) {
       const accessToken = generateAccessToken(user._id);
       const refreshToken = generateRefreshToken(user._id);

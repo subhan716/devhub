@@ -61,6 +61,15 @@ const profileSchema = new mongoose.Schema(
         current: { type: Boolean, default: false },
       },
     ],
+    certifications: [
+      {
+        title: { type: String, required: true },
+        issuingOrganization: { type: String, required: true },
+        issueDate: { type: Date, required: true },
+        credentialId: { type: String },
+        credentialUrl: { type: String },
+      }
+    ],
     projects: [
       {
         title: { type: String, required: true },
@@ -87,6 +96,12 @@ const profileSchema = new mongoose.Schema(
     followers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
     following: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
     views: { type: Number, default: 0 },
+    profileViews: [
+      {
+        viewer: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+        viewedAt: { type: Date, default: Date.now }
+      }
+    ]
   },
   {
     timestamps: true,

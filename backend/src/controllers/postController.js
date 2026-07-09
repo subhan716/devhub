@@ -93,4 +93,39 @@ const getUserPosts = async (req, res) => {
   }
 };
 
-module.exports = { createPost, getPosts, getUserPosts };
+// @desc    Search posts
+// @route   GET /api/posts/search
+// @access  Private
+const searchPosts = async (req, res) => {
+  try {
+    const { q } = req.query;
+    if (!q) return res.json([]);
+    
+    const posts = await Post.find({
+      $or: [
+        { content: { $regex: q, $options: 'i' } }
+      ]
+    })
+    .sort({ createdAt: -1 })
+    .populate('author', 'name avatar')
+    .limit(20);
+
+    const postsWithProfiles = await Promise.all(posts.map(async (post) => {
+      const profile = await Profile.findOne({ user: post.author._id });
+      return {
+        ...post._doc,
+        authorProfile: profile ? {
+          status: profile.status,
+          handle: profile.githubusername || post.author.name.toLowerCase().replace(/\s+/g, ''),
+        } : { status: 'Developer', handle: 'dev' }
+      };
+    }));
+
+    res.json(postsWithProfiles);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server Error');
+  }
+};
+
+module.exports = { createPost, getPosts, getUserPosts, searchPosts };

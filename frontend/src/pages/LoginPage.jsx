@@ -51,14 +51,14 @@ const LoginPage = () => {
       try {
         await axios.get('http://localhost:5000/api/profile/me');
         // Profile exists, go to Feed/Dashboard
-        navigate('/feed'); 
+        navigate('/feed', { replace: true }); 
       } catch (profileError) {
         // No profile exists, force onboarding
-        if (profileError.response?.status === 400) {
+        if (profileError.response?.status === 400 || profileError.response?.status === 404) {
           toast('Please complete your profile setup first.', { icon: '⚠️' });
-          navigate('/setup-profile');
+          navigate('/setup-profile', { replace: true });
         } else {
-          navigate('/feed'); // Fallback
+          navigate('/feed', { replace: true }); // Fallback
         }
       }
 
