@@ -12,6 +12,8 @@ import NotificationsPage from './pages/NotificationsPage';
 import ProfilePage from './pages/ProfilePage';
 import SettingsPage from './pages/SettingsPage';
 import JobsPage from './pages/JobsPage';
+import SearchPage from './pages/SearchPage';
+import NetworkPage from './pages/NetworkPage';
 import MainLayout from './components/layout/MainLayout';
 
 // Protected Route Component
@@ -19,6 +21,15 @@ const ProtectedRoute = ({ children }) => {
   const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
+  }
+  return children;
+};
+
+// Guest Route Component (Redirects to feed if logged in)
+const GuestRoute = ({ children }) => {
+  const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
+  if (isAuthenticated) {
+    return <Navigate to="/feed" replace />;
   }
   return children;
 };
@@ -42,6 +53,9 @@ function App() {
       touchMultiplier: 2,
     });
 
+    // Expose lenis globally so any component can stop/start it
+    window.lenis = lenis;
+
     function raf(time) {
       lenis.raf(time);
       requestAnimationFrame(raf);
@@ -51,6 +65,7 @@ function App() {
 
     return () => {
       lenis.destroy();
+      window.lenis = null;
     };
   }, []);
 
@@ -94,9 +109,9 @@ function App() {
       <Router>
         <Routes>
           {/* Public Routes */}
-          <Route path="/" element={<LandingPage />} />
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/register" element={<RegisterPage />} />
+          <Route path="/" element={<GuestRoute><LandingPage /></GuestRoute>} />
+          <Route path="/login" element={<GuestRoute><LoginPage /></GuestRoute>} />
+          <Route path="/register" element={<GuestRoute><RegisterPage /></GuestRoute>} />
           <Route path="/setup-profile" element={<SetupProfilePage />} />
 
           {/* Protected Routes inside MainLayout */}
@@ -131,6 +146,7 @@ function App() {
             }
           >
             <Route index element={<ProfilePage />} />
+            <Route path=":id" element={<ProfilePage />} />
           </Route>
 
           <Route
@@ -142,6 +158,28 @@ function App() {
             }
           >
             <Route index element={<JobsPage />} />
+          </Route>
+
+          <Route
+            path="/search"
+            element={
+              <ProtectedRoute>
+                <MainLayout />
+              </ProtectedRoute>
+            }
+          >
+            <Route index element={<SearchPage />} />
+          </Route>
+
+          <Route
+            path="/network"
+            element={
+              <ProtectedRoute>
+                <MainLayout />
+              </ProtectedRoute>
+            }
+          >
+            <Route index element={<NetworkPage />} />
           </Route>
 
           <Route
