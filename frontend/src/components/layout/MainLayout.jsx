@@ -1,14 +1,17 @@
-import { Outlet } from 'react-router-dom';
+import { Outlet, useLocation } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import Sidebar from './Sidebar';
 import RightSidebar from './RightSidebar';
 import TopNavbar from './TopNavbar';
+import FloatingChat from '../chat/FloatingChat';
 import { SocketProvider } from '../../context/SocketContext';
 
 const MainLayout = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
+  const location = useLocation();
+  const isMessagesPage = location.pathname.startsWith('/messages');
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -27,15 +30,18 @@ const MainLayout = () => {
       <div className="min-h-screen bg-[#050505] text-white selection:bg-[#00F0FF]/30">
         {/* 3-Column Layout structure matching the mockup */}
         <Sidebar isMobileMenuOpen={isMobileMenuOpen} setIsMobileMenuOpen={setIsMobileMenuOpen} />
-        <RightSidebar />
+        {!isMessagesPage && <RightSidebar />}
         
         {/* Main Content Area */}
-        <main className="md:ml-64 lg:mr-80 flex flex-col min-h-screen relative">
-          <TopNavbar setIsMobileMenuOpen={setIsMobileMenuOpen} currentUser={currentUser} />
-          <div className="flex-1 w-full max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <main className={`md:ml-64 ${!isMessagesPage ? 'lg:mr-80' : ''} flex flex-col min-h-screen relative transition-all duration-300`}>
+          <TopNavbar setIsMobileMenuOpen={setIsMobileMenuOpen} currentUser={currentUser} isMessagesPage={isMessagesPage} />
+          <div className={`flex-1 w-full ${!isMessagesPage ? 'max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-6' : 'max-w-full h-[calc(100vh-80px)] p-0 flex flex-col'}`}>
             <Outlet context={{ currentUser }} />
           </div>
         </main>
+        
+        {/* Persistent Floating Chat Component */}
+        <FloatingChat currentUser={currentUser} />
       </div>
     </SocketProvider>
   );

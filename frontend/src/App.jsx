@@ -14,6 +14,7 @@ import SettingsPage from './pages/SettingsPage';
 import JobsPage from './pages/JobsPage';
 import SearchPage from './pages/SearchPage';
 import NetworkPage from './pages/NetworkPage';
+import MessagesPage from './pages/MessagesPage';
 import MainLayout from './components/layout/MainLayout';
 
 // Protected Route Component
@@ -158,6 +159,17 @@ function App() {
             }
           >
             <Route index element={<JobsPage />} />
+          </Route>
+
+          <Route
+            path="/messages"
+            element={
+              <ProtectedRoute>
+                <MainLayout />
+              </ProtectedRoute>
+            }
+          >
+            <Route index element={<MessagesPage />} />
           </Route>
 
           <Route

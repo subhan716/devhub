@@ -15,7 +15,7 @@ const DUMMY_NOTIFICATIONS = [
   { id: 4, type: 'like', text: 'David liked your project', time: '5h ago', unread: false },
 ];
 
-const TopNavbar = ({ setIsMobileMenuOpen, currentUser }) => {
+const TopNavbar = ({ setIsMobileMenuOpen, currentUser, isMessagesPage }) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isNotifOpen, setIsNotifOpen] = useState(false);
   const [notifications, setNotifications] = useState([]);
@@ -63,7 +63,7 @@ const TopNavbar = ({ setIsMobileMenuOpen, currentUser }) => {
   };
 
   return (
-    <div className="h-20 border-b border-white/5 bg-[#0a0a0a]/80 backdrop-blur-md sticky top-0 z-20 flex items-center justify-between px-8 w-full">
+    <div className={`h-20 border-b border-white/5 bg-[#0a0a0a]/80 backdrop-blur-md sticky top-0 z-20 flex items-center justify-between px-8 w-full ${isMessagesPage ? 'lg:pr-[352px]' : ''} transition-all duration-300`}>
       {/* Logo & Page Title */}
       <div className="flex items-center gap-4">
         {/* Mobile Menu Toggle */}
