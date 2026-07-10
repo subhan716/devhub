@@ -1,12 +1,29 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import axios from 'axios';
-import { Users, UserPlus, UserCheck, MapPin, Check, X, Loader2 } from 'lucide-react';
+import { Users, UserPlus, UserCheck, MapPin, Check, X, Loader2, MessageSquare, MoreHorizontal, UserMinus } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
 
 const NetworkPage = () => {
-  const [activeTab, setActiveTab] = useState('invitations');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const activeTab = searchParams.get('tab') || 'invitations';
+  const invitationTab = searchParams.get('sub') || 'received';
+
+  const setActiveTab = (tab) => {
+    setSearchParams(prev => {
+      prev.set('tab', tab);
+      return prev;
+    }, { replace: true });
+  };
+
+  const setInvitationTab = (sub) => {
+    setSearchParams(prev => {
+      prev.set('sub', sub);
+      return prev;
+    }, { replace: true });
+  };
+  const [activeDropdown, setActiveDropdown] = useState(null);
   
   // Follow System State
   const [followSuggestions, setFollowSuggestions] = useState([]);
@@ -23,6 +40,12 @@ const NetworkPage = () => {
 
   useEffect(() => {
     fetchNetworkData();
+
+    const handleNetworkUpdate = () => {
+      fetchNetworkData();
+    };
+    window.addEventListener('network-update', handleNetworkUpdate);
+    return () => window.removeEventListener('network-update', handleNetworkUpdate);
   }, []);
 
   const fetchNetworkData = async () => {
@@ -64,6 +87,7 @@ const NetworkPage = () => {
       await axios.post(`http://localhost:5000/api/network/connect/${userId}`, {}, { withCredentials: true });
       toast.success('Connection request sent!');
       fetchNetworkData();
+      window.dispatchEvent(new Event('network-update'));
     } catch (error) {
       toast.error(error.response?.data?.message || 'Error sending request');
     } finally {
@@ -77,6 +101,7 @@ const NetworkPage = () => {
       await axios.put(`http://localhost:5000/api/network/accept/${requestId}`, {}, { withCredentials: true });
       toast.success('Connection accepted!');
       fetchNetworkData();
+      window.dispatchEvent(new Event('network-update'));
     } catch (error) {
       toast.error('Error accepting request');
     } finally {
@@ -89,6 +114,7 @@ const NetworkPage = () => {
     try {
       await axios.put(`http://localhost:5000/api/network/reject/${requestId}`, {}, { withCredentials: true });
       fetchNetworkData();
+      window.dispatchEvent(new Event('network-update'));
     } catch (error) {
       toast.error('Error rejecting request');
     } finally {
@@ -103,6 +129,7 @@ const NetworkPage = () => {
       await axios.delete(`http://localhost:5000/api/network/remove/${userId}`, { withCredentials: true });
       toast.success('Connection removed');
       fetchNetworkData();
+      window.dispatchEvent(new Event('network-update'));
     } catch (error) {
       toast.error('Error removing connection');
     } finally {
@@ -192,51 +219,112 @@ const NetworkPage = () => {
         >
           {/* INVITATIONS TAB */}
           {activeTab === 'invitations' && (
-            <div className="space-y-8">
-              {pendingRequests.received.length > 0 ? (
-                <section className="bg-[#111] border border-white/5 rounded-2xl p-6">
-                  <h2 className="text-xl font-bold text-white mb-6">Pending Invitations</h2>
-                  <div className="space-y-4">
-                    {pendingRequests.received.map((req) => (
-                      <div key={req._id} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-white/[0.02] rounded-xl border border-white/5 gap-4">
-                        <div className="flex items-center gap-4">
-                          <img 
-                            src={req.requester.avatar?.url || 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png'} 
-                            alt={req.requester.name} 
-                            className="w-12 h-12 rounded-full object-cover border border-white/10"
-                          />
-                          <div>
-                            <h3 className="text-white font-semibold">{req.requester.name}</h3>
-                            <p className="text-gray-400 text-sm">Wants to connect</p>
+            <div className="space-y-6">
+              {/* Sub-tabs for Invitations */}
+              <div className="flex gap-4 border-b border-white/5 pb-2">
+                <button
+                  onClick={() => setInvitationTab('received')}
+                  className={`pb-2 px-2 text-sm font-semibold transition-colors relative ${invitationTab === 'received' ? 'text-white' : 'text-gray-500 hover:text-gray-300'}`}
+                >
+                  Received ({pendingRequests.received.length})
+                  {invitationTab === 'received' && <div className="absolute bottom-0 left-0 w-full h-0.5 bg-[#00F0FF] rounded-t-full"></div>}
+                </button>
+                <button
+                  onClick={() => setInvitationTab('sent')}
+                  className={`pb-2 px-2 text-sm font-semibold transition-colors relative ${invitationTab === 'sent' ? 'text-white' : 'text-gray-500 hover:text-gray-300'}`}
+                >
+                  Sent ({pendingRequests.sent.length})
+                  {invitationTab === 'sent' && <div className="absolute bottom-0 left-0 w-full h-0.5 bg-[#00F0FF] rounded-t-full"></div>}
+                </button>
+              </div>
+
+              {invitationTab === 'received' && (
+                pendingRequests.received.length > 0 ? (
+                  <section className="bg-[#111] border border-white/5 rounded-2xl p-6">
+                    <div className="space-y-4">
+                      {pendingRequests.received.map((req) => (
+                        <div key={req._id} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-white/[0.02] rounded-xl border border-white/5 gap-4">
+                          <div className="flex items-center gap-4 cursor-pointer">
+                            <img 
+                              src={req.requester.avatar?.url || 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png'} 
+                              alt={req.requester.name} 
+                              className="w-12 h-12 rounded-full object-cover border border-white/10"
+                            />
+                            <div>
+                              <h3 className="text-white font-semibold">{req.requester.name}</h3>
+                              <p className="text-gray-400 text-sm">Wants to connect</p>
+                            </div>
+                          </div>
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => handleReject(req._id)}
+                              disabled={actionLoading === `reject-${req._id}`}
+                              className="flex-1 sm:flex-none px-4 py-2 text-gray-400 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-colors border border-white/10 sm:border-transparent disabled:opacity-50"
+                            >
+                              Ignore
+                            </button>
+                            <button
+                              onClick={() => handleAccept(req._id)}
+                              disabled={actionLoading === `accept-${req._id}`}
+                              className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-2 bg-[#00F0FF]/10 text-[#00F0FF] hover:bg-[#00F0FF]/20 rounded-lg font-medium transition-all duration-300 disabled:opacity-50"
+                            >
+                              {actionLoading === `accept-${req._id}` ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check size={18} />}
+                              Accept
+                            </button>
                           </div>
                         </div>
-                        <div className="flex gap-2">
-                          <button
-                            onClick={() => handleReject(req._id)}
-                            disabled={actionLoading === `reject-${req._id}`}
-                            className="flex-1 sm:flex-none px-4 py-2 text-gray-400 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-colors border border-white/10 sm:border-transparent disabled:opacity-50"
-                          >
-                            Ignore
-                          </button>
-                          <button
-                            onClick={() => handleAccept(req._id)}
-                            disabled={actionLoading === `accept-${req._id}`}
-                            className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-2 bg-[#00F0FF]/10 text-[#00F0FF] hover:bg-[#00F0FF]/20 rounded-lg font-medium transition-all duration-300 disabled:opacity-50"
-                          >
-                            {actionLoading === `accept-${req._id}` ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check size={18} />}
-                            Accept
-                          </button>
-                        </div>
-                      </div>
-                    ))}
+                      ))}
+                    </div>
+                  </section>
+                ) : (
+                  <div className="bg-[#111] border border-white/5 rounded-2xl p-12 text-center">
+                    <Users size={48} className="mx-auto text-gray-600 mb-4" />
+                    <h3 className="text-white font-bold text-lg mb-2">No received invitations</h3>
+                    <p className="text-gray-400 text-sm">When someone wants to connect with you, it will appear here.</p>
                   </div>
-                </section>
-              ) : (
-                <div className="bg-[#111] border border-white/5 rounded-2xl p-12 text-center">
-                  <Users size={48} className="mx-auto text-gray-600 mb-4" />
-                  <h3 className="text-white font-bold text-lg mb-2">No pending invitations</h3>
-                  <p className="text-gray-400 text-sm">When someone wants to connect with you, it will appear here.</p>
-                </div>
+                )
+              )}
+
+              {invitationTab === 'sent' && (
+                pendingRequests.sent.length > 0 ? (
+                  <section className="bg-[#111] border border-white/5 rounded-2xl p-6">
+                    <div className="space-y-4">
+                      {pendingRequests.sent.map((req) => (
+                        <div key={req._id} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-white/[0.02] rounded-xl border border-white/5 gap-4">
+                          <div className="flex items-center gap-4 cursor-pointer">
+                            <img 
+                              src={req.recipient.avatar?.url || 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png'} 
+                              alt={req.recipient.name} 
+                              className="w-12 h-12 rounded-full object-cover border border-white/10"
+                            />
+                            <div>
+                              <h3 className="text-white font-semibold">{req.recipient.name}</h3>
+                              <p className="text-gray-400 text-sm">Request sent</p>
+                            </div>
+                          </div>
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => {
+                                // Since req.recipient._id is what removeConnection expects:
+                                handleRemoveConnection(req.recipient._id);
+                              }}
+                              disabled={actionLoading === `remove-${req.recipient._id}`}
+                              className="flex-1 sm:flex-none px-6 py-2 text-gray-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors border border-white/10 disabled:opacity-50"
+                            >
+                              Withdraw
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </section>
+                ) : (
+                  <div className="bg-[#111] border border-white/5 rounded-2xl p-12 text-center">
+                    <Users size={48} className="mx-auto text-gray-600 mb-4" />
+                    <h3 className="text-white font-bold text-lg mb-2">No sent invitations</h3>
+                    <p className="text-gray-400 text-sm">Requests you send to others will appear here.</p>
+                  </div>
+                )
               )}
 
               {/* Suggestions for connections */}
@@ -277,6 +365,9 @@ const NetworkPage = () => {
           {/* CONNECTIONS TAB */}
           {activeTab === 'connections' && (
             <div className="bg-[#111] border border-white/5 rounded-2xl p-6">
+              <h2 className="text-xl font-bold text-white mb-2">{connections.length} Connections</h2>
+              <div className="text-gray-400 text-sm mb-6 pb-4 border-b border-white/5">Sort by: Recently added</div>
+              
               {connections.length === 0 ? (
                 <div className="text-center py-12">
                   <UserCheck size={48} className="mx-auto text-gray-600 mb-4" />
@@ -284,30 +375,66 @@ const NetworkPage = () => {
                   <p className="text-gray-400 text-sm">Start connecting with other developers to build your network.</p>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="flex flex-col">
                   {connections.map((conn) => (
-                    <div key={conn.connectionId} className="flex items-center justify-between p-4 bg-white/[0.02] border border-white/5 rounded-xl">
-                      <div className="flex items-center gap-3 overflow-hidden">
+                    <div key={conn.connectionId} className="flex flex-col sm:flex-row sm:items-start justify-between py-5 border-b border-white/5 gap-4 hover:bg-white/[0.02] transition-colors -mx-6 px-6">
+                      <div className="flex gap-4 items-start w-full sm:w-2/3">
                         <img 
                           src={conn.user.avatar?.url || 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png'} 
                           alt={conn.user.name} 
-                          className="w-12 h-12 rounded-full object-cover flex-shrink-0"
+                          className="w-16 h-16 rounded-full object-cover flex-shrink-0 border border-white/10"
                         />
-                        <div className="truncate">
-                          <Link to={`/profile/${conn.user._id}`} className="text-white font-medium hover:text-[#00F0FF] transition-colors truncate block">
+                        <div className="flex flex-col overflow-hidden">
+                          <Link to={`/profile/${conn.user._id}`} className="text-white font-semibold text-base hover:text-[#00F0FF] transition-colors truncate block">
                             {conn.user.name}
                           </Link>
-                          <p className="text-gray-400 text-xs capitalize truncate">{conn.user.role || 'Developer'}</p>
+                          <p className="text-gray-400 text-sm line-clamp-2 mt-0.5 leading-relaxed">{conn.user.bio || conn.user.role || 'Software Engineer | Developer'}</p>
+                          <p className="text-gray-500 text-xs mt-2">
+                            Connected on {conn.connectedAt ? new Date(conn.connectedAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : 'recently'}
+                          </p>
                         </div>
                       </div>
-                      <button 
-                        onClick={() => handleRemoveConnection(conn.user._id)}
-                        disabled={actionLoading === `remove-${conn.user._id}`}
-                        className="p-2 text-gray-500 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-colors flex-shrink-0 disabled:opacity-50"
-                        title="Remove Connection"
-                      >
-                        {actionLoading === `remove-${conn.user._id}` ? <Loader2 className="w-4 h-4 animate-spin" /> : <X size={18} />}
-                      </button>
+                      
+                      <div className="flex items-center gap-3 sm:pl-4">
+                        <button className="px-5 py-1.5 border border-white/20 text-white font-medium rounded-full hover:bg-white/10 hover:border-white/40 transition-all text-sm">
+                          Message
+                        </button>
+                        <div className="relative">
+                          <button 
+                            onClick={() => setActiveDropdown(activeDropdown === conn.connectionId ? null : conn.connectionId)}
+                            className="p-2 text-gray-400 hover:text-white hover:bg-white/10 rounded-full transition-colors flex-shrink-0"
+                          >
+                            <MoreHorizontal size={20} />
+                          </button>
+                          
+                          <AnimatePresence>
+                            {activeDropdown === conn.connectionId && (
+                              <>
+                                <div className="fixed inset-0 z-10" onClick={() => setActiveDropdown(null)}></div>
+                                <motion.div 
+                                  initial={{ opacity: 0, scale: 0.95, y: -10 }}
+                                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                                  exit={{ opacity: 0, scale: 0.95, y: -10 }}
+                                  transition={{ duration: 0.15 }}
+                                  className="absolute right-0 top-full mt-2 w-48 bg-[#1A1A1A] border border-white/10 rounded-xl shadow-xl z-20 py-2"
+                                >
+                                  <button
+                                    onClick={() => {
+                                      setActiveDropdown(null);
+                                      handleRemoveConnection(conn.user._id);
+                                    }}
+                                    disabled={actionLoading === `remove-${conn.user._id}`}
+                                    className="w-full text-left px-4 py-2.5 text-sm text-gray-300 hover:text-red-400 hover:bg-white/5 transition-colors flex items-center gap-3"
+                                  >
+                                    {actionLoading === `remove-${conn.user._id}` ? <Loader2 className="w-4 h-4 animate-spin" /> : <UserMinus size={16} />}
+                                    Remove connection
+                                  </button>
+                                </motion.div>
+                              </>
+                            )}
+                          </AnimatePresence>
+                        </div>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -318,23 +445,42 @@ const NetworkPage = () => {
           {/* FOLLOWING TAB */}
           {activeTab === 'following' && (
             <div className="bg-[#111] border border-white/5 rounded-2xl p-6">
+              <h2 className="text-xl font-bold text-white mb-2">{following.length} Following</h2>
+              <div className="text-gray-400 text-sm mb-6 pb-4 border-b border-white/5">People you follow</div>
+              
               {following.length === 0 ? (
                 <div className="text-center py-12">
                   <p className="text-gray-400">You are not following anyone yet.</p>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="flex flex-col">
                   {following.map((profile) => (
-                    <div key={profile._id} className="flex items-center justify-between p-4 bg-white/[0.02] border border-white/5 rounded-xl">
-                      <div className="flex items-center gap-3">
-                        <img src={profile.user?.avatar?.url || 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png'} className="w-10 h-10 rounded-full" />
-                        <div>
-                          <Link to={`/profile/${profile.user._id}`} className="text-white font-medium hover:text-[#00F0FF]">{profile.user?.name}</Link>
+                    <div key={profile._id} className="flex flex-col sm:flex-row sm:items-start justify-between py-5 border-b border-white/5 gap-4 hover:bg-white/[0.02] transition-colors -mx-6 px-6">
+                      <div className="flex gap-4 items-start w-full sm:w-2/3">
+                        <img 
+                          src={profile.user?.avatar?.url || 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png'} 
+                          alt={profile.user?.name} 
+                          className="w-16 h-16 rounded-full object-cover flex-shrink-0 border border-white/10"
+                        />
+                        <div className="flex flex-col overflow-hidden">
+                          <Link to={`/profile/${profile.user._id}`} className="text-white font-semibold text-base hover:text-[#00F0FF] transition-colors truncate block">
+                            {profile.user?.name}
+                          </Link>
+                          <p className="text-gray-400 text-sm line-clamp-2 mt-0.5 leading-relaxed">{profile.bio || profile.user?.role || 'Software Engineer'}</p>
                         </div>
                       </div>
-                      <button onClick={() => handleFollowToggle(profile.user._id, true)} className="text-sm px-4 py-1.5 border border-white/10 rounded-full text-white hover:bg-white/5">
-                        {actionLoading === `follow-${profile.user._id}` ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Following'}
-                      </button>
+                      
+                      <div className="flex items-center gap-3 sm:pl-4">
+                        <button className="px-5 py-1.5 border border-white/20 text-white font-medium rounded-full hover:bg-white/10 hover:border-white/40 transition-all text-sm">
+                          Message
+                        </button>
+                        <button 
+                          onClick={() => handleFollowToggle(profile.user._id, true)}
+                          className="px-5 py-1.5 border border-white/10 text-white hover:bg-white/5 rounded-full transition-colors text-sm"
+                        >
+                          {actionLoading === `follow-${profile.user._id}` ? <Loader2 className="w-4 h-4 animate-spin mx-auto" /> : 'Following'}
+                        </button>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -345,28 +491,44 @@ const NetworkPage = () => {
           {/* FOLLOWERS TAB */}
           {activeTab === 'followers' && (
             <div className="bg-[#111] border border-white/5 rounded-2xl p-6">
+              <h2 className="text-xl font-bold text-white mb-2">{followers.length} Followers</h2>
+              <div className="text-gray-400 text-sm mb-6 pb-4 border-b border-white/5">People following you</div>
+              
               {followers.length === 0 ? (
                 <div className="text-center py-12">
                   <p className="text-gray-400">You don't have any followers yet.</p>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="flex flex-col">
                   {followers.map((profile) => {
                     const isFollowingUser = following.some(f => f.user._id === profile.user._id);
                     return (
-                      <div key={profile._id} className="flex items-center justify-between p-4 bg-white/[0.02] border border-white/5 rounded-xl">
-                        <div className="flex items-center gap-3">
-                          <img src={profile.user?.avatar?.url || 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png'} className="w-10 h-10 rounded-full" />
-                          <div>
-                            <Link to={`/profile/${profile.user._id}`} className="text-white font-medium hover:text-[#00F0FF]">{profile.user?.name}</Link>
+                      <div key={profile._id} className="flex flex-col sm:flex-row sm:items-start justify-between py-5 border-b border-white/5 gap-4 hover:bg-white/[0.02] transition-colors -mx-6 px-6">
+                        <div className="flex gap-4 items-start w-full sm:w-2/3">
+                          <img 
+                            src={profile.user?.avatar?.url || 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png'} 
+                            alt={profile.user?.name} 
+                            className="w-16 h-16 rounded-full object-cover flex-shrink-0 border border-white/10"
+                          />
+                          <div className="flex flex-col overflow-hidden">
+                            <Link to={`/profile/${profile.user._id}`} className="text-white font-semibold text-base hover:text-[#00F0FF] transition-colors truncate block">
+                              {profile.user?.name}
+                            </Link>
+                            <p className="text-gray-400 text-sm line-clamp-2 mt-0.5 leading-relaxed">{profile.bio || profile.user?.role || 'Software Engineer'}</p>
                           </div>
                         </div>
-                        <button 
-                          onClick={() => handleFollowToggle(profile.user._id, isFollowingUser)}
-                          className={`text-sm px-4 py-1.5 rounded-full ${isFollowingUser ? 'border border-white/10 text-white' : 'bg-[#00F0FF] text-black'}`}
-                        >
-                          {actionLoading === `follow-${profile.user._id}` ? <Loader2 className="w-4 h-4 animate-spin" /> : (isFollowingUser ? 'Following' : 'Follow Back')}
-                        </button>
+                        
+                        <div className="flex items-center gap-3 sm:pl-4">
+                          <button className="px-5 py-1.5 border border-white/20 text-white font-medium rounded-full hover:bg-white/10 hover:border-white/40 transition-all text-sm">
+                            Message
+                          </button>
+                          <button 
+                            onClick={() => handleFollowToggle(profile.user._id, isFollowingUser)}
+                            className={`px-5 py-1.5 rounded-full text-sm font-medium transition-colors ${isFollowingUser ? 'border border-white/10 text-white hover:bg-white/5' : 'bg-[#00F0FF] text-black hover:bg-[#00F0FF]/90 shadow-[0_0_10px_rgba(0,240,255,0.2)]'}`}
+                          >
+                            {actionLoading === `follow-${profile.user._id}` ? <Loader2 className="w-4 h-4 animate-spin mx-auto" /> : (isFollowingUser ? 'Following' : 'Follow Back')}
+                          </button>
+                        </div>
                       </div>
                     );
                   })}

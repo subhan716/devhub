@@ -7,7 +7,8 @@ const {
   removeConnection, 
   getPendingRequests, 
   getConnections, 
-  getSuggestions 
+  getSuggestions,
+  getConnectionStatus
 } = require('../controllers/connectionController');
 const { protect } = require('../middleware/authMiddleware');
 
@@ -19,5 +20,6 @@ router.delete('/remove/:userId', protect, removeConnection);
 router.get('/pending', protect, getPendingRequests);
 router.get('/connections', protect, getConnections);
 router.get('/suggestions', protect, getSuggestions);
+router.get('/status/:userId', protect, getConnectionStatus);
 
 module.exports = router;

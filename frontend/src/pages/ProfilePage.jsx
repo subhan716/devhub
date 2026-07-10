@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
-import { MapPin, Briefcase, Calendar, Link as LinkIcon, Heart, MessageCircle, Repeat2, GraduationCap, FolderGit2, FileText, Trash2, Plus, Edit3, Image, Copy, MoreHorizontal, Users, Eye, Activity, Award, X } from 'lucide-react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { MapPin, Briefcase, Calendar, Link as LinkIcon, Heart, MessageCircle, Repeat2, GraduationCap, FolderGit2, FileText, Trash2, Plus, Edit3, Image, Copy, MoreHorizontal, Users, Eye, Activity, Award, X, ChevronDown, Share2 } from 'lucide-react';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
 import toast from 'react-hot-toast';
@@ -27,11 +27,25 @@ const ProfilePage = () => {
   const [profile, setProfile] = useState(null);
   const [currentUserProfile, setCurrentUserProfile] = useState(null);
   const [userPosts, setUserPosts] = useState([]);
-  const [activeTab, setActiveTab] = useState('overview');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const activeTab = searchParams.get('tab') || 'overview';
+
+  const setActiveTab = (tab) => {
+    setSearchParams(prev => {
+      prev.set('tab', tab);
+      return prev;
+    }, { replace: true });
+  };
   const [isLoading, setIsLoading] = useState(true);
   const [isPostsLoading, setIsPostsLoading] = useState(false);
   const [isAddExpOpen, setIsAddExpOpen] = useState(false);
   const [isAddEduOpen, setIsAddEduOpen] = useState(false);
+  
+  // Dropdown states for LinkedIn style header
+  const [isOpenToDropdownOpen, setIsOpenToDropdownOpen] = useState(false);
+  const [isAddSectionDropdownOpen, setIsAddSectionDropdownOpen] = useState(false);
+  const [isMoreDropdownOpen, setIsMoreDropdownOpen] = useState(false);
+  
   const [isAddCertOpen, setIsAddCertOpen] = useState(false);
   const [isAddProjectOpen, setIsAddProjectOpen] = useState(false);
   const [editingProjectId, setEditingProjectId] = useState(null);
@@ -44,6 +58,7 @@ const ProfilePage = () => {
   const navigate = useNavigate();
   const [isUploading, setIsUploading] = useState(false);
   const { id } = useParams();
+  const [connectionState, setConnectionState] = useState({ status: 'none', requestId: null });
 
   // Disable body scroll when side panel is open, and init custom Lenis for drawer
   useEffect(() => {
@@ -125,6 +140,9 @@ const ProfilePage = () => {
         setProfile(data);
         if (data && data.user && data.user._id) {
           fetchUserPosts(data.user._id);
+          if (id && currentProf && currentProf.user._id !== id) {
+            fetchConnectionStatus(data.user._id);
+          }
         }
       } catch (error) {
         if (error.response && error.response.status === 404) {
@@ -149,8 +167,26 @@ const ProfilePage = () => {
       }
     };
 
+    const fetchConnectionStatus = async (userId) => {
+      try {
+        const { data } = await axios.get(`http://localhost:5000/api/network/status/${userId}`, { withCredentials: true });
+        setConnectionState({ status: data.status, requestId: data.requestId });
+      } catch (error) {
+        console.error('Failed to fetch connection status:', error);
+      }
+    };
+
     fetchProfile();
-  }, [id]);
+
+    const handleNetworkUpdate = () => {
+      if (id && currentUserProfile && currentUserProfile.user._id !== id) {
+        fetchConnectionStatus(id);
+      }
+    };
+
+    window.addEventListener('network-update', handleNetworkUpdate);
+    return () => window.removeEventListener('network-update', handleNetworkUpdate);
+  }, [id, currentUserProfile]);
 
   const handleFollowToggle = async () => {
     if (!profile || !profile.user) return;
@@ -170,6 +206,51 @@ const ProfilePage = () => {
       toast.success(isFollowing ? 'Unfollowed user' : 'Following user');
     } catch (error) {
       toast.error(error.response?.data?.message || `Failed to ${action} user`);
+    }
+  };
+
+  const handleConnectionToggle = async () => {
+    if (!profile || !profile.user) return;
+    
+    try {
+      if (connectionState.status === 'none') {
+        await axios.post(`http://localhost:5000/api/network/connect/${profile.user._id}`, {}, { withCredentials: true });
+        setConnectionState({ status: 'pending', requestId: null });
+        toast.success('Connection request sent');
+        window.dispatchEvent(new Event('network-update'));
+      } else if (connectionState.status === 'pending') {
+        setConfirmModal({
+          isOpen: true,
+          title: 'Withdraw Request',
+          message: `Are you sure you want to withdraw your connection request to ${profile.user.name}?`,
+          confirmText: 'Withdraw',
+          isDestructive: true,
+          onConfirm: async () => {
+            await axios.delete(`http://localhost:5000/api/network/remove/${profile.user._id}`, { withCredentials: true });
+            setConnectionState({ status: 'none', requestId: null });
+            setConfirmModal(prev => ({ ...prev, isOpen: false }));
+            toast.success('Connection request withdrawn');
+            window.dispatchEvent(new Event('network-update'));
+          }
+        });
+      } else if (connectionState.status === 'accepted') {
+        setConfirmModal({
+          isOpen: true,
+          title: 'Remove Connection',
+          message: `Are you sure you want to remove ${profile.user.name} from your connections?`,
+          confirmText: 'Remove',
+          isDestructive: true,
+          onConfirm: async () => {
+            await axios.delete(`http://localhost:5000/api/network/remove/${profile.user._id}`, { withCredentials: true });
+            setConnectionState({ status: 'none', requestId: null });
+            setConfirmModal(prev => ({ ...prev, isOpen: false }));
+            toast.success('Connection removed');
+            window.dispatchEvent(new Event('network-update'));
+          }
+        });
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to update connection');
     }
   };
 
@@ -498,60 +579,200 @@ const ProfilePage = () => {
 
         {/* Profile Info Overlay */}
         <div className="px-6 pb-6 relative">
-          <div className="flex justify-between items-end -mt-16 mb-4">
+          <div className="flex justify-between items-start -mt-16 mb-4">
             <div className="relative">
               <img
                 src={profile.user?.avatar?.url || 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png'}
                 alt="Profile"
-                className="w-32 h-32 rounded-full border-4 border-[#111] object-cover bg-[#111] cursor-pointer hover:opacity-80 transition-opacity"
+                className="w-[152px] h-[152px] rounded-full border-4 border-[#111] object-cover bg-[#111] cursor-pointer hover:opacity-80 transition-opacity shadow-lg"
                 onClick={() => setIsPreviewOpen(true)}
               />
             </div>
-            {isOwner ? (
-              <div className="flex flex-col items-end gap-3">
-                {/* Analytics Badge */}
-                <button 
-                  onClick={() => setIsAnalyticsOpen(true)}
-                  className="bg-white/5 hover:bg-white/10 border border-white/10 text-white px-3 py-1.5 rounded-full text-xs font-medium flex items-center gap-1.5 transition-colors cursor-pointer"
-                >
-                  <Eye size={14} className="text-[#00F0FF]" />
-                  {profile.views || 0} profile views
-                </button>
-                <div className="flex gap-2">
-                  <button onClick={() => setIsEditProfileOpen(true)} className="bg-[#00F0FF] hover:bg-[#00F0FF]/90 text-black px-6 py-2 rounded-lg font-bold transition-all text-sm shadow-[0_0_15px_rgba(0,240,255,0.3)] cursor-pointer">
-                    Edit Profile
-                  </button>
-                  <button onClick={handleDownloadPdf} disabled={isGeneratingPdf} className="bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-lg font-bold transition-all flex items-center gap-2 text-sm border border-white/5 disabled:opacity-50 cursor-pointer">
-                    <FileText size={16} /> {isGeneratingPdf ? 'Wait...' : 'Save to PDF'}
-                  </button>
+            
+            {/* Company Logo on the right (if company exists) */}
+            {profile.company && (
+              <div className="hidden md:flex items-center gap-2 mt-20 text-white font-semibold text-sm hover:text-[#00F0FF] transition-colors cursor-pointer">
+                <div className="w-8 h-8 bg-white rounded flex items-center justify-center p-1">
+                  <Briefcase size={16} className="text-black" />
                 </div>
-              </div>
-            ) : (
-              <div className="flex gap-2">
-                <button 
-                  onClick={handleFollowToggle}
-                  className={`${isFollowing ? 'bg-white/10 text-white hover:bg-white/20 border border-white/10' : 'bg-[#00F0FF] hover:bg-[#00F0FF]/90 text-black shadow-[0_0_15px_rgba(0,240,255,0.3)]'} px-6 py-2 rounded-lg font-bold transition-all text-sm cursor-pointer`}
-                >
-                  {isFollowing ? 'Unfollow' : 'Follow'}
-                </button>
-                <button className="bg-white/10 hover:bg-white/20 p-2.5 rounded-lg text-white transition-all cursor-pointer">
-                  <MessageCircle size={18} />
-                </button>
-                <button onClick={handleDownloadPdf} disabled={isGeneratingPdf} title="Save to PDF" className="bg-white/10 hover:bg-white/20 p-2.5 rounded-lg text-white transition-all border border-white/5 disabled:opacity-50 cursor-pointer">
-                  <FileText size={18} />
-                </button>
+                {profile.company}
               </div>
             )}
           </div>
 
-          <div>
-            <h1 className="text-2xl font-bold text-white leading-tight">{profile.user?.name}</h1>
-            <p className="text-[#00F0FF] font-medium text-sm mt-1">{profile.status}</p>
+          <div className="mb-4">
+            <h1 className="text-2xl font-bold text-white leading-tight flex items-center gap-2">
+              {profile.user?.name}
+            </h1>
+            
+            <p className="text-white text-base mt-1 max-w-2xl">
+              {profile.bio || 'No headline provided'}
+            </p>
+
+            <div className="flex items-center gap-2 mt-2 text-sm text-gray-400">
+              <span>{profile.location || 'Location not specified'}</span>
+              <span>·</span>
+              <span className="text-[#00F0FF] font-semibold cursor-pointer hover:underline">Contact info</span>
+            </div>
+
+            <div className="mt-2 text-sm font-semibold text-[#00F0FF] cursor-pointer hover:underline">
+              {profile.followers?.length || 0} connections
+            </div>
           </div>
 
-          <p className="text-gray-300 mt-4 text-sm max-w-2xl leading-relaxed">
-            {profile.bio || 'No bio provided.'}
-          </p>
+          {/* Action Buttons (Pills) */}
+          <div className="flex flex-wrap gap-2 mb-6">
+            {isOwner ? (
+              <>
+                {/* Open To Dropdown */}
+                <div className="relative">
+                  <button 
+                    onClick={() => {
+                      setIsOpenToDropdownOpen(!isOpenToDropdownOpen);
+                      setIsAddSectionDropdownOpen(false);
+                      setIsMoreDropdownOpen(false);
+                    }}
+                    className="bg-[#00F0FF] hover:bg-[#00F0FF]/90 text-black px-4 py-1.5 rounded-full font-bold transition-all text-sm cursor-pointer"
+                  >
+                    Open to
+                  </button>
+                  <AnimatePresence>
+                    {isOpenToDropdownOpen && (
+                      <>
+                        <div className="fixed inset-0 z-10" onClick={() => setIsOpenToDropdownOpen(false)} />
+                        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }} className="absolute left-0 mt-2 w-48 bg-[#1A1A1A] border border-white/10 rounded-xl shadow-xl z-20 py-2">
+                          <button onClick={() => { setIsOpenToDropdownOpen(false); toast.success('Status updated to Open to Work'); }} className="w-full text-left px-4 py-2 text-sm text-gray-300 hover:text-white hover:bg-white/10 transition-colors font-medium">
+                            Finding a new job
+                          </button>
+                          <button onClick={() => setIsOpenToDropdownOpen(false)} className="w-full text-left px-4 py-2 text-sm text-gray-300 hover:text-white hover:bg-white/10 transition-colors font-medium">
+                            Providing services
+                          </button>
+                        </motion.div>
+                      </>
+                    )}
+                  </AnimatePresence>
+                </div>
+
+                {/* Add Section Dropdown */}
+                <div className="relative">
+                  <button 
+                    onClick={() => {
+                      setIsAddSectionDropdownOpen(!isAddSectionDropdownOpen);
+                      setIsOpenToDropdownOpen(false);
+                      setIsMoreDropdownOpen(false);
+                    }}
+                    className="bg-transparent border border-white hover:bg-white/10 hover:border-2 text-white px-4 py-1.5 rounded-full font-bold transition-all text-sm cursor-pointer"
+                  >
+                    Add section
+                  </button>
+                  <AnimatePresence>
+                    {isAddSectionDropdownOpen && (
+                      <>
+                        <div className="fixed inset-0 z-10" onClick={() => setIsAddSectionDropdownOpen(false)} />
+                        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }} className="absolute left-0 mt-2 w-48 bg-[#1A1A1A] border border-white/10 rounded-xl shadow-xl z-20 py-2">
+                          <button onClick={() => { setIsAddSectionDropdownOpen(false); setIsAddExpOpen(true); }} className="w-full text-left px-4 py-2 text-sm text-gray-300 hover:text-white hover:bg-white/10 transition-colors font-medium">
+                            Add Experience
+                          </button>
+                          <button onClick={() => { setIsAddSectionDropdownOpen(false); setIsAddEduOpen(true); }} className="w-full text-left px-4 py-2 text-sm text-gray-300 hover:text-white hover:bg-white/10 transition-colors font-medium">
+                            Add Education
+                          </button>
+                          <button onClick={() => { setIsAddSectionDropdownOpen(false); setIsEditProfileOpen(true); }} className="w-full text-left px-4 py-2 text-sm text-gray-300 hover:text-white hover:bg-white/10 transition-colors font-medium">
+                            Edit About/Headline
+                          </button>
+                        </motion.div>
+                      </>
+                    )}
+                  </AnimatePresence>
+                </div>
+
+                {/* More Dropdown (...) */}
+                <div className="relative">
+                  <button 
+                    onClick={() => {
+                      setIsMoreDropdownOpen(!isMoreDropdownOpen);
+                      setIsOpenToDropdownOpen(false);
+                      setIsAddSectionDropdownOpen(false);
+                    }}
+                    className="bg-transparent border border-gray-400 hover:bg-white/10 hover:border-gray-200 text-gray-200 px-3 py-1.5 rounded-full font-bold transition-all text-sm cursor-pointer flex items-center justify-center"
+                  >
+                    <MoreHorizontal size={18} />
+                  </button>
+                  <AnimatePresence>
+                    {isMoreDropdownOpen && (
+                      <>
+                        <div className="fixed inset-0 z-10" onClick={() => setIsMoreDropdownOpen(false)} />
+                        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }} className="absolute left-0 md:left-auto mt-2 w-56 bg-[#1A1A1A] border border-white/10 rounded-xl shadow-xl z-20 py-2">
+                          <button onClick={() => { setIsMoreDropdownOpen(false); navigator.clipboard.writeText(window.location.href); toast.success('Profile link copied!'); }} className="w-full text-left px-4 py-3 text-sm text-gray-300 hover:text-white hover:bg-white/10 transition-colors font-medium flex items-center gap-3">
+                            <Share2 size={18} /> Send profile in a message
+                          </button>
+                          <button onClick={() => { setIsMoreDropdownOpen(false); handleDownloadPdf(); }} className="w-full text-left px-4 py-3 text-sm text-gray-300 hover:text-white hover:bg-white/10 transition-colors font-medium flex items-center gap-3">
+                            <FileText size={18} /> Save to PDF
+                          </button>
+                          <button onClick={() => { setIsMoreDropdownOpen(false); setActiveTab('activity'); }} className="w-full text-left px-4 py-3 text-sm text-gray-300 hover:text-white hover:bg-white/10 transition-colors font-medium flex items-center gap-3">
+                            <Activity size={18} /> Activity
+                          </button>
+                          <button onClick={() => { setIsMoreDropdownOpen(false); setActiveTab('overview'); }} className="w-full text-left px-4 py-3 text-sm text-gray-300 hover:text-white hover:bg-white/10 transition-colors font-medium flex items-center gap-3">
+                            <Users size={18} /> About this member
+                          </button>
+                          <button onClick={() => { setIsMoreDropdownOpen(false); setIsAnalyticsOpen(true); }} className="w-full text-left px-4 py-3 text-sm text-gray-300 hover:text-white hover:bg-white/10 transition-colors font-medium flex items-center gap-3 border-t border-white/10 mt-1 pt-3">
+                            <Eye size={18} /> View Analytics
+                          </button>
+                        </motion.div>
+                      </>
+                    )}
+                  </AnimatePresence>
+                </div>
+              </>
+            ) : (
+              <div className="flex flex-wrap gap-2">
+                <button 
+                  onClick={handleConnectionToggle}
+                  className={`${connectionState.status === 'accepted' ? 'bg-transparent border border-gray-400 hover:bg-white/10 hover:border-gray-200 text-gray-200' : connectionState.status === 'pending' ? 'bg-transparent border border-yellow-500 hover:bg-yellow-500/10 hover:border-yellow-400 text-yellow-500' : 'bg-[#00F0FF] hover:bg-[#00F0FF]/90 text-black'} px-4 py-1.5 rounded-full font-bold transition-all text-sm cursor-pointer`}
+                >
+                  {connectionState.status === 'accepted' ? 'Remove Connection' : connectionState.status === 'pending' ? 'Pending' : 'Connect'}
+                </button>
+                <button 
+                  onClick={() => {
+                    if (connectionState.status === 'accepted') {
+                      navigate(`/messages?userId=${profile.user._id}`);
+                    }
+                  }}
+                  className={`px-4 py-1.5 rounded-full font-bold transition-all text-sm border ${connectionState.status === 'accepted' ? 'bg-transparent border-[#00F0FF] text-[#00F0FF] hover:bg-[#00F0FF]/10 hover:border-[#00F0FF]/80 cursor-pointer' : 'bg-transparent border-gray-600 text-gray-500 cursor-not-allowed'}`}
+                >
+                  Message
+                </button>
+                <button 
+                  onClick={handleFollowToggle}
+                  className={`px-4 py-1.5 rounded-full font-bold transition-all text-sm border ${isFollowing ? 'bg-transparent border-gray-400 hover:bg-white/10 hover:border-gray-200 text-gray-200' : 'bg-transparent border-white hover:bg-white/10 hover:border-white text-white'} cursor-pointer`}
+                >
+                  {isFollowing ? 'Following' : 'Follow'}
+                </button>
+                <div className="relative">
+                  <button 
+                    onClick={() => setIsMoreDropdownOpen(!isMoreDropdownOpen)}
+                    className="bg-transparent border border-gray-400 hover:bg-white/10 hover:border-gray-200 text-gray-200 px-3 py-1.5 rounded-full font-bold transition-all text-sm cursor-pointer flex items-center justify-center"
+                  >
+                    <MoreHorizontal size={18} />
+                  </button>
+                  <AnimatePresence>
+                    {isMoreDropdownOpen && (
+                      <>
+                        <div className="fixed inset-0 z-10" onClick={() => setIsMoreDropdownOpen(false)} />
+                        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }} className="absolute left-0 mt-2 w-56 bg-[#1A1A1A] border border-white/10 rounded-xl shadow-xl z-20 py-2">
+                          <button onClick={() => { setIsMoreDropdownOpen(false); navigator.clipboard.writeText(window.location.href); toast.success('Profile link copied!'); }} className="w-full text-left px-4 py-3 text-sm text-gray-300 hover:text-white hover:bg-white/10 transition-colors font-medium flex items-center gap-3">
+                            <Share2 size={18} /> Share Profile
+                          </button>
+                          <button onClick={() => { setIsMoreDropdownOpen(false); handleDownloadPdf(); }} className="w-full text-left px-4 py-3 text-sm text-gray-300 hover:text-white hover:bg-white/10 transition-colors font-medium flex items-center gap-3">
+                            <FileText size={18} /> Save to PDF
+                          </button>
+                        </motion.div>
+                      </>
+                    )}
+                  </AnimatePresence>
+                </div>
+              </div>
+            )}
+          </div>
 
           {/* Quick Info */}
           <div className="flex flex-wrap gap-4 mt-5 text-sm text-gray-400">
@@ -619,6 +840,19 @@ const ProfilePage = () => {
       {/* Tab Content: OVERVIEW */}
       {activeTab === 'overview' && (
         <>
+          {/* About Section */}
+          {profile.about && (
+            <div className="bg-[#111] border border-white/5 rounded-2xl p-6 shadow-lg mb-6">
+              <h3 className="text-white font-bold text-lg mb-4 flex items-center gap-2">
+                <FileText size={20} className="text-[#00F0FF]" />
+                About
+              </h3>
+              <p className="text-gray-300 text-sm leading-relaxed whitespace-pre-wrap">
+                {profile.about}
+              </p>
+            </div>
+          )}
+
           {/* GitHub Contributions Graph */}
           {profile.githubusername && (
             <div className="bg-[#111] border border-white/5 rounded-2xl p-6 shadow-lg mb-6 overflow-hidden">
@@ -660,7 +894,8 @@ const ProfilePage = () => {
               )}
 
               {/* Social Links */}
-              <div className="bg-[#111] border border-white/5 rounded-2xl p-5 shadow-lg">
+              {(profile.githubusername || profile.socialLinks?.website || profile.socialLinks?.linkedin) && (
+                <div className="bg-[#111] border border-white/5 rounded-2xl p-5 shadow-lg">
                 <h3 className="text-white font-bold mb-4">Links</h3>
                 <div className="space-y-3">
                   {profile.githubusername && (
@@ -683,39 +918,41 @@ const ProfilePage = () => {
                   )}
                 </div>
               </div>
+              )}
 
               {/* Resume Section */}
-              <div className="bg-[#111] border border-white/5 rounded-2xl p-5 shadow-lg">
-                <div className="flex justify-between items-center mb-4">
-                  <h3 className="text-white font-bold flex items-center gap-2">
-                    <FileText size={18} className="text-[#00F0FF]" /> Resume
-                  </h3>
-                  {isOwner && (
+              {isOwner && (
+                <div className="bg-[#111] border border-white/5 rounded-2xl p-5 shadow-lg">
+                  <div className="flex justify-between items-center mb-4">
+                    <h3 className="text-white font-bold flex items-center gap-2">
+                      <FileText size={18} className="text-[#00F0FF]" /> Resume
+                    </h3>
                     <div>
                       <button onClick={() => resumeInputRef.current?.click()} disabled={uploadingResume} className="text-xs text-[#00F0FF] hover:underline cursor-pointer disabled:opacity-50">
                         {uploadingResume ? 'Uploading...' : 'Update'}
                       </button>
                       <input type="file" ref={resumeInputRef} onChange={handleResumeUpload} accept=".pdf,.doc,.docx" className="hidden" />
                     </div>
+                  </div>
+                  {profile.resume?.url ? (
+                    <a href={profile.resume.url} target="_blank" rel="noreferrer" className="flex items-center justify-center gap-2 w-full py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-sm font-medium text-white transition-colors">
+                      View {profile.resume.originalName || 'Resume'}
+                    </a>
+                  ) : (
+                    <div className="text-sm text-gray-500 text-center py-2">
+                      No resume uploaded
+                    </div>
                   )}
                 </div>
-                {profile.resume?.url ? (
-                  <a href={profile.resume.url} target="_blank" rel="noreferrer" className="flex items-center justify-center gap-2 w-full py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-sm font-medium text-white transition-colors">
-                    View {profile.resume.originalName || 'Resume'}
-                  </a>
-                ) : (
-                  <div className="text-sm text-gray-500 text-center py-2">
-                    No resume uploaded
-                  </div>
-                )}
-              </div>
+              )}
             </div>
 
             {/* Right Column: Experience, Education, Projects */}
             <div className="md:col-span-2 space-y-6">
 
               {/* Experience */}
-              <div className="bg-[#111] border border-white/5 rounded-2xl p-6 shadow-lg">
+              {(isOwner || (profile.experience && profile.experience.length > 0)) && (
+                <div className="bg-[#111] border border-white/5 rounded-2xl p-6 shadow-lg">
                 <div className="flex justify-between items-center mb-6">
                   <h3 className="text-white font-bold text-lg flex items-center gap-2">
                     <Briefcase size={20} className="text-[#00F0FF]" /> Experience
@@ -770,9 +1007,11 @@ const ProfilePage = () => {
                   )}
                 </div>
               </div>
+              )}
 
               {/* Education */}
-              <div className="bg-[#111] border border-white/5 rounded-2xl p-6 shadow-lg">
+              {(isOwner || (profile.education && profile.education.length > 0)) && (
+                <div className="bg-[#111] border border-white/5 rounded-2xl p-6 shadow-lg">
                 <div className="flex justify-between items-center mb-6">
                   <h3 className="text-white font-bold text-lg flex items-center gap-2">
                     <GraduationCap size={20} className="text-[#8A2BE2]" /> Education
@@ -826,9 +1065,11 @@ const ProfilePage = () => {
                   )}
                 </div>
               </div>
+              )}
 
               {/* Certifications */}
-              <div className="bg-[#111] border border-white/5 rounded-2xl p-6 shadow-lg">
+              {(isOwner || (profile.certifications && profile.certifications.length > 0)) && (
+                <div className="bg-[#111] border border-white/5 rounded-2xl p-6 shadow-lg">
                 <div className="flex justify-between items-center mb-6">
                   <h3 className="text-white font-bold text-lg flex items-center gap-2">
                     <Award size={20} className="text-[#00F0FF]" /> Certifications
@@ -887,6 +1128,7 @@ const ProfilePage = () => {
                   )}
                 </div>
               </div>
+              )}
 
             </div>
           </div>

@@ -11,10 +11,26 @@ const FloatingChat = ({ currentUser }) => {
   
   const [isOpen, setIsOpen] = useState(false);
   const [isVisible, setIsVisible] = useState(true);
+  const [isOptionsOpen, setIsOptionsOpen] = useState(false);
   const [conversations, setConversations] = useState([]);
+  
+  // Settings
+  const [muteSounds, setMuteSounds] = useState(() => localStorage.getItem('muteMessageSounds') === 'true');
+  const [readReceipts, setReadReceipts] = useState(() => localStorage.getItem('disableReadReceipts') !== 'true'); // default true
   const [activeChats, setActiveChats] = useState([]); // Array of chat objects, max 3
   const [chatMessages, setChatMessages] = useState({}); // { chatId: [messages] }
-  
+  const optionsRef = useRef(null);
+
+  // Click outside listener for options menu
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (optionsRef.current && !optionsRef.current.contains(event.target)) {
+        setIsOptionsOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   useEffect(() => {
     if (isOpen && conversations.length === 0) {
@@ -56,10 +72,16 @@ const FloatingChat = ({ currentUser }) => {
           return newConvos;
         });
       }
+
+      // Play sound if not muted and drawer is open
+      if (!muteSounds && isOpen) {
+        const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
+        audio.play().catch(e => console.log('Audio error:', e));
+      }
     };
     socket.on('messageReceived', handleMessage);
     return () => socket.off('messageReceived', handleMessage);
-  }, [socket, activeChats, isOpen]);
+  }, [socket, activeChats, isOpen, muteSounds]);
 
   const openChatHead = async (user) => {
     // If already open, do nothing
@@ -109,12 +131,12 @@ const FloatingChat = ({ currentUser }) => {
       </AnimatePresence>
 
       {/* Main Messaging Drawer */}
-      <div className="w-80 bg-[#111] border border-white/10 rounded-t-xl shadow-2xl pointer-events-auto flex flex-col overflow-hidden transition-all duration-300">
+      <div className="w-80 bg-[#111] border border-white/10 rounded-t-xl shadow-2xl pointer-events-auto flex flex-col transition-all duration-300">
         
         {/* Drawer Header */}
         <div 
           onClick={() => setIsOpen(!isOpen)}
-          className="px-4 py-3 bg-[#1a1a1a] border-b border-white/10 flex justify-between items-center cursor-pointer hover:bg-white/5 transition-colors"
+          className="px-4 py-3 bg-[#1a1a1a] border-b border-white/10 flex justify-between items-center cursor-pointer rounded-t-xl hover:bg-white/5 transition-colors"
         >
           <div className="flex items-center gap-2">
             <img 
@@ -124,10 +146,73 @@ const FloatingChat = ({ currentUser }) => {
             />
             <span className="font-semibold text-[15px] text-white">Messaging</span>
           </div>
-          <div className="flex items-center gap-1 text-gray-400">
-            <button className="hover:bg-white/10 p-1.5 rounded transition-colors" title="Options">
+          <div className="flex items-center gap-1 text-gray-400 relative" ref={optionsRef}>
+            <button 
+              onClick={(e) => { e.stopPropagation(); setIsOptionsOpen(!isOptionsOpen); }} 
+              className={`p-1.5 rounded transition-colors ${isOptionsOpen ? 'bg-white/10 text-white' : 'hover:bg-white/10'}`} 
+              title="Options"
+            >
               <MoreHorizontal size={16} />
             </button>
+            
+            {/* Options Dropdown */}
+            <AnimatePresence>
+              {isOptionsOpen && (
+                <motion.div 
+                  initial={{ opacity: 0, scale: 0.95, y: 5 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.95, y: 5 }}
+                  transition={{ duration: 0.15 }}
+                  onClick={(e) => e.stopPropagation()}
+                  className="absolute bottom-full right-0 mb-2 w-56 bg-[#1a1a1a] border border-white/10 rounded-xl shadow-2xl py-2 z-50 overflow-hidden origin-bottom-right"
+                >
+                  <div className="px-3 py-2 border-b border-white/5">
+                    <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Chat Settings</span>
+                  </div>
+                  
+                  <button 
+                    onClick={() => {
+                      const newVal = !muteSounds;
+                      setMuteSounds(newVal);
+                      localStorage.setItem('muteMessageSounds', newVal);
+                    }}
+                    className="w-full px-4 py-2.5 text-left text-sm text-gray-300 hover:bg-white/5 hover:text-white transition-colors flex justify-between items-center"
+                  >
+                    <span>Mute Sounds</span>
+                    <div className={`w-8 h-4 rounded-full transition-colors relative ${muteSounds ? 'bg-[#00F0FF]' : 'bg-gray-600'}`}>
+                      <div className={`absolute top-0.5 bottom-0.5 w-3 h-3 bg-white rounded-full transition-transform ${muteSounds ? 'translate-x-4' : 'translate-x-0.5'}`}></div>
+                    </div>
+                  </button>
+
+                  <button 
+                    onClick={() => {
+                      const newVal = !readReceipts;
+                      setReadReceipts(newVal);
+                      localStorage.setItem('disableReadReceipts', !newVal);
+                    }}
+                    className="w-full px-4 py-2.5 text-left text-sm text-gray-300 hover:bg-white/5 hover:text-white transition-colors flex justify-between items-center"
+                  >
+                    <span>Read Receipts</span>
+                    <div className={`w-8 h-4 rounded-full transition-colors relative ${readReceipts ? 'bg-[#00F0FF]' : 'bg-gray-600'}`}>
+                      <div className={`absolute top-0.5 bottom-0.5 w-3 h-3 bg-white rounded-full transition-transform ${readReceipts ? 'translate-x-4' : 'translate-x-0.5'}`}></div>
+                    </div>
+                  </button>
+                  
+                  <div className="h-px bg-white/5 my-1"></div>
+                  
+                  <button 
+                    onClick={() => {
+                      setActiveChats([]);
+                      setIsOptionsOpen(false);
+                    }}
+                    className="w-full px-4 py-2 text-left text-sm text-[#FF0055] hover:bg-white/5 transition-colors"
+                  >
+                    Close all active chats
+                  </button>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
             <button className="hover:bg-white/10 p-1.5 rounded transition-colors">
               {isOpen ? <ChevronDown size={16} /> : <ChevronUp size={16} />}
             </button>

@@ -16,7 +16,8 @@ const COMMON_SKILLS = [
 ];
 
 const MAX_SKILLS = 10;
-const MAX_BIO_LENGTH = 160;
+const MAX_HEADLINE_LENGTH = 220;
+const MAX_ABOUT_LENGTH = 2000;
 
 const SetupProfilePage = () => {
   const navigate = useNavigate();
@@ -29,7 +30,8 @@ const SetupProfilePage = () => {
     status: '',
     company: '',
     githubusername: '',
-    bio: ''
+    bio: '',
+    about: ''
   });
 
   // Custom State for Skills (Tags)
@@ -130,8 +132,11 @@ const SetupProfilePage = () => {
       setSelectedCompanyDomain(null);
     }
     
-    // Bio character limit logic
-    if (e.target.name === 'bio' && value.length > MAX_BIO_LENGTH) {
+    // Headline and About character limit logic
+    if (e.target.name === 'bio' && value.length > MAX_HEADLINE_LENGTH) {
+      return;
+    }
+    if (e.target.name === 'about' && value.length > MAX_ABOUT_LENGTH) {
       return;
     }
     
@@ -503,23 +508,45 @@ const SetupProfilePage = () => {
                   {errors.githubusername && <p className="mt-1 text-xs text-red-500">{errors.githubusername}</p>}
                 </div>
 
-                <div className="relative z-10">
-                  <div className="flex justify-between items-end mb-1">
-                    <label className="block text-sm font-medium text-gray-300">Short Bio</label>
-                    <span className="text-xs text-gray-500">{formData.bio.length}/{MAX_BIO_LENGTH}</span>
-                  </div>
-                  <div className="relative rounded-md shadow-sm">
-                    <div className="absolute top-3 left-3 pointer-events-none">
-                      <UserCircle className="text-gray-500" size={18} />
+                <div className="space-y-6">
+                  {/* Headline */}
+                  <div className="relative group">
+                    <div className="flex justify-between items-center mb-2">
+                      <label className="block text-sm font-medium text-gray-300">Headline</label>
+                      <span className="text-xs text-gray-500">{formData.bio.length}/{MAX_HEADLINE_LENGTH}</span>
                     </div>
-                    <textarea
-                      name="bio"
-                      value={formData.bio}
-                      onChange={handleChange}
-                      rows={3}
-                      className="block w-full pl-10 pr-3 py-3 border border-white/10 rounded-lg bg-black/50 text-white placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-[#00F0FF]/50 transition-all sm:text-sm resize-none"
-                      placeholder="Tell us a little about yourself"
-                    />
+                    <div className="relative">
+                      <div className="absolute top-3 left-4 text-gray-400 group-focus-within:text-[#00F0FF] transition-colors">
+                        <FileText size={20} />
+                      </div>
+                      <textarea
+                        name="bio"
+                        value={formData.bio}
+                        onChange={handleChange}
+                        className="w-full bg-[#0a0a0a] border border-white/10 rounded-xl py-3 pl-11 pr-4 text-white focus:border-[#00F0FF]/50 outline-none resize-none transition-colors h-24"
+                        placeholder="e.g. Flutter Developer | Building Real-Time Mobile Apps | Riverpod"
+                      />
+                    </div>
+                  </div>
+
+                  {/* About */}
+                  <div className="relative group">
+                    <div className="flex justify-between items-center mb-2">
+                      <label className="block text-sm font-medium text-gray-300">About</label>
+                      <span className="text-xs text-gray-500">{formData.about.length}/{MAX_ABOUT_LENGTH}</span>
+                    </div>
+                    <div className="relative">
+                      <div className="absolute top-3 left-4 text-gray-400 group-focus-within:text-[#00F0FF] transition-colors">
+                        <FileText size={20} />
+                      </div>
+                      <textarea
+                        name="about"
+                        value={formData.about}
+                        onChange={handleChange}
+                        className="w-full bg-[#0a0a0a] border border-white/10 rounded-xl py-3 pl-11 pr-4 text-white focus:border-[#00F0FF]/50 outline-none resize-none transition-colors h-32"
+                        placeholder="Tell us a detailed story about yourself, your career, and your interests..."
+                      />
+                    </div>
                   </div>
                 </div>
               </>

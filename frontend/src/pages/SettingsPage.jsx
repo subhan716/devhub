@@ -28,6 +28,7 @@ const SettingsPage = () => {
     skills: '',
     githubusername: '',
     bio: '',
+    about: '',
     linkedin: '',
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -46,6 +47,7 @@ const SettingsPage = () => {
           skills: data.skills ? data.skills.join(', ') : '',
           githubusername: data.githubusername || '',
           bio: data.bio || '',
+          about: data.about || '',
           linkedin: data.socialLinks?.linkedin || '',
         });
         setStatusInput(data.status || '');
@@ -173,9 +175,13 @@ const SettingsPage = () => {
                 <input type="text" name="skills" value={formData.skills} onChange={handleChange} className="w-full bg-[#0a0a0a] border border-white/10 rounded-xl py-2.5 px-4 text-white focus:border-[#00F0FF]/50 outline-none transition-colors" required placeholder="e.g. HTML, CSS, JavaScript, React" />
               </div>
 
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-300">Short Bio</label>
-                <textarea name="bio" value={formData.bio} onChange={handleChange} rows="4" className="w-full bg-[#0a0a0a] border border-white/10 rounded-xl py-3 px-4 text-white focus:border-[#00F0FF]/50 outline-none resize-none transition-colors" placeholder="Tell us a little about yourself..."></textarea>
+              <div className="space-y-4">
+                <label className="text-sm font-medium text-gray-300">Headline</label>
+                <textarea name="bio" value={formData.bio} onChange={handleChange} rows="2" maxLength="220" className="w-full bg-[#0a0a0a] border border-white/10 rounded-xl py-3 px-4 text-white focus:border-[#00F0FF]/50 outline-none resize-none transition-colors" placeholder="e.g. Flutter Developer | Riverpod..."></textarea>
+              </div>
+              <div className="space-y-4">
+                <label className="text-sm font-medium text-gray-300">About</label>
+                <textarea name="about" value={formData.about} onChange={handleChange} rows="6" maxLength="2000" className="w-full bg-[#0a0a0a] border border-white/10 rounded-xl py-3 px-4 text-white focus:border-[#00F0FF]/50 outline-none resize-none transition-colors" placeholder="Tell us a detailed story about yourself..."></textarea>
               </div>
             </div>
           </div>

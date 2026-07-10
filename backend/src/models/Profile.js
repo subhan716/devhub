@@ -22,7 +22,11 @@ const profileSchema = new mongoose.Schema(
     },
     bio: {
       type: String,
-      maxlength: [300, 'Bio cannot exceed 300 characters'],
+      maxlength: [220, 'Headline cannot exceed 220 characters'],
+    },
+    about: {
+      type: String,
+      maxlength: [2000, 'About cannot exceed 2000 characters'],
     },
     location: {
       type: String,

@@ -24,6 +24,7 @@ const EditProfileForm = ({ profile, setProfile, onClose }) => {
     skills: '',
     githubusername: '',
     bio: '',
+    about: '',
     website: '',
     linkedin: '',
   });
@@ -40,6 +41,7 @@ const EditProfileForm = ({ profile, setProfile, onClose }) => {
         skills: profile.skills ? profile.skills.join(', ') : '',
         githubusername: profile.githubusername || '',
         bio: profile.bio || '',
+        about: profile.about || '',
         website: profile.socialLinks?.website || '',
         linkedin: profile.socialLinks?.linkedin || '',
       });
@@ -66,6 +68,7 @@ const EditProfileForm = ({ profile, setProfile, onClose }) => {
         skills: data.skills,
         githubusername: data.githubusername,
         bio: data.bio,
+        about: data.about,
         socialLinks: data.socialLinks,
       }));
       toast.success('Profile updated!');
@@ -111,16 +114,31 @@ const EditProfileForm = ({ profile, setProfile, onClose }) => {
         )}
       </div>
 
-      {/* Bio */}
-      <div>
-        <label className={labelClass}>Short Bio</label>
+      {/* Headline */}
+      <div className="space-y-1">
+        <label className={labelClass}>Headline</label>
         <textarea
           name="bio"
           value={formData.bio}
           onChange={handleChange}
-          rows="3"
-          className={`${inputClass} resize-none`}
-          placeholder="Tell us a little about yourself..."
+          rows="2"
+          maxLength="220"
+          className={inputClass}
+          placeholder="e.g. Flutter Developer | Riverpod..."
+        />
+      </div>
+
+      {/* About */}
+      <div className="space-y-1">
+        <label className={labelClass}>About</label>
+        <textarea
+          name="about"
+          value={formData.about}
+          onChange={handleChange}
+          rows="5"
+          maxLength="2000"
+          className={inputClass}
+          placeholder="Tell us a detailed story about yourself, your career, and your interests..."
         />
       </div>
 

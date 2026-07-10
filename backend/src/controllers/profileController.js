@@ -8,14 +8,15 @@ const { getIo, getReceiverSocketId } = require('../socket');
 // @route   POST /api/profile
 // @access  Private
 const createOrUpdateProfile = async (req, res) => {
-  const { company, website, location, bio, status, githubusername, skills, youtube, facebook, twitter, instagram, linkedin } = req.body;
+  const { company, website, location, bio, about, status, githubusername, skills, youtube, facebook, twitter, instagram, linkedin } = req.body;
 
   // Build profile object
   const profileFields = {};
   profileFields.user = req.user.id;
   if (company) profileFields.company = company;
   if (location) profileFields.location = location;
-  if (bio) profileFields.bio = bio;
+  if (bio !== undefined) profileFields.bio = bio;
+  if (about !== undefined) profileFields.about = about;
   if (status) profileFields.status = status;
   if (githubusername) profileFields.githubusername = githubusername;
   
@@ -373,9 +374,13 @@ const searchProfiles = async (req, res) => {
     const query = {};
     
     if (q) {
+      const users = await User.find({ name: { $regex: q, $options: 'i' } }).select('_id');
+      const userIds = users.map(u => u._id);
+      
       query.$or = [
-        { 'user.name': { $regex: q, $options: 'i' } },
-        { status: { $regex: q, $options: 'i' } }
+        { user: { $in: userIds } },
+        { status: { $regex: q, $options: 'i' } },
+        { company: { $regex: q, $options: 'i' } }
       ];
     }
     if (skill) {

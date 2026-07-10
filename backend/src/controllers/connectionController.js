@@ -1,5 +1,6 @@
 const Connection = require('../models/Connection');
 const User = require('../models/User');
+const Profile = require('../models/Profile');
 const Notification = require('../models/Notification');
 const { getIo, getReceiverSocketId } = require('../socket');
 
@@ -29,7 +30,12 @@ const sendConnectionRequest = async (req, res) => {
     });
 
     if (existingConnection) {
-      return res.status(400).json({ message: `Connection already exists with status: ${existingConnection.status}` });
+      if (existingConnection.status === 'rejected') {
+        // Clean up old rejected request and proceed to create a new one
+        await Connection.findByIdAndDelete(existingConnection._id);
+      } else {
+        return res.status(400).json({ message: `Connection already exists with status: ${existingConnection.status}` });
+      }
     }
 
     const newConnection = await Connection.create({
@@ -105,7 +111,7 @@ const acceptConnectionRequest = async (req, res) => {
   }
 };
 
-// @desc    Reject connection request
+// @desc    Reject (Ignore) connection request
 // @route   PUT /api/network/reject/:requestId
 // @access  Private
 const rejectConnectionRequest = async (req, res) => {
@@ -120,14 +126,10 @@ const rejectConnectionRequest = async (req, res) => {
       return res.status(403).json({ message: 'Not authorized to reject this request' });
     }
 
-    if (connection.status !== 'pending') {
-      return res.status(400).json({ message: `Cannot reject request with status: ${connection.status}` });
-    }
+    // Completely delete the request so it resets the state
+    await Connection.findByIdAndDelete(req.params.requestId);
 
-    connection.status = 'rejected';
-    await connection.save();
-
-    res.status(200).json({ message: 'Request rejected' });
+    res.status(200).json({ message: 'Request ignored' });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -143,8 +145,8 @@ const removeConnection = async (req, res) => {
 
     const connection = await Connection.findOneAndDelete({
       $or: [
-        { requester: userId, recipient: otherUserId, status: 'accepted' },
-        { requester: otherUserId, recipient: userId, status: 'accepted' },
+        { requester: userId, recipient: otherUserId },
+        { requester: otherUserId, recipient: userId },
       ],
     });
 
@@ -191,12 +193,24 @@ const getConnections = async (req, res) => {
       status: 'accepted'
     }).populate('requester recipient', 'name avatar email role');
 
+    const connectedUsersMap = connections.map(conn => {
+      return conn.requester._id.toString() === userId.toString() ? conn.recipient : conn.requester;
+    });
+    
+    const userIds = connectedUsersMap.map(u => u._id);
+    const profiles = await Profile.find({ user: { $in: userIds } }).select('user bio');
+
     // Format the response to just return a list of connected users
     const connectedUsers = connections.map(conn => {
       const otherUser = conn.requester._id.toString() === userId.toString() ? conn.recipient : conn.requester;
+      const profile = profiles.find(p => p.user.toString() === otherUser._id.toString());
+      
       return {
         connectionId: conn._id,
-        user: otherUser,
+        user: {
+          ...otherUser.toObject(),
+          bio: profile ? profile.bio : ''
+        },
         connectedAt: conn.updatedAt
       };
     });
@@ -238,6 +252,35 @@ const getSuggestions = async (req, res) => {
   }
 };
 
+// @desc    Get connection status with a user
+// @route   GET /api/network/status/:userId
+// @access  Private
+const getConnectionStatus = async (req, res) => {
+  try {
+    const otherUserId = req.params.userId;
+    const userId = req.user._id;
+
+    if (otherUserId === userId.toString()) {
+      return res.status(200).json({ status: 'self' });
+    }
+
+    const connection = await Connection.findOne({
+      $or: [
+        { requester: userId, recipient: otherUserId },
+        { requester: otherUserId, recipient: userId },
+      ],
+    });
+
+    if (!connection || connection.status === 'rejected') {
+      return res.status(200).json({ status: 'none' });
+    }
+
+    res.status(200).json({ status: connection.status, requestId: connection._id });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 module.exports = {
   sendConnectionRequest,
   acceptConnectionRequest,
@@ -245,5 +288,6 @@ module.exports = {
   removeConnection,
   getPendingRequests,
   getConnections,
-  getSuggestions
+  getSuggestions,
+  getConnectionStatus
 };
