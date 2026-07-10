@@ -10,6 +10,7 @@ const FloatingChat = ({ currentUser }) => {
   const location = useLocation();
   
   const [isOpen, setIsOpen] = useState(false);
+  const [isVisible, setIsVisible] = useState(true);
   const [conversations, setConversations] = useState([]);
   const [activeChats, setActiveChats] = useState([]); // Array of chat objects, max 3
   const [chatMessages, setChatMessages] = useState({}); // { chatId: [messages] }
@@ -85,8 +86,8 @@ const FloatingChat = ({ currentUser }) => {
     setActiveChats(prev => prev.filter(c => c._id !== userId));
   };
 
-  // Only show floating chat if NOT on /messages
-  if (location.pathname.startsWith('/messages')) return null;
+  // Only show floating chat if NOT on /messages and if it hasn't been closed by the user
+  if (location.pathname.startsWith('/messages') || !isVisible) return null;
 
   return (
     <div className="fixed bottom-0 right-4 z-[999] flex items-end gap-3 pointer-events-none">
@@ -123,9 +124,20 @@ const FloatingChat = ({ currentUser }) => {
             />
             <span className="font-semibold text-[15px] text-white">Messaging</span>
           </div>
-          <div className="flex items-center gap-2 text-gray-400">
-            <MoreHorizontal size={18} className="hover:text-white transition-colors" />
-            {isOpen ? <ChevronDown size={18} /> : <ChevronUp size={18} />}
+          <div className="flex items-center gap-1 text-gray-400">
+            <button className="hover:bg-white/10 p-1.5 rounded transition-colors" title="Options">
+              <MoreHorizontal size={16} />
+            </button>
+            <button className="hover:bg-white/10 p-1.5 rounded transition-colors">
+              {isOpen ? <ChevronDown size={16} /> : <ChevronUp size={16} />}
+            </button>
+            <button 
+              onClick={(e) => { e.stopPropagation(); setIsVisible(false); }} 
+              className="hover:bg-white/10 p-1.5 rounded transition-colors"
+              title="Close Messages"
+            >
+              <X size={16} />
+            </button>
           </div>
         </div>
 

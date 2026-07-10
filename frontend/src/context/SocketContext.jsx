@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import io from 'socket.io-client';
+import axios from 'axios';
 
 const SocketContext = createContext();
 
@@ -10,7 +11,9 @@ export const useSocket = () => {
 export const SocketProvider = ({ children, currentUser }) => {
   const [socket, setSocket] = useState(null);
   const [onlineUsers, setOnlineUsers] = useState([]);
-  const [statusPref, setStatusPref] = useState(currentUser?.statusPreference || 'online');
+  const [statusPref, setStatusPref] = useState(() => {
+    return localStorage.getItem('statusPref') || currentUser?.statusPreference || 'online';
+  });
 
   useEffect(() => {
     if (currentUser) {
@@ -37,11 +40,22 @@ export const SocketProvider = ({ children, currentUser }) => {
   }, [currentUser]);
 
   // Expose a function to toggle status
-  const toggleStatusPref = () => {
+  const toggleStatusPref = async () => {
     const newStatus = statusPref === 'online' ? 'invisible' : 'online';
     setStatusPref(newStatus);
+    localStorage.setItem('statusPref', newStatus);
     if (socket && currentUser) {
       socket.emit('setStatusPref', { userId: currentUser._id || currentUser.id, status: newStatus });
+    }
+    
+    // Save to database
+    try {
+      await axios.put('http://localhost:5000/api/auth/status', 
+        { statusPreference: newStatus },
+        { withCredentials: true }
+      );
+    } catch (error) {
+      console.error('Failed to update status preference in DB', error);
     }
   };
 

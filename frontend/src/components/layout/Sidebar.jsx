@@ -23,7 +23,7 @@ const Sidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
 
   const navLinks = [
     { name: 'Feed', path: '/feed', icon: <LayoutDashboard size={20} /> },
-    { name: 'Network', path: '/network', icon: <Users size={20} /> },
+    { name: 'My Networks', path: '/network', icon: <Users size={20} /> },
     { name: 'Jobs', path: '/jobs', icon: <Briefcase size={20} /> },
     { name: 'Messages', path: '/messages', icon: <MessageSquare size={20} /> },
   ];

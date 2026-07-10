@@ -7,13 +7,10 @@ import toast from 'react-hot-toast';
 import ConfirmModal from '../common/ConfirmModal';
 import { useSocket } from '../../context/SocketContext';
 
-// Dummy Notifications Data
-const DUMMY_NOTIFICATIONS = [
-  { id: 1, type: 'like', text: 'Alex liked your post about React 19', time: '5m ago', unread: true },
-  { id: 2, type: 'comment', text: 'Sarah commented on your article', time: '1h ago', unread: true },
-  { id: 3, type: 'follow', text: 'John started following you', time: '2h ago', unread: false },
-  { id: 4, type: 'like', text: 'David liked your project', time: '5h ago', unread: false },
-];
+import { formatDistanceToNow } from 'date-fns';
+
+// Create an audio instance for the notification ping
+const notificationSound = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
 
 const TopNavbar = ({ setIsMobileMenuOpen, currentUser, isMessagesPage }) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -42,6 +39,74 @@ const TopNavbar = ({ setIsMobileMenuOpen, currentUser, isMessagesPage }) => {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  const { socket } = useSocket() || {};
+
+  // Fetch and Socket Logic
+  useEffect(() => {
+    // Request Desktop Notification Permission
+    if ('Notification' in window && Notification.permission === 'default') {
+      Notification.requestPermission();
+    }
+
+    const fetchNotifications = async () => {
+      try {
+        const res = await axios.get('http://localhost:5000/api/notifications', { withCredentials: true });
+        setNotifications(res.data);
+      } catch (err) {
+        console.error('Failed to fetch notifications', err);
+      }
+    };
+    fetchNotifications();
+
+    if (socket) {
+      socket.on('newNotification', (newNotif) => {
+        setNotifications(prev => [newNotif, ...prev]);
+        
+        // Determine if sound and popup should play
+        const playSoundTypes = ['connection_request', 'follow', 'connection_accepted'];
+        if (playSoundTypes.includes(newNotif.type)) {
+          // Play sound
+          notificationSound.play().catch(e => console.log('Audio play failed:', e));
+          
+          // Show Native Desktop Popup
+          if ('Notification' in window && Notification.permission === 'granted') {
+            new Notification('DevHub', {
+              body: `${newNotif.sender.name} ${newNotif.message}`,
+              icon: newNotif.sender.avatar?.url || '/images/logo.png',
+            });
+          }
+        }
+      });
+    }
+
+    return () => {
+      if (socket) socket.off('newNotification');
+    };
+  }, [socket]);
+
+  useEffect(() => {
+    setUnreadCount(notifications.filter(n => !n.read).length);
+  }, [notifications]);
+
+  const markAllAsRead = async () => {
+    try {
+      await axios.put('http://localhost:5000/api/notifications/read-all', {}, { withCredentials: true });
+      setNotifications(notifications.map(n => ({ ...n, read: true })));
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const markAsRead = async (notifId, isAlreadyRead) => {
+    if (isAlreadyRead) return;
+    try {
+      await axios.put(`http://localhost:5000/api/notifications/read/${notifId}`, {}, { withCredentials: true });
+      setNotifications(notifications.map(n => n._id === notifId ? { ...n, read: true } : n));
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
   const handleLogout = async () => {
     try {
@@ -107,8 +172,10 @@ const TopNavbar = ({ setIsMobileMenuOpen, currentUser, isMessagesPage }) => {
           >
             <div className="relative">
               <Bell size={20} className="group-hover:text-[#00F0FF] transition-colors" />
-              {DUMMY_NOTIFICATIONS.some(n => n.unread) && (
-                <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-[#FF0055] rounded-full border-2 border-[#0a0a0a]"></span>
+              {unreadCount > 0 && (
+                <span className="absolute -top-1.5 -right-1.5 flex items-center justify-center min-w-[18px] h-[18px] px-1 bg-[#FF0055] rounded-full border-2 border-[#0a0a0a] text-[9px] font-bold text-white">
+                  {unreadCount > 99 ? '99+' : unreadCount}
+                </span>
               )}
             </div>
             <span className="text-sm font-medium hidden sm:block">Notifications</span>
@@ -125,33 +192,40 @@ const TopNavbar = ({ setIsMobileMenuOpen, currentUser, isMessagesPage }) => {
               >
                 <div className="px-4 py-2 border-b border-white/10 flex justify-between items-center">
                   <h3 className="text-white font-semibold">Notifications</h3>
-                  <span className="text-xs text-[#00F0FF] cursor-pointer hover:underline">Mark all as read</span>
+                  {unreadCount > 0 && (
+                    <span onClick={markAllAsRead} className="text-xs text-[#00F0FF] cursor-pointer hover:underline">Mark all as read</span>
+                  )}
                 </div>
                 
-                <div className="max-h-80 overflow-y-auto scrollbar-thin scrollbar-thumb-[#00F0FF]/30 scrollbar-track-transparent">
-                  {DUMMY_NOTIFICATIONS.map((notif) => (
-                    <div 
-                      key={notif.id} 
-                      className={`px-4 py-3 border-b border-white/5 hover:bg-white/5 cursor-pointer flex gap-3 ${notif.unread ? 'bg-[#00F0FF]/5' : ''}`}
-                    >
-                      <div className={`mt-1 rounded-full p-1.5 h-fit ${
-                        notif.type === 'like' ? 'bg-pink-500/20 text-pink-500' :
-                        notif.type === 'comment' ? 'bg-[#00F0FF]/20 text-[#00F0FF]' :
-                        'bg-[#8A2BE2]/20 text-[#8A2BE2]'
-                      }`}>
-                        {notif.type === 'like' && <Heart size={14} className={notif.unread ? "fill-pink-500" : ""} />}
-                        {notif.type === 'comment' && <MessageSquare size={14} className={notif.unread ? "fill-[#00F0FF]" : ""} />}
-                        {notif.type === 'follow' && <UserPlus size={14} />}
+                <div className="max-h-[60vh] overflow-y-auto scrollbar-thin scrollbar-thumb-[#00F0FF]/30 scrollbar-track-transparent">
+                  {notifications.length === 0 ? (
+                    <div className="p-6 text-center text-gray-400 text-sm">No notifications yet.</div>
+                  ) : (
+                    notifications.map((notif) => (
+                      <div 
+                        key={notif._id} 
+                        onClick={() => markAsRead(notif._id, notif.read)}
+                        className={`px-4 py-3 border-b border-white/5 hover:bg-white/5 cursor-pointer flex gap-3 transition-colors ${!notif.read ? 'bg-[#00F0FF]/5' : ''}`}
+                      >
+                        <img 
+                          src={notif.sender?.avatar?.url || 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png'} 
+                          alt="avatar" 
+                          className="w-10 h-10 rounded-full object-cover mt-1"
+                        />
+                        <div className="flex-1">
+                          <p className={`text-sm ${!notif.read ? 'text-white font-medium' : 'text-gray-300'}`}>
+                            <span className="font-bold">{notif.sender?.name}</span> {notif.message}
+                          </p>
+                          <span className="text-xs text-gray-500 mt-1 block">
+                            {formatDistanceToNow(new Date(notif.createdAt), { addSuffix: true })}
+                          </span>
+                        </div>
+                        {!notif.read && (
+                          <div className="w-2 h-2 rounded-full bg-[#00F0FF] mt-2 flex-shrink-0"></div>
+                        )}
                       </div>
-                      <div className="flex-1">
-                        <p className={`text-sm ${notif.unread ? 'text-white font-medium' : 'text-gray-300'}`}>{notif.text}</p>
-                        <span className="text-xs text-gray-500 mt-1 block">{notif.time}</span>
-                      </div>
-                      {notif.unread && (
-                        <div className="w-2 h-2 rounded-full bg-[#00F0FF] mt-1.5 flex-shrink-0"></div>
-                      )}
-                    </div>
-                  ))}
+                    ))
+                  )}
                 </div>
 
                 <Link 
@@ -177,11 +251,14 @@ const TopNavbar = ({ setIsMobileMenuOpen, currentUser, isMessagesPage }) => {
             <span className="text-sm font-medium text-gray-300 group-hover:text-white transition-colors hidden sm:block">
               {currentUser?.name || 'Loading...'}
             </span>
-            <img 
-              src={currentUser?.avatar?.url || 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png'} 
-              alt="Profile" 
-              className="w-9 h-9 rounded-full object-cover border border-white/10 group-hover:border-[#00F0FF]/50 transition-colors bg-[#111]"
-            />
+            <div className="relative">
+              <img 
+                src={currentUser?.avatar?.url || 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png'} 
+                alt="Profile" 
+                className="w-9 h-9 rounded-full object-cover border border-white/10 group-hover:border-[#00F0FF]/50 transition-colors bg-[#111]"
+              />
+              <div className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-[#0a0a0a] ${statusPref === 'online' ? 'bg-[#00F0FF] shadow-[0_0_8px_rgba(0,240,255,0.6)]' : 'bg-gray-500'}`}></div>
+            </div>
           </button>
 
           <AnimatePresence>

@@ -98,4 +98,8 @@ const getIo = () => {
   return io;
 };
 
-module.exports = { initSocket, getIo };
+const getReceiverSocketId = (userId) => {
+  return onlineUsers.get(userId.toString());
+};
+
+module.exports = { initSocket, getIo, getReceiverSocketId };

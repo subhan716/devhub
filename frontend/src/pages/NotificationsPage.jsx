@@ -1,113 +1,111 @@
-import { useState } from 'react';
-import { motion } from 'framer-motion';
-import { Bell, Heart, MessageSquare, UserPlus, CheckCircle2, Settings } from 'lucide-react';
-
-const DUMMY_NOTIFICATIONS = [
-  { id: 1, type: 'like', text: 'Alex Chen liked your post "Why React 19 is a game changer"', time: '5m ago', unread: true },
-  { id: 2, type: 'comment', text: 'Sarah Smith commented on your article "Deploying with Vercel"', time: '1h ago', unread: true },
-  { id: 3, type: 'follow', text: 'John Doe started following you', time: '2h ago', unread: false },
-  { id: 4, type: 'like', text: 'David Miller liked your project "DevHub"', time: '5h ago', unread: false },
-  { id: 5, type: 'comment', text: 'Emily Davis replied to your comment on "Understanding GraphQL"', time: '1d ago', unread: false },
-  { id: 6, type: 'follow', text: 'Michael Wilson started following you', time: '2d ago', unread: false },
-  { id: 7, type: 'like', text: 'Sophia Taylor liked your post "My remote work setup"', time: '3d ago', unread: false },
-];
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+import { formatDistanceToNow } from 'date-fns';
+import { Bell, UserPlus, Heart, MessageSquare, Check, X, Loader2 } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const NotificationsPage = () => {
-  const [activeTab, setActiveTab] = useState('all'); // 'all' or 'unread'
+  const [notifications, setNotifications] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const filteredNotifications = activeTab === 'all' 
-    ? DUMMY_NOTIFICATIONS 
-    : DUMMY_NOTIFICATIONS.filter(n => n.unread);
+  useEffect(() => {
+    fetchNotifications();
+  }, []);
+
+  const fetchNotifications = async () => {
+    try {
+      const res = await axios.get('http://localhost:5000/api/notifications', { withCredentials: true });
+      setNotifications(res.data);
+      
+      // Auto mark all as read when opening the page
+      if (res.data.some(n => !n.read)) {
+        await axios.put('http://localhost:5000/api/notifications/read-all', {}, { withCredentials: true });
+        setNotifications(res.data.map(n => ({ ...n, read: true })));
+      }
+    } catch (error) {
+      console.error('Failed to fetch notifications', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getIcon = (type) => {
+    switch(type) {
+      case 'like': return <Heart size={16} className="text-pink-500" />;
+      case 'comment': return <MessageSquare size={16} className="text-[#00F0FF]" />;
+      case 'follow': return <UserPlus size={16} className="text-[#8A2BE2]" />;
+      case 'connection_request': return <UserPlus size={16} className="text-green-500" />;
+      case 'connection_accepted': return <Check size={16} className="text-green-500" />;
+      default: return <Bell size={16} className="text-gray-400" />;
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <Loader2 className="w-8 h-8 animate-spin text-[#00F0FF]" />
+      </div>
+    );
+  }
 
   return (
-    <div className="max-w-2xl mx-auto pb-20">
-      <div className="flex items-center justify-between mb-8">
-        <h1 className="text-3xl font-bold text-white flex items-center gap-3">
-          <Bell className="text-[#00F0FF]" size={28} />
-          Notifications
-        </h1>
-        <div className="flex items-center gap-4">
-          <button className="text-sm text-gray-400 hover:text-[#00F0FF] transition-colors flex items-center gap-1">
-            <CheckCircle2 size={16} /> Mark all as read
-          </button>
-          <button className="p-2 text-gray-400 hover:text-white bg-white/5 hover:bg-white/10 rounded-full transition-colors">
-            <Settings size={18} />
-          </button>
+    <div className="max-w-3xl mx-auto space-y-6 animate-fade-in pb-20">
+      <div className="bg-[#111] border border-white/5 rounded-2xl p-6 shadow-xl">
+        <div className="flex items-center justify-between mb-6">
+          <h1 className="text-2xl font-bold text-white flex items-center gap-3">
+            <Bell className="text-[#00F0FF]" /> 
+            Notifications
+          </h1>
         </div>
-      </div>
 
-      {/* Tabs */}
-      <div className="flex gap-6 border-b border-white/10 mb-6">
-        <button 
-          onClick={() => setActiveTab('all')}
-          className={`pb-3 font-medium transition-colors relative ${activeTab === 'all' ? 'text-white' : 'text-gray-500 hover:text-gray-300'}`}
-        >
-          All
-          {activeTab === 'all' && (
-            <motion.div layoutId="notifTab" className="absolute bottom-0 left-0 w-full h-0.5 bg-[#00F0FF]" />
-          )}
-        </button>
-        <button 
-          onClick={() => setActiveTab('unread')}
-          className={`pb-3 font-medium transition-colors relative ${activeTab === 'unread' ? 'text-white' : 'text-gray-500 hover:text-gray-300'}`}
-        >
-          Unread
-          {DUMMY_NOTIFICATIONS.some(n => n.unread) && (
-            <span className="ml-2 bg-[#FF0055] text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">
-              {DUMMY_NOTIFICATIONS.filter(n => n.unread).length}
-            </span>
-          )}
-          {activeTab === 'unread' && (
-            <motion.div layoutId="notifTab" className="absolute bottom-0 left-0 w-full h-0.5 bg-[#00F0FF]" />
-          )}
-        </button>
-      </div>
-
-      {/* Notifications List */}
-      <div className="space-y-4">
-        {filteredNotifications.length === 0 ? (
-          <div className="text-center py-20 bg-[#111] rounded-2xl border border-white/5">
-            <Bell size={48} className="mx-auto text-gray-600 mb-4" />
-            <h3 className="text-lg font-medium text-white mb-1">No notifications yet</h3>
-            <p className="text-gray-500">When you get notifications, they'll show up here.</p>
+        {notifications.length === 0 ? (
+          <div className="text-center py-16">
+            <div className="w-20 h-20 bg-white/5 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Bell size={32} className="text-gray-500" />
+            </div>
+            <h2 className="text-xl font-semibold text-white mb-2">You're all caught up!</h2>
+            <p className="text-gray-400">No new notifications right now.</p>
           </div>
         ) : (
-          filteredNotifications.map((notif, index) => (
-            <motion.div 
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.05 }}
-              key={notif.id} 
-              className={`p-4 rounded-2xl border transition-all cursor-pointer flex gap-4 ${
-                notif.unread 
-                  ? 'bg-gradient-to-r from-[#00F0FF]/5 to-transparent border-[#00F0FF]/20 hover:border-[#00F0FF]/40' 
-                  : 'bg-[#111] border-white/5 hover:bg-white/5 hover:border-white/10'
-              }`}
-            >
-              <div className={`mt-1 rounded-full p-2 h-fit ${
-                notif.type === 'like' ? 'bg-pink-500/20 text-pink-500' :
-                notif.type === 'comment' ? 'bg-[#00F0FF]/20 text-[#00F0FF]' :
-                'bg-[#8A2BE2]/20 text-[#8A2BE2]'
-              }`}>
-                {notif.type === 'like' && <Heart size={18} className={notif.unread ? "fill-pink-500" : ""} />}
-                {notif.type === 'comment' && <MessageSquare size={18} className={notif.unread ? "fill-[#00F0FF]" : ""} />}
-                {notif.type === 'follow' && <UserPlus size={18} />}
-              </div>
-              
-              <div className="flex-1">
-                <p className={`text-[15px] leading-relaxed ${notif.unread ? 'text-white font-medium' : 'text-gray-300'}`}>
-                  {notif.text}
-                </p>
-                <span className="text-sm text-gray-500 mt-1 block">{notif.time}</span>
-              </div>
-              
-              {notif.unread && (
-                <div className="flex items-center">
-                  <div className="w-2.5 h-2.5 rounded-full bg-[#00F0FF] shadow-[0_0_8px_#00F0FF]"></div>
-                </div>
-              )}
-            </motion.div>
-          ))
+          <div className="space-y-4">
+            <AnimatePresence>
+              {notifications.map((notif) => (
+                <motion.div
+                  key={notif._id}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className={`p-4 rounded-xl border border-white/5 transition-all flex items-start gap-4 ${
+                    !notif.read ? 'bg-[#00F0FF]/5' : 'bg-white/[0.02]'
+                  }`}
+                >
+                  <img 
+                    src={notif.sender?.avatar?.url || 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png'} 
+                    alt={notif.sender?.name} 
+                    className="w-12 h-12 rounded-full object-cover border border-white/10"
+                  />
+                  <div className="flex-1">
+                    <p className={`text-base ${!notif.read ? 'text-white' : 'text-gray-300'}`}>
+                      <span className="font-bold text-white hover:text-[#00F0FF] cursor-pointer transition-colors">
+                        {notif.sender?.name}
+                      </span>{' '}
+                      {notif.message}
+                    </p>
+                    {notif.relatedPost && (
+                      <p className="text-sm text-gray-500 mt-1 line-clamp-1 italic">
+                        "{notif.relatedPost.title || 'A post'}"
+                      </p>
+                    )}
+                    <span className="text-xs text-gray-500 mt-2 block">
+                      {formatDistanceToNow(new Date(notif.createdAt), { addSuffix: true })}
+                    </span>
+                  </div>
+                  <div className="bg-white/5 p-2 rounded-lg">
+                    {getIcon(notif.type)}
+                  </div>
+                </motion.div>
+              ))}
+            </AnimatePresence>
+          </div>
         )}
       </div>
     </div>

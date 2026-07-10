@@ -1,5 +1,8 @@
 const Profile = require('../models/Profile');
 const Follow = require('../models/Follow');
+const User = require('../models/User');
+const Notification = require('../models/Notification');
+const { getIo, getReceiverSocketId } = require('../socket');
 
 // @desc    Create or update user profile
 // @route   POST /api/profile
@@ -283,6 +286,20 @@ const followUser = async (req, res) => {
     // Update Profiles
     await Profile.findOneAndUpdate({ user: targetUserId }, { $addToSet: { followers: currentUserId } });
     await Profile.findOneAndUpdate({ user: currentUserId }, { $addToSet: { following: targetUserId } });
+
+    // Create Notification
+    const notification = await Notification.create({
+      recipient: targetUserId,
+      sender: currentUserId,
+      type: 'follow',
+      message: 'started following you.',
+    });
+    
+    const populatedNotif = await notification.populate('sender', 'name avatar');
+    const receiverSocketId = getReceiverSocketId(targetUserId);
+    if (receiverSocketId) {
+      getIo().to(receiverSocketId).emit('newNotification', populatedNotif);
+    }
 
     res.json({ message: 'User followed successfully' });
   } catch (err) {
