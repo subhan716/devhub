@@ -27,15 +27,15 @@ const MainLayout = () => {
 
   return (
     <SocketProvider currentUser={currentUser}>
-      <div className="min-h-screen bg-[#050505] text-white selection:bg-[#00F0FF]/30">
+      <div className={`min-h-screen bg-[#050505] text-white selection:bg-[#00F0FF]/30 ${isMessagesPage ? 'h-screen overflow-hidden' : ''}`}>
         {/* 3-Column Layout structure matching the mockup */}
         <Sidebar isMobileMenuOpen={isMobileMenuOpen} setIsMobileMenuOpen={setIsMobileMenuOpen} />
         {!isMessagesPage && <RightSidebar />}
         
         {/* Main Content Area */}
-        <main className={`md:ml-64 ${!isMessagesPage ? 'lg:mr-80' : ''} flex flex-col min-h-screen relative transition-all duration-300`}>
+        <main className={`md:ml-64 ${!isMessagesPage ? 'lg:mr-80 min-h-screen' : 'h-screen overflow-hidden'} flex flex-col relative transition-all duration-300`}>
           <TopNavbar setIsMobileMenuOpen={setIsMobileMenuOpen} currentUser={currentUser} isMessagesPage={isMessagesPage} />
-          <div className={`flex-1 w-full ${!isMessagesPage ? 'max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-6' : 'max-w-full h-[calc(100vh-80px)] p-0 flex flex-col'}`}>
+          <div className={`flex-1 w-full min-h-0 ${!isMessagesPage ? 'max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-6' : 'max-w-full p-0 flex flex-col'}`}>
             <Outlet context={{ currentUser }} />
           </div>
         </main>

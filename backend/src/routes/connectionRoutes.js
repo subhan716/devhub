@@ -7,6 +7,7 @@ const {
   removeConnection, 
   getPendingRequests, 
   getConnections, 
+  getUserConnections,
   getSuggestions,
   getConnectionStatus
 } = require('../controllers/connectionController');
@@ -19,6 +20,7 @@ router.delete('/remove/:userId', protect, removeConnection);
 
 router.get('/pending', protect, getPendingRequests);
 router.get('/connections', protect, getConnections);
+router.get('/connections/:userId', protect, getUserConnections);
 router.get('/suggestions', protect, getSuggestions);
 router.get('/status/:userId', protect, getConnectionStatus);
 

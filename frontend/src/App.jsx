@@ -10,6 +10,7 @@ import SetupProfilePage from './pages/SetupProfilePage';
 import FeedPage from './pages/FeedPage';
 import NotificationsPage from './pages/NotificationsPage';
 import ProfilePage from './pages/ProfilePage';
+import ProfileConnectionsPage from './pages/ProfileConnectionsPage';
 import SettingsPage from './pages/SettingsPage';
 import JobsPage from './pages/JobsPage';
 import SearchPage from './pages/SearchPage';
@@ -148,6 +149,7 @@ function App() {
           >
             <Route index element={<ProfilePage />} />
             <Route path=":id" element={<ProfilePage />} />
+            <Route path=":id/connections" element={<ProfileConnectionsPage />} />
           </Route>
 
           <Route

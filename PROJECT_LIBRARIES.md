@@ -23,6 +23,7 @@ This file documents all external libraries, frameworks, and packages installed i
 | `react-github-calendar` | Rendering dynamic GitHub activity graphs |
 | `date-fns` | Utility library for formatting relative and absolute dates |
 | `socket.io-client` | Real-time bidirectional event-based communication client |
+| `emoji-picker-react`| Added for rendering the emoji keyboard in chat components |
 
 ## Backend (Node.js + Express)
 | Package Name | Purpose |

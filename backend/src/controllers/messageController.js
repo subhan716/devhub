@@ -69,13 +69,16 @@ const getMessages = async (req, res) => {
 // @access  Private
 const sendMessage = async (req, res) => {
   try {
-    const { text } = req.body;
-    if (!text) return res.status(400).json({ msg: 'Message text is required' });
+    const { text, attachment } = req.body;
+    if (!text && !attachment) {
+      return res.status(400).json({ msg: 'Message text or attachment is required' });
+    }
 
     const newMessage = new Message({
       sender: req.user.id,
       receiver: req.params.userId,
-      text
+      ...(text && { text }),
+      ...(attachment && { attachment })
     });
 
     const savedMessage = await newMessage.save();

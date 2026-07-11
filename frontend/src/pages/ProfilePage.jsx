@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { MapPin, Briefcase, Calendar, Link as LinkIcon, Heart, MessageCircle, Repeat2, GraduationCap, FolderGit2, FileText, Trash2, Plus, Edit3, Image, Copy, MoreHorizontal, Users, Eye, Activity, Award, X, ChevronDown, Share2 } from 'lucide-react';
-import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
 import toast from 'react-hot-toast';
@@ -11,6 +11,8 @@ import AddCertificationInline from '../components/profile/AddCertificationInline
 import AddProjectInline from '../components/profile/AddProjectInline';
 import EditProfileForm from '../components/profile/EditProfileForm';
 import AnalyticsModal from '../components/profile/AnalyticsModal';
+import OpenToWorkModal from '../components/profile/OpenToWorkModal';
+import ProvidingServicesModal from '../components/profile/ProvidingServicesModal';
 import ResumeTemplate from '../components/profile/ResumeTemplate';
 import ConfirmModal from '../components/common/ConfirmModal';
 import { jsPDF } from 'jspdf';
@@ -45,6 +47,9 @@ const ProfilePage = () => {
   const [isOpenToDropdownOpen, setIsOpenToDropdownOpen] = useState(false);
   const [isAddSectionDropdownOpen, setIsAddSectionDropdownOpen] = useState(false);
   const [isMoreDropdownOpen, setIsMoreDropdownOpen] = useState(false);
+  
+  const [isOpenToWorkModalOpen, setIsOpenToWorkModalOpen] = useState(false);
+  const [isProvidingServicesModalOpen, setIsProvidingServicesModalOpen] = useState(false);
   
   const [isAddCertOpen, setIsAddCertOpen] = useState(false);
   const [isAddProjectOpen, setIsAddProjectOpen] = useState(false);
@@ -556,6 +561,20 @@ const ProfilePage = () => {
         onClose={() => setIsAnalyticsOpen(false)} 
       />
 
+      <OpenToWorkModal 
+        isOpen={isOpenToWorkModalOpen}
+        onClose={() => setIsOpenToWorkModalOpen(false)}
+        profile={profile}
+        setProfile={setProfile}
+      />
+
+      <ProvidingServicesModal 
+        isOpen={isProvidingServicesModalOpen}
+        onClose={() => setIsProvidingServicesModalOpen(false)}
+        profile={profile}
+        setProfile={setProfile}
+      />
+
       {/* Cover & Avatar Header */}
       <div className="relative rounded-2xl overflow-hidden mb-8 border border-white/10 bg-[#111]">
         {/* Cover Photo */}
@@ -576,38 +595,108 @@ const ProfilePage = () => {
             </label>
           )}
         </div>
-
         {/* Profile Info Overlay */}
         <div className="px-6 pb-6 relative">
           <div className="flex justify-between items-start -mt-16 mb-4">
-            <div className="relative">
+            <div className="relative" style={{ width: '152px', height: '152px', flexShrink: 0 }}>
+              {/* Avatar Image */}
               <img
                 src={profile.user?.avatar?.url || 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png'}
                 alt="Profile"
-                className="w-[152px] h-[152px] rounded-full border-4 border-[#111] object-cover bg-[#111] cursor-pointer hover:opacity-80 transition-opacity shadow-lg"
+                className="w-[152px] h-[152px] rounded-full border-[4px] border-[#111] object-cover bg-[#111] cursor-pointer hover:opacity-80 transition-opacity shadow-lg relative z-10"
                 onClick={() => setIsPreviewOpen(true)}
               />
-            </div>
-            
-            {/* Company Logo on the right (if company exists) */}
-            {profile.company && (
-              <div className="hidden md:flex items-center gap-2 mt-20 text-white font-semibold text-sm hover:text-[#00F0FF] transition-colors cursor-pointer">
-                <div className="w-8 h-8 bg-white rounded flex items-center justify-center p-1">
-                  <Briefcase size={16} className="text-black" />
+
+              {/* Exact LinkedIn-style Open To Work Overlay */}
+              {profile.openToWork?.isLooking && (
+                <div className="absolute inset-0 z-20 pointer-events-none rounded-full overflow-hidden">
+                  <svg viewBox="0 0 152 152" className="w-full h-full">
+                    <defs>
+                      <linearGradient id="greenFade" x1="0%" y1="0%" x2="100%" y2="0%">
+                        <stop offset="0%" stopColor="#1e8a3a" />
+                        <stop offset="80%" stopColor="#1e8a3a" />
+                        <stop offset="100%" stopColor="#1e8a3a" stopOpacity="0" />
+                      </linearGradient>
+                    </defs>
+                    <path 
+                      id="openToWorkPath"
+                      d="M 15,92 A 63,63 0 0,0 137,92" 
+                      fill="none" 
+                      stroke="url(#greenFade)" 
+                      strokeWidth="26" 
+                    />
+                    <text fill="white" fontSize="13" fontWeight="800" fontFamily="Arial, sans-serif" letterSpacing="0.5">
+                      <textPath href="#openToWorkPath" startOffset="48%" textAnchor="middle" dominantBaseline="middle" dy="1">
+                        #OPENTOWORK
+                      </textPath>
+                    </text>
+                  </svg>
                 </div>
-                {profile.company}
-              </div>
-            )}
+              )}
+
+              {/* Exact LinkedIn-style Providing Services Overlay */}
+              {!profile.openToWork?.isLooking && profile.providingServices?.isProviding && (
+                <div className="absolute inset-0 z-20 pointer-events-none rounded-full overflow-hidden">
+                  <svg viewBox="0 0 152 152" className="w-full h-full">
+                    <defs>
+                      <linearGradient id="grayFade" x1="0%" y1="0%" x2="100%" y2="0%">
+                        <stop offset="0%" stopColor="#4b5563" />
+                        <stop offset="80%" stopColor="#4b5563" />
+                        <stop offset="100%" stopColor="#4b5563" stopOpacity="0" />
+                      </linearGradient>
+                    </defs>
+                    <path 
+                      id="providingServicesPath"
+                      d="M 15,92 A 63,63 0 0,0 137,92" 
+                      fill="none" 
+                      stroke="url(#grayFade)" 
+                      strokeWidth="26" 
+                    />
+                    <text fill="white" fontSize="10.5" fontWeight="800" fontFamily="Arial, sans-serif" letterSpacing="0.5">
+                      <textPath href="#providingServicesPath" startOffset="48%" textAnchor="middle" dominantBaseline="middle" dy="1">
+                        PROVIDING SERVICES
+                      </textPath>
+                    </text>
+                  </svg>
+                </div>
+              )}
+            </div>
           </div>
 
           <div className="mb-4">
-            <h1 className="text-2xl font-bold text-white leading-tight flex items-center gap-2">
-              {profile.user?.name}
-            </h1>
+            <div className="flex items-center gap-3">
+              <h1 className="text-2xl font-bold text-white leading-tight">
+                {profile.user?.name}
+              </h1>
+              {isOwner && (
+                <button onClick={() => setIsEditProfileOpen(true)} className="p-1.5 text-gray-400 hover:text-white rounded-full hover:bg-white/10 transition-colors" title="Edit Profile">
+                  <Edit3 size={18} />
+                </button>
+              )}
+            </div>
             
             <p className="text-white text-base mt-1 max-w-2xl">
               {profile.bio || 'No headline provided'}
             </p>
+
+            {/* Company inline below headline with Clearbit logo */}
+            {profile.company && (
+              <div className="flex items-center gap-2 mt-2 text-sm text-gray-300">
+                <img
+                  src={`https://logo.clearbit.com/${profile.company.toLowerCase().replace(/\s+/g, '')}.com`}
+                  alt={profile.company}
+                  className="w-5 h-5 rounded object-contain bg-white p-0.5 flex-shrink-0"
+                  onError={(e) => {
+                    e.target.style.display = 'none';
+                    e.target.nextSibling.style.display = 'flex';
+                  }}
+                />
+                <span style={{display:'none'}} className="w-5 h-5 rounded bg-white/20 items-center justify-center flex-shrink-0">
+                  <Briefcase size={12} className="text-gray-300" />
+                </span>
+                <span className="font-medium">{profile.company}</span>
+              </div>
+            )}
 
             <div className="flex items-center gap-2 mt-2 text-sm text-gray-400">
               <span>{profile.location || 'Location not specified'}</span>
@@ -615,9 +704,9 @@ const ProfilePage = () => {
               <span className="text-[#00F0FF] font-semibold cursor-pointer hover:underline">Contact info</span>
             </div>
 
-            <div className="mt-2 text-sm font-semibold text-[#00F0FF] cursor-pointer hover:underline">
-              {profile.followers?.length || 0} connections
-            </div>
+            <Link to={`/profile/${profile.user?._id}/connections`} className="inline-block mt-2 text-sm font-semibold text-[#00F0FF] hover:underline">
+              {profile.connectionCount || 0} Connections
+            </Link>
           </div>
 
           {/* Action Buttons (Pills) */}
@@ -641,10 +730,10 @@ const ProfilePage = () => {
                       <>
                         <div className="fixed inset-0 z-10" onClick={() => setIsOpenToDropdownOpen(false)} />
                         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }} className="absolute left-0 mt-2 w-48 bg-[#1A1A1A] border border-white/10 rounded-xl shadow-xl z-20 py-2">
-                          <button onClick={() => { setIsOpenToDropdownOpen(false); toast.success('Status updated to Open to Work'); }} className="w-full text-left px-4 py-2 text-sm text-gray-300 hover:text-white hover:bg-white/10 transition-colors font-medium">
+                          <button onClick={() => { setIsOpenToDropdownOpen(false); setIsOpenToWorkModalOpen(true); }} className="w-full text-left px-4 py-2 text-sm text-gray-300 hover:text-white hover:bg-white/10 transition-colors font-medium">
                             Finding a new job
                           </button>
-                          <button onClick={() => setIsOpenToDropdownOpen(false)} className="w-full text-left px-4 py-2 text-sm text-gray-300 hover:text-white hover:bg-white/10 transition-colors font-medium">
+                          <button onClick={() => { setIsOpenToDropdownOpen(false); setIsProvidingServicesModalOpen(true); }} className="w-full text-left px-4 py-2 text-sm text-gray-300 hover:text-white hover:bg-white/10 transition-colors font-medium">
                             Providing services
                           </button>
                         </motion.div>

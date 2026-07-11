@@ -198,7 +198,7 @@ const getConnections = async (req, res) => {
     });
     
     const userIds = connectedUsersMap.map(u => u._id);
-    const profiles = await Profile.find({ user: { $in: userIds } }).select('user bio');
+    const profiles = await Profile.find({ user: { $in: userIds } }).select('user bio location status');
 
     // Format the response to just return a list of connected users
     const connectedUsers = connections.map(conn => {
@@ -209,13 +209,57 @@ const getConnections = async (req, res) => {
         connectionId: conn._id,
         user: {
           ...otherUser.toObject(),
-          bio: profile ? profile.bio : ''
+          bio: profile ? profile.bio : '',
+          location: profile ? profile.location : '',
+          status: profile ? profile.status : ''
         },
         connectedAt: conn.updatedAt
       };
     });
 
     res.status(200).json(connectedUsers);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc    Get accepted connections for any user
+// @route   GET /api/network/connections/:userId
+// @access  Private
+const getUserConnections = async (req, res) => {
+  try {
+    const userId = req.params.userId;
+
+    const connections = await Connection.find({
+      $or: [{ requester: userId }, { recipient: userId }],
+      status: 'accepted'
+    }).populate('requester recipient', 'name avatar email role');
+
+    const connectedUsersMap = connections.map(conn => {
+      return conn.requester._id.toString() === userId.toString() ? conn.recipient : conn.requester;
+    });
+    
+    const userIds = connectedUsersMap.map(u => u._id);
+    const profiles = await Profile.find({ user: { $in: userIds } }).select('user bio location status');
+
+    // Format the response to just return a list of connected users
+    const connectedUsers = connections.map(conn => {
+      const otherUser = conn.requester._id.toString() === userId.toString() ? conn.recipient : conn.requester;
+      const profile = profiles.find(p => p.user.toString() === otherUser._id.toString());
+      
+      return {
+        connectionId: conn._id,
+        user: {
+          ...otherUser.toObject(),
+          bio: profile ? profile.bio : '',
+          location: profile ? profile.location : '',
+          status: profile ? profile.status : ''
+        },
+        connectedAt: conn.updatedAt
+      };
+    });
+
+    res.json(connectedUsers);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -288,6 +332,7 @@ module.exports = {
   removeConnection,
   getPendingRequests,
   getConnections,
+  getUserConnections,
   getSuggestions,
   getConnectionStatus
 };

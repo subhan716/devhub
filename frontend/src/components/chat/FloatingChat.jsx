@@ -1,9 +1,10 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MessageSquare, X, Minus, ChevronUp, ChevronDown, Send, Image as ImageIcon, Paperclip, Smile, MoreHorizontal } from 'lucide-react';
+import { MessageSquare, X, Minus, ChevronUp, ChevronDown, Send, Image as ImageIcon, Paperclip, Smile, MoreHorizontal, Search, FileText, Download, Loader2 } from 'lucide-react';
 import axios from 'axios';
 import { useSocket } from '../../context/SocketContext';
 import { useLocation } from 'react-router-dom';
+import EmojiPicker from 'emoji-picker-react';
 
 const FloatingChat = ({ currentUser }) => {
   const { socket, onlineUsers } = useSocket() || {};
@@ -13,6 +14,7 @@ const FloatingChat = ({ currentUser }) => {
   const [isVisible, setIsVisible] = useState(true);
   const [isOptionsOpen, setIsOptionsOpen] = useState(false);
   const [conversations, setConversations] = useState([]);
+  const [connections, setConnections] = useState([]);
   
   // Settings
   const [muteSounds, setMuteSounds] = useState(() => localStorage.getItem('muteMessageSounds') === 'true');
@@ -36,10 +38,14 @@ const FloatingChat = ({ currentUser }) => {
     if (isOpen && conversations.length === 0) {
       const fetchConversations = async () => {
         try {
-          const { data } = await axios.get('http://localhost:5000/api/messages/conversations', { withCredentials: true });
-          setConversations(data);
+          const [convosRes, connsRes] = await Promise.all([
+            axios.get('http://localhost:5000/api/messages/conversations', { withCredentials: true }),
+            axios.get(`http://localhost:5000/api/network/connections/${currentUser?._id}`, { withCredentials: true })
+          ]);
+          setConversations(convosRes.data);
+          setConnections(connsRes.data);
         } catch (error) {
-          console.error('Failed to fetch conversations', error);
+          console.error('Failed to fetch data', error);
         }
       };
       fetchConversations();
@@ -59,22 +65,23 @@ const FloatingChat = ({ currentUser }) => {
         }));
       }
       
-      // Also update conversations list if drawer is open
-      if (isOpen) {
-        setConversations(prev => {
-          const existing = prev.findIndex(c => c.user._id === senderId);
-          let newConvos = [...prev];
-          if (existing !== -1) {
-            newConvos[existing].latestMessage = message;
-            const chat = newConvos.splice(existing, 1)[0];
-            newConvos.unshift(chat);
-          }
-          return newConvos;
-        });
-      }
+      // Also update conversations list even if drawer is not open
+      setConversations(prev => {
+        const existing = prev.findIndex(c => c.user._id === senderId);
+        let newConvos = [...prev];
+        if (existing !== -1) {
+          newConvos[existing] = { ...newConvos[existing], latestMessage: message };
+          const chat = newConvos.splice(existing, 1)[0];
+          newConvos.unshift(chat);
+        } else {
+          // Could refetch here, but for now just relying on opening the drawer to fetch if empty
+        }
+        return newConvos;
+      });
 
-      // Play sound if not muted and drawer is open
-      if (!muteSounds && isOpen) {
+      // Play sound if not muted and message is from someone not currently open in a chat head
+      const isActiveChat = activeChats.some(c => c._id === senderId);
+      if (!muteSounds && !isActiveChat) {
         const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
         audio.play().catch(e => console.log('Audio error:', e));
       }
@@ -126,12 +133,13 @@ const FloatingChat = ({ currentUser }) => {
             socket={socket}
             onlineUsers={onlineUsers}
             setChatMessages={setChatMessages}
+            setConversations={setConversations}
           />
         ))}
       </AnimatePresence>
 
       {/* Main Messaging Drawer */}
-      <div className="w-80 bg-[#111] border border-white/10 rounded-t-xl shadow-2xl pointer-events-auto flex flex-col transition-all duration-300">
+      <div className="w-[340px] bg-[#111] border border-white/10 rounded-t-xl shadow-2xl pointer-events-auto flex flex-col transition-all duration-300">
         
         {/* Drawer Header */}
         <div 
@@ -231,33 +239,72 @@ const FloatingChat = ({ currentUser }) => {
           {isOpen && (
             <motion.div 
               initial={{ height: 0 }}
-              animate={{ height: 400 }}
+              animate={{ height: 450 }}
               exit={{ height: 0 }}
-              className="bg-[#111] overflow-y-auto custom-scrollbar flex flex-col"
+              data-lenis-prevent="true"
+              className="bg-[#111] overflow-y-auto custom-scrollbar flex flex-col min-h-0"
             >
-              {conversations.length === 0 ? (
-                <div className="flex-1 flex items-center justify-center text-gray-500 text-sm">
+              {/* Search Bar & Tabs (UI only to match design) */}
+              <div className="p-3 border-b border-white/10">
+                <div className="relative mb-3">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+                  <input 
+                    type="text" 
+                    placeholder="Search messages" 
+                    className="w-full bg-white/5 border border-white/10 rounded-lg py-1.5 pl-9 pr-3 text-sm text-white focus:outline-none focus:border-[#00F0FF] transition-colors"
+                  />
+                </div>
+                <div className="flex gap-6 px-1">
+                  <button className="text-[#00F0FF] text-sm font-semibold border-b-2 border-[#00F0FF] pb-2 px-1">Focused</button>
+                  <button className="text-gray-400 hover:text-white text-sm font-semibold pb-2 px-1 transition-colors">Other</button>
+                </div>
+              </div>
+
+              {conversations.length === 0 && connections.length === 0 ? (
+                <div className="flex-1 flex items-center justify-center text-gray-500 text-sm py-10">
                   No conversations yet.
                 </div>
               ) : (
-                conversations.map(conv => (
-                  <div 
-                    key={conv.user._id}
-                    onClick={() => openChatHead(conv.user)}
-                    className="flex items-center gap-3 p-3 hover:bg-white/5 cursor-pointer border-b border-white/5"
-                  >
-                    <div className="relative">
-                      <img src={conv.user.avatar?.url || 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png'} className="w-12 h-12 rounded-full object-cover" alt="" />
-                      {onlineUsers?.includes(conv.user._id) && (
-                        <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-[#111] rounded-full"></div>
-                      )}
+                <>
+                  {conversations.map(conv => (
+                    <div 
+                      key={conv.user._id}
+                      onClick={() => openChatHead(conv.user)}
+                      className="px-4 py-3 flex items-start gap-3 hover:bg-white/5 cursor-pointer border-b border-white/5 transition-colors"
+                    >
+                      <div className="relative flex-shrink-0">
+                        <img src={conv.user.avatar?.url || 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png'} className="w-12 h-12 rounded-full object-cover" alt="" />
+                        {onlineUsers?.includes(conv.user._id) && (
+                          <div className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 border-2 border-[#111] rounded-full"></div>
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h4 className="font-semibold text-sm text-gray-100 truncate mb-0.5">{conv.user.name}</h4>
+                        <p className="text-sm text-gray-400 truncate">{conv.latestMessage?.text}</p>
+                      </div>
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <h4 className="text-white text-sm font-semibold truncate">{conv.user.name}</h4>
-                      <p className="text-gray-400 text-xs truncate">{conv.latestMessage?.text}</p>
+                  ))}
+                  
+                  {/* Connections without existing conversations */}
+                  {connections.filter(conn => !conversations.some(conv => conv.user._id === conn.user._id)).map(conn => (
+                    <div 
+                      key={`conn-${conn.user._id}`}
+                      onClick={() => openChatHead(conn.user)}
+                      className="px-4 py-3 flex items-start gap-3 hover:bg-white/5 cursor-pointer border-b border-white/5 transition-colors"
+                    >
+                      <div className="relative flex-shrink-0">
+                        <img src={conn.user?.avatar?.url || 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png'} className="w-12 h-12 rounded-full object-cover" alt="" />
+                        {onlineUsers?.includes(conn.user._id) && (
+                          <div className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 border-2 border-[#111] rounded-full"></div>
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0 flex flex-col justify-center h-12">
+                        <h4 className="font-semibold text-sm text-gray-100 truncate">{conn.user?.name}</h4>
+                        <p className="text-sm text-gray-500 italic truncate mt-0.5">Start a conversation</p>
+                      </div>
                     </div>
-                  </div>
-                ))
+                  ))}
+                </>
               )}
             </motion.div>
           )}
@@ -269,9 +316,16 @@ const FloatingChat = ({ currentUser }) => {
 };
 
 // Sub-component for individual chat window
-const ChatWindow = ({ chat, messages, onClose, currentUser, socket, onlineUsers, setChatMessages }) => {
+const ChatWindow = ({ chat, messages, onClose, currentUser, socket, onlineUsers, setChatMessages, setConversations }) => {
   const [isMinimized, setIsMinimized] = useState(false);
   const [text, setText] = useState('');
+  
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [attachment, setAttachment] = useState(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const [previewImage, setPreviewImage] = useState(null);
+  const fileInputRef = useRef(null);
+  
   const messagesEndRef = useRef(null);
 
   useEffect(() => {
@@ -280,39 +334,92 @@ const ChatWindow = ({ chat, messages, onClose, currentUser, socket, onlineUsers,
     }
   }, [messages, isMinimized]);
 
+  const onEmojiClick = (emojiObject) => {
+    setText(prev => prev + emojiObject.emoji);
+  };
+
+  const handleFileSelect = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setAttachment(file);
+    setShowEmojiPicker(false);
+  };
+
   const send = async (e) => {
     e.preventDefault();
-    if (!text.trim()) return;
+    if ((!text.trim() && !attachment) || isUploading) return;
+    
     try {
-      const { data } = await axios.post(`http://localhost:5000/api/messages/${chat._id}`, { text }, { withCredentials: true });
+      setIsUploading(true);
+      let attachmentData = null;
+
+      if (attachment) {
+        const formData = new FormData();
+        formData.append('attachment', attachment);
+        const { data } = await axios.post('http://localhost:5000/api/upload/chat-attachment', formData, {
+          withCredentials: true,
+          headers: { 'Content-Type': 'multipart/form-data' }
+        });
+        attachmentData = data;
+      }
+
+      const { data } = await axios.post(`http://localhost:5000/api/messages/${chat._id}`, { 
+        text,
+        attachment: attachmentData
+      }, { withCredentials: true });
+      
       setChatMessages(prev => ({
         ...prev,
         [chat._id]: [...(prev[chat._id] || []), data]
       }));
+      
+      // Update conversations list with the new sent message
+      if (setConversations) {
+        setConversations(prev => {
+          const existing = prev.findIndex(c => c.user._id === chat._id);
+          let newConvos = [...prev];
+          if (existing !== -1) {
+            newConvos[existing] = { ...newConvos[existing], latestMessage: data };
+            const conv = newConvos.splice(existing, 1)[0];
+            newConvos.unshift(conv);
+          } else {
+            // If it's a completely new conversation from connections, add it
+            newConvos.unshift({ user: chat, latestMessage: data });
+          }
+          return newConvos;
+        });
+      }
+
       setText('');
+      setAttachment(null);
+      setShowEmojiPicker(false);
+      
       if (socket) socket.emit('sendMessage', data);
     } catch (e) {
       console.error(e);
+    } finally {
+      setIsUploading(false);
     }
   };
 
   return (
+    <>
     <motion.div 
       initial={{ opacity: 0, y: 50 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: 50, scale: 0.9 }}
-      className="w-80 bg-[#111] border border-white/10 rounded-t-xl shadow-2xl pointer-events-auto flex flex-col"
+      className="w-[420px] bg-[#111] border border-white/10 rounded-t-xl shadow-2xl pointer-events-auto flex flex-col"
     >
       {/* Chat Header */}
       <div 
         onClick={() => setIsMinimized(!isMinimized)}
-        className="px-3 py-2 bg-[#0055FF] text-white border-b border-white/10 flex justify-between items-center cursor-pointer rounded-t-xl hover:bg-[#0044CC] transition-colors"
+        className="px-3 py-2 bg-[#1a1a1a] text-white border-b border-white/10 flex justify-between items-center cursor-pointer rounded-t-xl hover:bg-white/5 transition-colors"
       >
         <div className="flex items-center gap-2">
           <div className="relative">
-            <img src={chat.avatar?.url || 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png'} className="w-8 h-8 rounded-full border border-white/20" alt="" />
+            <img src={chat.avatar?.url || 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png'} className="w-8 h-8 rounded-full object-cover" alt="" />
             {onlineUsers?.includes(chat._id) && (
-              <div className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-400 border-2 border-[#0055FF] rounded-full"></div>
+              <div className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 border-2 border-[#1a1a1a] rounded-full"></div>
             )}
           </div>
           <span className="font-semibold text-sm truncate max-w-[150px]">{chat.name}</span>
@@ -329,51 +436,107 @@ const ChatWindow = ({ chat, messages, onClose, currentUser, socket, onlineUsers,
 
       {/* Chat Body */}
       {!isMinimized && (
-        <div className="h-80 flex flex-col bg-[#050505]">
-          <div className="flex-1 overflow-y-auto p-3 custom-scrollbar flex flex-col gap-2">
+        <div className="h-[450px] flex flex-col bg-[#050505]">
+          <div data-lenis-prevent="true" className="flex-1 overflow-y-auto p-4 custom-scrollbar flex flex-col gap-3 min-h-0">
             {messages.map(msg => {
               const isMe = msg.sender === currentUser?._id || msg.sender?._id === currentUser?._id;
               return (
                 <div key={msg._id} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
-                  <div className={`max-w-[80%] px-3 py-2 rounded-2xl text-[13px] ${
-                    isMe ? 'bg-[#0055FF] text-white rounded-br-sm' : 'bg-[#1a1a1a] text-gray-200 border border-white/10 rounded-bl-sm'
+                  {/* Image-only: no bubble wrapper */}
+                  {msg.attachment?.type === 'image' && !msg.text ? (
+                    <div className="max-w-[220px]">
+                      <img
+                        src={msg.attachment.url}
+                        alt="attachment"
+                        className="w-full rounded-2xl object-cover shadow-lg cursor-zoom-in hover:opacity-95 transition-opacity"
+                        onClick={() => setPreviewImage(msg.attachment.url)}
+                      />
+                    </div>
+                  ) : (
+                  <div className={`max-w-[80%] px-3 py-2 rounded-2xl text-[13px] flex flex-col gap-1.5 ${
+                    isMe ? 'bg-[#1a1a1a] text-gray-200 border border-white/10 rounded-br-sm' : 'bg-white/5 text-gray-200 border border-white/5 rounded-bl-sm'
                   }`}>
-                    {msg.text}
+                    {msg.attachment && (
+                      <div>
+                        {msg.attachment.type === 'image' ? (
+                          <img src={msg.attachment.url} alt="attachment" className="max-w-full rounded-lg object-contain" />
+                        ) : (
+                          <a href={msg.attachment.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 bg-black/20 p-2 rounded-lg border border-white/10 hover:bg-black/40 transition-colors">
+                            <FileText size={18} className="text-[#00F0FF]" />
+                            <span className="text-[11px] font-medium truncate max-w-[120px]">{msg.attachment.name}</span>
+                            <Download size={14} className="text-gray-400" />
+                          </a>
+                        )}
+                      </div>
+                    )}
+                    {msg.text && <div>{msg.text}</div>}
                   </div>
+                  )}
                 </div>
               );
             })}
             <div ref={messagesEndRef} />
           </div>
 
-          {/* Input */}
-          <div className="p-2 border-t border-white/10 bg-[#111]">
+          {/* Input Area */}
+          <div className="p-3 bg-[#111] border-t border-white/10 relative">
+            
+            {/* Attachment Preview */}
+            {attachment && (
+              <div className="mb-2 p-2 bg-white/5 border border-white/10 rounded-lg relative flex items-center gap-2 w-fit">
+                <button type="button" onClick={() => setAttachment(null)} className="absolute -top-2 -right-2 bg-red-500 rounded-full p-0.5 shadow-lg hover:bg-red-600 transition-colors z-10">
+                  <X size={12} className="text-white" />
+                </button>
+                {attachment.type.startsWith('image/') ? (
+                  <img src={URL.createObjectURL(attachment)} alt="Preview" className="h-10 w-10 object-cover rounded-md border border-white/10" />
+                ) : (
+                  <div className="h-10 w-10 bg-black/20 rounded-md border border-white/10 flex items-center justify-center">
+                    <FileText size={18} className="text-[#00F0FF]" />
+                  </div>
+                )}
+                <span className="text-xs text-gray-300 truncate max-w-[100px] font-medium">{attachment.name}</span>
+              </div>
+            )}
+
             <form onSubmit={send} className="flex flex-col gap-2">
               <textarea 
                 value={text}
-                onChange={e => setText(e.target.value)}
+                onChange={(e) => setText(e.target.value)}
+                data-lenis-prevent="true"
+                placeholder="Write a message..."
+                className="w-full bg-[#1a1a1a] border border-white/10 rounded-xl px-4 py-3 text-[14px] text-white focus:outline-none focus:border-white/20 resize-none h-[60px] custom-scrollbar"
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' && !e.shiftKey) {
                     e.preventDefault();
                     send(e);
                   }
                 }}
-                placeholder="Write a message..."
-                className="w-full bg-[#1a1a1a] border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-[#0055FF]/50 resize-none max-h-20 custom-scrollbar"
-                rows={1}
               />
-              <div className="flex justify-between items-center px-1">
-                <div className="flex gap-2 text-gray-400">
-                  <ImageIcon size={16} className="cursor-pointer hover:text-white" />
-                  <Paperclip size={16} className="cursor-pointer hover:text-white" />
-                  <Smile size={16} className="cursor-pointer hover:text-white" />
+              <div className="flex justify-between items-center px-1 relative">
+                <div className="flex gap-2">
+                  <input 
+                    type="file" 
+                    ref={fileInputRef} 
+                    onChange={handleFileSelect} 
+                    className="hidden" 
+                    accept="image/*,.pdf,.doc,.docx,.zip,.txt"
+                  />
+                  <button type="button" onClick={() => fileInputRef.current?.click()} className="text-gray-400 hover:text-white p-1.5 rounded transition-colors" title="Attach File/Image"><Paperclip size={18} /></button>
+                  <button type="button" onClick={() => setShowEmojiPicker(!showEmojiPicker)} className="text-gray-400 hover:text-white p-1.5 rounded transition-colors" title="Emoji"><Smile size={18} /></button>
+                  
+                  {/* Emoji Picker Popover */}
+                  {showEmojiPicker && (
+                    <div className="absolute bottom-full left-0 mb-2 z-50 shadow-2xl scale-90 origin-bottom-left">
+                      <EmojiPicker onEmojiClick={onEmojiClick} theme="dark" width={300} height={350} />
+                    </div>
+                  )}
                 </div>
                 <button 
                   type="submit" 
-                  disabled={!text.trim()}
-                  className="bg-[#0055FF] text-white p-1.5 rounded-full disabled:opacity-50 hover:bg-[#0044CC]"
+                  disabled={(typeof text === 'string' ? !text.trim() : true) && !attachment || isUploading}
+                  className="bg-[#0055FF] text-white p-1.5 rounded-full disabled:opacity-50 hover:bg-[#0044CC] transition-colors"
                 >
-                  <Send size={14} className="ml-0.5" />
+                  {isUploading ? <Loader2 size={14} className="animate-spin ml-0.5" /> : <Send size={14} className="ml-0.5" />}
                 </button>
               </div>
             </form>
@@ -381,6 +544,47 @@ const ChatWindow = ({ chat, messages, onClose, currentUser, socket, onlineUsers,
         </div>
       )}
     </motion.div>
+
+    {/* Image Lightbox Preview Modal */}
+    <AnimatePresence>
+      {previewImage && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          onClick={() => setPreviewImage(null)}
+          className="fixed inset-0 z-[9999] bg-black/90 backdrop-blur-md flex items-center justify-center p-4"
+        >
+          <button
+            onClick={() => setPreviewImage(null)}
+            className="absolute top-4 right-4 bg-white/10 hover:bg-white/20 text-white rounded-full p-2 transition-colors border border-white/10 z-10"
+          >
+            <X size={20} />
+          </button>
+          <a
+            href={previewImage}
+            download
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={(e) => e.stopPropagation()}
+            className="absolute top-4 right-16 bg-white/10 hover:bg-white/20 text-white rounded-full p-2 transition-colors border border-white/10 z-10"
+          >
+            <Download size={20} />
+          </a>
+          <motion.img
+            initial={{ scale: 0.85, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.85, opacity: 0 }}
+            transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+            src={previewImage}
+            alt="Preview"
+            onClick={(e) => e.stopPropagation()}
+            className="max-w-full max-h-[90vh] rounded-2xl object-contain shadow-2xl border border-white/10"
+          />
+        </motion.div>
+      )}
+    </AnimatePresence>
+  </>
   );
 };
 

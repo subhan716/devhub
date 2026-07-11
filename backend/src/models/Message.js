@@ -14,7 +14,12 @@ const MessageSchema = new mongoose.Schema(
     },
     text: {
       type: String,
-      required: true,
+      required: false,
+    },
+    attachment: {
+      url: String,
+      type: { type: String, enum: ['image', 'file'] },
+      name: String
     },
     read: {
       type: Boolean,

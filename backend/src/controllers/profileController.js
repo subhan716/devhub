@@ -2,13 +2,14 @@ const Profile = require('../models/Profile');
 const Follow = require('../models/Follow');
 const User = require('../models/User');
 const Notification = require('../models/Notification');
+const Connection = require('../models/Connection');
 const { getIo, getReceiverSocketId } = require('../socket');
 
 // @desc    Create or update user profile
 // @route   POST /api/profile
 // @access  Private
 const createOrUpdateProfile = async (req, res) => {
-  const { company, website, location, bio, about, status, githubusername, skills, youtube, facebook, twitter, instagram, linkedin } = req.body;
+  const { company, website, location, bio, about, status, githubusername, skills, youtube, facebook, twitter, instagram, linkedin, openToWork, providingServices } = req.body;
 
   // Build profile object
   const profileFields = {};
@@ -19,6 +20,9 @@ const createOrUpdateProfile = async (req, res) => {
   if (about !== undefined) profileFields.about = about;
   if (status) profileFields.status = status;
   if (githubusername) profileFields.githubusername = githubusername;
+  
+  if (openToWork) profileFields.openToWork = openToWork;
+  if (providingServices) profileFields.providingServices = providingServices;
   
   // Skills - Spilt into array if it's a comma separated string
   if (skills) {
@@ -43,13 +47,14 @@ const createOrUpdateProfile = async (req, res) => {
         { user: req.user.id },
         { $set: profileFields },
         { new: true }
-      );
+      ).populate('user', ['name', 'email', 'avatar']);
       return res.json(profile);
     }
 
     // Create new profile
     profile = new Profile(profileFields);
     await profile.save();
+    profile = await profile.populate('user', ['name', 'email', 'avatar']);
     res.json(profile);
 
   } catch (err) {
@@ -69,7 +74,15 @@ const getCurrentProfile = async (req, res) => {
       return res.status(400).json({ message: 'There is no profile for this user' });
     }
 
-    res.json(profile);
+    const connectionCount = await Connection.countDocuments({
+      $or: [{ requester: req.user.id }, { recipient: req.user.id }],
+      status: 'accepted'
+    });
+
+    const profileData = profile.toJSON();
+    profileData.connectionCount = connectionCount;
+
+    res.json(profileData);
   } catch (err) {
     console.error(err.message);
     res.status(500).send('Server Error');
@@ -101,7 +114,15 @@ const getProfileByUserId = async (req, res) => {
       }
     }
 
-    res.json(profile);
+    const connectionCount = await Connection.countDocuments({
+      $or: [{ requester: req.params.user_id }, { recipient: req.params.user_id }],
+      status: 'accepted'
+    });
+
+    const profileData = profile.toJSON();
+    profileData.connectionCount = connectionCount;
+
+    res.json(profileData);
   } catch (err) {
     console.error(err.message);
     if (err.kind == 'ObjectId') {

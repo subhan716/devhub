@@ -45,6 +45,17 @@ const profileSchema = new mongoose.Schema(
       type: [String],
       default: [],
     },
+    openToWork: {
+      isLooking: { type: Boolean, default: false },
+      jobTitles: { type: [String], default: [] },
+      workplaces: { type: [String], default: [] },
+      locations: { type: [String], default: [] }
+    },
+    providingServices: {
+      isProviding: { type: Boolean, default: false },
+      services: { type: [String], default: [] },
+      details: { type: String, maxlength: 500 }
+    },
     experience: [
       {
         title: { type: String, required: true },
