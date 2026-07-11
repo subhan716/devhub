@@ -10,7 +10,7 @@ const RightSidebar = () => {
 
   const fetchSuggestions = async () => {
     try {
-      const { data } = await axios.get('http://localhost:5000/api/network/suggestions', { withCredentials: true });
+      const { data } = await axios.get(`${import.meta.env.VITE_API_URL}/api/network/suggestions`, { withCredentials: true });
       setSuggestedUsers(data);
     } catch (error) {
       console.error('Failed to fetch suggestions', error);
@@ -31,7 +31,7 @@ const RightSidebar = () => {
   const handleConnect = async (userId) => {
     setLoadingIds(prev => [...prev, userId]);
     try {
-      await axios.post(`http://localhost:5000/api/network/connect/${userId}`, {}, { withCredentials: true });
+      await axios.post(`${import.meta.env.VITE_API_URL}/api/network/connect/${userId}`, {}, { withCredentials: true });
       toast.success('Connection request sent');
       window.dispatchEvent(new Event('network-update'));
     } catch (error) {

@@ -36,8 +36,8 @@ const SearchPage = () => {
       setIsLoading(true);
       try {
         const [profilesRes, postsRes] = await Promise.all([
-          axios.get(`http://localhost:5000/api/profile/search?q=${encodeURIComponent(searchQuery)}`, { withCredentials: true }),
-          axios.get(`http://localhost:5000/api/posts/search?q=${encodeURIComponent(searchQuery)}`, { withCredentials: true })
+          axios.get(`${import.meta.env.VITE_API_URL}/api/profile/search?q=${encodeURIComponent(searchQuery)}`, { withCredentials: true }),
+          axios.get(`${import.meta.env.VITE_API_URL}/api/posts/search?q=${encodeURIComponent(searchQuery)}`, { withCredentials: true })
         ]);
         
         setProfiles(profilesRes.data);

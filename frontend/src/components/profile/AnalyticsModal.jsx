@@ -15,7 +15,7 @@ const AnalyticsModal = ({ isOpen, onClose }) => {
       const fetchAnalytics = async () => {
         setIsLoading(true);
         try {
-          const { data } = await axios.get('http://localhost:5000/api/profile/analytics', { withCredentials: true });
+          const { data } = await axios.get(`${import.meta.env.VITE_API_URL}/api/profile/analytics`, { withCredentials: true });
           setAnalytics(data);
         } catch (error) {
           toast.error('Failed to load analytics');

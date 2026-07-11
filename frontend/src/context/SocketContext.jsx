@@ -17,7 +17,7 @@ export const SocketProvider = ({ children, currentUser }) => {
 
   useEffect(() => {
     if (currentUser) {
-      const newSocket = io('http://localhost:5000', {
+      const newSocket = io(`${import.meta.env.VITE_API_URL}`, {
         withCredentials: true,
       });
 
@@ -50,7 +50,7 @@ export const SocketProvider = ({ children, currentUser }) => {
     
     // Save to database
     try {
-      await axios.put('http://localhost:5000/api/auth/status', 
+      await axios.put(`${import.meta.env.VITE_API_URL}/api/auth/status`, 
         { statusPreference: newStatus },
         { withCredentials: true }
       );

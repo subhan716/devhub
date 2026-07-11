@@ -129,14 +129,14 @@ const ProfilePage = () => {
         // Fetch the currently logged in user's profile first to know who they are
         let currentProf = currentUserProfile;
         if (!currentProf) {
-          const res = await axios.get('http://localhost:5000/api/profile/me', { withCredentials: true });
+          const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/profile/me`, { withCredentials: true });
           currentProf = res.data;
           setCurrentUserProfile(currentProf);
         }
 
         let data;
         if (id) {
-          const response = await axios.get(`http://localhost:5000/api/profile/user/${id}`, { withCredentials: true });
+          const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/profile/user/${id}`, { withCredentials: true });
           data = response.data;
         } else {
           data = currentProf;
@@ -163,7 +163,7 @@ const ProfilePage = () => {
     const fetchUserPosts = async (userId) => {
       setIsPostsLoading(true);
       try {
-        const { data } = await axios.get(`http://localhost:5000/api/posts/user/${userId}`);
+        const { data } = await axios.get(`${import.meta.env.VITE_API_URL}/api/posts/user/${userId}`);
         setUserPosts(data);
       } catch (error) {
         console.error('Failed to fetch user posts:', error);
@@ -174,7 +174,7 @@ const ProfilePage = () => {
 
     const fetchConnectionStatus = async (userId) => {
       try {
-        const { data } = await axios.get(`http://localhost:5000/api/network/status/${userId}`, { withCredentials: true });
+        const { data } = await axios.get(`${import.meta.env.VITE_API_URL}/api/network/status/${userId}`, { withCredentials: true });
         setConnectionState({ status: data.status, requestId: data.requestId });
       } catch (error) {
         console.error('Failed to fetch connection status:', error);
@@ -198,7 +198,7 @@ const ProfilePage = () => {
     
     const action = isFollowing ? 'unfollow' : 'follow';
     try {
-      await axios.post(`http://localhost:5000/api/profile/${action}/${profile.user._id}`, {}, { withCredentials: true });
+      await axios.post(`${import.meta.env.VITE_API_URL}/api/profile/${action}/${profile.user._id}`, {}, { withCredentials: true });
       
       // Optimistic UI Update
       setProfile(prev => {
@@ -219,7 +219,7 @@ const ProfilePage = () => {
     
     try {
       if (connectionState.status === 'none') {
-        await axios.post(`http://localhost:5000/api/network/connect/${profile.user._id}`, {}, { withCredentials: true });
+        await axios.post(`${import.meta.env.VITE_API_URL}/api/network/connect/${profile.user._id}`, {}, { withCredentials: true });
         setConnectionState({ status: 'pending', requestId: null });
         toast.success('Connection request sent');
         window.dispatchEvent(new Event('network-update'));
@@ -231,7 +231,7 @@ const ProfilePage = () => {
           confirmText: 'Withdraw',
           isDestructive: true,
           onConfirm: async () => {
-            await axios.delete(`http://localhost:5000/api/network/remove/${profile.user._id}`, { withCredentials: true });
+            await axios.delete(`${import.meta.env.VITE_API_URL}/api/network/remove/${profile.user._id}`, { withCredentials: true });
             setConnectionState({ status: 'none', requestId: null });
             setConfirmModal(prev => ({ ...prev, isOpen: false }));
             toast.success('Connection request withdrawn');
@@ -246,7 +246,7 @@ const ProfilePage = () => {
           confirmText: 'Remove',
           isDestructive: true,
           onConfirm: async () => {
-            await axios.delete(`http://localhost:5000/api/network/remove/${profile.user._id}`, { withCredentials: true });
+            await axios.delete(`${import.meta.env.VITE_API_URL}/api/network/remove/${profile.user._id}`, { withCredentials: true });
             setConnectionState({ status: 'none', requestId: null });
             setConfirmModal(prev => ({ ...prev, isOpen: false }));
             toast.success('Connection removed');
@@ -271,7 +271,7 @@ const ProfilePage = () => {
 
     try {
       const endpoint = type === 'avatar' ? '/api/upload/avatar' : '/api/upload/cover';
-      const { data } = await axios.post(`http://localhost:5000${endpoint}`, formData, {
+      const { data } = await axios.post(`${import.meta.env.VITE_API_URL}${endpoint}`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
         withCredentials: true
       });
@@ -300,7 +300,7 @@ const ProfilePage = () => {
     setUploadingResume(true);
     const loadingToast = toast.loading(`Uploading Resume...`);
     try {
-      const { data } = await axios.post('http://localhost:5000/api/upload/resume', uploadData, {
+      const { data } = await axios.post(`${import.meta.env.VITE_API_URL}/api/upload/resume`, uploadData, {
         headers: { 'Content-Type': 'multipart/form-data' },
         withCredentials: true
       });
@@ -322,7 +322,7 @@ const ProfilePage = () => {
       isDestructive: true,
       onConfirm: async () => {
         try {
-          const { data } = await axios.delete(`http://localhost:5000/api/profile/experience/${id}`, { withCredentials: true });
+          const { data } = await axios.delete(`${import.meta.env.VITE_API_URL}/api/profile/experience/${id}`, { withCredentials: true });
           setProfile(data);
           toast.success('Experience deleted');
         } catch (error) {
@@ -341,7 +341,7 @@ const ProfilePage = () => {
       isDestructive: true,
       onConfirm: async () => {
         try {
-          const { data } = await axios.delete(`http://localhost:5000/api/profile/education/${id}`, { withCredentials: true });
+          const { data } = await axios.delete(`${import.meta.env.VITE_API_URL}/api/profile/education/${id}`, { withCredentials: true });
           setProfile(data);
           toast.success('Education deleted');
         } catch (error) {
@@ -360,7 +360,7 @@ const ProfilePage = () => {
       isDestructive: true,
       onConfirm: async () => {
         try {
-          const { data } = await axios.delete(`http://localhost:5000/api/profile/certifications/${id}`, { withCredentials: true });
+          const { data } = await axios.delete(`${import.meta.env.VITE_API_URL}/api/profile/certifications/${id}`, { withCredentials: true });
           setProfile(data);
           toast.success('Certification deleted');
         } catch (error) {
@@ -379,7 +379,7 @@ const ProfilePage = () => {
       isDestructive: true,
       onConfirm: async () => {
         try {
-          const { data } = await axios.delete(`http://localhost:5000/api/profile/projects/${id}`, { withCredentials: true });
+          const { data } = await axios.delete(`${import.meta.env.VITE_API_URL}/api/profile/projects/${id}`, { withCredentials: true });
           setProfile(data);
           toast.success('Project removed');
         } catch (error) {
@@ -405,7 +405,7 @@ const ProfilePage = () => {
             liveUrl: prj.liveUrl,
             technologies: Array.isArray(prj.technologies) ? prj.technologies.join(', ') : prj.technologies
           };
-          const { data } = await axios.put('http://localhost:5000/api/profile/projects', duplicateData, { withCredentials: true });
+          const { data } = await axios.put(`${import.meta.env.VITE_API_URL}/api/profile/projects`, duplicateData, { withCredentials: true });
           setProfile(data);
           toast.success('Project duplicated!');
         } catch (error) {

@@ -81,7 +81,7 @@ const AddExperienceInline = ({ onClose, onAdd }) => {
     e.preventDefault();
     setIsSubmitting(true);
     try {
-      const { data } = await axios.put('http://localhost:5000/api/profile/experience', formData, { withCredentials: true });
+      const { data } = await axios.put(`${import.meta.env.VITE_API_URL}/api/profile/experience`, formData, { withCredentials: true });
       onAdd(data); // Pass updated profile to parent
       toast.success('Experience added successfully!');
       onClose(); // Hide inline form

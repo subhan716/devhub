@@ -37,7 +37,7 @@ const OpenToWorkModal = ({ isOpen, onClose, profile, setProfile }) => {
         }
       };
 
-      const { data } = await axios.post('http://localhost:5000/api/profile', payload, { withCredentials: true });
+      const { data } = await axios.post(`${import.meta.env.VITE_API_URL}/api/profile`, payload, { withCredentials: true });
       setProfile(data);
       toast.success(formData.isLooking ? 'Open to Work status enabled!' : 'Open to Work status disabled');
       onClose();

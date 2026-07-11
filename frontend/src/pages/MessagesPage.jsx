@@ -278,7 +278,7 @@ const MessagesPage = () => {
       const formData = new FormData();
       formData.append('attachment', file);
       
-      const { data } = await axios.post('http://localhost:5000/api/upload/chat-attachment', formData, {
+      const { data } = await axios.post(`${import.meta.env.VITE_API_URL}/api/upload/chat-attachment`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
         withCredentials: true
       });
@@ -297,7 +297,7 @@ const MessagesPage = () => {
         messagePayload.replyTo = replyingToMessage._id;
       }
       
-      const res = await axios.post('http://localhost:5000/api/messages', messagePayload, { withCredentials: true });
+      const res = await axios.post(`${import.meta.env.VITE_API_URL}/api/messages`, messagePayload, { withCredentials: true });
       
       if (socket) {
         socket.emit('sendMessage', res.data.msg);
@@ -350,8 +350,8 @@ const MessagesPage = () => {
     const fetchData = async () => {
       try {
         const [convosRes, connsRes] = await Promise.all([
-          axios.get('http://localhost:5000/api/messages/conversations', { withCredentials: true }),
-          currentUser?._id ? axios.get(`http://localhost:5000/api/network/connections/${currentUser._id}`, { withCredentials: true }) : Promise.resolve({ data: [] })
+          axios.get(`${import.meta.env.VITE_API_URL}/api/messages/conversations`, { withCredentials: true }),
+          currentUser?._id ? axios.get(`${import.meta.env.VITE_API_URL}/api/network/connections/${currentUser._id}`, { withCredentials: true }) : Promise.resolve({ data: [] })
         ]);
         setConversations(convosRes.data);
         setConnections(connsRes.data);
@@ -379,11 +379,11 @@ const MessagesPage = () => {
       isInitialLoadRef.current = true;
       isPrependingRef.current = false;
       try {
-        const { data } = await axios.get(`http://localhost:5000/api/messages/${selectedChat._id}`, { withCredentials: true });
+        const { data } = await axios.get(`${import.meta.env.VITE_API_URL}/api/messages/${selectedChat._id}`, { withCredentials: true });
         setMessages(data.messages);
         setHasMore(data.hasMore);
         // Mark as read
-        await axios.put(`http://localhost:5000/api/messages/${selectedChat._id}/read`, {}, { withCredentials: true });
+        await axios.put(`${import.meta.env.VITE_API_URL}/api/messages/${selectedChat._id}/read`, {}, { withCredentials: true });
       } catch (error) {
         console.error('Failed to fetch messages', error);
       } finally {
@@ -403,7 +403,7 @@ const MessagesPage = () => {
     try {
       const oldest = messages[0];
       const { data } = await axios.get(
-        `http://localhost:5000/api/messages/${selectedChat._id}?before=${encodeURIComponent(oldest.createdAt)}`,
+        `${import.meta.env.VITE_API_URL}/api/messages/${selectedChat._id}?before=${encodeURIComponent(oldest.createdAt)}`,
         { withCredentials: true }
       );
       setMessages(prev => [...data.messages, ...prev]);
@@ -429,7 +429,7 @@ const MessagesPage = () => {
         message.read = true; // Mark as read locally since we are actively viewing this chat!
         setMessages(prev => [...prev, message]);
         // Optionally mark as read immediately if chat is open
-        axios.put(`http://localhost:5000/api/messages/${selectedChat._id}/read`, {}, { withCredentials: true }).catch(e => console.error(e));
+        axios.put(`${import.meta.env.VITE_API_URL}/api/messages/${selectedChat._id}/read`, {}, { withCredentials: true }).catch(e => console.error(e));
       } else {
         // Play notification sound if the message is from someone else
         const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
@@ -449,7 +449,7 @@ const MessagesPage = () => {
         } else {
           // If it's a completely new person, we might need to fetch conversations again
           // For simplicity, just reload the page or fetch conversations
-          axios.get('http://localhost:5000/api/messages/conversations', { withCredentials: true })
+          axios.get(`${import.meta.env.VITE_API_URL}/api/messages/conversations`, { withCredentials: true })
             .then(res => setConversations(res.data))
             .catch(e => console.error(e));
         }
@@ -616,7 +616,7 @@ const MessagesPage = () => {
       if (currentAttachment) {
         const formData = new FormData();
         formData.append('attachment', currentAttachment);
-        const { data } = await axios.post('http://localhost:5000/api/upload/chat-attachment', formData, {
+        const { data } = await axios.post(`${import.meta.env.VITE_API_URL}/api/upload/chat-attachment`, formData, {
           withCredentials: true,
           headers: { 'Content-Type': 'multipart/form-data' }
         });
@@ -624,7 +624,7 @@ const MessagesPage = () => {
       }
 
       const { data: savedMessage } = await axios.post(
-        `http://localhost:5000/api/messages/${selectedChat._id}`,
+        `${import.meta.env.VITE_API_URL}/api/messages/${selectedChat._id}`,
         { 
           text: currentText,
           attachment: attachmentData,
@@ -718,7 +718,7 @@ const MessagesPage = () => {
     setEditText('');
     try {
       await axios.put(
-        `http://localhost:5000/api/messages/message/${msg._id}`,
+        `${import.meta.env.VITE_API_URL}/api/messages/message/${msg._id}`,
         { text: trimmed },
         { withCredentials: true }
       );
@@ -733,7 +733,7 @@ const MessagesPage = () => {
     // Optimistic removal
     setMessages(prev => prev.filter(m => m._id !== msg._id));
     try {
-      await axios.delete(`http://localhost:5000/api/messages/message/${msg._id}`, { withCredentials: true });
+      await axios.delete(`${import.meta.env.VITE_API_URL}/api/messages/message/${msg._id}`, { withCredentials: true });
     } catch (error) {
       console.error('Failed to delete message', error);
     }
@@ -782,7 +782,7 @@ const MessagesPage = () => {
     }));
 
     try {
-      await axios.post(`http://localhost:5000/api/messages/react/${messageId}`, { emoji }, { withCredentials: true });
+      await axios.post(`${import.meta.env.VITE_API_URL}/api/messages/react/${messageId}`, { emoji }, { withCredentials: true });
     } catch (error) {
       console.error('Failed to toggle reaction', error);
     }
@@ -801,7 +801,7 @@ const MessagesPage = () => {
     if (selectedForwardTargets.length === 0 || !forwardTargetMessage) return;
     try {
       setForwardingInProgress(true);
-      const { data } = await axios.post('http://localhost:5000/api/messages/forward', {
+      const { data } = await axios.post(`${import.meta.env.VITE_API_URL}/api/messages/forward`, {
         messageId: forwardTargetMessage._id,
         targetUserIds: selectedForwardTargets,
         comment: forwardComment
@@ -828,7 +828,7 @@ const MessagesPage = () => {
       setSearchForwardQuery('');
 
       // Refresh conversations list
-      const convosRes = await axios.get('http://localhost:5000/api/messages/conversations', { withCredentials: true });
+      const convosRes = await axios.get(`${import.meta.env.VITE_API_URL}/api/messages/conversations`, { withCredentials: true });
       setConversations(convosRes.data);
     } catch (error) {
       console.error('Failed to forward message', error);

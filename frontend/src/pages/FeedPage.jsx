@@ -18,7 +18,7 @@ const FeedPage = () => {
   useEffect(() => {
     const fetchPosts = async () => {
       try {
-        const { data } = await axios.get('http://localhost:5000/api/posts');
+        const { data } = await axios.get(`${import.meta.env.VITE_API_URL}/api/posts`);
         setPosts(data);
       } catch (error) {
         toast.error('Failed to load feed');
@@ -42,7 +42,7 @@ const FeedPage = () => {
         postData.codeSnippet = { code: codeContent, language: 'javascript' };
       }
 
-      const { data } = await axios.post('http://localhost:5000/api/posts', postData);
+      const { data } = await axios.post(`${import.meta.env.VITE_API_URL}/api/posts`, postData);
       setPosts([data, ...posts]);
       setPostContent('');
       setCodeContent('');

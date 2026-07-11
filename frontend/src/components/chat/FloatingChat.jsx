@@ -39,8 +39,8 @@ const FloatingChat = ({ currentUser }) => {
       const fetchConversations = async () => {
         try {
           const [convosRes, connsRes] = await Promise.all([
-            axios.get('http://localhost:5000/api/messages/conversations', { withCredentials: true }),
-            axios.get(`http://localhost:5000/api/network/connections/${currentUser?._id}`, { withCredentials: true })
+            axios.get(`${import.meta.env.VITE_API_URL}/api/messages/conversations`, { withCredentials: true }),
+            axios.get(`${import.meta.env.VITE_API_URL}/api/network/connections/${currentUser?._id}`, { withCredentials: true })
           ]);
           setConversations(convosRes.data);
           setConnections(connsRes.data);
@@ -124,7 +124,7 @@ const FloatingChat = ({ currentUser }) => {
 
     // Fetch messages for this chat
     try {
-      const { data } = await axios.get(`http://localhost:5000/api/messages/${user._id}`, { withCredentials: true });
+      const { data } = await axios.get(`${import.meta.env.VITE_API_URL}/api/messages/${user._id}`, { withCredentials: true });
       const msgs = Array.isArray(data) ? data : data.messages;
       setChatMessages(prev => ({ ...prev, [user._id]: msgs }));
     } catch (e) {
@@ -420,14 +420,14 @@ const ChatWindow = ({ chat, messages, onClose, currentUser, socket, onlineUsers,
       if (currentAttachment) {
         const formData = new FormData();
         formData.append('attachment', currentAttachment);
-        const { data } = await axios.post('http://localhost:5000/api/upload/chat-attachment', formData, {
+        const { data } = await axios.post(`${import.meta.env.VITE_API_URL}/api/upload/chat-attachment`, formData, {
           withCredentials: true,
           headers: { 'Content-Type': 'multipart/form-data' }
         });
         attachmentData = data;
       }
 
-      const { data } = await axios.post(`http://localhost:5000/api/messages/${chat._id}`, { 
+      const { data } = await axios.post(`${import.meta.env.VITE_API_URL}/api/messages/${chat._id}`, { 
         text: currentText,
         attachment: attachmentData
       }, { withCredentials: true });

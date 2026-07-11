@@ -38,7 +38,7 @@ const SettingsPage = () => {
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const { data } = await axios.get('http://localhost:5000/api/profile/me', { withCredentials: true });
+        const { data } = await axios.get(`${import.meta.env.VITE_API_URL}/api/profile/me`, { withCredentials: true });
         setFormData({
           company: data.company || '',
           website: data.socialLinks?.website || '',
@@ -74,7 +74,7 @@ const SettingsPage = () => {
     e.preventDefault();
     setIsSubmitting(true);
     try {
-      await axios.post('http://localhost:5000/api/profile', formData, { withCredentials: true });
+      await axios.post(`${import.meta.env.VITE_API_URL}/api/profile`, formData, { withCredentials: true });
       toast.success('Profile updated successfully!');
       navigate('/profile');
     } catch (error) {

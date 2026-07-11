@@ -62,7 +62,7 @@ const RegisterPage = () => {
 
     setIsLoading(true);
     try {
-      const { data } = await axios.post('http://localhost:5000/api/auth/register', formData);
+      const { data } = await axios.post(`${import.meta.env.VITE_API_URL}/api/auth/register`, formData);
       toast.success('Identity established successfully!');
       localStorage.setItem('isAuthenticated', 'true');
       navigate('/setup-profile');
@@ -186,7 +186,7 @@ const RegisterPage = () => {
             </div>
             <div className="mt-6 grid grid-cols-2 gap-4">
               <button
-                onClick={() => window.location.href = 'http://localhost:5000/api/auth/google?intent=register'}
+                onClick={() => window.location.href = `${import.meta.env.VITE_API_URL}/api/auth/google?intent=register`}
                 className="w-full flex justify-center items-center gap-2 py-3 px-4 border border-white/10 rounded-lg bg-white/5 hover:bg-white/10 text-sm font-medium text-white transition-all cursor-pointer"
               >
                 <svg className="w-5 h-5" viewBox="0 0 24 24">
@@ -199,7 +199,7 @@ const RegisterPage = () => {
               </button>
 
               <button
-                onClick={() => window.location.href = 'http://localhost:5000/api/auth/github?intent=register'}
+                onClick={() => window.location.href = `${import.meta.env.VITE_API_URL}/api/auth/github?intent=register`}
                 className="w-full flex justify-center items-center gap-2 py-3 px-4 border border-white/10 rounded-lg bg-white/5 hover:bg-white/10 text-sm font-medium text-white transition-all cursor-pointer"
               >
                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">

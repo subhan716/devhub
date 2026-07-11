@@ -118,11 +118,11 @@ const AddProjectInline = ({ onClose, onAdd, initialData = null }) => {
       };
 
       if (initialData) {
-        const { data } = await axios.put(`http://localhost:5000/api/profile/projects/${initialData._id}`, projectData, { withCredentials: true });
+        const { data } = await axios.put(`${import.meta.env.VITE_API_URL}/api/profile/projects/${initialData._id}`, projectData, { withCredentials: true });
         onAdd(data);
         toast.success('Project updated successfully!');
       } else {
-        const { data } = await axios.put('http://localhost:5000/api/profile/projects', projectData, { withCredentials: true });
+        const { data } = await axios.put(`${import.meta.env.VITE_API_URL}/api/profile/projects`, projectData, { withCredentials: true });
         onAdd(data);
         toast.success('Project added successfully!');
       }

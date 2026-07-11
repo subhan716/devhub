@@ -31,8 +31,8 @@ const ProfileConnectionsPage = () => {
     setIsLoading(true);
     try {
       const [profileRes, connectionsRes] = await Promise.all([
-        axios.get(`http://localhost:5000/api/profile/user/${id}`, { withCredentials: true }),
-        axios.get(`http://localhost:5000/api/network/connections/${id}`, { withCredentials: true })
+        axios.get(`${import.meta.env.VITE_API_URL}/api/profile/user/${id}`, { withCredentials: true }),
+        axios.get(`${import.meta.env.VITE_API_URL}/api/network/connections/${id}`, { withCredentials: true })
       ]);
       setProfile(profileRes.data);
       setConnections(connectionsRes.data);
@@ -54,7 +54,7 @@ const ProfileConnectionsPage = () => {
       onConfirm: async () => {
         setActionLoading(`remove-${userId}`);
         try {
-          await axios.delete(`http://localhost:5000/api/network/remove/${userId}`, { withCredentials: true });
+          await axios.delete(`${import.meta.env.VITE_API_URL}/api/network/remove/${userId}`, { withCredentials: true });
           toast.success('Connection removed');
           fetchData();
         } catch (error) {

@@ -53,7 +53,7 @@ const AddCertificationInline = ({ setProfile, onClose }) => {
     
     setIsLoading(true);
     try {
-      const { data } = await axios.put('http://localhost:5000/api/profile/certifications', formData, { withCredentials: true });
+      const { data } = await axios.put(`${import.meta.env.VITE_API_URL}/api/profile/certifications`, formData, { withCredentials: true });
       setProfile(data);
       toast.success('Certification added successfully!');
       if (onClose) onClose();

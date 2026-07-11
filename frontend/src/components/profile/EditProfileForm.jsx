@@ -59,7 +59,7 @@ const EditProfileForm = ({ profile, setProfile, onClose }) => {
     e.preventDefault();
     setIsSubmitting(true);
     try {
-      const { data } = await axios.post('http://localhost:5000/api/profile', formData, { withCredentials: true });
+      const { data } = await axios.post(`${import.meta.env.VITE_API_URL}/api/profile`, formData, { withCredentials: true });
       setProfile(prev => ({
         ...prev,
         status: data.status,

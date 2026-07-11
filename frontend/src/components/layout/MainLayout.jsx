@@ -16,7 +16,7 @@ const MainLayout = () => {
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const { data } = await axios.get('http://localhost:5000/api/auth/me');
+        const { data } = await axios.get(`${import.meta.env.VITE_API_URL}/api/auth/me`);
         setCurrentUser(data);
       } catch (error) {
         console.error('Failed to fetch user', error);

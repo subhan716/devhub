@@ -104,7 +104,7 @@ const AddEducationInline = ({ onClose, onAdd }) => {
     e.preventDefault();
     setIsSubmitting(true);
     try {
-      const { data } = await axios.put('http://localhost:5000/api/profile/education', formData, { withCredentials: true });
+      const { data } = await axios.put(`${import.meta.env.VITE_API_URL}/api/profile/education`, formData, { withCredentials: true });
       onAdd(data);
       toast.success('Education added successfully!');
       onClose();

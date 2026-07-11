@@ -51,7 +51,7 @@ const TopNavbar = ({ setIsMobileMenuOpen, currentUser, isMessagesPage }) => {
 
     const fetchNotifications = async () => {
       try {
-        const res = await axios.get('http://localhost:5000/api/notifications', { withCredentials: true });
+        const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/notifications`, { withCredentials: true });
         setNotifications(res.data);
       } catch (err) {
         console.error('Failed to fetch notifications', err);
@@ -91,7 +91,7 @@ const TopNavbar = ({ setIsMobileMenuOpen, currentUser, isMessagesPage }) => {
 
   const markAllAsRead = async () => {
     try {
-      await axios.put('http://localhost:5000/api/notifications/read-all', {}, { withCredentials: true });
+      await axios.put(`${import.meta.env.VITE_API_URL}/api/notifications/read-all`, {}, { withCredentials: true });
       setNotifications(notifications.map(n => ({ ...n, read: true })));
     } catch (error) {
       console.error(error);
@@ -101,7 +101,7 @@ const TopNavbar = ({ setIsMobileMenuOpen, currentUser, isMessagesPage }) => {
   const markAsRead = async (notifId, isAlreadyRead) => {
     if (isAlreadyRead) return;
     try {
-      await axios.put(`http://localhost:5000/api/notifications/read/${notifId}`, {}, { withCredentials: true });
+      await axios.put(`${import.meta.env.VITE_API_URL}/api/notifications/read/${notifId}`, {}, { withCredentials: true });
       setNotifications(notifications.map(n => n._id === notifId ? { ...n, read: true } : n));
     } catch (error) {
       console.error(error);
@@ -110,7 +110,7 @@ const TopNavbar = ({ setIsMobileMenuOpen, currentUser, isMessagesPage }) => {
 
   const handleLogout = async () => {
     try {
-      await axios.post('http://localhost:5000/api/auth/logout');
+      await axios.post(`${import.meta.env.VITE_API_URL}/api/auth/logout`);
       localStorage.removeItem('isAuthenticated');
       toast.success('Signed out successfully');
       navigate('/');

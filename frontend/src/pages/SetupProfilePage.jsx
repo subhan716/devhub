@@ -237,7 +237,7 @@ const SetupProfilePage = () => {
   const submitProfile = async (submissionData) => {
     setIsSubmitting(true);
     try {
-      await axios.post('http://localhost:5000/api/profile', submissionData);
+      await axios.post(`${import.meta.env.VITE_API_URL}/api/profile`, submissionData);
       toast.success('Profile deployed successfully!');
       navigate('/feed'); 
     } catch (error) {

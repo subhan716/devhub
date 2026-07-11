@@ -56,13 +56,13 @@ const NetworkPage = () => {
         pendRes, connSuggRes, connRes
       ] = await Promise.all([
         // Follow Data
-        axios.get('http://localhost:5000/api/profile/suggestions', { withCredentials: true }),
-        axios.get('http://localhost:5000/api/profile/followers', { withCredentials: true }),
-        axios.get('http://localhost:5000/api/profile/following', { withCredentials: true }),
+        axios.get(`${import.meta.env.VITE_API_URL}/api/profile/suggestions`, { withCredentials: true }),
+        axios.get(`${import.meta.env.VITE_API_URL}/api/profile/followers`, { withCredentials: true }),
+        axios.get(`${import.meta.env.VITE_API_URL}/api/profile/following`, { withCredentials: true }),
         // Connection Data
-        axios.get('http://localhost:5000/api/network/pending', { withCredentials: true }),
-        axios.get('http://localhost:5000/api/network/suggestions', { withCredentials: true }),
-        axios.get('http://localhost:5000/api/network/connections', { withCredentials: true })
+        axios.get(`${import.meta.env.VITE_API_URL}/api/network/pending`, { withCredentials: true }),
+        axios.get(`${import.meta.env.VITE_API_URL}/api/network/suggestions`, { withCredentials: true }),
+        axios.get(`${import.meta.env.VITE_API_URL}/api/network/connections`, { withCredentials: true })
       ]);
       
       setFollowSuggestions(suggRes.data);
@@ -84,7 +84,7 @@ const NetworkPage = () => {
   const handleConnect = async (userId) => {
     setActionLoading(`connect-${userId}`);
     try {
-      await axios.post(`http://localhost:5000/api/network/connect/${userId}`, {}, { withCredentials: true });
+      await axios.post(`${import.meta.env.VITE_API_URL}/api/network/connect/${userId}`, {}, { withCredentials: true });
       toast.success('Connection request sent!');
       fetchNetworkData();
       window.dispatchEvent(new Event('network-update'));
@@ -98,7 +98,7 @@ const NetworkPage = () => {
   const handleAccept = async (requestId) => {
     setActionLoading(`accept-${requestId}`);
     try {
-      await axios.put(`http://localhost:5000/api/network/accept/${requestId}`, {}, { withCredentials: true });
+      await axios.put(`${import.meta.env.VITE_API_URL}/api/network/accept/${requestId}`, {}, { withCredentials: true });
       toast.success('Connection accepted!');
       fetchNetworkData();
       window.dispatchEvent(new Event('network-update'));
@@ -112,7 +112,7 @@ const NetworkPage = () => {
   const handleReject = async (requestId) => {
     setActionLoading(`reject-${requestId}`);
     try {
-      await axios.put(`http://localhost:5000/api/network/reject/${requestId}`, {}, { withCredentials: true });
+      await axios.put(`${import.meta.env.VITE_API_URL}/api/network/reject/${requestId}`, {}, { withCredentials: true });
       fetchNetworkData();
       window.dispatchEvent(new Event('network-update'));
     } catch (error) {
@@ -126,7 +126,7 @@ const NetworkPage = () => {
     if(!window.confirm('Are you sure you want to remove this connection?')) return;
     setActionLoading(`remove-${userId}`);
     try {
-      await axios.delete(`http://localhost:5000/api/network/remove/${userId}`, { withCredentials: true });
+      await axios.delete(`${import.meta.env.VITE_API_URL}/api/network/remove/${userId}`, { withCredentials: true });
       toast.success('Connection removed');
       fetchNetworkData();
       window.dispatchEvent(new Event('network-update'));
@@ -143,12 +143,12 @@ const NetworkPage = () => {
     setActionLoading(`follow-${userId}`);
     try {
       const action = isFollowingUser ? 'unfollow' : 'follow';
-      await axios.post(`http://localhost:5000/api/profile/${action}/${userId}`, {}, { withCredentials: true });
+      await axios.post(`${import.meta.env.VITE_API_URL}/api/profile/${action}/${userId}`, {}, { withCredentials: true });
       
       const [suggRes, follRes, followingRes] = await Promise.all([
-        axios.get('http://localhost:5000/api/profile/suggestions', { withCredentials: true }),
-        axios.get('http://localhost:5000/api/profile/followers', { withCredentials: true }),
-        axios.get('http://localhost:5000/api/profile/following', { withCredentials: true })
+        axios.get(`${import.meta.env.VITE_API_URL}/api/profile/suggestions`, { withCredentials: true }),
+        axios.get(`${import.meta.env.VITE_API_URL}/api/profile/followers`, { withCredentials: true }),
+        axios.get(`${import.meta.env.VITE_API_URL}/api/profile/following`, { withCredentials: true })
       ]);
       setFollowSuggestions(suggRes.data);
       setFollowers(follRes.data);

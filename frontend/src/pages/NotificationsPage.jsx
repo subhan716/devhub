@@ -14,12 +14,12 @@ const NotificationsPage = () => {
 
   const fetchNotifications = async () => {
     try {
-      const res = await axios.get('http://localhost:5000/api/notifications', { withCredentials: true });
+      const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/notifications`, { withCredentials: true });
       setNotifications(res.data);
       
       // Auto mark all as read when opening the page
       if (res.data.some(n => !n.read)) {
-        await axios.put('http://localhost:5000/api/notifications/read-all', {}, { withCredentials: true });
+        await axios.put(`${import.meta.env.VITE_API_URL}/api/notifications/read-all`, {}, { withCredentials: true });
         setNotifications(res.data.map(n => ({ ...n, read: true })));
       }
     } catch (error) {
