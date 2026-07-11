@@ -79,16 +79,36 @@ const FloatingChat = ({ currentUser }) => {
         return newConvos;
       });
 
-      // Play sound if not muted and message is from someone not currently open in a chat head
+      // Play sound if not muted and message is from someone not currently open in a chat head, and not on /messages page
       const isActiveChat = activeChats.some(c => c._id === senderId);
-      if (!muteSounds && !isActiveChat) {
+      const isMessagesPage = location.pathname.startsWith('/messages');
+      
+      if (!muteSounds && !isActiveChat && !isMessagesPage) {
         const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
         audio.play().catch(e => console.log('Audio error:', e));
       }
     };
+    const handleMessagesRead = ({ readerId }) => {
+      if (activeChats.find(c => c._id === readerId)) {
+        setChatMessages(prev => {
+          const chatMsgs = prev[readerId] || [];
+          const updatedMsgs = chatMsgs.map(msg => 
+            ((msg.sender === currentUser?._id || msg.sender?._id === currentUser?._id) && !msg.read) 
+              ? { ...msg, read: true } 
+              : msg
+          );
+          return { ...prev, [readerId]: updatedMsgs };
+        });
+      }
+    };
+
     socket.on('messageReceived', handleMessage);
-    return () => socket.off('messageReceived', handleMessage);
-  }, [socket, activeChats, isOpen, muteSounds]);
+    socket.on('messagesRead', handleMessagesRead);
+    return () => {
+      socket.off('messageReceived', handleMessage);
+      socket.off('messagesRead', handleMessagesRead);
+    };
+  }, [socket, activeChats, isOpen, muteSounds, currentUser, location.pathname]);
 
   const openChatHead = async (user) => {
     // If already open, do nothing
@@ -105,7 +125,8 @@ const FloatingChat = ({ currentUser }) => {
     // Fetch messages for this chat
     try {
       const { data } = await axios.get(`http://localhost:5000/api/messages/${user._id}`, { withCredentials: true });
-      setChatMessages(prev => ({ ...prev, [user._id]: data }));
+      const msgs = Array.isArray(data) ? data : data.messages;
+      setChatMessages(prev => ({ ...prev, [user._id]: msgs }));
     } catch (e) {
       console.error(e);
     }
@@ -325,6 +346,8 @@ const ChatWindow = ({ chat, messages, onClose, currentUser, socket, onlineUsers,
   const [isUploading, setIsUploading] = useState(false);
   const [previewImage, setPreviewImage] = useState(null);
   const fileInputRef = useRef(null);
+  const inputRef = useRef(null);
+  const emojiPickerContainerRef = useRef(null);
   
   const messagesEndRef = useRef(null);
 
@@ -336,6 +359,9 @@ const ChatWindow = ({ chat, messages, onClose, currentUser, socket, onlineUsers,
 
   const onEmojiClick = (emojiObject) => {
     setText(prev => prev + emojiObject.emoji);
+    setTimeout(() => {
+      inputRef.current?.focus();
+    }, 0);
   };
 
   const handleFileSelect = (e) => {
@@ -345,17 +371,55 @@ const ChatWindow = ({ chat, messages, onClose, currentUser, socket, onlineUsers,
     setShowEmojiPicker(false);
   };
 
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (emojiPickerContainerRef.current && !emojiPickerContainerRef.current.contains(event.target)) {
+        setShowEmojiPicker(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
   const send = async (e) => {
     e.preventDefault();
     if ((!text.trim() && !attachment) || isUploading) return;
     
     try {
+      const tempId = 'temp_' + Date.now();
+      const currentText = text;
+      const currentAttachment = attachment;
+
+      const optimisticMsg = {
+        _id: tempId,
+        sender: currentUser,
+        receiver: chat._id,
+        text: currentText,
+        attachment: currentAttachment ? { 
+          url: URL.createObjectURL(currentAttachment), 
+          type: currentAttachment.type.startsWith('image') ? 'image' : 'file', 
+          name: currentAttachment.name 
+        } : null,
+        createdAt: new Date().toISOString(),
+        read: false,
+        pending: true
+      };
+
+      setChatMessages(prev => ({
+        ...prev,
+        [chat._id]: [...(prev[chat._id] || []), optimisticMsg]
+      }));
+
+      setText('');
+      setAttachment(null);
+      setShowEmojiPicker(false);
       setIsUploading(true);
+      
       let attachmentData = null;
 
-      if (attachment) {
+      if (currentAttachment) {
         const formData = new FormData();
-        formData.append('attachment', attachment);
+        formData.append('attachment', currentAttachment);
         const { data } = await axios.post('http://localhost:5000/api/upload/chat-attachment', formData, {
           withCredentials: true,
           headers: { 'Content-Type': 'multipart/form-data' }
@@ -364,13 +428,13 @@ const ChatWindow = ({ chat, messages, onClose, currentUser, socket, onlineUsers,
       }
 
       const { data } = await axios.post(`http://localhost:5000/api/messages/${chat._id}`, { 
-        text,
+        text: currentText,
         attachment: attachmentData
       }, { withCredentials: true });
       
       setChatMessages(prev => ({
         ...prev,
-        [chat._id]: [...(prev[chat._id] || []), data]
+        [chat._id]: (prev[chat._id] || []).map(m => m._id === tempId ? data : m)
       }));
       
       // Update conversations list with the new sent message
@@ -460,6 +524,14 @@ const ChatWindow = ({ chat, messages, onClose, currentUser, socket, onlineUsers,
                       <div>
                         {msg.attachment.type === 'image' ? (
                           <img src={msg.attachment.url} alt="attachment" className="max-w-full rounded-lg object-contain" />
+                        ) : msg.attachment.type === 'video' ? (
+                          <div className="max-w-full rounded-lg overflow-hidden shadow-lg border border-white/5 bg-black/40">
+                            <video src={msg.attachment.url} controls className="w-full h-auto max-h-[150px] object-cover" />
+                          </div>
+                        ) : msg.attachment.type === 'audio' ? (
+                          <div className="w-full bg-white/5 p-1 rounded-lg border border-white/5 flex items-center">
+                            <audio src={msg.attachment.url} controls className="w-full h-8 accent-[#00F0FF]" />
+                          </div>
                         ) : (
                           <a href={msg.attachment.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 bg-black/20 p-2 rounded-lg border border-white/10 hover:bg-black/40 transition-colors">
                             <FileText size={18} className="text-[#00F0FF]" />
@@ -469,7 +541,18 @@ const ChatWindow = ({ chat, messages, onClose, currentUser, socket, onlineUsers,
                         )}
                       </div>
                     )}
-                    {msg.text && <div>{msg.text}</div>}
+                    {/* Read Receipts */}
+                    {isMe && (
+                      <div className="flex justify-end mt-1 opacity-60">
+                        {msg.pending ? (
+                          <Check size={14} className="text-gray-500" />
+                        ) : msg.read ? (
+                          <CheckCheck size={14} className="text-[#00F0FF]" />
+                        ) : (
+                          <CheckCheck size={14} className="text-gray-500" />
+                        )}
+                      </div>
+                    )}
                   </div>
                   )}
                 </div>
@@ -500,6 +583,7 @@ const ChatWindow = ({ chat, messages, onClose, currentUser, socket, onlineUsers,
 
             <form onSubmit={send} className="flex flex-col gap-2">
               <textarea 
+                ref={inputRef}
                 value={text}
                 onChange={(e) => setText(e.target.value)}
                 data-lenis-prevent="true"
@@ -522,14 +606,16 @@ const ChatWindow = ({ chat, messages, onClose, currentUser, socket, onlineUsers,
                     accept="image/*,.pdf,.doc,.docx,.zip,.txt"
                   />
                   <button type="button" onClick={() => fileInputRef.current?.click()} className="text-gray-400 hover:text-white p-1.5 rounded transition-colors" title="Attach File/Image"><Paperclip size={18} /></button>
-                  <button type="button" onClick={() => setShowEmojiPicker(!showEmojiPicker)} className="text-gray-400 hover:text-white p-1.5 rounded transition-colors" title="Emoji"><Smile size={18} /></button>
                   
-                  {/* Emoji Picker Popover */}
-                  {showEmojiPicker && (
-                    <div className="absolute bottom-full left-0 mb-2 z-50 shadow-2xl scale-90 origin-bottom-left">
-                      <EmojiPicker onEmojiClick={onEmojiClick} theme="dark" width={300} height={350} />
-                    </div>
-                  )}
+                  <div ref={emojiPickerContainerRef} className="relative">
+                    <button type="button" onClick={() => setShowEmojiPicker(!showEmojiPicker)} className="text-gray-400 hover:text-white p-1.5 rounded transition-colors" title="Emoji"><Smile size={18} /></button>
+                    {/* Emoji Picker Popover */}
+                    {showEmojiPicker && (
+                      <div className="absolute bottom-full left-0 mb-2 z-50 shadow-2xl scale-90 origin-bottom-left">
+                        <EmojiPicker onEmojiClick={onEmojiClick} theme="dark" width={300} height={350} />
+                      </div>
+                    )}
+                  </div>
                 </div>
                 <button 
                   type="submit" 
