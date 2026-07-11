@@ -102,12 +102,19 @@ router.post('/chat-attachment', protect, uploadChatAttachment.single('attachment
     }
 
     const url = req.file.path;
-    // Cloudinary automatically infers resource_type 'image' or 'raw' for 'auto'
+    // Cloudinary automatically infers resource_type 'image', 'video' or 'raw' for 'auto'
     const isImage = req.file.mimetype.startsWith('image/');
+    const isVideo = req.file.mimetype.startsWith('video/');
+    const isAudio = req.file.mimetype.startsWith('audio/');
+    
+    let type = 'file';
+    if (isImage) type = 'image';
+    else if (isVideo) type = 'video';
+    else if (isAudio) type = 'audio';
     
     res.json({ 
       url: url,
-      type: isImage ? 'image' : 'file',
+      type: type,
       name: req.file.originalname
     });
   } catch (error) {
