@@ -18,10 +18,29 @@ const MessageSchema = new mongoose.Schema(
     },
     attachment: {
       url: String,
-      type: { type: String, enum: ['image', 'file'] },
+      type: { type: String, enum: ['image', 'video', 'audio', 'file'] },
       name: String
     },
+    forwarded: {
+      type: Boolean,
+      default: false
+    },
+    replyTo: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Message',
+      required: false
+    },
+    reactions: [
+      {
+        user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+        emoji: String
+      }
+    ],
     read: {
+      type: Boolean,
+      default: false,
+    },
+    edited: {
       type: Boolean,
       default: false,
     },

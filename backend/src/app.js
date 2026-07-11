@@ -45,6 +45,16 @@ app.get('/api', (req, res) => {
   res.status(200).json({ message: 'Welcome to the DevHub API!' });
 });
 
-// Mount Routes
+// Global error handler — catches errors passed via next(err),
+// including multer/cloudinary upload failures. Without this, such
+// errors bubble up as unhandled rejections and crash the whole server.
+// eslint-disable-next-line no-unused-vars
+app.use((err, req, res, next) => {
+  console.error('Unhandled route error:', err.stack || err.message);
+
+  // Multer file-related errors get a 400 (client's fault), everything else 500
+  const status = err.status || (err.name === 'MulterError' ? 400 : 500);
+  res.status(status).json({ message: err.message || 'Server Error' });
+});
 
 module.exports = app;
