@@ -1741,7 +1741,7 @@ const MessagesPage = () => {
                       <button
                         key={user._id}
                         type="button"
-                        onClick={() => handleSelectMention(user)}
+                        onMouseDown={(e) => { e.preventDefault(); handleSelectMention(user); }}
                         className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-white/5 transition-colors text-left border-b border-white/[0.02] last:border-b-0 flex-shrink-0"
                       >
                         <img
