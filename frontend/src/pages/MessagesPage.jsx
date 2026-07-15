@@ -149,14 +149,33 @@ const MessagesPage = () => {
   // Parse text to highlight @ mentions in message bubbles
   const renderMessageTextWithMentions = (text) => {
     if (!text) return '';
-    const regex = /(@[A-Za-z0-9_-]+(?:\s[A-Za-z0-9_-]+)?)/g;
+    
+    // Get all valid names from connections and selected chat
+    const validNames = [];
+    if (selectedChat && selectedChat.name) validNames.push(selectedChat.name);
+    connections.forEach(c => {
+      if (c.user && c.user.name) validNames.push(c.user.name);
+    });
+    
+    // Remove duplicates and sort by length descending (longest names first)
+    const uniqueNames = [...new Set(validNames)].sort((a, b) => b.length - a.length);
+    
+    if (uniqueNames.length === 0) return text;
+    
+    // Escape special regex characters in names
+    const escapeRegExp = (string) => string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    
+    // Build regex to match @ followed by any valid name (case-insensitive)
+    // (?=[^a-zA-Z0-9_]|$) ensures we match the full name and not a substring of a longer username
+    const pattern = uniqueNames.map(name => escapeRegExp(name)).join('|');
+    const regex = new RegExp(`(@(?:${pattern}))(?=[^a-zA-Z0-9_]|$)`, 'gi');
+    
     const parts = text.split(regex);
     
     return parts.map((part, index) => {
       if (part.startsWith('@')) {
-        const nameWithoutAt = part.substring(1).trim();
-        const hasMatch = (selectedChat && selectedChat.name?.toLowerCase() === nameWithoutAt.toLowerCase()) || 
-                         connections.some(c => c.user?.name?.toLowerCase() === nameWithoutAt.toLowerCase());
+        const nameWithoutAt = part.substring(1).trim().toLowerCase();
+        const hasMatch = uniqueNames.some(name => name.toLowerCase() === nameWithoutAt);
         
         if (hasMatch) {
           return (
