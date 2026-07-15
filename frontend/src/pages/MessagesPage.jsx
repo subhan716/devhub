@@ -179,7 +179,7 @@ const MessagesPage = () => {
         
         if (hasMatch) {
           return (
-            <span key={index} className="text-[#00F0FF] font-bold bg-[#00F0FF]/15 px-1.5 py-0.5 rounded-lg border border-[#00F0FF]/30 inline-block my-0.5 shadow-[0_0_8px_rgba(0,240,255,0.1)] hover:bg-[#00F0FF]/25 transition-all cursor-pointer">
+            <span key={index} className="text-[#00F0FF] font-medium bg-[#00F0FF]/10 px-1 rounded hover:underline cursor-pointer">
               {part}
             </span>
           );
