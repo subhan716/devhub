@@ -37,7 +37,7 @@ const registerUser = async (req, res) => {
       res.cookie('jwt', accessToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV !== 'development',
-        sameSite: 'lax',
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
         maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
       });
 
@@ -79,7 +79,7 @@ const loginUser = async (req, res) => {
       res.cookie('jwt', accessToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV !== 'development',
-        sameSite: 'lax',
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
         maxAge: 30 * 24 * 60 * 60 * 1000,
       });
 
@@ -192,7 +192,7 @@ const googleCallback = async (req, res) => {
     res.cookie('jwt', accessToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV !== 'development',
-      sameSite: 'lax',
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
       maxAge: 30 * 24 * 60 * 60 * 1000,
     });
 
@@ -276,7 +276,7 @@ const githubCallback = async (req, res) => {
     res.cookie('jwt', accessToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV !== 'development',
-      sameSite: 'lax',
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
       maxAge: 30 * 24 * 60 * 60 * 1000,
     });
 
