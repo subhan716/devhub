@@ -1,3 +1,4 @@
+const mongoose = require('mongoose');
 const Connection = require('../models/Connection');
 const User = require('../models/User');
 const Profile = require('../models/Profile');
@@ -277,15 +278,18 @@ const getSuggestions = async (req, res) => {
       $or: [{ requester: userId }, { recipient: userId }]
     });
 
-    const excludeUserIds = existingConnections.reduce((acc, conn) => {
-      acc.push(conn.requester.toString());
-      acc.push(conn.recipient.toString());
-      return acc;
-    }, [userId.toString()]); // Also exclude the current user
+    // Build a Set of user IDs to exclude (as strings for dedup), then convert to ObjectIds
+    const excludeSet = new Set([userId.toString()]);
+    existingConnections.forEach(conn => {
+      excludeSet.add(conn.requester.toString());
+      excludeSet.add(conn.recipient.toString());
+    });
+
+    const excludeObjectIds = Array.from(excludeSet).map(id => new mongoose.Types.ObjectId(id));
 
     // Find users who are not in the exclude list
     const suggestions = await User.find({
-      _id: { $nin: excludeUserIds }
+      _id: { $nin: excludeObjectIds }
     })
       .select('name avatar role')
       .limit(10);
