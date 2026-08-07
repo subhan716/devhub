@@ -5,13 +5,22 @@ import toast from 'react-hot-toast';
 
 const RightSidebar = () => {
   const [suggestedUsers, setSuggestedUsers] = useState([]);
+  const [currentUserId, setCurrentUserId] = useState(null);
   const [loadingIds, setLoadingIds] = useState([]);
   const navigate = useNavigate();
 
   const fetchSuggestions = async () => {
     try {
-      const { data } = await axios.get(`${import.meta.env.VITE_API_URL}/api/network/suggestions`, { withCredentials: true });
-      setSuggestedUsers(data);
+      // Fetch current user id and suggestions in parallel
+      const [meRes, suggRes] = await Promise.all([
+        axios.get(`${import.meta.env.VITE_API_URL}/api/auth/me`, { withCredentials: true }),
+        axios.get(`${import.meta.env.VITE_API_URL}/api/network/suggestions`, { withCredentials: true })
+      ]);
+      const myId = meRes.data?._id || meRes.data?.user?._id;
+      setCurrentUserId(myId);
+      // Filter out self from suggestions as a frontend safety net
+      const filtered = suggRes.data.filter(u => u._id !== myId);
+      setSuggestedUsers(filtered);
     } catch (error) {
       console.error('Failed to fetch suggestions', error);
     }

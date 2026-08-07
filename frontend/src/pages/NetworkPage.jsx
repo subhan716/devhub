@@ -53,7 +53,8 @@ const NetworkPage = () => {
     try {
       const [
         suggRes, follRes, followingRes,
-        pendRes, connSuggRes, connRes
+        pendRes, connSuggRes, connRes,
+        meRes
       ] = await Promise.all([
         // Follow Data
         axios.get(`${import.meta.env.VITE_API_URL}/api/profile/suggestions`, { withCredentials: true }),
@@ -62,15 +63,20 @@ const NetworkPage = () => {
         // Connection Data
         axios.get(`${import.meta.env.VITE_API_URL}/api/network/pending`, { withCredentials: true }),
         axios.get(`${import.meta.env.VITE_API_URL}/api/network/suggestions`, { withCredentials: true }),
-        axios.get(`${import.meta.env.VITE_API_URL}/api/network/connections`, { withCredentials: true })
+        axios.get(`${import.meta.env.VITE_API_URL}/api/network/connections`, { withCredentials: true }),
+        // Current user
+        axios.get(`${import.meta.env.VITE_API_URL}/api/auth/me`, { withCredentials: true })
       ]);
       
-      setFollowSuggestions(suggRes.data);
+      const myId = meRes.data?._id || meRes.data?.user?._id;
+
+      setFollowSuggestions(suggRes.data.filter(u => u._id !== myId));
       setFollowers(follRes.data);
       setFollowing(followingRes.data);
       
       setPendingRequests(pendRes.data);
-      setConnectionSuggestions(connSuggRes.data);
+      // Filter out self from connection suggestions as safety net
+      setConnectionSuggestions(connSuggRes.data.filter(u => u._id !== myId));
       setConnections(connRes.data);
     } catch (error) {
       toast.error('Failed to fetch network data');
@@ -246,7 +252,7 @@ const NetworkPage = () => {
                         <div key={req._id} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-white/[0.02] rounded-xl border border-white/5 gap-4">
                           <div className="flex items-center gap-4 cursor-pointer">
                             <img 
-                              src={req.requester.avatar?.url || 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png'} 
+                              src={req.requester.avatar?.url || 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y'} 
                               alt={req.requester.name} 
                               className="w-12 h-12 rounded-full object-cover border border-white/10"
                             />
@@ -293,7 +299,7 @@ const NetworkPage = () => {
                         <div key={req._id} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-white/[0.02] rounded-xl border border-white/5 gap-4">
                           <div className="flex items-center gap-4 cursor-pointer">
                             <img 
-                              src={req.recipient.avatar?.url || 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png'} 
+                              src={req.recipient.avatar?.url || 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y'} 
                               alt={req.recipient.name} 
                               className="w-12 h-12 rounded-full object-cover border border-white/10"
                             />
@@ -334,7 +340,7 @@ const NetworkPage = () => {
                   {connectionSuggestions.map((user) => (
                     <div key={user._id} className="bg-white/[0.02] border border-white/5 rounded-xl p-5 flex flex-col items-center text-center">
                       <img 
-                        src={user.avatar?.url || 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png'} 
+                        src={user.avatar?.url || 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y'} 
                         alt={user.name} 
                         className="w-20 h-20 rounded-full object-cover border-2 border-[#111] shadow-lg mb-4"
                       />
@@ -380,7 +386,7 @@ const NetworkPage = () => {
                     <div key={conn.connectionId} className="flex flex-col sm:flex-row sm:items-start justify-between py-5 border-b border-white/5 gap-4 hover:bg-white/[0.02] transition-colors -mx-6 px-6">
                       <div className="flex gap-4 items-start w-full sm:w-2/3">
                         <img 
-                          src={conn.user.avatar?.url || 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png'} 
+                          src={conn.user.avatar?.url || 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y'} 
                           alt={conn.user.name} 
                           className="w-16 h-16 rounded-full object-cover flex-shrink-0 border border-white/10"
                         />
@@ -458,7 +464,7 @@ const NetworkPage = () => {
                     <div key={profile._id} className="flex flex-col sm:flex-row sm:items-start justify-between py-5 border-b border-white/5 gap-4 hover:bg-white/[0.02] transition-colors -mx-6 px-6">
                       <div className="flex gap-4 items-start w-full sm:w-2/3">
                         <img 
-                          src={profile.user?.avatar?.url || 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png'} 
+                          src={profile.user?.avatar?.url || 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y'} 
                           alt={profile.user?.name} 
                           className="w-16 h-16 rounded-full object-cover flex-shrink-0 border border-white/10"
                         />
@@ -506,7 +512,7 @@ const NetworkPage = () => {
                       <div key={profile._id} className="flex flex-col sm:flex-row sm:items-start justify-between py-5 border-b border-white/5 gap-4 hover:bg-white/[0.02] transition-colors -mx-6 px-6">
                         <div className="flex gap-4 items-start w-full sm:w-2/3">
                           <img 
-                            src={profile.user?.avatar?.url || 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png'} 
+                            src={profile.user?.avatar?.url || 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y'} 
                             alt={profile.user?.name} 
                             className="w-16 h-16 rounded-full object-cover flex-shrink-0 border border-white/10"
                           />
