@@ -321,17 +321,95 @@ const googleCallback = async (req, res) => {
 
     let isNewUser = false;
     let user = await User.findOne({ email: profile.email });
+    
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const otpExpire = new Date(Date.now() + 10 * 60 * 1000);
+
     if (!user) {
       isNewUser = true;
       user = await User.create({
         name: profile.name,
         email: profile.email,
         googleId: profile.id,
-        isVerified: true,
+        isVerified: false,
+        otp,
+        otpExpire,
       });
+
+      // Send OTP Email
+      try {
+        await sendEmail({
+          to: user.email,
+          subject: 'DevHub Account Verification Code',
+          html: `
+            <div style="font-family: Arial, sans-serif; background-color: #0d0d12; color: #ffffff; padding: 30px; border-radius: 12px; max-width: 500px; margin: auto;">
+              <h2 style="color: #00F0FF; text-align: center; border-bottom: 1px solid #1a1a26; padding-bottom: 15px;">Welcome to DevHub!</h2>
+              <p style="font-size: 15px; line-height: 1.5; color: #b3b3b3;">Thank you for registering on DevHub. To complete your sign-up, please verify your email address using the 6-digit verification code below:</p>
+              <div style="background-color: #1a1a26; border: 1px solid #00F0FF/30; border-radius: 8px; padding: 15px; text-align: center; margin: 20px 0;">
+                <span style="font-size: 32px; font-weight: bold; letter-spacing: 6px; color: #00F0FF;">${otp}</span>
+              </div>
+              <p style="font-size: 12px; color: #666; text-align: center;">This code is valid for 10 minutes. If you did not request this, you can safely ignore this email.</p>
+            </div>
+          `,
+        });
+      } catch (mailError) {
+        console.error('Failed to send verification email:', mailError.message);
+      }
     } else if (!user.googleId) {
       user.googleId = profile.id;
+      if (!user.isVerified) {
+        user.otp = otp;
+        user.otpExpire = otpExpire;
+        try {
+          await sendEmail({
+            to: user.email,
+            subject: 'DevHub Account Verification Code',
+            html: `
+              <div style="font-family: Arial, sans-serif; background-color: #0d0d12; color: #ffffff; padding: 30px; border-radius: 12px; max-width: 500px; margin: auto;">
+                <h2 style="color: #00F0FF; text-align: center; border-bottom: 1px solid #1a1a26; padding-bottom: 15px;">Welcome to DevHub!</h2>
+                <p style="font-size: 15px; line-height: 1.5; color: #b3b3b3;">Thank you for registering on DevHub. To complete your sign-up, please verify your email address using the 6-digit verification code below:</p>
+                <div style="background-color: #1a1a26; border: 1px solid #00F0FF/30; border-radius: 8px; padding: 15px; text-align: center; margin: 20px 0;">
+                  <span style="font-size: 32px; font-weight: bold; letter-spacing: 6px; color: #00F0FF;">${otp}</span>
+                </div>
+                <p style="font-size: 12px; color: #666; text-align: center;">This code is valid for 10 minutes. If you did not request this, you can safely ignore this email.</p>
+              </div>
+            `,
+          });
+        } catch (mailError) {
+          console.error('Failed to send verification email:', mailError.message);
+        }
+      }
       await user.save();
+    } else if (!user.isVerified) {
+      user.otp = otp;
+      user.otpExpire = otpExpire;
+      await user.save();
+      try {
+        await sendEmail({
+          to: user.email,
+          subject: 'DevHub Account Verification Code',
+          html: `
+            <div style="font-family: Arial, sans-serif; background-color: #0d0d12; color: #ffffff; padding: 30px; border-radius: 12px; max-width: 500px; margin: auto;">
+              <h2 style="color: #00F0FF; text-align: center; border-bottom: 1px solid #1a1a26; padding-bottom: 15px;">Welcome to DevHub!</h2>
+              <p style="font-size: 15px; line-height: 1.5; color: #b3b3b3;">Thank you for registering on DevHub. To complete your sign-up, please verify your email address using the 6-digit verification code below:</p>
+              <div style="background-color: #1a1a26; border: 1px solid #00F0FF/30; border-radius: 8px; padding: 15px; text-align: center; margin: 20px 0;">
+                <span style="font-size: 32px; font-weight: bold; letter-spacing: 6px; color: #00F0FF;">${otp}</span>
+              </div>
+              <p style="font-size: 12px; color: #666; text-align: center;">This code is valid for 10 minutes. If you did not request this, you can safely ignore this email.</p>
+            </div>
+          `,
+        });
+      } catch (mailError) {
+        console.error('Failed to send verification email:', mailError.message);
+      }
+    }
+
+    if (intent === 'register' && !isNewUser) {
+      return res.redirect(`${process.env.CLIENT_URL}/register?error=account_exists`);
+    }
+
+    if (!user.isVerified) {
+      return res.redirect(`${process.env.CLIENT_URL}/verify-otp?email=${encodeURIComponent(user.email)}`);
     }
 
     const accessToken = generateAccessToken(user._id);
@@ -345,12 +423,6 @@ const googleCallback = async (req, res) => {
       sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
       maxAge: 30 * 24 * 60 * 60 * 1000,
     });
-
-    // Redirect based on intent and whether it's a new registration or login
-    if (intent === 'register' && !isNewUser) {
-      // User tried to register but already has an account
-      return res.redirect(`${process.env.CLIENT_URL}/register?error=account_exists`);
-    }
 
     if (isNewUser) {
       res.redirect(`${process.env.CLIENT_URL}/setup-profile?oauth=success`);
@@ -405,17 +477,95 @@ const githubCallback = async (req, res) => {
 
     let isNewUser = false;
     let user = await User.findOne({ email: primaryEmail });
+    
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const otpExpire = new Date(Date.now() + 10 * 60 * 1000);
+
     if (!user) {
       isNewUser = true;
       user = await User.create({
         name: profile.name || profile.login,
         email: primaryEmail,
         githubId: profile.id.toString(),
-        isVerified: true,
+        isVerified: false,
+        otp,
+        otpExpire,
       });
+
+      // Send OTP Email
+      try {
+        await sendEmail({
+          to: user.email,
+          subject: 'DevHub Account Verification Code',
+          html: `
+            <div style="font-family: Arial, sans-serif; background-color: #0d0d12; color: #ffffff; padding: 30px; border-radius: 12px; max-width: 500px; margin: auto;">
+              <h2 style="color: #00F0FF; text-align: center; border-bottom: 1px solid #1a1a26; padding-bottom: 15px;">Welcome to DevHub!</h2>
+              <p style="font-size: 15px; line-height: 1.5; color: #b3b3b3;">Thank you for registering on DevHub. To complete your sign-up, please verify your email address using the 6-digit verification code below:</p>
+              <div style="background-color: #1a1a26; border: 1px solid #00F0FF/30; border-radius: 8px; padding: 15px; text-align: center; margin: 20px 0;">
+                <span style="font-size: 32px; font-weight: bold; letter-spacing: 6px; color: #00F0FF;">${otp}</span>
+              </div>
+              <p style="font-size: 12px; color: #666; text-align: center;">This code is valid for 10 minutes. If you did not request this, you can safely ignore this email.</p>
+            </div>
+          `,
+        });
+      } catch (mailError) {
+        console.error('Failed to send verification email:', mailError.message);
+      }
     } else if (!user.githubId) {
       user.githubId = profile.id.toString();
+      if (!user.isVerified) {
+        user.otp = otp;
+        user.otpExpire = otpExpire;
+        try {
+          await sendEmail({
+            to: user.email,
+            subject: 'DevHub Account Verification Code',
+            html: `
+              <div style="font-family: Arial, sans-serif; background-color: #0d0d12; color: #ffffff; padding: 30px; border-radius: 12px; max-width: 500px; margin: auto;">
+                <h2 style="color: #00F0FF; text-align: center; border-bottom: 1px solid #1a1a26; padding-bottom: 15px;">Welcome to DevHub!</h2>
+                <p style="font-size: 15px; line-height: 1.5; color: #b3b3b3;">Thank you for registering on DevHub. To complete your sign-up, please verify your email address using the 6-digit verification code below:</p>
+                <div style="background-color: #1a1a26; border: 1px solid #00F0FF/30; border-radius: 8px; padding: 15px; text-align: center; margin: 20px 0;">
+                  <span style="font-size: 32px; font-weight: bold; letter-spacing: 6px; color: #00F0FF;">${otp}</span>
+                </div>
+                <p style="font-size: 12px; color: #666; text-align: center;">This code is valid for 10 minutes. If you did not request this, you can safely ignore this email.</p>
+              </div>
+            `,
+          });
+        } catch (mailError) {
+          console.error('Failed to send verification email:', mailError.message);
+        }
+      }
       await user.save();
+    } else if (!user.isVerified) {
+      user.otp = otp;
+      user.otpExpire = otpExpire;
+      await user.save();
+      try {
+        await sendEmail({
+          to: user.email,
+          subject: 'DevHub Account Verification Code',
+          html: `
+            <div style="font-family: Arial, sans-serif; background-color: #0d0d12; color: #ffffff; padding: 30px; border-radius: 12px; max-width: 500px; margin: auto;">
+              <h2 style="color: #00F0FF; text-align: center; border-bottom: 1px solid #1a1a26; padding-bottom: 15px;">Welcome to DevHub!</h2>
+              <p style="font-size: 15px; line-height: 1.5; color: #b3b3b3;">Thank you for registering on DevHub. To complete your sign-up, please verify your email address using the 6-digit verification code below:</p>
+              <div style="background-color: #1a1a26; border: 1px solid #00F0FF/30; border-radius: 8px; padding: 15px; text-align: center; margin: 20px 0;">
+                <span style="font-size: 32px; font-weight: bold; letter-spacing: 6px; color: #00F0FF;">${otp}</span>
+              </div>
+              <p style="font-size: 12px; color: #666; text-align: center;">This code is valid for 10 minutes. If you did not request this, you can safely ignore this email.</p>
+            </div>
+          `,
+        });
+      } catch (mailError) {
+        console.error('Failed to send verification email:', mailError.message);
+      }
+    }
+
+    if (intent === 'register' && !isNewUser) {
+      return res.redirect(`${process.env.CLIENT_URL}/register?error=account_exists`);
+    }
+
+    if (!user.isVerified) {
+      return res.redirect(`${process.env.CLIENT_URL}/verify-otp?email=${encodeURIComponent(user.email)}`);
     }
 
     const accessToken = generateAccessToken(user._id);
@@ -429,11 +579,6 @@ const githubCallback = async (req, res) => {
       sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
       maxAge: 30 * 24 * 60 * 60 * 1000,
     });
-
-    if (intent === 'register' && !isNewUser) {
-      // User tried to register but already has an account
-      return res.redirect(`${process.env.CLIENT_URL}/register?error=account_exists`);
-    }
 
     if (isNewUser) {
       res.redirect(`${process.env.CLIENT_URL}/setup-profile?oauth=success`);
