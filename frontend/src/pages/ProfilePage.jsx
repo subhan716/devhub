@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { MapPin, Briefcase, Calendar, Link as LinkIcon, Heart, MessageCircle, Repeat2, GraduationCap, FolderGit2, FileText, Trash2, Plus, Edit3, Image, Copy, MoreHorizontal, Users, Eye, Activity, Award, X, ChevronDown, Share2 } from 'lucide-react';
 import { useNavigate, useParams, useSearchParams, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -461,69 +462,72 @@ const ProfilePage = () => {
     <div className="max-w-3xl mx-auto pb-20">
 
       {/* ===== EDIT PROFILE SLIDE-OVER ===== */}
-      <AnimatePresence>
-        {isEditProfileOpen && (
-          <>
-            {/* Backdrop */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50"
-              onClick={() => setIsEditProfileOpen(false)}
-            />
-            {/* Panel */}
-            <motion.div
-              ref={drawerRef}
-              initial={{ x: '100%' }}
-              animate={{ x: 0 }}
-              exit={{ x: '100%' }}
-              transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-              className="fixed top-0 right-0 h-[100dvh] w-full max-w-md bg-[#0f0f0f] border-l border-white/10 z-50 overflow-y-auto shadow-2xl"
-              data-lenis-prevent="true"
-            >
-              <div className="p-6">
-                {/* Header */}
-                <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-xl font-bold text-white">Edit Profile</h2>
-                  <button onClick={() => setIsEditProfileOpen(false)} className="p-2 text-gray-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors cursor-pointer">
-                    <X size={18} />
-                  </button>
-                </div>
-
-                {/* Avatar Section */}
-                <div className="flex flex-col items-center gap-3 mb-8 p-5 bg-[#1a1a1a] rounded-2xl border border-white/10">
-                  <div className="relative">
-                    <img
-                      src={profile.user?.avatar?.url || 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y'}
-                      alt="Profile"
-                      className="w-24 h-24 rounded-full object-cover border-4 border-white/10"
-                    />
-                    <label className="absolute bottom-0 right-0 p-2 bg-[#00F0FF] text-black rounded-full hover:bg-white transition-colors cursor-pointer shadow-lg" title="Change profile picture">
-                      <Image size={14} />
-                      <input
-                        type="file"
-                        className="hidden"
-                        accept="image/*"
-                        onChange={(e) => handleImageUpload(e, 'avatar')}
-                        disabled={isUploading}
-                      />
-                    </label>
+      {createPortal(
+        <AnimatePresence>
+          {isEditProfileOpen && (
+            <>
+              {/* Backdrop */}
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60]"
+                onClick={() => setIsEditProfileOpen(false)}
+              />
+              {/* Panel */}
+              <motion.div
+                ref={drawerRef}
+                initial={{ x: '100%' }}
+                animate={{ x: 0 }}
+                exit={{ x: '100%' }}
+                transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+                className="fixed top-0 right-0 h-[100dvh] w-full max-w-md bg-[#0f0f0f] border-l border-white/10 z-[60] overflow-y-auto shadow-2xl"
+                data-lenis-prevent="true"
+              >
+                <div className="p-6 pb-[100px] lg:pb-6">
+                  {/* Header */}
+                  <div className="flex items-center justify-between mb-6">
+                    <h2 className="text-xl font-bold text-white">Edit Profile</h2>
+                    <button onClick={() => setIsEditProfileOpen(false)} className="p-2 text-gray-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors cursor-pointer">
+                      <X size={18} />
+                    </button>
                   </div>
-                  <p className="text-xs text-gray-500">Click the camera icon to change your photo</p>
-                </div>
 
-                {/* Edit Form */}
-                <EditProfileForm
-                  profile={profile}
-                  setProfile={setProfile}
-                  onClose={() => setIsEditProfileOpen(false)}
-                />
-              </div>
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
+                  {/* Avatar Section */}
+                  <div className="flex flex-col items-center gap-3 mb-8 p-5 bg-[#1a1a1a] rounded-2xl border border-white/10">
+                    <div className="relative">
+                      <img
+                        src={profile.user?.avatar?.url || 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y'}
+                        alt="Profile"
+                        className="w-24 h-24 rounded-full object-cover border-4 border-white/10"
+                      />
+                      <label className="absolute bottom-0 right-0 p-2 bg-[#00F0FF] text-black rounded-full hover:bg-white transition-colors cursor-pointer shadow-lg" title="Change profile picture">
+                        <Image size={14} />
+                        <input
+                          type="file"
+                          className="hidden"
+                          accept="image/*"
+                          onChange={(e) => handleImageUpload(e, 'avatar')}
+                          disabled={isUploading}
+                        />
+                      </label>
+                    </div>
+                    <p className="text-xs text-gray-500">Click the camera icon to change your photo</p>
+                  </div>
+
+                  {/* Edit Form */}
+                  <EditProfileForm
+                    profile={profile}
+                    setProfile={setProfile}
+                    onClose={() => setIsEditProfileOpen(false)}
+                  />
+                </div>
+              </motion.div>
+            </>
+          )}
+        </AnimatePresence>,
+        document.body
+      )}
 
       {/* ===== IMAGE PREVIEW MODAL ===== */}
       <AnimatePresence>
