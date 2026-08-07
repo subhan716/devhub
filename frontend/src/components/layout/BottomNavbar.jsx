@@ -14,7 +14,7 @@ const BottomNavbar = ({ currentUser }) => {
   const user = currentUser?.user || currentUser;
 
   return (
-    <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-[#0a0a0a]/90 backdrop-blur-md border-t border-white/10 z-50 px-2 py-2 flex justify-between items-center safe-area-pb">
+    <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-[#0a0a0a]/90 backdrop-blur-md border-t border-white/10 z-40 px-2 py-2 flex justify-between items-center safe-area-pb">
       {navLinks.map((link) => {
         const isActive = location.pathname.startsWith(link.path);
         return (

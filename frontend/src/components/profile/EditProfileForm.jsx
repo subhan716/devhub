@@ -198,7 +198,7 @@ const EditProfileForm = ({ profile, setProfile, onClose }) => {
       </div>
 
       {/* Actions */}
-      <div className="flex gap-3 pt-2">
+      <div className="flex gap-3 pt-4 pb-[90px] lg:pb-0">
         <button
           type="button"
           onClick={onClose}
