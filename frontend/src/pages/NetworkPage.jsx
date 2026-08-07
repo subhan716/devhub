@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
 
 const NetworkPage = () => {
+  const [currentUser, setCurrentUser] = useState(null);
   const [searchParams, setSearchParams] = useSearchParams();
   const activeTab = searchParams.get('tab') || 'invitations';
   const invitationTab = searchParams.get('sub') || 'received';
@@ -39,6 +40,16 @@ const NetworkPage = () => {
   const [actionLoading, setActionLoading] = useState(null);
 
   useEffect(() => {
+    // Fetch current user for self-filtering
+    const fetchCurrentUser = async () => {
+      try {
+        const { data } = await axios.get(`${import.meta.env.VITE_API_URL}/api/auth/me`, { withCredentials: true });
+        setCurrentUser(data);
+      } catch (e) {
+        console.error('Failed to fetch current user', e);
+      }
+    };
+    fetchCurrentUser();
     fetchNetworkData();
 
     const handleNetworkUpdate = () => {
@@ -53,8 +64,7 @@ const NetworkPage = () => {
     try {
       const [
         suggRes, follRes, followingRes,
-        pendRes, connSuggRes, connRes,
-        meRes
+        pendRes, connSuggRes, connRes
       ] = await Promise.all([
         // Follow Data
         axios.get(`${import.meta.env.VITE_API_URL}/api/profile/suggestions`, { withCredentials: true }),
@@ -63,20 +73,16 @@ const NetworkPage = () => {
         // Connection Data
         axios.get(`${import.meta.env.VITE_API_URL}/api/network/pending`, { withCredentials: true }),
         axios.get(`${import.meta.env.VITE_API_URL}/api/network/suggestions`, { withCredentials: true }),
-        axios.get(`${import.meta.env.VITE_API_URL}/api/network/connections`, { withCredentials: true }),
-        // Current user
-        axios.get(`${import.meta.env.VITE_API_URL}/api/auth/me`, { withCredentials: true })
+        axios.get(`${import.meta.env.VITE_API_URL}/api/network/connections`, { withCredentials: true })
       ]);
       
-      const myId = meRes.data?._id || meRes.data?.user?._id;
-
-      setFollowSuggestions(suggRes.data.filter(u => u._id !== myId));
+      setFollowSuggestions(suggRes.data);
       setFollowers(follRes.data);
       setFollowing(followingRes.data);
       
       setPendingRequests(pendRes.data);
-      // Filter out self from connection suggestions as safety net
-      setConnectionSuggestions(connSuggRes.data.filter(u => u._id !== myId));
+      // Filter out current user from suggestions as a safety net
+      setConnectionSuggestions(connSuggRes.data);
       setConnections(connRes.data);
     } catch (error) {
       toast.error('Failed to fetch network data');
@@ -337,7 +343,7 @@ const NetworkPage = () => {
               <section className="bg-[#111] border border-white/5 rounded-2xl p-6">
                 <h2 className="text-xl font-bold text-white mb-6">Suggested Connections</h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {connectionSuggestions.map((user) => (
+                  {connectionSuggestions.filter(u => u._id !== (currentUser?._id || currentUser?.user?._id)).map((user) => (
                     <div key={user._id} className="bg-white/[0.02] border border-white/5 rounded-xl p-5 flex flex-col items-center text-center">
                       <img 
                         src={user.avatar?.url || 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y'} 

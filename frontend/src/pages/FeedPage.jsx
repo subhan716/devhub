@@ -62,7 +62,7 @@ const FeedPage = () => {
       <div className="bg-[#111] border border-white/5 rounded-2xl p-4 shadow-lg flex flex-col gap-4">
         <div className="flex gap-4">
           <img 
-            src={currentUser?.avatar?.url || 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png'} 
+            src={currentUser?.avatar?.url || 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y'} 
             alt={currentUser?.name || 'Profile'} 
             className="w-10 h-10 rounded-full object-cover border border-white/10 cursor-pointer bg-[#111]"
           />

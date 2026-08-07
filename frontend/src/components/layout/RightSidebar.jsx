@@ -3,23 +3,21 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 
-const RightSidebar = () => {
+const RightSidebar = ({ currentUser }) => {
   const [suggestedUsers, setSuggestedUsers] = useState([]);
-  const [currentUserId, setCurrentUserId] = useState(null);
   const [loadingIds, setLoadingIds] = useState([]);
   const navigate = useNavigate();
 
+  // Get the current logged-in user's ID safely
+  const currentUserId = currentUser?._id || currentUser?.user?._id;
+
   const fetchSuggestions = async () => {
     try {
-      // Fetch current user id and suggestions in parallel
-      const [meRes, suggRes] = await Promise.all([
-        axios.get(`${import.meta.env.VITE_API_URL}/api/auth/me`, { withCredentials: true }),
-        axios.get(`${import.meta.env.VITE_API_URL}/api/network/suggestions`, { withCredentials: true })
-      ]);
-      const myId = meRes.data?._id || meRes.data?.user?._id;
-      setCurrentUserId(myId);
-      // Filter out self from suggestions as a frontend safety net
-      const filtered = suggRes.data.filter(u => u._id !== myId);
+      const { data } = await axios.get(`${import.meta.env.VITE_API_URL}/api/network/suggestions`, { withCredentials: true });
+      // Frontend safety filter: never show the logged-in user in suggestions
+      const filtered = currentUserId
+        ? data.filter(u => u._id !== currentUserId)
+        : data;
       setSuggestedUsers(filtered);
     } catch (error) {
       console.error('Failed to fetch suggestions', error);
@@ -35,7 +33,9 @@ const RightSidebar = () => {
 
     window.addEventListener('network-update', handleNetworkUpdate);
     return () => window.removeEventListener('network-update', handleNetworkUpdate);
-  }, []);
+  // Re-fetch when currentUser loads (it's null initially)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentUserId]);
 
   const handleConnect = async (userId) => {
     setLoadingIds(prev => [...prev, userId]);

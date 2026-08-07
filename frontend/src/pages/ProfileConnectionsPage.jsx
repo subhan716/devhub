@@ -111,7 +111,7 @@ const ProfileConnectionsPage = () => {
 
         <Link to={`/profile/${id}`}>
           <img
-            src={profile.user?.avatar?.url || 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png'}
+            src={profile.user?.avatar?.url || 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y'}
             alt={profile.user?.name}
             className="w-16 h-16 rounded-full border border-white/10 object-cover flex-shrink-0"
           />
@@ -155,7 +155,7 @@ const ProfileConnectionsPage = () => {
                 <div className="flex gap-4 items-start w-full sm:w-2/3">
                   <Link to={`/profile/${conn.user._id}`} className="flex-shrink-0">
                     <img
-                      src={conn.user?.avatar?.url || 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png'}
+                      src={conn.user?.avatar?.url || 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y'}
                       alt={conn.user?.name}
                       className="w-16 h-16 min-w-[4rem] min-h-[4rem] rounded-full object-cover border border-white/10"
                     />

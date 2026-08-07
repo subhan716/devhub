@@ -31,7 +31,7 @@ const MainLayout = () => {
       <div className={`bg-[#050505] text-white selection:bg-[#00F0FF]/30 ${isMessagesPage ? 'h-[100dvh] overflow-hidden fixed inset-0 w-full' : 'min-h-[100dvh]'}`}>
         {/* 3-Column Layout structure matching the mockup */}
         <Sidebar isMobileMenuOpen={isMobileMenuOpen} setIsMobileMenuOpen={setIsMobileMenuOpen} />
-        {!isMessagesPage && <RightSidebar />}
+        {!isMessagesPage && <RightSidebar currentUser={currentUser} />}
         
         {/* Main Content Area */}
         <main className={`lg:ml-64 ${!isMessagesPage ? 'xl:mr-80 min-h-[100dvh]' : 'h-[100dvh] overflow-hidden'} flex flex-col relative transition-all duration-300 pb-[70px] lg:pb-0`}>

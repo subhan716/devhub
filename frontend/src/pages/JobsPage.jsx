@@ -107,7 +107,7 @@ const JobsPage = () => {
                 src={job.logo} 
                 alt={job.company} 
                 className="w-14 h-14 rounded-xl object-contain bg-white p-2"
-                onError={(e) => { e.target.src = 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png'; }}
+                onError={(e) => { e.target.src = 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y'; }}
               />
               <div className="flex-1">
                 <div className="flex justify-between items-start mb-1">

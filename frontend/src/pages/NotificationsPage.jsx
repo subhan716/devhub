@@ -79,7 +79,7 @@ const NotificationsPage = () => {
                   }`}
                 >
                   <img 
-                    src={notif.sender?.avatar?.url || 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png'} 
+                    src={notif.sender?.avatar?.url || 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y'} 
                     alt={notif.sender?.name} 
                     className="w-12 h-12 rounded-full object-cover border border-white/10"
                   />

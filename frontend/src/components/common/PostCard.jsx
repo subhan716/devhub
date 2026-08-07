@@ -21,7 +21,7 @@ const PostCard = ({ post, idx = 0, isHighlighted = false }) => {
       <div className="flex justify-between items-start">
         <div className="flex gap-3">
           <img 
-            src={post.author?.avatar?.url || 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png'} 
+            src={post.author?.avatar?.url || 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y'} 
             alt={post.author?.name || 'Unknown User'} 
             className="w-10 h-10 rounded-full object-cover border border-white/10 cursor-pointer" 
           />

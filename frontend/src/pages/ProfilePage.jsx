@@ -471,7 +471,7 @@ const ProfilePage = () => {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60]"
+                className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[9999]"
                 onClick={() => setIsEditProfileOpen(false)}
               />
               {/* Panel */}
@@ -481,7 +481,7 @@ const ProfilePage = () => {
                 animate={{ x: 0 }}
                 exit={{ x: '100%' }}
                 transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-                className="fixed top-0 right-0 h-[100dvh] w-full max-w-md bg-[#0f0f0f] border-l border-white/10 z-[60] overflow-y-auto shadow-2xl"
+                className="fixed top-0 right-0 h-[100dvh] w-full max-w-md bg-[#0f0f0f] border-l border-white/10 z-[9999] overflow-y-auto shadow-2xl"
                 data-lenis-prevent="true"
               >
                 <div className="p-6 pb-[100px] lg:pb-6">

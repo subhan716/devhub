@@ -127,7 +127,7 @@ const SearchPage = () => {
                     >
                       <Link to={`/profile/${profile.user._id}`}>
                         <img 
-                          src={profile.user?.avatar?.url || 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png'} 
+                          src={profile.user?.avatar?.url || 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y'} 
                           alt={profile.user?.name}
                           className="w-16 h-16 rounded-full object-cover border border-white/10 cursor-pointer"
                         />

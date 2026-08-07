@@ -169,7 +169,7 @@ const FloatingChat = ({ currentUser }) => {
         >
           <div className="flex items-center gap-2">
             <img 
-              src={currentUser?.avatar?.url || 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png'} 
+              src={currentUser?.avatar?.url || 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y'} 
               className="w-7 h-7 rounded-full border border-white/20" 
               alt="me"
             />
@@ -294,7 +294,7 @@ const FloatingChat = ({ currentUser }) => {
                       className="px-4 py-3 flex items-start gap-3 hover:bg-white/5 cursor-pointer border-b border-white/5 transition-colors"
                     >
                       <div className="relative flex-shrink-0">
-                        <img src={conv.user.avatar?.url || 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png'} className="w-12 h-12 rounded-full object-cover" alt="" />
+                        <img src={conv.user.avatar?.url || 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y'} className="w-12 h-12 rounded-full object-cover" alt="" />
                         {onlineUsers?.includes(conv.user._id) && (
                           <div className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 border-2 border-[#111] rounded-full"></div>
                         )}
@@ -314,7 +314,7 @@ const FloatingChat = ({ currentUser }) => {
                       className="px-4 py-3 flex items-start gap-3 hover:bg-white/5 cursor-pointer border-b border-white/5 transition-colors"
                     >
                       <div className="relative flex-shrink-0">
-                        <img src={conn.user?.avatar?.url || 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png'} className="w-12 h-12 rounded-full object-cover" alt="" />
+                        <img src={conn.user?.avatar?.url || 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y'} className="w-12 h-12 rounded-full object-cover" alt="" />
                         {onlineUsers?.includes(conn.user._id) && (
                           <div className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 border-2 border-[#111] rounded-full"></div>
                         )}
@@ -481,7 +481,7 @@ const ChatWindow = ({ chat, messages, onClose, currentUser, socket, onlineUsers,
       >
         <div className="flex items-center gap-2">
           <div className="relative">
-            <img src={chat.avatar?.url || 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png'} className="w-8 h-8 rounded-full object-cover" alt="" />
+            <img src={chat.avatar?.url || 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y'} className="w-8 h-8 rounded-full object-cover" alt="" />
             {onlineUsers?.includes(chat._id) && (
               <div className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 border-2 border-[#1a1a1a] rounded-full"></div>
             )}
