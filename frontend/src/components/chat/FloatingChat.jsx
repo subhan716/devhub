@@ -394,9 +394,14 @@ const ChatWindow = ({ chat, messages, onClose, currentUser, socket, onlineUsers,
   
   const messagesEndRef = useRef(null);
 
+  const prevMsgsLengthRef = useRef(0);
+
   useEffect(() => {
     if (!isMinimized) {
-      messagesEndRef.current?.scrollIntoView();
+      if (messages.length > prevMsgsLengthRef.current || prevMsgsLengthRef.current === 0) {
+        messagesEndRef.current?.scrollIntoView();
+      }
+      prevMsgsLengthRef.current = messages.length;
     }
   }, [messages, isMinimized]);
 

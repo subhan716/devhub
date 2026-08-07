@@ -78,6 +78,7 @@ const MessagesPage = () => {
   const isPrependingRef = useRef(false);
   const prevScrollHeightRef = useRef(0);
   const typingTimeoutRef = useRef(null);
+  const prevMsgsLengthRef = useRef(0);
 
   const getFileExtension = (filename) => {
     return filename ? filename.slice(((filename.lastIndexOf(".") - 1) >>> 0) + 2).toLowerCase() : '';
@@ -359,8 +360,12 @@ const MessagesPage = () => {
         container.scrollTop = container.scrollHeight;
       });
       isInitialLoadRef.current = false;
+      prevMsgsLengthRef.current = messages.length;
     } else {
-      scrollToBottom('smooth');
+      if (messages.length > prevMsgsLengthRef.current) {
+        scrollToBottom('smooth');
+      }
+      prevMsgsLengthRef.current = messages.length;
     }
   }, [messages, isTyping, isLoadingMessages]);
 
