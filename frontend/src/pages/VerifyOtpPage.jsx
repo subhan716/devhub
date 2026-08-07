@@ -105,6 +105,16 @@ const VerifyOtpPage = () => {
     }
   };
 
+  const maskEmail = (emailStr) => {
+    if (!emailStr) return '';
+    const [name, domain] = emailStr.split('@');
+    if (!name || !domain) return emailStr;
+    if (name.length <= 3) {
+      return `${name[0]}***@${domain}`;
+    }
+    return `${name.substring(0, 3)}${'*'.repeat(Math.max(name.length - 4, 4))}${name[name.length - 1]}@${domain}`;
+  };
+
   return (
     <div className="min-h-screen bg-[#050507] bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-[#00F0FF]/5 via-transparent to-transparent flex flex-col justify-center py-12 sm:px-6 lg:px-8 font-sans">
       <div className="sm:mx-auto sm:w-full sm:max-w-md text-center space-y-4">
@@ -122,7 +132,7 @@ const VerifyOtpPage = () => {
           Verify your email
         </h2>
         <p className="text-sm text-gray-400 max-w-sm mx-auto">
-          We have sent a 6-digit activation code to <span className="text-white font-medium">{email}</span>
+          We have sent a 6-digit activation code to <span className="text-white font-medium">{maskEmail(email)}</span>
         </p>
       </div>
 
