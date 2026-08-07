@@ -129,4 +129,56 @@ const searchPosts = async (req, res) => {
   }
 };
 
-module.exports = { createPost, getPosts, getUserPosts, searchPosts };
+// @desc    Update a post
+// @route   PUT /api/posts/:id
+// @access  Private
+const updatePost = async (req, res) => {
+  try {
+    const post = await Post.findById(req.params.id);
+    if (!post) {
+      return res.status(404).json({ message: 'Post not found' });
+    }
+
+    // Check user permission (must be author)
+    if (post.author.toString() !== req.user.id) {
+      return res.status(401).json({ message: 'User not authorized' });
+    }
+
+    const { content, codeSnippet, image } = req.body;
+    post.content = content || post.content;
+    post.codeSnippet = codeSnippet !== undefined ? codeSnippet : post.codeSnippet;
+    post.image = image !== undefined ? image : post.image;
+
+    await post.save();
+    const populatedPost = await Post.findById(post._id).populate('author', 'name avatar');
+    res.json(populatedPost);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server Error');
+  }
+};
+
+// @desc    Delete a post
+// @route   DELETE /api/posts/:id
+// @access  Private
+const deletePost = async (req, res) => {
+  try {
+    const post = await Post.findById(req.params.id);
+    if (!post) {
+      return res.status(404).json({ message: 'Post not found' });
+    }
+
+    // Check user permission (must be author)
+    if (post.author.toString() !== req.user.id) {
+      return res.status(401).json({ message: 'User not authorized' });
+    }
+
+    await Post.deleteOne({ _id: req.params.id });
+    res.json({ message: 'Post removed' });
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server Error');
+  }
+};
+
+module.exports = { createPost, getPosts, getUserPosts, searchPosts, updatePost, deletePost };

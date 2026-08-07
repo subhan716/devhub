@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { createPost, getPosts, getUserPosts, searchPosts } = require('../controllers/postController');
+const { createPost, getPosts, getUserPosts, searchPosts, updatePost, deletePost } = require('../controllers/postController');
 const { protect } = require('../middleware/authMiddleware');
 
 // @route   POST /api/posts
@@ -22,5 +22,15 @@ router.get('/search', protect, searchPosts);
 // @desc    Get user posts
 // @access  Private
 router.get('/user/:user_id', protect, getUserPosts);
+
+// @route   PUT /api/posts/:id
+// @desc    Update a post
+// @access  Private
+router.put('/:id', protect, updatePost);
+
+// @route   DELETE /api/posts/:id
+// @desc    Delete a post
+// @access  Private
+router.delete('/:id', protect, deletePost);
 
 module.exports = router;
