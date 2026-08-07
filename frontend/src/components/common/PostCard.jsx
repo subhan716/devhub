@@ -6,11 +6,12 @@ import js from 'react-syntax-highlighter/dist/esm/languages/hljs/javascript';
 import php from 'react-syntax-highlighter/dist/esm/languages/hljs/php';
 import { vs2015 } from 'react-syntax-highlighter/dist/esm/styles/hljs';
 import toast from 'react-hot-toast';
+import axios from 'axios';
 
 SyntaxHighlighter.registerLanguage('javascript', js);
 SyntaxHighlighter.registerLanguage('php', php);
 
-const PostCard = ({ post, idx = 0, isHighlighted = false, currentUser, onDelete, onEdit }) => {
+const PostCard = ({ post, idx = 0, currentUser, onDelete, onEdit }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const menuRef = useRef(null);
 
@@ -18,6 +19,10 @@ const PostCard = ({ post, idx = 0, isHighlighted = false, currentUser, onDelete,
   const myUserId = currentUser?._id || currentUser?.user?._id;
   const authorId = post.author?._id || post.author;
   const isAuthor = myUserId && authorId && myUserId === authorId;
+
+  // Like system local state for instant feedback
+  const [likes, setLikes] = useState(post.likes || []);
+  const isLiked = myUserId && likes.includes(myUserId);
 
   // Handle click outside menu
   useEffect(() => {
@@ -40,6 +45,35 @@ const PostCard = ({ post, idx = 0, isHighlighted = false, currentUser, onDelete,
   const handleSavePost = () => {
     toast.success('Post saved to bookmarks!');
     setIsMenuOpen(false);
+  };
+
+  const handleLikeClick = async () => {
+    if (!myUserId) {
+      toast.error('Please log in to like posts');
+      return;
+    }
+
+    // Optimistic Update
+    const originalLikes = [...likes];
+    const updatedLikes = isLiked 
+      ? likes.filter(id => id !== myUserId)
+      : [...likes, myUserId];
+
+    setLikes(updatedLikes);
+
+    try {
+      const { data } = await axios.put(
+        `${import.meta.env.VITE_API_URL}/api/posts/like/${post._id}`,
+        {},
+        { withCredentials: true }
+      );
+      // Sync strictly with server response
+      setLikes(data.likes);
+    } catch (error) {
+      // Rollback on failure
+      setLikes(originalLikes);
+      toast.error('Failed to update like');
+    }
   };
 
   return (
@@ -169,9 +203,14 @@ const PostCard = ({ post, idx = 0, isHighlighted = false, currentUser, onDelete,
         <motion.button 
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
-          className="flex items-center gap-2 hover:text-[#00F0FF] transition-colors group/btn cursor-pointer"
+          onClick={handleLikeClick}
+          className={`flex items-center gap-2 transition-colors group/btn cursor-pointer ${isLiked ? 'text-red-500' : 'hover:text-red-500'}`}
         >
-          <Heart size={16} className="group-hover/btn:fill-[#00F0FF]/20" /> {post.likesCount || 0} Likes
+          <Heart 
+            size={16} 
+            className={`transition-all duration-200 ${isLiked ? 'fill-red-500 text-red-500 scale-110' : 'text-gray-400 group-hover/btn:text-red-500 group-hover/btn:fill-red-500/20'}`} 
+          /> 
+          <span>{likes.length} Likes</span>
         </motion.button>
         
         <motion.button 
