@@ -383,10 +383,15 @@ const MessagesPage = () => {
     fetchData();
   }, [currentUser]);
 
-  // Auto-select first conversation
+  const hasAutoSelectedRef = useRef(false);
+
+  // Auto-select first conversation (Desktop only, one time)
   useEffect(() => {
-    if (!selectedChat && conversations.length > 0) {
-      setSelectedChat(conversations[0].user);
+    if (!selectedChat && conversations.length > 0 && !hasAutoSelectedRef.current) {
+      if (window.innerWidth >= 1024) {
+        setSelectedChat(conversations[0].user);
+      }
+      hasAutoSelectedRef.current = true;
     }
   }, [conversations, selectedChat]);
 
@@ -1012,7 +1017,7 @@ const MessagesPage = () => {
                   >
                     <div className="relative flex-shrink-0">
                       <img 
-                        src={chat.user.avatar?.url || 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png'} 
+                        src={chat.user.avatar?.url || 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y'} 
                         alt={chat.user.name} 
                         className="w-12 h-12 rounded-full object-cover"
                       />
@@ -1141,7 +1146,7 @@ const MessagesPage = () => {
                   >
                     <div className="relative flex-shrink-0">
                       <img 
-                        src={conn.user?.avatar?.url || 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png'} 
+                        src={conn.user?.avatar?.url || 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y'} 
                         alt={conn.user?.name} 
                         className="w-12 h-12 rounded-full object-cover"
                       />
@@ -1217,7 +1222,7 @@ const MessagesPage = () => {
                 </button>
                 <div className="relative cursor-pointer" onClick={() => setShowChatDetails(v => !v)}>
                   <img
-                    src={selectedChat.avatar?.url || 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png'}
+                    src={selectedChat.avatar?.url || 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y'}
                     alt={selectedChat.name}
                     className="w-11 h-11 rounded-full object-cover border border-white/10 hover:opacity-80 transition-opacity"
                   />
@@ -1327,7 +1332,7 @@ const MessagesPage = () => {
                             </div>
                           ) : (
                             <img
-                              src={isMe ? (currentUser?.avatar?.url || 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png') : (selectedChat.avatar?.url || 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png')}
+                              src={isMe ? (currentUser?.avatar?.url || 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y') : (selectedChat.avatar?.url || 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y')}
                               alt="Avatar"
                               className="w-10 h-10 rounded-full object-cover shadow-md border border-white/5 mt-0.5 flex-shrink-0"
                             />
@@ -1764,7 +1769,7 @@ const MessagesPage = () => {
                         className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-white/5 transition-colors text-left border-b border-white/[0.02] last:border-b-0 flex-shrink-0"
                       >
                         <img
-                          src={user.avatar?.url || 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png'}
+                          src={user.avatar?.url || 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y'}
                           alt=""
                           className="w-6 h-6 rounded-full object-cover border border-white/10 animate-in fade-in zoom-in-50 duration-200"
                         />
@@ -1867,7 +1872,7 @@ const MessagesPage = () => {
                   {/* Profile */}
                   <div className="p-6 flex flex-col items-center">
                     <img
-                      src={selectedChat.avatar?.url || 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png'}
+                      src={selectedChat.avatar?.url || 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y'}
                       alt={selectedChat.name}
                       className="w-32 h-32 rounded-full object-cover border-4 border-[#111] shadow-2xl mb-4 cursor-zoom-in"
                       onClick={() => selectedChat.avatar?.url && setPreviewFile({ url: selectedChat.avatar.url, name: `${selectedChat.name}'s Profile Picture.jpg`, type: 'image' })}
@@ -2131,7 +2136,7 @@ const MessagesPage = () => {
                     >
                       <div className="flex items-center gap-3">
                         <img 
-                          src={conn.user.avatar?.url || 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png'} 
+                          src={conn.user.avatar?.url || 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y'} 
                           alt="" 
                           className="w-8 h-8 rounded-full object-cover border border-white/10"
                         />
