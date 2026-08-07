@@ -13,6 +13,30 @@ const registerUser = async (req, res) => {
       return res.status(400).json({ message: 'Please add all fields' });
     }
 
+    // Block temporary/disposable emails
+    const emailDomain = email.split('@')[1]?.toLowerCase();
+    const blockedDomains = [
+      'temp-mail.org', 'temp-mail.ru', 'temp-mail.io', 'tempmail.com', 'mailinator.com', 
+      'yopmail.com', 'guerrillamail.com', '10minutemail.com', 'trashmail.com', 
+      'getairmail.com', 'dispostable.com', 'sharklasers.com', 'guerrillamailblock.com', 
+      'guerrillamail.net', 'guerrillamail.org', 'guerrillamail.biz', 'grr.la', 
+      'guerrillamail.de', 'pokemail.net', 'spam4.me', 'crazymailing.com', 
+      'generator.email', 'emailfake.com', 'fakeinbox.com', 'throwawaymail.com', 
+      'maildrop.cc', 'temp-mail.net', 'minuteinbox.com', 'mytemp.email', 
+      'internetslasers.com', 'smartlasers.com', 'duck.com', 'tempmail.net'
+    ];
+
+    if (
+      blockedDomains.includes(emailDomain) || 
+      emailDomain.includes('tempmail') || 
+      emailDomain.includes('disposable') || 
+      emailDomain.includes('temp-mail') ||
+      emailDomain.includes('mailinator') ||
+      emailDomain.includes('yopmail')
+    ) {
+      return res.status(400).json({ message: 'Temporary or disposable email addresses are not allowed. Please use a legit email.' });
+    }
+
     // Check if user exists
     const userExists = await User.findOne({ email });
     if (userExists) {
