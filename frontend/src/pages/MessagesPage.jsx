@@ -1047,7 +1047,7 @@ const MessagesPage = () => {
                           ? 'text-white font-semibold' 
                           : 'text-gray-400'
                       }`}>
-                        {chat.latestMessage?.sender === currentUser?._id ? 'You: ' : ''}
+                        {(chat.latestMessage?.sender === currentUser?._id || chat.latestMessage?.sender?._id === currentUser?._id) ? 'You: ' : ''}
                         {chat.latestMessage ? (
                           chat.latestMessage.text ? (
                             chat.latestMessage.text
