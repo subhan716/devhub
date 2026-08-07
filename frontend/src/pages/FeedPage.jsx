@@ -564,6 +564,7 @@ const FeedPage = () => {
               </div>
             </motion.div>
           </div>
+        )}
       </AnimatePresence>
 
       {/* Delete Confirmation Modal */}
