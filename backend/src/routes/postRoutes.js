@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { createPost, getPosts, getUserPosts, searchPosts, updatePost, deletePost } = require('../controllers/postController');
+const { createPost, getPosts, getUserPosts, searchPosts, updatePost, deletePost, likePost } = require('../controllers/postController');
 const { protect } = require('../middleware/authMiddleware');
 
 // @route   POST /api/posts
@@ -32,5 +32,10 @@ router.put('/:id', protect, updatePost);
 // @desc    Delete a post
 // @access  Private
 router.delete('/:id', protect, deletePost);
+
+// @route   PUT /api/posts/like/:id
+// @desc    Like / Unlike a post
+// @access  Private
+router.put('/like/:id', protect, likePost);
 
 module.exports = router;

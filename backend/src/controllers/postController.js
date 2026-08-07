@@ -191,4 +191,39 @@ const deletePost = async (req, res) => {
   }
 };
 
-module.exports = { createPost, getPosts, getUserPosts, searchPosts, updatePost, deletePost };
+// @desc    Like / Unlike a post
+// @route   PUT /api/posts/like/:id
+// @access  Private
+const likePost = async (req, res) => {
+  try {
+    const post = await Post.findById(req.params.id);
+    if (!post) {
+      return res.status(404).json({ message: 'Post not found' });
+    }
+
+    // Check if the post has already been liked by this user
+    const likeIndex = post.likes.indexOf(req.user.id);
+
+    if (likeIndex > -1) {
+      // User has already liked, so unlike
+      post.likes.splice(likeIndex, 1);
+    } else {
+      // User hasn't liked, so like
+      post.likes.push(req.user.id);
+    }
+
+    post.likesCount = post.likes.length;
+    await post.save();
+
+    res.json({
+      _id: post._id,
+      likes: post.likes,
+      likesCount: post.likesCount
+    });
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server Error');
+  }
+};
+
+module.exports = { createPost, getPosts, getUserPosts, searchPosts, updatePost, deletePost, likePost };
