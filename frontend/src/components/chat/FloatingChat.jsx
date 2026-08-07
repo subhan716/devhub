@@ -21,6 +21,8 @@ const FloatingChat = ({ currentUser }) => {
   const [readReceipts, setReadReceipts] = useState(() => localStorage.getItem('disableReadReceipts') !== 'true'); // default true
   const [activeChats, setActiveChats] = useState([]); // Array of chat objects, max 3
   const [chatMessages, setChatMessages] = useState({}); // { chatId: [messages] }
+  const [searchQuery, setSearchQuery] = useState('');
+  const [activeTab, setActiveTab] = useState('focused'); // 'focused' or 'other'
   const optionsRef = useRef(null);
 
   // Click outside listener for options menu
@@ -265,38 +267,72 @@ const FloatingChat = ({ currentUser }) => {
               data-lenis-prevent="true"
               className="bg-[#111] overflow-y-auto custom-scrollbar flex flex-col min-h-0"
             >
-              {/* Search Bar & Tabs (UI only to match design) */}
+              {/* Search Bar & Tabs */}
               <div className="p-3 border-b border-white/10">
                 <div className="relative mb-3">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
                   <input 
                     type="text" 
                     placeholder="Search messages" 
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
                     className="w-full bg-white/5 border border-white/10 rounded-lg py-1.5 pl-9 pr-3 text-sm text-white focus:outline-none focus:border-[#00F0FF] transition-colors"
                   />
                 </div>
                 <div className="flex gap-6 px-1">
-                  <button className="text-[#00F0FF] text-sm font-semibold border-b-2 border-[#00F0FF] pb-2 px-1">Focused</button>
-                  <button className="text-gray-400 hover:text-white text-sm font-semibold pb-2 px-1 transition-colors">Other</button>
+                  <button 
+                    onClick={() => setActiveTab('focused')}
+                    className={`text-sm font-semibold pb-2 px-1 transition-colors ${activeTab === 'focused' ? 'text-[#00F0FF] border-b-2 border-[#00F0FF]' : 'text-gray-400 hover:text-white'}`}
+                  >
+                    Focused
+                  </button>
+                  <button 
+                    onClick={() => setActiveTab('other')}
+                    className={`text-sm font-semibold pb-2 px-1 transition-colors ${activeTab === 'other' ? 'text-[#00F0FF] border-b-2 border-[#00F0FF]' : 'text-gray-400 hover:text-white'}`}
+                  >
+                    Other
+                  </button>
                 </div>
               </div>
 
-              {conversations.length === 0 && connections.length === 0 ? (
-                <div className="flex-1 flex items-center justify-center text-gray-500 text-sm py-10">
-                  No conversations yet.
-                </div>
-              ) : (
-                <>
-                  {conversations.map(conv => (
+              {/* Conversations & Connections List */}
+              {(() => {
+                const query = searchQuery.trim().toLowerCase();
+                
+                // Filter conversations
+                const filteredConvos = conversations.filter(conv => 
+                  conv.user?.name?.toLowerCase().includes(query)
+                );
+
+                // Filter connections not in conversations
+                const connectionsNotInConvos = connections.filter(conn => 
+                  !conversations.some(conv => conv.user._id === conn.user._id)
+                );
+                const filteredConns = connectionsNotInConvos.filter(conn => 
+                  conn.user?.name?.toLowerCase().includes(query)
+                );
+
+                const hasFocusedData = filteredConvos.length > 0;
+                const hasOtherData = filteredConns.length > 0;
+
+                if (activeTab === 'focused') {
+                  if (!hasFocusedData) {
+                    return (
+                      <div className="flex-1 flex items-center justify-center text-gray-500 text-sm py-10">
+                        {query ? 'No matching conversations found.' : 'No conversations yet.'}
+                      </div>
+                    );
+                  }
+                  return filteredConvos.map(conv => (
                     <div 
                       key={conv.user._id}
                       onClick={() => openChatHead(conv.user)}
-                      className="px-4 py-3 flex items-start gap-3 hover:bg-white/5 cursor-pointer border-b border-white/5 transition-colors"
+                      className="px-4 py-3 flex items-start gap-3 hover:bg-white/5 cursor-pointer border-b border-white/5 transition-colors animate-fadeIn"
                     >
                       <div className="relative flex-shrink-0">
                         <img src={conv.user.avatar?.url || 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y'} className="w-12 h-12 rounded-full object-cover" alt="" />
                         {onlineUsers?.includes(conv.user._id) && (
-                          <div className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 border-2 border-[#111] rounded-full"></div>
+                          <div className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 border-2 border-[#111] rounded-full animate-pulse"></div>
                         )}
                       </div>
                       <div className="flex-1 min-w-0">
@@ -304,19 +340,26 @@ const FloatingChat = ({ currentUser }) => {
                         <p className="text-sm text-gray-400 truncate">{conv.latestMessage?.text}</p>
                       </div>
                     </div>
-                  ))}
-                  
-                  {/* Connections without existing conversations */}
-                  {connections.filter(conn => !conversations.some(conv => conv.user._id === conn.user._id)).map(conn => (
+                  ));
+                } else {
+                  // Other Tab
+                  if (!hasOtherData) {
+                    return (
+                      <div className="flex-1 flex items-center justify-center text-gray-500 text-sm py-10">
+                        {query ? 'No matching connections found.' : 'No other connections to message.'}
+                      </div>
+                    );
+                  }
+                  return filteredConns.map(conn => (
                     <div 
                       key={`conn-${conn.user._id}`}
                       onClick={() => openChatHead(conn.user)}
-                      className="px-4 py-3 flex items-start gap-3 hover:bg-white/5 cursor-pointer border-b border-white/5 transition-colors"
+                      className="px-4 py-3 flex items-start gap-3 hover:bg-white/5 cursor-pointer border-b border-white/5 transition-colors animate-fadeIn"
                     >
                       <div className="relative flex-shrink-0">
                         <img src={conn.user?.avatar?.url || 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y'} className="w-12 h-12 rounded-full object-cover" alt="" />
                         {onlineUsers?.includes(conn.user._id) && (
-                          <div className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 border-2 border-[#111] rounded-full"></div>
+                          <div className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 border-2 border-[#111] rounded-full animate-pulse"></div>
                         )}
                       </div>
                       <div className="flex-1 min-w-0 flex flex-col justify-center h-12">
@@ -324,9 +367,9 @@ const FloatingChat = ({ currentUser }) => {
                         <p className="text-sm text-gray-500 italic truncate mt-0.5">Start a conversation</p>
                       </div>
                     </div>
-                  ))}
-                </>
-              )}
+                  ));
+                }
+              })()}
             </motion.div>
           )}
         </AnimatePresence>
