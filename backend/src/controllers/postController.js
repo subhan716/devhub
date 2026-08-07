@@ -7,12 +7,13 @@ const User = require('../models/User');
 // @access  Private
 const createPost = async (req, res) => {
   try {
-    const { content, codeSnippet } = req.body;
+    const { content, codeSnippet, image } = req.body;
 
     const newPost = new Post({
       author: req.user.id,
       content,
       codeSnippet: codeSnippet ? { code: codeSnippet.code, language: codeSnippet.language || 'javascript' } : undefined,
+      image: image ? { url: image.url } : undefined,
     });
 
     const post = await newPost.save();
