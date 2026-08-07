@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useOutletContext } from 'react-router-dom';
-import { Image, Code2, Send, MessageCircle, Heart, Repeat2, MoreHorizontal, Video, FileText, X, Globe, Plus, AlertCircle, Loader2 } from 'lucide-react';
+import { Image, Code2, Send, MessageCircle, Heart, Repeat2, MoreHorizontal, Video, FileText, X, Globe, Plus, AlertCircle, Loader2, Upload } from 'lucide-react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -19,6 +19,7 @@ const FeedPage = () => {
   const [codeLanguage, setCodeLanguage] = useState('javascript');
   
   // Media Attachments States
+  const [activeAttachmentType, setActiveAttachmentType] = useState('none'); // 'none', 'image', 'video'
   const [selectedImage, setSelectedImage] = useState(null);
   const [imagePreview, setImagePreview] = useState('');
   
@@ -48,7 +49,6 @@ const FeedPage = () => {
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      // Clear video if image selected
       removeSelectedVideo();
       setSelectedImage(file);
       const reader = new FileReader();
@@ -62,7 +62,6 @@ const FeedPage = () => {
   const handleVideoChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      // Clear image if video selected
       removeSelectedImage();
       setSelectedVideo(file);
       setVideoPreview(URL.createObjectURL(file));
@@ -84,6 +83,7 @@ const FeedPage = () => {
   const removeAllMedia = () => {
     removeSelectedImage();
     removeSelectedVideo();
+    setActiveAttachmentType('none');
   };
 
   const handlePostSubmit = async () => {
@@ -186,9 +186,11 @@ const FeedPage = () => {
     } else {
       setIsCodeMode(false);
       if (mode === 'image') {
-        setTimeout(() => fileInputRef.current?.click(), 100);
+        setActiveAttachmentType('image');
       } else if (mode === 'video') {
-        setTimeout(() => videoInputRef.current?.click(), 100);
+        setActiveAttachmentType('video');
+      } else {
+        setActiveAttachmentType('none');
       }
     }
   };
@@ -288,7 +290,10 @@ const FeedPage = () => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              onClick={() => setIsModalOpen(false)}
+              onClick={() => {
+                removeAllMedia();
+                setIsModalOpen(false);
+              }}
               className="absolute inset-0 bg-black/75 backdrop-blur-sm"
             />
 
@@ -304,7 +309,10 @@ const FeedPage = () => {
               <div className="px-5 py-4 border-b border-white/5 flex justify-between items-center bg-[#161616]">
                 <h3 className="text-lg font-bold text-white">Create a post</h3>
                 <button 
-                  onClick={() => setIsModalOpen(false)}
+                  onClick={() => {
+                    removeAllMedia();
+                    setIsModalOpen(false);
+                  }}
                   className="p-1.5 text-gray-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors cursor-pointer"
                 >
                   <X size={20} />
@@ -337,6 +345,22 @@ const FeedPage = () => {
                   className="w-full bg-transparent text-white placeholder-gray-600 resize-none focus:outline-none min-h-[140px] text-base leading-relaxed"
                 />
 
+                {/* Drag & Drop style Image Placeholder if mode is image and no preview yet */}
+                {activeAttachmentType === 'image' && !imagePreview && (
+                  <div 
+                    onClick={() => fileInputRef.current?.click()}
+                    className="border-2 border-dashed border-white/10 hover:border-[#00F0FF]/30 rounded-xl p-8 flex flex-col items-center justify-center gap-3 cursor-pointer bg-white/[0.01] hover:bg-white/[0.03] transition-all group"
+                  >
+                    <div className="p-3 bg-white/5 rounded-full text-gray-400 group-hover:text-[#00F0FF] group-hover:bg-[#00F0FF]/10 transition-all">
+                      <Image size={28} />
+                    </div>
+                    <div className="text-center">
+                      <p className="text-sm font-semibold text-white">Select image to share</p>
+                      <p className="text-xs text-gray-500 mt-1">Supports PNG, JPG, JPEG, GIF</p>
+                    </div>
+                  </div>
+                )}
+
                 {/* Image Preview Container */}
                 {imagePreview && (
                   <div className="relative rounded-xl overflow-hidden border border-white/10 group">
@@ -344,10 +368,26 @@ const FeedPage = () => {
                     <button 
                       type="button"
                       onClick={removeSelectedImage}
-                      className="absolute top-3 right-3 p-1.5 bg-black/75 hover:bg-red-500 text-white rounded-full transition-colors shadow-lg cursor-pointer animate-fadeIn"
+                      className="absolute top-3 right-3 p-1.5 bg-black/75 hover:bg-red-500 text-white rounded-full transition-colors shadow-lg cursor-pointer"
                     >
                       <X size={16} />
                     </button>
+                  </div>
+                )}
+
+                {/* Drag & Drop style Video Placeholder if mode is video and no preview yet */}
+                {activeAttachmentType === 'video' && !videoPreview && (
+                  <div 
+                    onClick={() => videoInputRef.current?.click()}
+                    className="border-2 border-dashed border-white/10 hover:border-[#00F0FF]/30 rounded-xl p-8 flex flex-col items-center justify-center gap-3 cursor-pointer bg-white/[0.01] hover:bg-white/[0.03] transition-all group"
+                  >
+                    <div className="p-3 bg-white/5 rounded-full text-gray-400 group-hover:text-[#00F0FF] group-hover:bg-[#00F0FF]/10 transition-all">
+                      <Video size={28} />
+                    </div>
+                    <div className="text-center">
+                      <p className="text-sm font-semibold text-white">Select video to share</p>
+                      <p className="text-xs text-gray-500 mt-1">Supports MP4, WebM, OGG</p>
+                    </div>
                   </div>
                 )}
 
@@ -358,7 +398,7 @@ const FeedPage = () => {
                     <button 
                       type="button"
                       onClick={removeSelectedVideo}
-                      className="absolute top-3 right-3 p-1.5 bg-black/75 hover:bg-red-500 text-white rounded-full transition-colors shadow-lg cursor-pointer animate-fadeIn z-10"
+                      className="absolute top-3 right-3 p-1.5 bg-black/75 hover:bg-red-500 text-white rounded-full transition-colors shadow-lg cursor-pointer z-10"
                     >
                       <X size={16} />
                     </button>
@@ -411,15 +451,16 @@ const FeedPage = () => {
               </div>
 
               {/* Footer */}
-              <div className="px-5 py-4 border-t border-white/5 bg-[#161616] flex justify-between items-center">
+              <div className="px-5 py-4 border-t border-t-white/5 bg-[#161616] flex justify-between items-center">
                 <div className="flex gap-1.5">
                   {/* Photo Action */}
                   <button 
                     onClick={() => {
                       setIsCodeMode(false);
+                      setActiveAttachmentType('image');
                       fileInputRef.current?.click();
                     }}
-                    className={`p-2.5 rounded-full hover:bg-white/5 transition-colors cursor-pointer ${imagePreview ? 'text-[#00F0FF]' : 'text-gray-400 hover:text-white'}`}
+                    className={`p-2.5 rounded-full hover:bg-white/5 transition-colors cursor-pointer ${activeAttachmentType === 'image' ? 'text-[#00F0FF] bg-[#00F0FF]/10' : 'text-gray-400 hover:text-white'}`}
                     title="Add a photo"
                   >
                     <Image size={20} />
@@ -429,9 +470,10 @@ const FeedPage = () => {
                   <button 
                     onClick={() => {
                       setIsCodeMode(false);
+                      setActiveAttachmentType('video');
                       videoInputRef.current?.click();
                     }}
-                    className={`p-2.5 rounded-full hover:bg-white/5 transition-colors cursor-pointer ${videoPreview ? 'text-[#00F0FF]' : 'text-gray-400 hover:text-white'}`}
+                    className={`p-2.5 rounded-full hover:bg-white/5 transition-colors cursor-pointer ${activeAttachmentType === 'video' ? 'text-[#00F0FF] bg-[#00F0FF]/10' : 'text-gray-400 hover:text-white'}`}
                     title="Add a video"
                   >
                     <Video size={20} />
@@ -443,7 +485,7 @@ const FeedPage = () => {
                       removeAllMedia();
                       setIsCodeMode(!isCodeMode);
                     }}
-                    className={`p-2.5 rounded-full hover:bg-white/5 transition-colors cursor-pointer ${isCodeMode ? 'text-[#00F0FF]' : 'text-gray-400 hover:text-white'}`}
+                    className={`p-2.5 rounded-full hover:bg-white/5 transition-colors cursor-pointer ${isCodeMode ? 'text-[#00F0FF] bg-[#00F0FF]/10' : 'text-gray-400 hover:text-white'}`}
                     title="Add code snippet"
                   >
                     <Code2 size={20} />
