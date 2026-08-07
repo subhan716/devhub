@@ -343,7 +343,12 @@ const NetworkPage = () => {
               <section className="bg-[#111] border border-white/5 rounded-2xl p-6">
                 <h2 className="text-xl font-bold text-white mb-6">Suggested Connections</h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {connectionSuggestions.filter(u => u._id !== (currentUser?._id || currentUser?.user?._id)).map((user) => (
+                  {connectionSuggestions.filter(u => {
+                    const currentUserId = currentUser?._id || currentUser?.user?._id;
+                    const isSelfId = currentUserId && u._id === currentUserId;
+                    const isSelfName = currentUser?.name && u.name.toLowerCase() === currentUser.name.toLowerCase();
+                    return !isSelfId && !isSelfName;
+                  }).map((user) => (
                     <div key={user._id} className="bg-white/[0.02] border border-white/5 rounded-xl p-5 flex flex-col items-center text-center">
                       <img 
                         src={user.avatar?.url || 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y'} 

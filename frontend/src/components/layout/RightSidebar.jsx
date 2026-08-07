@@ -14,10 +14,11 @@ const RightSidebar = ({ currentUser }) => {
   const fetchSuggestions = async () => {
     try {
       const { data } = await axios.get(`${import.meta.env.VITE_API_URL}/api/network/suggestions`, { withCredentials: true });
-      // Frontend safety filter: never show the logged-in user in suggestions
-      const filtered = currentUserId
-        ? data.filter(u => u._id !== currentUserId)
-        : data;
+      const filtered = data.filter(u => {
+        const isSelfId = currentUserId && u._id === currentUserId;
+        const isSelfName = currentUser?.name && u.name.toLowerCase() === currentUser.name.toLowerCase();
+        return !isSelfId && !isSelfName;
+      });
       setSuggestedUsers(filtered);
     } catch (error) {
       console.error('Failed to fetch suggestions', error);
