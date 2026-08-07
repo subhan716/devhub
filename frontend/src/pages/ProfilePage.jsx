@@ -479,7 +479,7 @@ const ProfilePage = () => {
               animate={{ x: 0 }}
               exit={{ x: '100%' }}
               transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-              className="fixed top-0 right-0 h-full w-full max-w-md bg-[#0f0f0f] border-l border-white/10 z-50 overflow-y-auto"
+              className="fixed top-0 right-0 h-[100dvh] w-full max-w-md bg-[#0f0f0f] border-l border-white/10 z-50 overflow-y-auto shadow-2xl"
               data-lenis-prevent="true"
             >
               <div className="p-6">
@@ -495,7 +495,7 @@ const ProfilePage = () => {
                 <div className="flex flex-col items-center gap-3 mb-8 p-5 bg-[#1a1a1a] rounded-2xl border border-white/10">
                   <div className="relative">
                     <img
-                      src={profile.user?.avatar?.url || 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png'}
+                      src={profile.user?.avatar?.url || 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y'}
                       alt="Profile"
                       className="w-24 h-24 rounded-full object-cover border-4 border-white/10"
                     />
@@ -546,7 +546,7 @@ const ProfilePage = () => {
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.8, opacity: 0 }}
               transition={{ type: "spring", damping: 25, stiffness: 300 }}
-              src={profile.user?.avatar?.url || 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png'}
+              src={profile.user?.avatar?.url || 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y'}
               alt="Profile Preview"
               className="w-80 h-80 sm:w-96 sm:h-96 object-cover rounded-full shadow-[0_0_50px_rgba(0,0,0,0.5)] border-4 border-white/10"
               onClick={(e) => e.stopPropagation()}
@@ -601,7 +601,7 @@ const ProfilePage = () => {
             <div className="relative" style={{ width: '152px', height: '152px', flexShrink: 0 }}>
               {/* Avatar Image */}
               <img
-                src={profile.user?.avatar?.url || 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png'}
+                src={profile.user?.avatar?.url || 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y'}
                 alt="Profile"
                 className="w-[152px] h-[152px] rounded-full border-[4px] border-[#111] object-cover bg-[#111] cursor-pointer hover:opacity-80 transition-opacity shadow-lg relative z-10"
                 onClick={() => setIsPreviewOpen(true)}
@@ -1353,7 +1353,7 @@ const ProfilePage = () => {
                   <div className="flex justify-between items-start">
                     <div className="flex gap-3">
                       <img
-                        src={post.author?.avatar?.url || 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png'}
+                        src={post.author?.avatar?.url || 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y'}
                         alt={post.author?.name || 'Unknown User'}
                         className="w-10 h-10 rounded-full object-cover border border-white/10"
                       />

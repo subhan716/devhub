@@ -188,7 +188,7 @@ const TopNavbar = ({ setIsMobileMenuOpen, currentUser, isMessagesPage }) => {
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: -10, scale: 0.95 }}
                 transition={{ duration: 0.2, ease: "easeOut" }}
-                className="absolute right-0 mt-4 w-80 bg-[#111] border border-white/10 rounded-xl shadow-2xl py-2 z-50 overflow-hidden origin-top-right"
+                className="fixed top-[70px] left-4 right-4 sm:absolute sm:top-auto sm:left-auto sm:right-0 sm:mt-4 w-auto sm:w-80 max-w-[360px] mx-auto bg-[#111] border border-white/10 rounded-xl shadow-2xl py-2 z-50 overflow-hidden sm:origin-top-right"
               >
                 <div className="px-4 py-2 border-b border-white/10 flex justify-between items-center">
                   <h3 className="text-white font-semibold">Notifications</h3>
@@ -268,7 +268,7 @@ const TopNavbar = ({ setIsMobileMenuOpen, currentUser, isMessagesPage }) => {
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: -10, scale: 0.95 }}
                 transition={{ duration: 0.2, ease: "easeOut" }}
-                className="absolute right-0 mt-3 w-48 bg-[#111] border border-white/10 rounded-xl shadow-2xl py-1 z-50 overflow-hidden origin-top-right"
+                className="absolute right-[-10px] sm:right-0 mt-3 w-48 bg-[#111] border border-white/10 rounded-xl shadow-2xl py-1 z-50 overflow-hidden sm:origin-top-right origin-top"
               >
                 <Link 
                   to="/profile" 
