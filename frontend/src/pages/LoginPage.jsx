@@ -116,8 +116,7 @@ const LoginPage = () => {
                   type="email"
                   value={formData.email}
                   onChange={handleChange}
-                  className={`block w-full pl-10 pr-3 py-3 border ${errors.email ? 'border-red-500 focus:ring-red-500 focus:border-red-500' : 'border-white/10 focus:ring-[#00F0FF]/50 focus:border-[#00F0FF]/50'} rounded-lg bg-black/50 text-white placeholder-gray-500 focus:outline-none focus:ring-2 transition-all sm:text-sm`}
-                  placeholder="john@example.com"
+                  placeholder="name@company.com"
                 />
               </div>
               {errors.email && <p className="mt-1 text-xs text-red-500">{errors.email}</p>}
@@ -135,7 +134,7 @@ const LoginPage = () => {
                   value={formData.password}
                   onChange={handleChange}
                   className={`block w-full pl-10 pr-3 py-3 border ${errors.password ? 'border-red-500 focus:ring-red-500 focus:border-red-500' : 'border-white/10 focus:ring-[#00F0FF]/50 focus:border-[#00F0FF]/50'} rounded-lg bg-black/50 text-white placeholder-gray-500 focus:outline-none focus:ring-2 transition-all sm:text-sm`}
-                  placeholder="••••••••"
+                  placeholder="Enter your password"
                 />
               </div>
               {errors.password && <p className="mt-1 text-xs text-red-500">{errors.password}</p>}
