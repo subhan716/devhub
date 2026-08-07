@@ -413,28 +413,14 @@ const FeedPage = () => {
                     exit={{ opacity: 0, height: 0 }}
                     className="relative rounded-xl overflow-hidden border border-white/10 bg-[#1e1e1e]"
                   >
-                    <div className="bg-[#2d2d2d] px-4 py-2 text-xs text-gray-400 font-mono border-b border-white/5 flex justify-between items-center">
-                      <div className="flex items-center gap-2">
-                        <span>Language:</span>
-                        <select 
-                          value={codeLanguage} 
-                          onChange={(e) => setCodeLanguage(e.target.value)}
-                          className="bg-black/30 border border-white/15 rounded px-2 py-0.5 text-white text-[11px] font-mono outline-none cursor-pointer"
-                        >
-                          <option value="javascript">JavaScript</option>
-                          <option value="typescript">TypeScript</option>
-                          <option value="php">PHP</option>
-                          <option value="python">Python</option>
-                          <option value="html">HTML</option>
-                          <option value="css">CSS</option>
-                        </select>
-                      </div>
+                    <div className="bg-[#2d2d2d] px-4 py-2.5 text-xs text-gray-400 font-mono border-b border-white/5 flex justify-between items-center">
+                      <span className="font-semibold text-white">Code Snippet</span>
                       <button 
                         onClick={() => {
                           setIsCodeMode(false);
                           setCodeContent('');
                         }} 
-                        className="hover:text-white"
+                        className="hover:text-white p-1"
                       >
                         ✕
                       </button>
