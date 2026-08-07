@@ -1856,7 +1856,7 @@ const MessagesPage = () => {
               {showChatDetails && (
                 <motion.div
                   initial={{ width: 0, opacity: 0 }}
-                  animate={{ width: 340, opacity: 1 }}
+                  animate={{ width: window.innerWidth < 1024 ? '100%' : 340, opacity: 1 }}
                   exit={{ width: 0, opacity: 0 }}
                   transition={{ type: 'spring', stiffness: 300, damping: 30 }}
                   className="w-full lg:w-[340px] flex-shrink-0 bg-[#0e0e11] flex flex-col overflow-y-auto custom-scrollbar shadow-[-4px_0_24px_rgba(0,0,0,0.3)] z-20"
