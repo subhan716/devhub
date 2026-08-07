@@ -5,6 +5,15 @@ const { uploadImage, uploadDocument, uploadChatAttachment } = require('../config
 const User = require('../models/User');
 const Profile = require('../models/Profile');
 
+router.get('/test-env', (req, res) => {
+  res.json({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME || 'MISSING',
+    api_key: process.env.CLOUDINARY_API_KEY || 'MISSING',
+    has_secret: !!process.env.CLOUDINARY_API_SECRET,
+    cloudinary_url_exists: !!process.env.CLOUDINARY_URL
+  });
+});
+
 // @route   POST /api/upload/avatar
 // @desc    Upload user avatar
 // @access  Private
