@@ -116,7 +116,7 @@ const LoginPage = () => {
                   type="email"
                   value={formData.email}
                   onChange={handleChange}
-                  placeholder="name@company.com"
+                  placeholder="name@gmail.com"
                 />
               </div>
               {errors.email && <p className="mt-1 text-xs text-red-500">{errors.email}</p>}
