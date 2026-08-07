@@ -1,4 +1,5 @@
 const User = require('../models/User');
+const PendingUser = require('../models/PendingUser');
 const { generateAccessToken, generateRefreshToken } = require('../utils/generateToken');
 const axios = require('axios');
 const sendEmail = require('../utils/sendEmail');
@@ -38,30 +39,32 @@ const registerUser = async (req, res) => {
       return res.status(400).json({ message: 'Temporary or disposable email addresses are not allowed. Please use a legit email.' });
     }
 
-    // Check if user exists
+    // Check if user exists in main collection
     const userExists = await User.findOne({ email });
     if (userExists) {
       return res.status(400).json({ message: 'User already exists' });
     }
 
-    // Create user (with isVerified = false, Google/GitHub accounts bypass this)
+    // Delete any existing pending user with this email to avoid duplicates/conflicts
+    await PendingUser.deleteOne({ email });
+
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
     const otpExpire = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes from now
 
-    const user = await User.create({
+    // Create pending user
+    const pendingUser = await PendingUser.create({
       name,
       email,
-      passwordHash: password,
-      isVerified: false,
+      passwordHash: password, // Mongoose pre-save hook handles hashing in User, let's keep passwordHash
       otp,
       otpExpire,
     });
 
-    if (user) {
+    if (pendingUser) {
       // Send OTP Email
       try {
         await sendEmail({
-          to: user.email,
+          to: pendingUser.email,
           subject: 'DevHub Account Verification Code',
           html: `
             <div style="font-family: Arial, sans-serif; background-color: #0d0d12; color: #ffffff; padding: 30px; border-radius: 12px; max-width: 500px; margin: auto;">
@@ -80,7 +83,7 @@ const registerUser = async (req, res) => {
 
       res.status(201).json({
         message: 'Verification OTP sent to email',
-        email: user.email,
+        email: pendingUser.email,
       });
     } else {
       res.status(400).json({ message: 'Invalid user data' });
@@ -159,53 +162,59 @@ const verifyOtp = async (req, res) => {
       return res.status(400).json({ message: 'Email and OTP are required' });
     }
 
-    const user = await User.findOne({ email });
-    if (!user) {
-      return res.status(404).json({ message: 'User not found' });
+    // Check main collection first
+    const userExists = await User.findOne({ email });
+    if (userExists) {
+      return res.status(400).json({ message: 'User is already registered and verified' });
     }
 
-    if (user.isVerified) {
-      return res.status(400).json({ message: 'User is already verified' });
+    const pendingUser = await PendingUser.findOne({ email });
+    if (!pendingUser) {
+      return res.status(404).json({ message: 'Verification session not found or expired. Please sign up again.' });
     }
 
     // Check if account is locked due to brute force
-    if (user.otpLockUntil && user.otpLockUntil > new Date()) {
-      const minutesLeft = Math.ceil((user.otpLockUntil - new Date()) / (60 * 1000));
+    if (pendingUser.otpLockUntil && pendingUser.otpLockUntil > new Date()) {
+      const minutesLeft = Math.ceil((pendingUser.otpLockUntil - new Date()) / (60 * 1000));
       return res.status(403).json({ 
         message: `Too many failed attempts. This account is locked. Please try again in ${minutesLeft} minutes.` 
       });
     }
 
     // Check if OTP matches and is not expired
-    if (user.otp !== otp || user.otpExpire < new Date()) {
-      user.otpFailedAttempts = (user.otpFailedAttempts || 0) + 1;
+    if (pendingUser.otp !== otp || pendingUser.otpExpire < new Date()) {
+      pendingUser.otpFailedAttempts = (pendingUser.otpFailedAttempts || 0) + 1;
       
-      if (user.otpFailedAttempts >= 3) {
-        user.otpLockUntil = new Date(Date.now() + 30 * 60 * 1000); // Lock for 30 minutes
-        user.otp = undefined; // Invalidate OTP
-        user.otpExpire = undefined;
-        user.otpFailedAttempts = 0; // Reset counter for next lock cycle
-        await user.save();
+      if (pendingUser.otpFailedAttempts >= 3) {
+        pendingUser.otpLockUntil = new Date(Date.now() + 30 * 60 * 1000); // Lock for 30 minutes
+        pendingUser.otp = undefined; // Invalidate OTP
+        pendingUser.otpExpire = undefined;
+        pendingUser.otpFailedAttempts = 0; // Reset counter for next lock cycle
+        await pendingUser.save();
         return res.status(403).json({ 
           message: 'Too many failed verification attempts. Your account has been locked for 30 minutes.' 
         });
       }
 
-      await user.save();
-      const remainingAttempts = 3 - user.otpFailedAttempts;
+      await pendingUser.save();
+      const remainingAttempts = 3 - pendingUser.otpFailedAttempts;
       return res.status(400).json({ 
         message: `Invalid or expired OTP. You have ${remainingAttempts} attempts remaining.` 
       });
     }
 
-    // Set verified
-    user.isVerified = true;
-    user.otp = undefined;
-    user.otpExpire = undefined;
-    user.otpFailedAttempts = 0;
-    user.otpLockUntil = undefined;
-    user.otpResendAttempts = 0;
-    user.otpResendTimeWindowStart = undefined;
+    // OTP matches! Create the user in the main database collection now
+    const user = await User.create({
+      name: pendingUser.name,
+      email: pendingUser.email,
+      passwordHash: pendingUser.passwordHash,
+      googleId: pendingUser.googleId,
+      githubId: pendingUser.githubId,
+      isVerified: true,
+    });
+
+    // Delete the pending record
+    await PendingUser.deleteOne({ email });
 
     const accessToken = generateAccessToken(user._id);
     const refreshToken = generateRefreshToken(user._id);
@@ -241,18 +250,14 @@ const resendOtp = async (req, res) => {
       return res.status(400).json({ message: 'Email is required' });
     }
 
-    const user = await User.findOne({ email });
-    if (!user) {
-      return res.status(404).json({ message: 'User not found' });
-    }
-
-    if (user.isVerified) {
-      return res.status(400).json({ message: 'User is already verified' });
+    const pendingUser = await PendingUser.findOne({ email });
+    if (!pendingUser) {
+      return res.status(404).json({ message: 'Verification session not found or expired. Please sign up again.' });
     }
 
     // Check if account is locked
-    if (user.otpLockUntil && user.otpLockUntil > new Date()) {
-      const minutesLeft = Math.ceil((user.otpLockUntil - new Date()) / (60 * 1000));
+    if (pendingUser.otpLockUntil && pendingUser.otpLockUntil > new Date()) {
+      const minutesLeft = Math.ceil((pendingUser.otpLockUntil - new Date()) / (60 * 1000));
       return res.status(403).json({ 
         message: `This account is locked. Please try again in ${minutesLeft} minutes.` 
       });
@@ -260,33 +265,33 @@ const resendOtp = async (req, res) => {
 
     // Check and enforce Resend Rate Limits: Max 3 attempts within 30 minutes
     const now = new Date();
-    if (!user.otpResendTimeWindowStart || (now - user.otpResendTimeWindowStart) > (30 * 60 * 1000)) {
+    if (!pendingUser.otpResendTimeWindowStart || (now - pendingUser.otpResendTimeWindowStart) > (30 * 60 * 1000)) {
       // Start a new window
-      user.otpResendTimeWindowStart = now;
-      user.otpResendAttempts = 1;
+      pendingUser.otpResendTimeWindowStart = now;
+      pendingUser.otpResendAttempts = 1;
     } else {
       // Within same 30-minute window
-      if (user.otpResendAttempts >= 3) {
-        const timeElapsed = now - user.otpResendTimeWindowStart;
+      if (pendingUser.otpResendAttempts >= 3) {
+        const timeElapsed = now - pendingUser.otpResendTimeWindowStart;
         const minutesToWait = Math.ceil((30 * 60 * 1000 - timeElapsed) / (60 * 1000));
         return res.status(429).json({ 
           message: `Too many resends. You can request another OTP code in ${minutesToWait} minutes.` 
         });
       }
-      user.otpResendAttempts += 1;
+      pendingUser.otpResendAttempts += 1;
     }
 
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
     const otpExpire = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes from now
 
-    user.otp = otp;
-    user.otpExpire = otpExpire;
-    await user.save();
+    pendingUser.otp = otp;
+    pendingUser.otpExpire = otpExpire;
+    await pendingUser.save();
 
     // Send OTP Email
     try {
       await sendEmail({
-        to: user.email,
+        to: pendingUser.email,
         subject: 'DevHub Account Verification Code',
         html: `
           <div style="font-family: Arial, sans-serif; background-color: #0d0d12; color: #ffffff; padding: 30px; border-radius: 12px; max-width: 500px; margin: auto;">
@@ -303,7 +308,7 @@ const resendOtp = async (req, res) => {
       console.error('Failed to send verification email:', mailError.message);
     }
 
-    res.status(200).json({ message: 'Verification OTP sent to email', email: user.email });
+    res.status(200).json({ message: 'Verification OTP sent to email', email: pendingUser.email });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -385,15 +390,17 @@ const googleCallback = async (req, res) => {
     let user = await User.findOne({ email: profile.email });
     
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    const otpExpire = new Date(Date.now() + 10 * 60 * 1000);
+    const otpExpire = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes
 
     if (!user) {
       isNewUser = true;
-      user = await User.create({
+      // Overwrite any existing pending registration
+      await PendingUser.deleteOne({ email: profile.email });
+
+      const pending = await PendingUser.create({
         name: profile.name,
         email: profile.email,
         googleId: profile.id,
-        isVerified: false,
         otp,
         otpExpire,
       });
@@ -401,7 +408,7 @@ const googleCallback = async (req, res) => {
       // Send OTP Email
       try {
         await sendEmail({
-          to: user.email,
+          to: pending.email,
           subject: 'DevHub Account Verification Code',
           html: `
             <div style="font-family: Arial, sans-serif; background-color: #0d0d12; color: #ffffff; padding: 30px; border-radius: 12px; max-width: 500px; margin: auto;">
@@ -410,7 +417,7 @@ const googleCallback = async (req, res) => {
               <div style="background-color: #1a1a26; border: 1px solid #00F0FF/30; border-radius: 8px; padding: 15px; text-align: center; margin: 20px 0;">
                 <span style="font-size: 32px; font-weight: bold; letter-spacing: 6px; color: #00F0FF;">${otp}</span>
               </div>
-              <p style="font-size: 12px; color: #666; text-align: center;">This code is valid for 10 minutes. If you did not request this, you can safely ignore this email.</p>
+              <p style="font-size: 12px; color: #666; text-align: center;">This code is valid for 5 minutes. If you did not request this, you can safely ignore this email.</p>
             </div>
           `,
         });
@@ -419,59 +426,15 @@ const googleCallback = async (req, res) => {
       }
     } else if (!user.googleId) {
       user.googleId = profile.id;
-      if (!user.isVerified) {
-        user.otp = otp;
-        user.otpExpire = otpExpire;
-        try {
-          await sendEmail({
-            to: user.email,
-            subject: 'DevHub Account Verification Code',
-            html: `
-              <div style="font-family: Arial, sans-serif; background-color: #0d0d12; color: #ffffff; padding: 30px; border-radius: 12px; max-width: 500px; margin: auto;">
-                <h2 style="color: #00F0FF; text-align: center; border-bottom: 1px solid #1a1a26; padding-bottom: 15px;">Welcome to DevHub!</h2>
-                <p style="font-size: 15px; line-height: 1.5; color: #b3b3b3;">Thank you for registering on DevHub. To complete your sign-up, please verify your email address using the 6-digit verification code below:</p>
-                <div style="background-color: #1a1a26; border: 1px solid #00F0FF/30; border-radius: 8px; padding: 15px; text-align: center; margin: 20px 0;">
-                  <span style="font-size: 32px; font-weight: bold; letter-spacing: 6px; color: #00F0FF;">${otp}</span>
-                </div>
-                <p style="font-size: 12px; color: #666; text-align: center;">This code is valid for 10 minutes. If you did not request this, you can safely ignore this email.</p>
-              </div>
-            `,
-          });
-        } catch (mailError) {
-          console.error('Failed to send verification email:', mailError.message);
-        }
-      }
       await user.save();
-    } else if (!user.isVerified) {
-      user.otp = otp;
-      user.otpExpire = otpExpire;
-      await user.save();
-      try {
-        await sendEmail({
-          to: user.email,
-          subject: 'DevHub Account Verification Code',
-          html: `
-            <div style="font-family: Arial, sans-serif; background-color: #0d0d12; color: #ffffff; padding: 30px; border-radius: 12px; max-width: 500px; margin: auto;">
-              <h2 style="color: #00F0FF; text-align: center; border-bottom: 1px solid #1a1a26; padding-bottom: 15px;">Welcome to DevHub!</h2>
-              <p style="font-size: 15px; line-height: 1.5; color: #b3b3b3;">Thank you for registering on DevHub. To complete your sign-up, please verify your email address using the 6-digit verification code below:</p>
-              <div style="background-color: #1a1a26; border: 1px solid #00F0FF/30; border-radius: 8px; padding: 15px; text-align: center; margin: 20px 0;">
-                <span style="font-size: 32px; font-weight: bold; letter-spacing: 6px; color: #00F0FF;">${otp}</span>
-              </div>
-              <p style="font-size: 12px; color: #666; text-align: center;">This code is valid for 10 minutes. If you did not request this, you can safely ignore this email.</p>
-            </div>
-          `,
-        });
-      } catch (mailError) {
-        console.error('Failed to send verification email:', mailError.message);
-      }
     }
 
     if (intent === 'register' && !isNewUser) {
       return res.redirect(`${process.env.CLIENT_URL}/register?error=account_exists`);
     }
 
-    if (!user.isVerified) {
-      return res.redirect(`${process.env.CLIENT_URL}/verify-otp?email=${encodeURIComponent(user.email)}`);
+    if (isNewUser) {
+      return res.redirect(`${process.env.CLIENT_URL}/verify-otp?email=${encodeURIComponent(profile.email)}`);
     }
 
     const accessToken = generateAccessToken(user._id);
@@ -486,11 +449,7 @@ const googleCallback = async (req, res) => {
       maxAge: 30 * 24 * 60 * 60 * 1000,
     });
 
-    if (isNewUser) {
-      res.redirect(`${process.env.CLIENT_URL}/setup-profile?oauth=success`);
-    } else {
-      res.redirect(`${process.env.CLIENT_URL}/feed?oauth=success`);
-    }
+    res.redirect(`${process.env.CLIENT_URL}/feed?oauth=success`);
   } catch (error) {
     console.error('Google Auth Error:', error.response?.data || error.message);
     res.redirect(`${process.env.CLIENT_URL}/login?error=oauth_failed`);
@@ -502,7 +461,6 @@ const googleCallback = async (req, res) => {
 // @access  Public
 const githubAuth = (req, res) => {
   const intent = req.query.intent || 'login';
-  // Note: GitHub doesn't have a direct 'state' parameter like Google, wait it DOES have state.
   const url = `https://github.com/login/oauth/authorize?client_id=${process.env.GITHUB_CLIENT_ID}&redirect_uri=${process.env.GITHUB_CALLBACK_URL}&scope=user:email&state=${intent}`;
   res.redirect(url);
 };
@@ -529,7 +487,6 @@ const githubCallback = async (req, res) => {
       headers: { Authorization: `Bearer ${access_token}` },
     });
 
-    // GitHub emails might be private, fetch separately
     const { data: emails } = await axios.get('https://api.github.com/user/emails', {
       headers: { Authorization: `Bearer ${access_token}` },
     });
@@ -541,15 +498,17 @@ const githubCallback = async (req, res) => {
     let user = await User.findOne({ email: primaryEmail });
     
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    const otpExpire = new Date(Date.now() + 10 * 60 * 1000);
+    const otpExpire = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes
 
     if (!user) {
       isNewUser = true;
-      user = await User.create({
+      // Overwrite any existing pending registration
+      await PendingUser.deleteOne({ email: primaryEmail });
+
+      const pending = await PendingUser.create({
         name: profile.name || profile.login,
         email: primaryEmail,
         githubId: profile.id.toString(),
-        isVerified: false,
         otp,
         otpExpire,
       });
@@ -557,7 +516,7 @@ const githubCallback = async (req, res) => {
       // Send OTP Email
       try {
         await sendEmail({
-          to: user.email,
+          to: pending.email,
           subject: 'DevHub Account Verification Code',
           html: `
             <div style="font-family: Arial, sans-serif; background-color: #0d0d12; color: #ffffff; padding: 30px; border-radius: 12px; max-width: 500px; margin: auto;">
@@ -566,7 +525,7 @@ const githubCallback = async (req, res) => {
               <div style="background-color: #1a1a26; border: 1px solid #00F0FF/30; border-radius: 8px; padding: 15px; text-align: center; margin: 20px 0;">
                 <span style="font-size: 32px; font-weight: bold; letter-spacing: 6px; color: #00F0FF;">${otp}</span>
               </div>
-              <p style="font-size: 12px; color: #666; text-align: center;">This code is valid for 10 minutes. If you did not request this, you can safely ignore this email.</p>
+              <p style="font-size: 12px; color: #666; text-align: center;">This code is valid for 5 minutes. If you did not request this, you can safely ignore this email.</p>
             </div>
           `,
         });
@@ -575,59 +534,15 @@ const githubCallback = async (req, res) => {
       }
     } else if (!user.githubId) {
       user.githubId = profile.id.toString();
-      if (!user.isVerified) {
-        user.otp = otp;
-        user.otpExpire = otpExpire;
-        try {
-          await sendEmail({
-            to: user.email,
-            subject: 'DevHub Account Verification Code',
-            html: `
-              <div style="font-family: Arial, sans-serif; background-color: #0d0d12; color: #ffffff; padding: 30px; border-radius: 12px; max-width: 500px; margin: auto;">
-                <h2 style="color: #00F0FF; text-align: center; border-bottom: 1px solid #1a1a26; padding-bottom: 15px;">Welcome to DevHub!</h2>
-                <p style="font-size: 15px; line-height: 1.5; color: #b3b3b3;">Thank you for registering on DevHub. To complete your sign-up, please verify your email address using the 6-digit verification code below:</p>
-                <div style="background-color: #1a1a26; border: 1px solid #00F0FF/30; border-radius: 8px; padding: 15px; text-align: center; margin: 20px 0;">
-                  <span style="font-size: 32px; font-weight: bold; letter-spacing: 6px; color: #00F0FF;">${otp}</span>
-                </div>
-                <p style="font-size: 12px; color: #666; text-align: center;">This code is valid for 10 minutes. If you did not request this, you can safely ignore this email.</p>
-              </div>
-            `,
-          });
-        } catch (mailError) {
-          console.error('Failed to send verification email:', mailError.message);
-        }
-      }
       await user.save();
-    } else if (!user.isVerified) {
-      user.otp = otp;
-      user.otpExpire = otpExpire;
-      await user.save();
-      try {
-        await sendEmail({
-          to: user.email,
-          subject: 'DevHub Account Verification Code',
-          html: `
-            <div style="font-family: Arial, sans-serif; background-color: #0d0d12; color: #ffffff; padding: 30px; border-radius: 12px; max-width: 500px; margin: auto;">
-              <h2 style="color: #00F0FF; text-align: center; border-bottom: 1px solid #1a1a26; padding-bottom: 15px;">Welcome to DevHub!</h2>
-              <p style="font-size: 15px; line-height: 1.5; color: #b3b3b3;">Thank you for registering on DevHub. To complete your sign-up, please verify your email address using the 6-digit verification code below:</p>
-              <div style="background-color: #1a1a26; border: 1px solid #00F0FF/30; border-radius: 8px; padding: 15px; text-align: center; margin: 20px 0;">
-                <span style="font-size: 32px; font-weight: bold; letter-spacing: 6px; color: #00F0FF;">${otp}</span>
-              </div>
-              <p style="font-size: 12px; color: #666; text-align: center;">This code is valid for 10 minutes. If you did not request this, you can safely ignore this email.</p>
-            </div>
-          `,
-        });
-      } catch (mailError) {
-        console.error('Failed to send verification email:', mailError.message);
-      }
     }
 
     if (intent === 'register' && !isNewUser) {
       return res.redirect(`${process.env.CLIENT_URL}/register?error=account_exists`);
     }
 
-    if (!user.isVerified) {
-      return res.redirect(`${process.env.CLIENT_URL}/verify-otp?email=${encodeURIComponent(user.email)}`);
+    if (isNewUser) {
+      return res.redirect(`${process.env.CLIENT_URL}/verify-otp?email=${encodeURIComponent(primaryEmail)}`);
     }
 
     const accessToken = generateAccessToken(user._id);
@@ -642,11 +557,7 @@ const githubCallback = async (req, res) => {
       maxAge: 30 * 24 * 60 * 60 * 1000,
     });
 
-    if (isNewUser) {
-      res.redirect(`${process.env.CLIENT_URL}/setup-profile?oauth=success`);
-    } else {
-      res.redirect(`${process.env.CLIENT_URL}/feed?oauth=success`);
-    }
+    res.redirect(`${process.env.CLIENT_URL}/feed?oauth=success`);
   } catch (error) {
     console.error('GitHub Auth Error:', error.response?.data || error.message);
     res.redirect(`${process.env.CLIENT_URL}/login?error=oauth_failed`);
