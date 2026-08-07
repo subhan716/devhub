@@ -284,7 +284,7 @@ const FeedPage = () => {
       {/* Modal dialog for creating a post */}
       <AnimatePresence>
         {isModalOpen && (
-          <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4">
+          <div className="fixed inset-0 z-[99999] flex items-end sm:items-center justify-center p-0 sm:p-4">
             {/* Backdrop */}
             <motion.div 
               initial={{ opacity: 0 }}
@@ -299,11 +299,11 @@ const FeedPage = () => {
 
             {/* Modal Box */}
             <motion.div 
-              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              initial={{ scale: 0.9, opacity: 0, y: 50 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.9, opacity: 0, y: 20 }}
+              exit={{ scale: 0.9, opacity: 0, y: 50 }}
               transition={{ type: 'spring', damping: 25, stiffness: 350 }}
-              className="relative w-full max-w-xl bg-[#111] border border-white/10 rounded-2xl shadow-2xl flex flex-col max-h-[90vh] overflow-hidden"
+              className="relative w-full sm:max-w-xl bg-[#111] border-0 sm:border border-white/10 rounded-none sm:rounded-2xl shadow-2xl flex flex-col h-[100dvh] sm:h-auto sm:max-h-[90vh] overflow-hidden"
             >
               {/* Header */}
               <div className="px-5 py-4 border-b border-white/5 flex justify-between items-center bg-[#161616]">
@@ -458,7 +458,6 @@ const FeedPage = () => {
                     onClick={() => {
                       setIsCodeMode(false);
                       setActiveAttachmentType('image');
-                      fileInputRef.current?.click();
                     }}
                     className={`p-2.5 rounded-full hover:bg-white/5 transition-colors cursor-pointer ${activeAttachmentType === 'image' ? 'text-[#00F0FF] bg-[#00F0FF]/10' : 'text-gray-400 hover:text-white'}`}
                     title="Add a photo"
@@ -471,7 +470,6 @@ const FeedPage = () => {
                     onClick={() => {
                       setIsCodeMode(false);
                       setActiveAttachmentType('video');
-                      videoInputRef.current?.click();
                     }}
                     className={`p-2.5 rounded-full hover:bg-white/5 transition-colors cursor-pointer ${activeAttachmentType === 'video' ? 'text-[#00F0FF] bg-[#00F0FF]/10' : 'text-gray-400 hover:text-white'}`}
                     title="Add a video"
