@@ -46,7 +46,7 @@ const registerUser = async (req, res) => {
 
     // Create user (with isVerified = false, Google/GitHub accounts bypass this)
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    const otpExpire = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes from now
+    const otpExpire = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes from now
 
     const user = await User.create({
       name,
@@ -70,7 +70,7 @@ const registerUser = async (req, res) => {
               <div style="background-color: #1a1a26; border: 1px solid #00F0FF/30; border-radius: 8px; padding: 15px; text-align: center; margin: 20px 0;">
                 <span style="font-size: 32px; font-weight: bold; letter-spacing: 6px; color: #00F0FF;">${otp}</span>
               </div>
-              <p style="font-size: 12px; color: #666; text-align: center;">This code is valid for 10 minutes. If you did not request this, you can safely ignore this email.</p>
+              <p style="font-size: 12px; color: #666; text-align: center;">This code is valid for 5 minutes. If you did not request this, you can safely ignore this email.</p>
             </div>
           `,
         });
@@ -99,6 +99,13 @@ const loginUser = async (req, res) => {
 
     // Find user and select passwordHash explicitly because we set select: false in schema
     const user = await User.findOne({ email }).select('+passwordHash');
+
+    if (user && user.otpLockUntil && user.otpLockUntil > new Date()) {
+      const minutesLeft = Math.ceil((user.otpLockUntil - new Date()) / (60 * 1000));
+      return res.status(403).json({ 
+        message: `This account is temporarily locked due to too many verification failures. Please try again in ${minutesLeft} minutes.` 
+      });
+    }
 
     if (user && !user.passwordHash) {
       return res.status(401).json({ message: 'You registered using a social account. Please log in with Google or GitHub.' });
@@ -161,15 +168,44 @@ const verifyOtp = async (req, res) => {
       return res.status(400).json({ message: 'User is already verified' });
     }
 
+    // Check if account is locked due to brute force
+    if (user.otpLockUntil && user.otpLockUntil > new Date()) {
+      const minutesLeft = Math.ceil((user.otpLockUntil - new Date()) / (60 * 1000));
+      return res.status(403).json({ 
+        message: `Too many failed attempts. This account is locked. Please try again in ${minutesLeft} minutes.` 
+      });
+    }
+
     // Check if OTP matches and is not expired
     if (user.otp !== otp || user.otpExpire < new Date()) {
-      return res.status(400).json({ message: 'Invalid or expired OTP' });
+      user.otpFailedAttempts = (user.otpFailedAttempts || 0) + 1;
+      
+      if (user.otpFailedAttempts >= 3) {
+        user.otpLockUntil = new Date(Date.now() + 30 * 60 * 1000); // Lock for 30 minutes
+        user.otp = undefined; // Invalidate OTP
+        user.otpExpire = undefined;
+        user.otpFailedAttempts = 0; // Reset counter for next lock cycle
+        await user.save();
+        return res.status(403).json({ 
+          message: 'Too many failed verification attempts. Your account has been locked for 30 minutes.' 
+        });
+      }
+
+      await user.save();
+      const remainingAttempts = 3 - user.otpFailedAttempts;
+      return res.status(400).json({ 
+        message: `Invalid or expired OTP. You have ${remainingAttempts} attempts remaining.` 
+      });
     }
 
     // Set verified
     user.isVerified = true;
     user.otp = undefined;
     user.otpExpire = undefined;
+    user.otpFailedAttempts = 0;
+    user.otpLockUntil = undefined;
+    user.otpResendAttempts = 0;
+    user.otpResendTimeWindowStart = undefined;
 
     const accessToken = generateAccessToken(user._id);
     const refreshToken = generateRefreshToken(user._id);
@@ -214,8 +250,34 @@ const resendOtp = async (req, res) => {
       return res.status(400).json({ message: 'User is already verified' });
     }
 
+    // Check if account is locked
+    if (user.otpLockUntil && user.otpLockUntil > new Date()) {
+      const minutesLeft = Math.ceil((user.otpLockUntil - new Date()) / (60 * 1000));
+      return res.status(403).json({ 
+        message: `This account is locked. Please try again in ${minutesLeft} minutes.` 
+      });
+    }
+
+    // Check and enforce Resend Rate Limits: Max 3 attempts within 30 minutes
+    const now = new Date();
+    if (!user.otpResendTimeWindowStart || (now - user.otpResendTimeWindowStart) > (30 * 60 * 1000)) {
+      // Start a new window
+      user.otpResendTimeWindowStart = now;
+      user.otpResendAttempts = 1;
+    } else {
+      // Within same 30-minute window
+      if (user.otpResendAttempts >= 3) {
+        const timeElapsed = now - user.otpResendTimeWindowStart;
+        const minutesToWait = Math.ceil((30 * 60 * 1000 - timeElapsed) / (60 * 1000));
+        return res.status(429).json({ 
+          message: `Too many resends. You can request another OTP code in ${minutesToWait} minutes.` 
+        });
+      }
+      user.otpResendAttempts += 1;
+    }
+
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    const otpExpire = new Date(Date.now() + 10 * 60 * 1000);
+    const otpExpire = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes from now
 
     user.otp = otp;
     user.otpExpire = otpExpire;
@@ -233,7 +295,7 @@ const resendOtp = async (req, res) => {
             <div style="background-color: #1a1a26; border: 1px solid #00F0FF/30; border-radius: 8px; padding: 15px; text-align: center; margin: 20px 0;">
               <span style="font-size: 32px; font-weight: bold; letter-spacing: 6px; color: #00F0FF;">${otp}</span>
             </div>
-            <p style="font-size: 12px; color: #666; text-align: center;">This code is valid for 10 minutes. If you did not request this, you can safely ignore this email.</p>
+            <p style="font-size: 12px; color: #666; text-align: center;">This code is valid for 5 minutes. If you did not request this, you can safely ignore this email.</p>
           </div>
         `,
       });
