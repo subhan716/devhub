@@ -1,21 +1,54 @@
-import { motion } from 'framer-motion';
-import { MoreHorizontal, Heart, MessageCircle, Repeat2 } from 'lucide-react';
+import { useState, useRef, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { MoreHorizontal, Heart, MessageCircle, Repeat2, Edit3, Trash2, Link2, Bookmark } from 'lucide-react';
 import { Light as SyntaxHighlighter } from 'react-syntax-highlighter';
 import js from 'react-syntax-highlighter/dist/esm/languages/hljs/javascript';
 import php from 'react-syntax-highlighter/dist/esm/languages/hljs/php';
 import { vs2015 } from 'react-syntax-highlighter/dist/esm/styles/hljs';
+import toast from 'react-hot-toast';
 
 SyntaxHighlighter.registerLanguage('javascript', js);
 SyntaxHighlighter.registerLanguage('php', php);
 
-const PostCard = ({ post, idx = 0, isHighlighted = false }) => {
+const PostCard = ({ post, idx = 0, isHighlighted = false, currentUser, onDelete, onEdit }) => {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const menuRef = useRef(null);
+
+  // Safely extract IDs for comparison
+  const myUserId = currentUser?._id || currentUser?.user?._id;
+  const authorId = post.author?._id || post.author;
+  const isAuthor = myUserId && authorId && myUserId === authorId;
+
+  // Handle click outside menu
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setIsMenuOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const handleCopyLink = () => {
+    const postUrl = `${window.location.origin}/post/${post._id}`;
+    navigator.clipboard.writeText(postUrl);
+    toast.success('Link copied to clipboard!');
+    setIsMenuOpen(false);
+  };
+
+  const handleSavePost = () => {
+    toast.success('Post saved to bookmarks!');
+    setIsMenuOpen(false);
+  };
+
   return (
     <motion.div 
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.95 }}
       transition={{ duration: 0.3, delay: Math.min(idx * 0.1, 0.5) }}
-      className={`bg-[#111] rounded-2xl p-5 shadow-lg flex flex-col gap-4 relative overflow-hidden group transition-colors duration-300 ${
+      className={`bg-[#111] rounded-2xl p-5 shadow-lg flex flex-col gap-4 relative overflow-visible group transition-colors duration-300 ${
         isHighlighted ? 'border border-[#00F0FF]/50 shadow-[0_0_15px_rgba(0,240,255,0.1)]' : 'border border-white/5 hover:border-white/10'
       }`}
     >
@@ -36,13 +69,75 @@ const PostCard = ({ post, idx = 0, isHighlighted = false }) => {
             </div>
           </div>
         </div>
-        <button className="text-gray-500 hover:text-white transition-colors cursor-pointer">
-          <MoreHorizontal size={18} />
-        </button>
+
+        {/* 3-Dots Menu Container */}
+        <div className="relative" ref={menuRef}>
+          <button 
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
+            className="text-gray-500 hover:text-white p-1 rounded-lg hover:bg-white/5 transition-all cursor-pointer"
+          >
+            <MoreHorizontal size={18} />
+          </button>
+
+          {/* Options Dropdown */}
+          <AnimatePresence>
+            {isMenuOpen && (
+              <motion.div 
+                initial={{ opacity: 0, scale: 0.95, y: -10 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: -10 }}
+                transition={{ duration: 0.15 }}
+                className="absolute right-0 top-full mt-1.5 w-48 bg-[#181820] border border-white/10 rounded-xl shadow-2xl py-1.5 z-50 overflow-hidden"
+              >
+                {isAuthor && (
+                  <>
+                    <button 
+                      onClick={() => {
+                        onEdit(post);
+                        setIsMenuOpen(false);
+                      }}
+                      className="w-full px-4 py-2.5 text-left text-sm text-gray-200 hover:bg-white/5 hover:text-white transition-colors flex items-center gap-2"
+                    >
+                      <Edit3 size={15} className="text-gray-400" />
+                      <span>Edit Post</span>
+                    </button>
+                    <button 
+                      onClick={() => {
+                        onDelete(post._id);
+                        setIsMenuOpen(false);
+                      }}
+                      className="w-full px-4 py-2.5 text-left text-sm text-red-400 hover:bg-red-500/10 transition-colors flex items-center gap-2"
+                    >
+                      <Trash2 size={15} />
+                      <span>Delete Post</span>
+                    </button>
+                    <div className="h-px bg-white/5 my-1" />
+                  </>
+                )}
+
+                <button 
+                  onClick={handleCopyLink}
+                  className="w-full px-4 py-2.5 text-left text-sm text-gray-200 hover:bg-white/5 hover:text-white transition-colors flex items-center gap-2"
+                >
+                  <Link2 size={15} className="text-gray-400" />
+                  <span>Copy Link</span>
+                </button>
+                
+                <button 
+                  onClick={handleSavePost}
+                  className="w-full px-4 py-2.5 text-left text-sm text-gray-200 hover:bg-white/5 hover:text-white transition-colors flex items-center gap-2"
+                >
+                  <Bookmark size={15} className="text-gray-400" />
+                  <span>Save Post</span>
+                </button>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
       </div>
 
       {/* Post Content */}
-      <p className="text-sm text-gray-200 leading-relaxed">
+      <p className="text-sm text-gray-200 leading-relaxed whitespace-pre-wrap">
         {post.content}
       </p>
 

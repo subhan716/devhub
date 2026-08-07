@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useOutletContext } from 'react-router-dom';
-import { Image, Code2, Send, MessageCircle, Heart, Repeat2, MoreHorizontal, Video, FileText, X, Globe, Plus, AlertCircle, Loader2, Upload } from 'lucide-react';
+import { Image, Code2, Send, MessageCircle, Heart, Repeat2, MoreHorizontal, Video, FileText, X, Globe, Plus, AlertCircle, Loader2 } from 'lucide-react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -13,6 +13,7 @@ const FeedPage = () => {
 
   // Modal States
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingPostId, setEditingPostId] = useState(null); // track if editing existing post
   const [postContent, setPostContent] = useState('');
   const [isCodeMode, setIsCodeMode] = useState(false);
   const [codeContent, setCodeContent] = useState('');
@@ -86,8 +87,51 @@ const FeedPage = () => {
     setActiveAttachmentType('none');
   };
 
+  // Delete Post Handler
+  const handleDeletePost = async (postId) => {
+    const confirmDelete = window.confirm('Are you sure you want to delete this post?');
+    if (!confirmDelete) return;
+
+    try {
+      await axios.delete(`${import.meta.env.VITE_API_URL}/api/posts/${postId}`, { withCredentials: true });
+      setPosts(prev => prev.filter(post => post._id !== postId));
+      toast.success('Post deleted successfully');
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to delete post');
+    }
+  };
+
+  // Edit Post Trigger
+  const handleEditPostClick = (post) => {
+    setEditingPostId(post._id);
+    setPostContent(post.content);
+    
+    if (post.codeSnippet) {
+      setIsCodeMode(true);
+      setCodeContent(post.codeSnippet.code);
+      setCodeLanguage(post.codeSnippet.language || 'javascript');
+    } else {
+      setIsCodeMode(false);
+      setCodeContent('');
+    }
+
+    if (post.image) {
+      if (post.image.url.includes('/video/upload/') || post.image.url.match(/\.(mp4|webm|ogg)$/i)) {
+        setActiveAttachmentType('video');
+        setVideoPreview(post.image.url);
+      } else {
+        setActiveAttachmentType('image');
+        setImagePreview(post.image.url);
+      }
+    } else {
+      removeAllMedia();
+    }
+
+    setIsModalOpen(true);
+  };
+
   const handlePostSubmit = async () => {
-    if (!postContent.trim() && !codeContent.trim() && !selectedImage && !selectedVideo) {
+    if (!postContent.trim() && !codeContent.trim() && !selectedImage && !selectedVideo && !imagePreview && !videoPreview) {
       toast.error('Post content cannot be completely empty');
       return;
     }
@@ -95,6 +139,12 @@ const FeedPage = () => {
     setIsSubmitting(true);
     try {
       let uploadedMedia = null;
+      if (imagePreview && !selectedImage) {
+        uploadedMedia = { url: imagePreview };
+      }
+      if (videoPreview && !selectedVideo) {
+        uploadedMedia = { url: videoPreview };
+      }
 
       // 1. Handle image upload if selected
       if (selectedImage) {
@@ -154,21 +204,25 @@ const FeedPage = () => {
 
       if (isCodeMode && codeContent.trim()) {
         postData.codeSnippet = { code: codeContent, language: codeLanguage };
+      } else {
+        postData.codeSnippet = null;
       }
 
-      // 4. Submit Post
-      const { data } = await axios.post(`${import.meta.env.VITE_API_URL}/api/posts`, postData, { withCredentials: true });
-      
-      // Refresh feed
-      setPosts([data, ...posts]);
+      let resData;
+      if (editingPostId) {
+        // Edit flow
+        const { data } = await axios.put(`${import.meta.env.VITE_API_URL}/api/posts/${editingPostId}`, postData, { withCredentials: true });
+        setPosts(prev => prev.map(p => p._id === editingPostId ? data : p));
+        toast.success('Post updated successfully!');
+      } else {
+        // Create flow
+        const { data } = await axios.post(`${import.meta.env.VITE_API_URL}/api/posts`, postData, { withCredentials: true });
+        setPosts([data, ...posts]);
+        toast.success('Post deployed successfully!');
+      }
       
       // Reset Form and close modal
-      setPostContent('');
-      setCodeContent('');
-      setIsCodeMode(false);
-      removeAllMedia();
-      setIsModalOpen(false);
-      toast.success('Post deployed successfully!');
+      handleCloseModal();
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to publish post');
     } finally {
@@ -176,8 +230,18 @@ const FeedPage = () => {
     }
   };
 
+  const handleCloseModal = () => {
+    setPostContent('');
+    setCodeContent('');
+    setIsCodeMode(false);
+    setEditingPostId(null);
+    removeAllMedia();
+    setIsModalOpen(false);
+  };
+
   const openPostModal = (mode = 'text') => {
     setIsModalOpen(true);
+    setEditingPostId(null);
     
     // Explicitly toggle features based on selected trigger
     if (mode === 'code') {
@@ -275,7 +339,15 @@ const FeedPage = () => {
         ) : (
           <AnimatePresence>
             {posts.map((post, idx) => (
-              <PostCard key={post._id} post={post} idx={idx} isHighlighted={idx === 0} />
+              <PostCard 
+                key={post._id} 
+                post={post} 
+                idx={idx} 
+                isHighlighted={idx === 0} 
+                currentUser={currentUser}
+                onDelete={handleDeletePost}
+                onEdit={handleEditPostClick}
+              />
             ))}
           </AnimatePresence>
         )}
@@ -290,10 +362,7 @@ const FeedPage = () => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              onClick={() => {
-                removeAllMedia();
-                setIsModalOpen(false);
-              }}
+              onClick={handleCloseModal}
               className="absolute inset-0 bg-black/75 backdrop-blur-sm"
             />
 
@@ -307,12 +376,9 @@ const FeedPage = () => {
             >
               {/* Header */}
               <div className="px-5 py-4 border-b border-white/5 flex justify-between items-center bg-[#161616]">
-                <h3 className="text-lg font-bold text-white">Create a post</h3>
+                <h3 className="text-lg font-bold text-white">{editingPostId ? 'Edit post' : 'Create a post'}</h3>
                 <button 
-                  onClick={() => {
-                    removeAllMedia();
-                    setIsModalOpen(false);
-                  }}
+                  onClick={handleCloseModal}
                   className="p-1.5 text-gray-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors cursor-pointer"
                 >
                   <X size={20} />
@@ -487,7 +553,7 @@ const FeedPage = () => {
                     disabled={isSubmitting || isUploading || (!postContent.trim() && !codeContent.trim() && !selectedImage && !selectedVideo)}
                     className="px-5 py-2.5 bg-[#00F0FF] hover:bg-[#00F0FF]/90 text-black font-bold rounded-full transition-all text-sm flex items-center gap-2 disabled:opacity-30 disabled:hover:bg-[#00F0FF] cursor-pointer"
                   >
-                    {isSubmitting ? 'Posting...' : 'Post'}
+                    {isSubmitting ? (editingPostId ? 'Saving...' : 'Posting...') : (editingPostId ? 'Save' : 'Post')}
                   </button>
                 </div>
               </div>
