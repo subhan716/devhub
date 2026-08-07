@@ -12,8 +12,8 @@ const createPost = async (req, res) => {
     const newPost = new Post({
       author: req.user.id,
       content,
-      codeSnippet: codeSnippet ? { code: codeSnippet.code, language: codeSnippet.language || 'javascript' } : undefined,
-      image: image ? { url: image.url } : undefined,
+      codeSnippet: codeSnippet && codeSnippet.code && codeSnippet.code.trim() ? { code: codeSnippet.code, language: codeSnippet.language || 'javascript' } : undefined,
+      image: image && image.url ? { url: image.url } : undefined,
     });
 
     const post = await newPost.save();
@@ -146,8 +146,18 @@ const updatePost = async (req, res) => {
 
     const { content, codeSnippet, image } = req.body;
     post.content = content || post.content;
-    post.codeSnippet = codeSnippet !== undefined ? codeSnippet : post.codeSnippet;
-    post.image = image !== undefined ? image : post.image;
+    
+    if (codeSnippet && codeSnippet.code && codeSnippet.code.trim()) {
+      post.codeSnippet = { code: codeSnippet.code, language: codeSnippet.language || 'javascript' };
+    } else {
+      post.codeSnippet = undefined;
+    }
+
+    if (image && image.url) {
+      post.image = { url: image.url };
+    } else {
+      post.image = undefined;
+    }
 
     await post.save();
     const populatedPost = await Post.findById(post._id).populate('author', 'name avatar');

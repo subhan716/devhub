@@ -18,7 +18,7 @@ const postSchema = new mongoose.Schema(
     },
     codeSnippet: {
       code: String,
-      language: { type: String, default: 'javascript' },
+      language: String,
     },
     likes: [
       {
