@@ -1486,31 +1486,39 @@ const MessagesPage = () => {
                             {/* Reactions Display */}
                             {msg.reactions && msg.reactions.length > 0 && (
                               <div className="flex flex-wrap gap-1.5 mt-2">
-                                {Object.entries(
-                                  msg.reactions.reduce((acc, curr) => {
-                                    if (curr.emoji) {
-                                      acc[curr.emoji] = acc[curr.emoji] || [];
-                                      acc[curr.emoji].push(curr.user?._id || curr.user);
-                                    }
-                                    return acc;
-                                  }, {})
-                                ).map(([emoji, users]) => {
-                                  const hasReacted = users.includes(currentUser?._id);
-                                  return (
-                                    <button
-                                      key={emoji}
-                                      onClick={() => handleToggleReaction(msg._id, emoji)}
-                                      className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] border transition-colors ${
-                                        hasReacted
-                                          ? 'bg-[#00F0FF]/15 border-[#00F0FF]/40 text-[#00F0FF]'
-                                          : 'bg-white/5 border-white/10 text-gray-400 hover:text-white hover:bg-white/10'
-                                      }`}
-                                    >
-                                      <span>{emoji}</span>
-                                      <span className="font-semibold">{users.length}</span>
-                                    </button>
-                                  );
-                                })}
+                                <AnimatePresence>
+                                  {Object.entries(
+                                    msg.reactions.reduce((acc, curr) => {
+                                      if (curr.emoji) {
+                                        acc[curr.emoji] = acc[curr.emoji] || [];
+                                        acc[curr.emoji].push(curr.user?._id || curr.user);
+                                      }
+                                      return acc;
+                                    }, {})
+                                  ).map(([emoji, users]) => {
+                                    const hasReacted = users.includes(currentUser?._id);
+                                    return (
+                                      <motion.button
+                                        key={emoji}
+                                        initial={{ scale: 0.7, opacity: 0 }}
+                                        animate={{ scale: 1, opacity: 1 }}
+                                        exit={{ scale: 0.7, opacity: 0 }}
+                                        whileHover={{ scale: 1.08 }}
+                                        whileTap={{ scale: 0.92 }}
+                                        transition={{ type: "spring", stiffness: 400, damping: 17 }}
+                                        onClick={() => handleToggleReaction(msg._id, emoji)}
+                                        className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] border transition-colors ${
+                                          hasReacted
+                                            ? 'bg-[#00F0FF]/15 border-[#00F0FF]/40 text-[#00F0FF]'
+                                            : 'bg-white/5 border-white/10 text-gray-400 hover:text-white hover:bg-white/10'
+                                        }`}
+                                      >
+                                        <span>{emoji}</span>
+                                        <span className="font-semibold">{users.length}</span>
+                                      </motion.button>
+                                    );
+                                  })}
+                                </AnimatePresence>
                               </div>
                             )}
                           </div>
@@ -1549,21 +1557,30 @@ const MessagesPage = () => {
                                   <SmilePlus size={16} />
                                 </button>
                                 
-                                {activeReactionMenuId === msg._id && (
-                                  <div className="absolute bottom-full right-0 mb-2 z-30 shadow-2xl scale-90 origin-bottom-right" onClick={(e) => e.stopPropagation()}>
-                                    <EmojiPicker 
-                                      onEmojiClick={(emojiObj) => {
-                                        handleToggleReaction(msg._id, emojiObj.emoji);
-                                        setActiveReactionMenuId(null);
-                                      }} 
-                                      theme="dark" 
-                                      width={280} 
-                                      height={320} 
-                                      previewConfig={{ showPreview: false }}
-                                      skinTonesDisabled
-                                    />
-                                  </div>
-                                )}
+                                <AnimatePresence>
+                                  {activeReactionMenuId === msg._id && (
+                                    <motion.div
+                                      initial={{ opacity: 0, scale: 0.9, y: 10 }}
+                                      animate={{ opacity: 1, scale: 0.95, y: 0 }}
+                                      exit={{ opacity: 0, scale: 0.9, y: 10 }}
+                                      transition={{ type: 'spring', damping: 20, stiffness: 300 }}
+                                      className="absolute bottom-full right-0 mb-2 z-30 shadow-2xl origin-bottom-right"
+                                      onClick={(e) => e.stopPropagation()}
+                                    >
+                                      <EmojiPicker 
+                                        onEmojiClick={(emojiObj) => {
+                                          handleToggleReaction(msg._id, emojiObj.emoji);
+                                          setActiveReactionMenuId(null);
+                                        }} 
+                                        theme="dark" 
+                                        width={280} 
+                                        height={320} 
+                                        previewConfig={{ showPreview: false }}
+                                        skinTonesDisabled
+                                      />
+                                    </motion.div>
+                                  )}
+                                </AnimatePresence>
                               </div>
 
                               {/* Reply Button */}
