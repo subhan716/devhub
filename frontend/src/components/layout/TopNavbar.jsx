@@ -208,7 +208,7 @@ const TopNavbar = ({ setIsMobileMenuOpen, currentUser, isMessagesPage }) => {
                         className={`px-4 py-3 border-b border-white/5 hover:bg-white/5 cursor-pointer flex gap-3 transition-colors ${!notif.read ? 'bg-[#00F0FF]/5' : ''}`}
                       >
                         <img 
-                          src={notif.sender?.avatar?.url || 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png'} 
+                          src={notif.sender?.avatar?.url || 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y'} 
                           alt="avatar" 
                           className="w-10 h-10 rounded-full object-cover mt-1"
                         />
@@ -253,7 +253,7 @@ const TopNavbar = ({ setIsMobileMenuOpen, currentUser, isMessagesPage }) => {
             </span>
             <div className="relative">
               <img 
-                src={currentUser?.avatar?.url || 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png'} 
+                src={currentUser?.avatar?.url || 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y'} 
                 alt="Profile" 
                 className="w-9 h-9 rounded-full object-cover border border-white/10 group-hover:border-[#00F0FF]/50 transition-colors bg-[#111]"
               />

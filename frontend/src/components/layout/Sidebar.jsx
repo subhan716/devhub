@@ -39,7 +39,7 @@ const Sidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
       )}
 
       {/* Sidebar Drawer */}
-      <aside className={`w-64 h-screen fixed left-0 top-0 border-r border-white/5 bg-[#0a0a0a] flex flex-col pt-8 pb-6 px-6 z-50 transform ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0 transition-transform duration-300`}>
+      <aside className={`w-64 h-screen fixed left-0 top-0 border-r border-white/5 bg-[#0a0a0a] flex flex-col pt-8 pb-6 px-6 z-50 transform ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 transition-transform duration-300`}>
         {/* Logo and Close Button */}
         <div className="flex items-center justify-between mb-10">
           <Link to="/feed" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 group">

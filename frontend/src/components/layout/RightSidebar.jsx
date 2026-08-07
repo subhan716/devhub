@@ -42,7 +42,7 @@ const RightSidebar = () => {
   };
 
   return (
-    <div className="w-80 h-screen fixed right-0 top-0 border-l border-white/5 bg-[#0a0a0a] pt-24 pb-6 px-6 hidden lg:block overflow-y-auto scrollbar-none z-10">
+    <div className="w-80 h-screen fixed right-0 top-0 border-l border-white/5 bg-[#0a0a0a] pt-24 pb-6 px-6 hidden xl:block overflow-y-auto scrollbar-none z-10">
       <div className="bg-[#111] border border-white/5 rounded-2xl p-5 shadow-lg">
         <h3 className="text-white font-semibold mb-6">Suggested Connections</h3>
         
@@ -54,7 +54,7 @@ const RightSidebar = () => {
                   className="flex items-center gap-3 cursor-pointer" 
                   onClick={() => navigate(`/profile/${user._id}`)}
                 >
-                  <img src={user.avatar?.url || 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png'} alt={user.name} className="w-10 h-10 rounded-full object-cover border border-white/10 group-hover:border-[#00F0FF]/50 transition-colors" />
+                  <img src={user.avatar?.url || 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y'} alt={user.name} className="w-10 h-10 rounded-full object-cover border border-white/10 group-hover:border-[#00F0FF]/50 transition-colors" />
                   <div className="flex flex-col">
                     <span className="text-white text-sm font-medium group-hover:text-[#00F0FF] transition-colors">{user.name}</span>
                     <span className="text-gray-500 text-xs">{user.role || 'Developer'}</span>

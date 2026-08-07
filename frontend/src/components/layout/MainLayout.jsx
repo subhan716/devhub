@@ -4,6 +4,7 @@ import axios from 'axios';
 import Sidebar from './Sidebar';
 import RightSidebar from './RightSidebar';
 import TopNavbar from './TopNavbar';
+import BottomNavbar from './BottomNavbar';
 import FloatingChat from '../chat/FloatingChat';
 import { SocketProvider } from '../../context/SocketContext';
 
@@ -33,13 +34,16 @@ const MainLayout = () => {
         {!isMessagesPage && <RightSidebar />}
         
         {/* Main Content Area */}
-        <main className={`md:ml-64 ${!isMessagesPage ? 'lg:mr-80 min-h-screen' : 'h-screen overflow-hidden'} flex flex-col relative transition-all duration-300`}>
+        <main className={`lg:ml-64 ${!isMessagesPage ? 'xl:mr-80 min-h-screen' : 'h-screen overflow-hidden'} flex flex-col relative transition-all duration-300 pb-16 lg:pb-0`}>
           <TopNavbar setIsMobileMenuOpen={setIsMobileMenuOpen} currentUser={currentUser} isMessagesPage={isMessagesPage} />
           <div className={`flex-1 w-full min-h-0 ${!isMessagesPage ? 'max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-6' : 'max-w-full p-0 flex flex-col'}`}>
             <Outlet context={{ currentUser }} />
           </div>
         </main>
         
+        {/* Bottom Navigation for Mobile */}
+        <BottomNavbar currentUser={currentUser} />
+
         {/* Persistent Floating Chat Component */}
         <FloatingChat currentUser={currentUser} />
       </div>
