@@ -115,7 +115,7 @@ const FeedPage = () => {
       setCodeContent('');
     }
 
-    if (post.image) {
+    if (post.image && post.image.url) {
       if (post.image.url.includes('/video/upload/') || post.image.url.match(/\.(mp4|webm|ogg)$/i)) {
         setActiveAttachmentType('video');
         setVideoPreview(post.image.url);
