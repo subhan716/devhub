@@ -63,6 +63,7 @@ const registerUser = async (req, res) => {
     if (pendingUser) {
       // Send OTP Email
       try {
+        console.log(`[DEVELOPMENT OTP LOG] Verification OTP code for ${pendingUser.email} is: ${otp}`);
         await sendEmail({
           to: pendingUser.email,
           subject: 'DevHub Account Verification Code',
@@ -290,6 +291,7 @@ const resendOtp = async (req, res) => {
 
     // Send OTP Email
     try {
+      console.log(`[DEVELOPMENT OTP LOG] Verification OTP code (Resend) for ${pendingUser.email} is: ${otp}`);
       await sendEmail({
         to: pendingUser.email,
         subject: 'DevHub Account Verification Code',
@@ -407,6 +409,7 @@ const googleCallback = async (req, res) => {
 
       // Send OTP Email
       try {
+        console.log(`[DEVELOPMENT OTP LOG] Verification OTP code (Google) for ${pending.email} is: ${otp}`);
         await sendEmail({
           to: pending.email,
           subject: 'DevHub Account Verification Code',
@@ -515,6 +518,7 @@ const githubCallback = async (req, res) => {
 
       // Send OTP Email
       try {
+        console.log(`[DEVELOPMENT OTP LOG] Verification OTP code (GitHub) for ${pending.email} is: ${otp}`);
         await sendEmail({
           to: pending.email,
           subject: 'DevHub Account Verification Code',
