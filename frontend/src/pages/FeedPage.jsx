@@ -14,6 +14,7 @@ const FeedPage = () => {
   // Modal States
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingPostId, setEditingPostId] = useState(null); // track if editing existing post
+  const [postToDelete, setPostToDelete] = useState(null); // track post selected for deletion
   const [postContent, setPostContent] = useState('');
   const [isCodeMode, setIsCodeMode] = useState(false);
   const [codeContent, setCodeContent] = useState('');
@@ -88,16 +89,20 @@ const FeedPage = () => {
   };
 
   // Delete Post Handler
-  const handleDeletePost = async (postId) => {
-    const confirmDelete = window.confirm('Are you sure you want to delete this post?');
-    if (!confirmDelete) return;
+  const handleDeletePost = (postId) => {
+    setPostToDelete(postId);
+  };
 
+  const handleConfirmDelete = async () => {
+    if (!postToDelete) return;
     try {
-      await axios.delete(`${import.meta.env.VITE_API_URL}/api/posts/${postId}`, { withCredentials: true });
-      setPosts(prev => prev.filter(post => post._id !== postId));
+      await axios.delete(`${import.meta.env.VITE_API_URL}/api/posts/${postToDelete}`, { withCredentials: true });
+      setPosts(prev => prev.filter(post => post._id !== postToDelete));
       toast.success('Post deleted successfully');
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to delete post');
+    } finally {
+      setPostToDelete(null);
     }
   };
 
@@ -556,6 +561,51 @@ const FeedPage = () => {
                     {isSubmitting ? (editingPostId ? 'Saving...' : 'Posting...') : (editingPostId ? 'Save' : 'Post')}
                   </button>
                 </div>
+              </div>
+            </motion.div>
+          </div>
+      </AnimatePresence>
+
+      {/* Delete Confirmation Modal */}
+      <AnimatePresence>
+        {postToDelete && (
+          <div className="fixed inset-0 z-[100000] flex items-center justify-center p-4">
+            {/* Backdrop */}
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setPostToDelete(null)}
+              className="absolute inset-0 bg-black/85 backdrop-blur-sm"
+            />
+            {/* Dialog Box */}
+            <motion.div 
+              initial={{ scale: 0.95, opacity: 0, y: 15 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.95, opacity: 0, y: 15 }}
+              transition={{ type: 'spring', damping: 20, stiffness: 300 }}
+              className="relative w-full max-w-sm bg-[#121212] border border-white/10 rounded-2xl shadow-2xl p-6 flex flex-col gap-4 text-center z-10"
+            >
+              <div className="mx-auto p-3 bg-red-500/10 rounded-full text-red-500 w-fit">
+                <AlertCircle size={28} />
+              </div>
+              <div className="space-y-1.5">
+                <h3 className="text-lg font-bold text-white">Delete Post?</h3>
+                <p className="text-sm text-gray-400 leading-relaxed">Are you sure you want to permanently delete this post? This action cannot be undone.</p>
+              </div>
+              <div className="flex gap-3 mt-2">
+                <button 
+                  onClick={() => setPostToDelete(null)}
+                  className="flex-1 py-2.5 bg-white/5 hover:bg-white/10 text-gray-300 font-semibold rounded-xl border border-white/5 transition-all cursor-pointer outline-none"
+                >
+                  Cancel
+                </button>
+                <button 
+                  onClick={handleConfirmDelete}
+                  className="flex-1 py-2.5 bg-red-500 hover:bg-red-600 text-white font-semibold rounded-xl transition-all cursor-pointer outline-none shadow-lg shadow-red-500/10"
+                >
+                  Delete
+                </button>
               </div>
             </motion.div>
           </div>
