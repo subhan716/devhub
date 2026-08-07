@@ -63,9 +63,8 @@ const RegisterPage = () => {
     setIsLoading(true);
     try {
       const { data } = await axios.post(`${import.meta.env.VITE_API_URL}/api/auth/register`, formData);
-      toast.success('Identity established successfully!');
-      localStorage.setItem('isAuthenticated', 'true');
-      navigate('/setup-profile');
+      toast.success('Verification OTP sent to your email!');
+      navigate(`/verify-otp?email=${encodeURIComponent(formData.email)}`);
     } catch (error) {
       const errorMsg = error.response?.data?.message || 'Registration failed due to server error';
       toast.error(errorMsg);

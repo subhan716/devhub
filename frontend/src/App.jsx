@@ -6,6 +6,7 @@ import 'lenis/dist/lenis.css';
 import LandingPage from './pages/LandingPage';
 import RegisterPage from './pages/RegisterPage';
 import LoginPage from './pages/LoginPage';
+import VerifyOtpPage from './pages/VerifyOtpPage';
 import SetupProfilePage from './pages/SetupProfilePage';
 import FeedPage from './pages/FeedPage';
 import NotificationsPage from './pages/NotificationsPage';
@@ -114,6 +115,7 @@ function App() {
           <Route path="/" element={<GuestRoute><LandingPage /></GuestRoute>} />
           <Route path="/login" element={<GuestRoute><LoginPage /></GuestRoute>} />
           <Route path="/register" element={<GuestRoute><RegisterPage /></GuestRoute>} />
+          <Route path="/verify-otp" element={<GuestRoute><VerifyOtpPage /></GuestRoute>} />
           <Route path="/setup-profile" element={<SetupProfilePage />} />
 
           {/* Protected Routes inside MainLayout */}

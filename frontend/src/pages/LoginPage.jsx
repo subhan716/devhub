@@ -64,6 +64,14 @@ const LoginPage = () => {
 
     } catch (error) {
       const errorMsg = error.response?.data?.message || 'Login failed';
+      
+      // If unverified, redirect to OTP verify screen
+      if (error.response?.status === 403 && error.response?.data?.isVerified === false) {
+        toast('Please verify your email to activate account.', { icon: '✉️' });
+        navigate(`/verify-otp?email=${encodeURIComponent(error.response.data.email)}`);
+        return;
+      }
+
       toast.error(errorMsg);
       // Show error under password to indicate invalid credentials
       if (errorMsg.toLowerCase().includes('invalid')) {
