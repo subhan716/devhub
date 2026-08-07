@@ -1,6 +1,7 @@
 const User = require('../models/User');
 const { generateAccessToken, generateRefreshToken } = require('../utils/generateToken');
 const axios = require('axios');
+const sendEmail = require('../utils/sendEmail');
 
 // @desc    Register a new user
 // @route   POST /api/auth/register
@@ -43,33 +44,43 @@ const registerUser = async (req, res) => {
       return res.status(400).json({ message: 'User already exists' });
     }
 
-    // Create user
+    // Create user (with isVerified = false, Google/GitHub accounts bypass this)
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const otpExpire = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes from now
+
     const user = await User.create({
       name,
       email,
       passwordHash: password,
+      isVerified: false,
+      otp,
+      otpExpire,
     });
 
     if (user) {
-      const accessToken = generateAccessToken(user._id);
-      const refreshToken = generateRefreshToken(user._id);
-
-      // Save refresh token to DB
-      user.refreshToken = refreshToken;
-      await user.save();
-
-      res.cookie('jwt', accessToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV !== 'development',
-        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-        maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
-      });
+      // Send OTP Email
+      try {
+        await sendEmail({
+          to: user.email,
+          subject: 'DevHub Account Verification Code',
+          html: `
+            <div style="font-family: Arial, sans-serif; background-color: #0d0d12; color: #ffffff; padding: 30px; border-radius: 12px; max-width: 500px; margin: auto;">
+              <h2 style="color: #00F0FF; text-align: center; border-bottom: 1px solid #1a1a26; padding-bottom: 15px;">Welcome to DevHub!</h2>
+              <p style="font-size: 15px; line-height: 1.5; color: #b3b3b3;">Thank you for registering on DevHub. To complete your sign-up, please verify your email address using the 6-digit verification code below:</p>
+              <div style="background-color: #1a1a26; border: 1px solid #00F0FF/30; border-radius: 8px; padding: 15px; text-align: center; margin: 20px 0;">
+                <span style="font-size: 32px; font-weight: bold; letter-spacing: 6px; color: #00F0FF;">${otp}</span>
+              </div>
+              <p style="font-size: 12px; color: #666; text-align: center;">This code is valid for 10 minutes. If you did not request this, you can safely ignore this email.</p>
+            </div>
+          `,
+        });
+      } catch (mailError) {
+        console.error('Failed to send verification email:', mailError.message);
+      }
 
       res.status(201).json({
-        _id: user.id,
-        name: user.name,
+        message: 'Verification OTP sent to email',
         email: user.email,
-        role: user.role,
       });
     } else {
       res.status(400).json({ message: 'Invalid user data' });
@@ -94,6 +105,15 @@ const loginUser = async (req, res) => {
     }
 
     if (user && (await user.matchPassword(password))) {
+      // Check if user is verified
+      if (!user.isVerified) {
+        return res.status(403).json({ 
+          message: 'Account not verified. Please verify your email first.',
+          isVerified: false,
+          email: user.email
+        });
+      }
+
       const accessToken = generateAccessToken(user._id);
       const refreshToken = generateRefreshToken(user._id);
 
@@ -116,6 +136,112 @@ const loginUser = async (req, res) => {
     } else {
       res.status(401).json({ message: 'Invalid credentials' });
     }
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc    Verify OTP Code
+// @route   POST /api/auth/verify-otp
+// @access  Public
+const verifyOtp = async (req, res) => {
+  try {
+    const { email, otp } = req.body;
+
+    if (!email || !otp) {
+      return res.status(400).json({ message: 'Email and OTP are required' });
+    }
+
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    if (user.isVerified) {
+      return res.status(400).json({ message: 'User is already verified' });
+    }
+
+    // Check if OTP matches and is not expired
+    if (user.otp !== otp || user.otpExpire < new Date()) {
+      return res.status(400).json({ message: 'Invalid or expired OTP' });
+    }
+
+    // Set verified
+    user.isVerified = true;
+    user.otp = undefined;
+    user.otpExpire = undefined;
+
+    const accessToken = generateAccessToken(user._id);
+    const refreshToken = generateRefreshToken(user._id);
+
+    user.refreshToken = refreshToken;
+    await user.save();
+
+    res.cookie('jwt', accessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV !== 'development',
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+      maxAge: 30 * 24 * 60 * 60 * 1000,
+    });
+
+    res.status(200).json({
+      _id: user.id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc    Resend Verification OTP
+// @route   POST /api/auth/resend-otp
+// @access  Public
+const resendOtp = async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) {
+      return res.status(400).json({ message: 'Email is required' });
+    }
+
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    if (user.isVerified) {
+      return res.status(400).json({ message: 'User is already verified' });
+    }
+
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const otpExpire = new Date(Date.now() + 10 * 60 * 1000);
+
+    user.otp = otp;
+    user.otpExpire = otpExpire;
+    await user.save();
+
+    // Send OTP Email
+    try {
+      await sendEmail({
+        to: user.email,
+        subject: 'DevHub Account Verification Code',
+        html: `
+          <div style="font-family: Arial, sans-serif; background-color: #0d0d12; color: #ffffff; padding: 30px; border-radius: 12px; max-width: 500px; margin: auto;">
+            <h2 style="color: #00F0FF; text-align: center; border-bottom: 1px solid #1a1a26; padding-bottom: 15px;">Welcome to DevHub!</h2>
+            <p style="font-size: 15px; line-height: 1.5; color: #b3b3b3;">Thank you for registering on DevHub. To complete your sign-up, please verify your email address using the 6-digit verification code below:</p>
+            <div style="background-color: #1a1a26; border: 1px solid #00F0FF/30; border-radius: 8px; padding: 15px; text-align: center; margin: 20px 0;">
+              <span style="font-size: 32px; font-weight: bold; letter-spacing: 6px; color: #00F0FF;">${otp}</span>
+            </div>
+            <p style="font-size: 12px; color: #666; text-align: center;">This code is valid for 10 minutes. If you did not request this, you can safely ignore this email.</p>
+          </div>
+        `,
+      });
+    } catch (mailError) {
+      console.error('Failed to send verification email:', mailError.message);
+    }
+
+    res.status(200).json({ message: 'Verification OTP sent to email', email: user.email });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -355,4 +481,6 @@ module.exports = {
   githubAuth,
   githubCallback,
   updateStatusPreference,
+  verifyOtp,
+  resendOtp,
 };
