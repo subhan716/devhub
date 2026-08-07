@@ -155,7 +155,7 @@ const PostCard = ({ post, idx = 0, isHighlighted = false, currentUser, onDelete,
 
       {/* Media attachment (Image/Video) */}
       {post.image && post.image.url && (
-        <div className="rounded-xl overflow-hidden border border-[#8A2BE2]/30 my-2 shadow-[0_0_15px_rgba(138,43,226,0.1)]">
+        <div className="rounded-xl overflow-hidden border border-white/10 my-2">
           {post.image.url.includes('/video/upload/') || post.image.url.match(/\.(mp4|webm|ogg)$/i) ? (
             <video src={post.image.url} controls className="w-full h-auto object-cover max-h-80" />
           ) : (
