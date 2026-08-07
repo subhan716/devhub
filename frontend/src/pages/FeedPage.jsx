@@ -17,12 +17,19 @@ const FeedPage = () => {
   const [isCodeMode, setIsCodeMode] = useState(false);
   const [codeContent, setCodeContent] = useState('');
   const [codeLanguage, setCodeLanguage] = useState('javascript');
+  
+  // Media Attachments States
   const [selectedImage, setSelectedImage] = useState(null);
   const [imagePreview, setImagePreview] = useState('');
+  
+  const [selectedVideo, setSelectedVideo] = useState(null);
+  const [videoPreview, setVideoPreview] = useState('');
+
   const [isUploading, setIsUploading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const fileInputRef = useRef(null);
+  const videoInputRef = useRef(null);
 
   useEffect(() => {
     const fetchPosts = async () => {
@@ -41,6 +48,8 @@ const FeedPage = () => {
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
+      // Clear video if image selected
+      removeSelectedVideo();
       setSelectedImage(file);
       const reader = new FileReader();
       reader.onloadend = () => {
@@ -50,21 +59,42 @@ const FeedPage = () => {
     }
   };
 
+  const handleVideoChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      // Clear image if video selected
+      removeSelectedImage();
+      setSelectedVideo(file);
+      setVideoPreview(URL.createObjectURL(file));
+    }
+  };
+
   const removeSelectedImage = () => {
     setSelectedImage(null);
     setImagePreview('');
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
+  const removeSelectedVideo = () => {
+    setSelectedVideo(null);
+    setVideoPreview('');
+    if (videoInputRef.current) videoInputRef.current.value = '';
+  };
+
+  const removeAllMedia = () => {
+    removeSelectedImage();
+    removeSelectedVideo();
+  };
+
   const handlePostSubmit = async () => {
-    if (!postContent.trim() && !codeContent.trim() && !selectedImage) {
+    if (!postContent.trim() && !codeContent.trim() && !selectedImage && !selectedVideo) {
       toast.error('Post content cannot be completely empty');
       return;
     }
 
     setIsSubmitting(true);
     try {
-      let uploadedImage = null;
+      let uploadedMedia = null;
 
       // 1. Handle image upload if selected
       if (selectedImage) {
@@ -80,25 +110,53 @@ const FeedPage = () => {
               headers: { 'Content-Type': 'multipart/form-data' }
             }
           );
-          uploadedImage = { url: uploadRes.data.url };
+          uploadedMedia = { url: uploadRes.data.url };
         } catch (err) {
-          toast.error('Failed to upload image. Posting text/code instead.');
+          toast.error('Failed to upload image.');
+          setIsSubmitting(false);
+          setIsUploading(false);
+          return;
         } finally {
           setIsUploading(false);
         }
       }
 
-      // 2. Build Post Body
+      // 2. Handle video upload if selected (using generic chat-attachment endpoint)
+      if (selectedVideo) {
+        setIsUploading(true);
+        const formData = new FormData();
+        formData.append('attachment', selectedVideo);
+        try {
+          const uploadRes = await axios.post(
+            `${import.meta.env.VITE_API_URL}/api/upload/chat-attachment`,
+            formData,
+            {
+              withCredentials: true,
+              headers: { 'Content-Type': 'multipart/form-data' }
+            }
+          );
+          uploadedMedia = { url: uploadRes.data.url };
+        } catch (err) {
+          toast.error('Failed to upload video.');
+          setIsSubmitting(false);
+          setIsUploading(false);
+          return;
+        } finally {
+          setIsUploading(false);
+        }
+      }
+
+      // 3. Build Post Body
       const postData = {
         content: postContent,
-        image: uploadedImage
+        image: uploadedMedia
       };
 
       if (isCodeMode && codeContent.trim()) {
         postData.codeSnippet = { code: codeContent, language: codeLanguage };
       }
 
-      // 3. Submit Post
+      // 4. Submit Post
       const { data } = await axios.post(`${import.meta.env.VITE_API_URL}/api/posts`, postData, { withCredentials: true });
       
       // Refresh feed
@@ -108,7 +166,7 @@ const FeedPage = () => {
       setPostContent('');
       setCodeContent('');
       setIsCodeMode(false);
-      removeSelectedImage();
+      removeAllMedia();
       setIsModalOpen(false);
       toast.success('Post deployed successfully!');
     } catch (error) {
@@ -120,10 +178,18 @@ const FeedPage = () => {
 
   const openPostModal = (mode = 'text') => {
     setIsModalOpen(true);
+    
+    // Explicitly toggle features based on selected trigger
     if (mode === 'code') {
       setIsCodeMode(true);
-    } else if (mode === 'image') {
-      setTimeout(() => fileInputRef.current?.click(), 100);
+      removeAllMedia();
+    } else {
+      setIsCodeMode(false);
+      if (mode === 'image') {
+        setTimeout(() => fileInputRef.current?.click(), 100);
+      } else if (mode === 'video') {
+        setTimeout(() => videoInputRef.current?.click(), 100);
+      }
     }
   };
 
@@ -165,10 +231,7 @@ const FeedPage = () => {
           </button>
 
           <button 
-            onClick={() => {
-              openPostModal('image');
-              toast('Videos will use standard media format', { icon: '🎥' });
-            }}
+            onClick={() => openPostModal('video')}
             className="flex items-center gap-2.5 text-gray-400 hover:text-white transition-colors text-sm font-semibold cursor-pointer py-2 px-3 rounded-xl hover:bg-white/5"
           >
             <Video size={18} className="text-[#5f9b41]" />
@@ -177,12 +240,19 @@ const FeedPage = () => {
         </div>
       </div>
 
-      {/* Hidden File Input */}
+      {/* Hidden File Inputs */}
       <input 
         type="file" 
         ref={fileInputRef} 
         onChange={handleImageChange} 
         accept="image/*" 
+        className="hidden" 
+      />
+      <input 
+        type="file" 
+        ref={videoInputRef} 
+        onChange={handleVideoChange} 
+        accept="video/*" 
         className="hidden" 
       />
 
@@ -274,7 +344,21 @@ const FeedPage = () => {
                     <button 
                       type="button"
                       onClick={removeSelectedImage}
-                      className="absolute top-3 right-3 p-1.5 bg-black/75 hover:bg-red-500 text-white rounded-full transition-colors shadow-lg cursor-pointer"
+                      className="absolute top-3 right-3 p-1.5 bg-black/75 hover:bg-red-500 text-white rounded-full transition-colors shadow-lg cursor-pointer animate-fadeIn"
+                    >
+                      <X size={16} />
+                    </button>
+                  </div>
+                )}
+
+                {/* Video Preview Container */}
+                {videoPreview && (
+                  <div className="relative rounded-xl overflow-hidden border border-white/10 bg-black group">
+                    <video src={videoPreview} controls className="w-full max-h-[300px]" />
+                    <button 
+                      type="button"
+                      onClick={removeSelectedVideo}
+                      className="absolute top-3 right-3 p-1.5 bg-black/75 hover:bg-red-500 text-white rounded-full transition-colors shadow-lg cursor-pointer animate-fadeIn z-10"
                     >
                       <X size={16} />
                     </button>
@@ -295,10 +379,11 @@ const FeedPage = () => {
                         <select 
                           value={codeLanguage} 
                           onChange={(e) => setCodeLanguage(e.target.value)}
-                          className="bg-black/30 border border-white/15 rounded px-2 py-0.5 text-white text-[11px] font-mono outline-none"
+                          className="bg-black/30 border border-white/15 rounded px-2 py-0.5 text-white text-[11px] font-mono outline-none cursor-pointer"
                         >
                           <option value="javascript">JavaScript</option>
                           <option value="typescript">TypeScript</option>
+                          <option value="php">PHP</option>
                           <option value="python">Python</option>
                           <option value="html">HTML</option>
                           <option value="css">CSS</option>
@@ -330,16 +415,34 @@ const FeedPage = () => {
                 <div className="flex gap-1.5">
                   {/* Photo Action */}
                   <button 
-                    onClick={() => fileInputRef.current?.click()}
+                    onClick={() => {
+                      setIsCodeMode(false);
+                      fileInputRef.current?.click();
+                    }}
                     className={`p-2.5 rounded-full hover:bg-white/5 transition-colors cursor-pointer ${imagePreview ? 'text-[#00F0FF]' : 'text-gray-400 hover:text-white'}`}
                     title="Add a photo"
                   >
                     <Image size={20} />
                   </button>
 
+                  {/* Video Action */}
+                  <button 
+                    onClick={() => {
+                      setIsCodeMode(false);
+                      videoInputRef.current?.click();
+                    }}
+                    className={`p-2.5 rounded-full hover:bg-white/5 transition-colors cursor-pointer ${videoPreview ? 'text-[#00F0FF]' : 'text-gray-400 hover:text-white'}`}
+                    title="Add a video"
+                  >
+                    <Video size={20} />
+                  </button>
+
                   {/* Code Action */}
                   <button 
-                    onClick={() => setIsCodeMode(!isCodeMode)}
+                    onClick={() => {
+                      removeAllMedia();
+                      setIsCodeMode(!isCodeMode);
+                    }}
                     className={`p-2.5 rounded-full hover:bg-white/5 transition-colors cursor-pointer ${isCodeMode ? 'text-[#00F0FF]' : 'text-gray-400 hover:text-white'}`}
                     title="Add code snippet"
                   >
@@ -350,12 +453,12 @@ const FeedPage = () => {
                 <div className="flex items-center gap-3">
                   {isUploading && (
                     <span className="text-xs text-gray-500 flex items-center gap-1.5 animate-pulse">
-                      <Loader2 size={12} className="animate-spin" /> Uploading image...
+                      <Loader2 size={12} className="animate-spin" /> Uploading media...
                     </span>
                   )}
                   <button 
                     onClick={handlePostSubmit}
-                    disabled={isSubmitting || isUploading || (!postContent.trim() && !codeContent.trim() && !selectedImage)}
+                    disabled={isSubmitting || isUploading || (!postContent.trim() && !codeContent.trim() && !selectedImage && !selectedVideo)}
                     className="px-5 py-2.5 bg-[#00F0FF] hover:bg-[#00F0FF]/90 text-black font-bold rounded-full transition-all text-sm flex items-center gap-2 disabled:opacity-30 disabled:hover:bg-[#00F0FF] cursor-pointer"
                   >
                     {isSubmitting ? 'Posting...' : 'Post'}

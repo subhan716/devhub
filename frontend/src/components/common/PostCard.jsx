@@ -2,9 +2,11 @@ import { motion } from 'framer-motion';
 import { MoreHorizontal, Heart, MessageCircle, Repeat2 } from 'lucide-react';
 import { Light as SyntaxHighlighter } from 'react-syntax-highlighter';
 import js from 'react-syntax-highlighter/dist/esm/languages/hljs/javascript';
+import php from 'react-syntax-highlighter/dist/esm/languages/hljs/php';
 import { vs2015 } from 'react-syntax-highlighter/dist/esm/styles/hljs';
 
 SyntaxHighlighter.registerLanguage('javascript', js);
+SyntaxHighlighter.registerLanguage('php', php);
 
 const PostCard = ({ post, idx = 0, isHighlighted = false }) => {
   return (
@@ -58,10 +60,14 @@ const PostCard = ({ post, idx = 0, isHighlighted = false }) => {
         </div>
       )}
 
-      {/* Image attachment */}
+      {/* Media attachment (Image/Video) */}
       {post.image && (
         <div className="rounded-xl overflow-hidden border border-[#8A2BE2]/30 my-2 shadow-[0_0_15px_rgba(138,43,226,0.1)]">
-          <img src={post.image.url} alt="Post attachment" className="w-full h-auto object-cover max-h-80" />
+          {post.image.url.includes('/video/upload/') || post.image.url.match(/\.(mp4|webm|ogg)$/i) ? (
+            <video src={post.image.url} controls className="w-full h-auto object-cover max-h-80" />
+          ) : (
+            <img src={post.image.url} alt="Post attachment" className="w-full h-auto object-cover max-h-80" />
+          )}
         </div>
       )}
 
