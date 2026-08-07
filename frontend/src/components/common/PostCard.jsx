@@ -48,9 +48,7 @@ const PostCard = ({ post, idx = 0, isHighlighted = false, currentUser, onDelete,
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.95 }}
       transition={{ duration: 0.3, delay: Math.min(idx * 0.1, 0.5) }}
-      className={`bg-[#111] rounded-2xl p-5 shadow-lg flex flex-col gap-4 relative overflow-visible group transition-colors duration-300 ${
-        isHighlighted ? 'border border-[#00F0FF]/50 shadow-[0_0_15px_rgba(0,240,255,0.1)]' : 'border border-white/5 hover:border-white/10'
-      }`}
+      className="bg-[#111] rounded-2xl p-5 shadow-lg flex flex-col gap-4 relative overflow-visible group transition-colors duration-300 border border-white/5 hover:border-white/10"
     >
       {/* Post Header */}
       <div className="flex justify-between items-start">
@@ -142,7 +140,7 @@ const PostCard = ({ post, idx = 0, isHighlighted = false, currentUser, onDelete,
       </p>
 
       {/* Code Snippet */}
-      {post.codeSnippet && (
+      {post.codeSnippet && post.codeSnippet.code && (
         <div className="rounded-xl overflow-hidden border border-white/10 my-2 shadow-inner text-sm relative">
           <SyntaxHighlighter
             language={post.codeSnippet.language}
