@@ -11,6 +11,36 @@ import axios from 'axios';
 SyntaxHighlighter.registerLanguage('javascript', js);
 SyntaxHighlighter.registerLanguage('php', php);
 
+const formatPostDate = (dateString) => {
+  if (!dateString) return '';
+  const date = new Date(dateString);
+  const now = new Date();
+  
+  const diffInSeconds = Math.floor((now - date) / 1000);
+  
+  if (diffInSeconds < 60) {
+    return 'Just now';
+  }
+  
+  const diffInMinutes = Math.floor(diffInSeconds / 60);
+  if (diffInMinutes < 60) {
+    return `${diffInMinutes}m ago`;
+  }
+  
+  const diffInHours = Math.floor(diffInMinutes / 60);
+  if (diffInHours < 24) {
+    return `${diffInHours}h ago`;
+  }
+  
+  const yesterday = new Date(now);
+  yesterday.setDate(now.getDate() - 1);
+  if (date.toDateString() === yesterday.toDateString()) {
+    return `Yesterday at ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+  }
+  
+  return date.toLocaleDateString([], { month: 'short', day: 'numeric' }) + ' at ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+};
+
 const PostCard = ({ post, idx = 0, currentUser, onDelete, onEdit }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const menuRef = useRef(null);
@@ -94,11 +124,7 @@ const PostCard = ({ post, idx = 0, currentUser, onDelete, onEdit }) => {
           />
           <div className="flex flex-col leading-tight cursor-pointer">
             <span className="text-white font-medium text-sm">{post.author?.name || 'Unknown User'}</span>
-            <div className="flex items-center gap-2 text-xs text-gray-500 mt-0.5">
-              <span>@{post.authorProfile?.handle || post.author?.name?.toLowerCase()?.replace(/\s+/g, '') || 'dev'}</span>
-              <span>•</span>
-              <span>{new Date(post.createdAt).toLocaleDateString()}</span>
-            </div>
+            <span className="text-[11px] text-gray-500 mt-0.5">{formatPostDate(post.createdAt)}</span>
           </div>
         </div>
 
