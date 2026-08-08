@@ -142,7 +142,7 @@ const FloatingChat = ({ currentUser }) => {
   if (location.pathname.startsWith('/messages') || !isVisible) return null;
 
   return (
-    <div className="fixed bottom-0 right-4 z-[999] flex items-end gap-3 pointer-events-none">
+    <div className="hidden md:flex fixed bottom-0 right-4 z-[999] items-end gap-3 pointer-events-none">
       
       {/* Active Chat Heads */}
       <AnimatePresence>
