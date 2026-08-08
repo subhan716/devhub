@@ -16,29 +16,21 @@ const formatPostDate = (dateString) => {
   const date = new Date(dateString);
   const now = new Date();
   
-  const diffInSeconds = Math.floor((now - date) / 1000);
+  const diffInHours = Math.floor((now - date) / (1000 * 60 * 60));
   
-  if (diffInSeconds < 60) {
-    return 'Just now';
-  }
-  
-  const diffInMinutes = Math.floor(diffInSeconds / 60);
-  if (diffInMinutes < 60) {
-    return `${diffInMinutes}m ago`;
-  }
-  
-  const diffInHours = Math.floor(diffInMinutes / 60);
   if (diffInHours < 24) {
-    return `${diffInHours}h ago`;
+    // Show 12hr clock time (e.g. 04:30 PM)
+    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
   }
   
   const yesterday = new Date(now);
   yesterday.setDate(now.getDate() - 1);
   if (date.toDateString() === yesterday.toDateString()) {
-    return `Yesterday at ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+    return 'Yesterday';
   }
   
-  return date.toLocaleDateString([], { month: 'short', day: 'numeric' }) + ' at ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  // Show standard date (e.g. Aug 8)
+  return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
 };
 
 const PostCard = ({ post, idx = 0, currentUser, onDelete, onEdit }) => {
