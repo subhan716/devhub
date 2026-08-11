@@ -836,7 +836,7 @@ const ProfilePage = () => {
                 </button>
                 <button 
                   onClick={handleFollowToggle}
-                  className={`px-4 py-1.5 rounded-full font-bold transition-all text-sm border ${isFollowing ? 'bg-transparent border-gray-400 hover:bg-white/10 hover:border-gray-200 text-gray-200' : 'bg-transparent border-white hover:bg-white/10 hover:border-white text-white'} cursor-pointer`}
+                  className={`px-4 py-1.5 rounded-full font-bold transition-all text-sm border ${isFollowing ? 'bg-transparent border-gray-400 hover:bg-white/10 hover:border-gray-200 text-gray-200' : 'bg-transparent border-[#00F0FF]/40 text-[#00F0FF] hover:bg-[#00F0FF]/10 hover:border-[#00F0FF]/60'} cursor-pointer`}
                 >
                   {isFollowing ? 'Following' : 'Follow'}
                 </button>
