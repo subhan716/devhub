@@ -60,7 +60,8 @@ const PostCard = ({ post, idx = 0, currentUser, onDelete, onEdit }) => {
     const checkFollowStatus = async () => {
       try {
         const { data } = await axios.get(`${import.meta.env.VITE_API_URL}/api/profile/following`, { withCredentials: true });
-        const isAlreadyFollowing = data.some(p => p.user?._id === authorId || p.user === authorId);
+        const safeAuthorId = String(authorId);
+        const isAlreadyFollowing = data.some(p => String(p.user?._id) === safeAuthorId || String(p.user) === safeAuthorId);
         setIsFollowing(isAlreadyFollowing);
       } catch {
         // silently ignore
