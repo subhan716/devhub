@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MoreHorizontal, Heart, MessageCircle, Repeat2, Edit3, Trash2, Link2, Bookmark } from 'lucide-react';
+import { MoreHorizontal, Heart, MessageCircle, Repeat2, Edit3, Trash2, Link2, Bookmark, Check, UserMinus } from 'lucide-react';
 import { Light as SyntaxHighlighter } from 'react-syntax-highlighter';
 import js from 'react-syntax-highlighter/dist/esm/languages/hljs/javascript';
 import php from 'react-syntax-highlighter/dist/esm/languages/hljs/php';
@@ -108,6 +108,17 @@ const PostCard = ({ post, idx = 0, currentUser, onDelete, onEdit }) => {
     setIsMenuOpen(false);
   };
 
+  const renderContentWithMentions = (text) => {
+    if (!text) return null;
+    const parts = text.split(/(@\w+)/g);
+    return parts.map((part, i) => {
+      if (part.startsWith('@')) {
+        return <span key={i} className="text-[#00F0FF] font-medium">{part}</span>;
+      }
+      return part;
+    });
+  };
+
   const handleLikeClick = async () => {
     if (!myUserId) {
       toast.error('Please log in to like posts');
@@ -161,19 +172,21 @@ const PostCard = ({ post, idx = 0, currentUser, onDelete, onEdit }) => {
 
         {/* Right side: Follow button + 3-dots Menu */}
         <div className="flex items-center gap-2">
-          {/* Follow Button - only show for other users' posts */}
+          {/* Follow Button / Following Badge */}
           {!isAuthor && myUserId && (
-            <button
-              onClick={handleFollowToggle}
-              disabled={followLoading}
-              className={`text-xs font-semibold px-3 py-1 rounded-full border transition-all cursor-pointer ${
-                isFollowing
-                  ? 'border-white/15 text-gray-400 hover:border-red-500/50 hover:text-red-400'
-                  : 'border-[#00F0FF]/40 text-[#00F0FF] hover:bg-[#00F0FF]/10'
-              } ${followLoading ? 'opacity-50' : ''}`}
-            >
-              {followLoading ? '...' : isFollowing ? 'Following' : '+ Follow'}
-            </button>
+            isFollowing ? (
+              <span className="text-xs font-semibold px-3 py-1 rounded-full border border-white/10 text-gray-400 bg-white/5 flex items-center gap-1 cursor-default">
+                <Check size={12} /> Following
+              </span>
+            ) : (
+              <button
+                onClick={handleFollowToggle}
+                disabled={followLoading}
+                className={`text-xs font-semibold px-3 py-1 rounded-full border transition-all cursor-pointer border-[#00F0FF]/40 text-[#00F0FF] hover:bg-[#00F0FF]/10 ${followLoading ? 'opacity-50' : ''}`}
+              >
+                {followLoading ? '...' : '+ Follow'}
+              </button>
+            )
           )}
 
           {/* 3-Dots Menu Container */}
@@ -185,7 +198,7 @@ const PostCard = ({ post, idx = 0, currentUser, onDelete, onEdit }) => {
             <MoreHorizontal size={18} />
           </button>
 
-          {/* Options Dropdown */}
+                {/* Options Dropdown */}
           <AnimatePresence>
             {isMenuOpen && (
               <motion.div 
@@ -195,6 +208,22 @@ const PostCard = ({ post, idx = 0, currentUser, onDelete, onEdit }) => {
                 transition={{ duration: 0.15 }}
                 className="absolute right-0 top-full mt-1.5 w-48 bg-[#181820] border border-white/10 rounded-xl shadow-2xl py-1.5 z-50 overflow-hidden"
               >
+                {!isAuthor && isFollowing && (
+                  <>
+                    <button 
+                      onClick={(e) => {
+                        handleFollowToggle(e);
+                        setIsMenuOpen(false);
+                      }}
+                      className="w-full px-4 py-2.5 text-left text-sm text-red-400 hover:bg-red-500/10 transition-colors flex items-center gap-2"
+                    >
+                      <UserMinus size={15} />
+                      <span>Unfollow {post.author?.name?.split(' ')[0]}</span>
+                    </button>
+                    <div className="h-px bg-white/5 my-1" />
+                  </>
+                )}
+
                 {isAuthor && (
                   <>
                     <button 
@@ -245,7 +274,7 @@ const PostCard = ({ post, idx = 0, currentUser, onDelete, onEdit }) => {
 
       {/* Post Content */}
       <p className="text-sm text-gray-200 leading-relaxed whitespace-pre-wrap">
-        {post.content}
+        {renderContentWithMentions(post.content)}
       </p>
 
       {/* Code Snippet */}
