@@ -76,6 +76,17 @@ const PostCard = ({ post, idx = 0, currentUser, onDelete, onEdit }) => {
     checkFollowStatus();
   }, [myUserId, authorId, isAuthor]);
 
+  // Listen for follow status changes from other PostCard instances
+  useEffect(() => {
+    const handleSync = (e) => {
+      if (String(e.detail.authorId) === String(authorId)) {
+        setIsFollowing(e.detail.isFollowing);
+      }
+    };
+    window.addEventListener('followStatusChanged', handleSync);
+    return () => window.removeEventListener('followStatusChanged', handleSync);
+  }, [authorId]);
+
   const handleFollowToggle = async (e) => {
     e.stopPropagation();
     if (!myUserId) return;
@@ -83,8 +94,10 @@ const PostCard = ({ post, idx = 0, currentUser, onDelete, onEdit }) => {
     try {
       const action = isFollowing ? 'unfollow' : 'follow';
       await axios.post(`${import.meta.env.VITE_API_URL}/api/profile/${action}/${authorId}`, {}, { withCredentials: true });
-      setIsFollowing(prev => !prev);
-      toast.success(isFollowing ? 'Unfollowed' : `Following ${post.author?.name}`);
+      const newStatus = !isFollowing;
+      setIsFollowing(newStatus);
+      window.dispatchEvent(new CustomEvent('followStatusChanged', { detail: { authorId, isFollowing: newStatus } }));
+      toast.success(newStatus ? `Following ${post.author?.name?.split(' ')[0]}` : 'Unfollowed');
     } catch (err) {
       toast.error(err.response?.data?.message || 'Action failed');
     } finally {
