@@ -17,20 +17,24 @@ const formatPostDate = (dateString) => {
   const now = new Date();
   
   const diffInHours = Math.floor((now - date) / (1000 * 60 * 60));
+  const timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
   
   if (diffInHours < 24) {
-    // Show 12hr clock time (e.g. 04:30 PM)
-    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
+    return timeStr;
   }
   
   const yesterday = new Date(now);
   yesterday.setDate(now.getDate() - 1);
   if (date.toDateString() === yesterday.toDateString()) {
-    return 'Yesterday';
+    return `Yesterday at ${timeStr}`;
   }
   
-  // Show standard date (e.g. Aug 8)
-  return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+  // Format numeric date as DD/MM/YYYY
+  const day = String(date.getDate()).padStart(2, '0');
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const year = date.getFullYear();
+  
+  return `${day}/${month}/${year} at ${timeStr}`;
 };
 
 const PostCard = ({ post, idx = 0, currentUser, onDelete, onEdit }) => {
@@ -45,6 +49,41 @@ const PostCard = ({ post, idx = 0, currentUser, onDelete, onEdit }) => {
   // Like system local state for instant feedback
   const [likes, setLikes] = useState(post.likes || []);
   const isLiked = myUserId && likes.includes(myUserId);
+
+  // Follow system local state
+  const [isFollowing, setIsFollowing] = useState(false);
+  const [followLoading, setFollowLoading] = useState(false);
+
+  // Fetch follow status for this post's author on mount
+  useEffect(() => {
+    if (!myUserId || isAuthor || !authorId) return;
+    const checkFollowStatus = async () => {
+      try {
+        const { data } = await axios.get(`${import.meta.env.VITE_API_URL}/api/profile/following`, { withCredentials: true });
+        const isAlreadyFollowing = data.some(p => p.user?._id === authorId || p.user === authorId);
+        setIsFollowing(isAlreadyFollowing);
+      } catch {
+        // silently ignore
+      }
+    };
+    checkFollowStatus();
+  }, [myUserId, authorId, isAuthor]);
+
+  const handleFollowToggle = async (e) => {
+    e.stopPropagation();
+    if (!myUserId) return;
+    setFollowLoading(true);
+    try {
+      const action = isFollowing ? 'unfollow' : 'follow';
+      await axios.post(`${import.meta.env.VITE_API_URL}/api/profile/${action}/${authorId}`, {}, { withCredentials: true });
+      setIsFollowing(prev => !prev);
+      toast.success(isFollowing ? 'Unfollowed' : `Following ${post.author?.name}`);
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Action failed');
+    } finally {
+      setFollowLoading(false);
+    }
+  };
 
   // Handle click outside menu
   useEffect(() => {
@@ -120,8 +159,25 @@ const PostCard = ({ post, idx = 0, currentUser, onDelete, onEdit }) => {
           </div>
         </div>
 
-        {/* 3-Dots Menu Container */}
-        <div className="relative" ref={menuRef}>
+        {/* Right side: Follow button + 3-dots Menu */}
+        <div className="flex items-center gap-2">
+          {/* Follow Button - only show for other users' posts */}
+          {!isAuthor && myUserId && (
+            <button
+              onClick={handleFollowToggle}
+              disabled={followLoading}
+              className={`text-xs font-semibold px-3 py-1 rounded-full border transition-all cursor-pointer ${
+                isFollowing
+                  ? 'border-white/15 text-gray-400 hover:border-red-500/50 hover:text-red-400'
+                  : 'border-[#00F0FF]/40 text-[#00F0FF] hover:bg-[#00F0FF]/10'
+              } ${followLoading ? 'opacity-50' : ''}`}
+            >
+              {followLoading ? '...' : isFollowing ? 'Following' : '+ Follow'}
+            </button>
+          )}
+
+          {/* 3-Dots Menu Container */}
+          <div className="relative" ref={menuRef}>
           <button 
             onClick={() => setIsMenuOpen(!isMenuOpen)}
             className="text-gray-500 hover:text-white p-1 rounded-lg hover:bg-white/5 transition-all cursor-pointer"
@@ -183,6 +239,7 @@ const PostCard = ({ post, idx = 0, currentUser, onDelete, onEdit }) => {
               </motion.div>
             )}
           </AnimatePresence>
+          </div>
         </div>
       </div>
 

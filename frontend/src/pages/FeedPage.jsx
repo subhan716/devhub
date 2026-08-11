@@ -1,6 +1,6 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useOutletContext } from 'react-router-dom';
-import { Image, Code2, Send, MessageCircle, Heart, Repeat2, MoreHorizontal, Video, FileText, X, Globe, Plus, AlertCircle, Loader2 } from 'lucide-react';
+import { Image, Code2, Send, MessageCircle, Heart, Repeat2, MoreHorizontal, Video, FileText, X, Globe, Plus, AlertCircle, Loader2, AtSign } from 'lucide-react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -31,6 +31,14 @@ const FeedPage = () => {
   const [isUploading, setIsUploading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // @Mention autocomplete state
+  const [connections, setConnections] = useState([]);
+  const [mentionQuery, setMentionQuery] = useState('');
+  const [mentionSuggestions, setMentionSuggestions] = useState([]);
+  const [showMentions, setShowMentions] = useState(false);
+  const textareaRef = useRef(null);
+  const mentionDropdownRef = useRef(null);
+
   const fileInputRef = useRef(null);
   const videoInputRef = useRef(null);
 
@@ -47,6 +55,58 @@ const FeedPage = () => {
     };
     fetchPosts();
   }, []);
+
+  // Fetch user's connections for mention autocomplete
+  useEffect(() => {
+    if (!currentUser) return;
+    const fetchConnections = async () => {
+      try {
+        const { data } = await axios.get(`${import.meta.env.VITE_API_URL}/api/network/connections`, { withCredentials: true });
+        setConnections(data);
+      } catch {
+        // silently ignore
+      }
+    };
+    fetchConnections();
+  }, [currentUser]);
+
+  // Handle textarea input and detect @mention
+  const handlePostContentChange = (e) => {
+    const value = e.target.value;
+    setPostContent(value);
+
+    const cursorPos = e.target.selectionStart;
+    const textBeforeCursor = value.substring(0, cursorPos);
+    const atMatch = textBeforeCursor.match(/@(\w*)$/);
+
+    if (atMatch) {
+      const query = atMatch[1].toLowerCase();
+      setMentionQuery(query);
+      const filtered = connections.filter(conn => {
+        const name = (conn.name || '').toLowerCase();
+        return name.includes(query);
+      });
+      setMentionSuggestions(filtered.slice(0, 6));
+      setShowMentions(true);
+    } else {
+      setShowMentions(false);
+      setMentionSuggestions([]);
+    }
+  };
+
+  // Insert the selected mention into textarea
+  const handleMentionSelect = (user) => {
+    const cursorPos = textareaRef.current?.selectionStart || postContent.length;
+    const textBeforeCursor = postContent.substring(0, cursorPos);
+    const textAfterCursor = postContent.substring(cursorPos);
+    const beforeAt = textBeforeCursor.replace(/@(\w*)$/, '');
+    const insertedName = user.name.replace(/\s+/g, '');
+    const newText = `${beforeAt}@${insertedName} ${textAfterCursor}`;
+    setPostContent(newText);
+    setShowMentions(false);
+    setMentionSuggestions([]);
+    setTimeout(() => textareaRef.current?.focus(), 0);
+  };
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
@@ -408,13 +468,47 @@ const FeedPage = () => {
                   </div>
                 </div>
 
-                {/* Text Content Input */}
-                <textarea
-                  placeholder="What do you want to talk about?"
-                  value={postContent}
-                  onChange={(e) => setPostContent(e.target.value)}
-                  className="w-full bg-transparent text-white placeholder-gray-600 resize-none focus:outline-none min-h-[140px] text-base leading-relaxed"
-                />
+                {/* Text Content Input with Mention Autocomplete */}
+                <div className="relative">
+                  <textarea
+                    ref={textareaRef}
+                    placeholder="What do you want to talk about? Type @ to mention a connection..."
+                    value={postContent}
+                    onChange={handlePostContentChange}
+                    className="w-full bg-transparent text-white placeholder-gray-600 resize-none focus:outline-none min-h-[140px] text-base leading-relaxed"
+                  />
+
+                  {/* @Mention Suggestion Dropdown */}
+                  <AnimatePresence>
+                    {showMentions && mentionSuggestions.length > 0 && (
+                      <motion.div
+                        ref={mentionDropdownRef}
+                        initial={{ opacity: 0, y: -6 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -6 }}
+                        transition={{ duration: 0.15 }}
+                        className="absolute left-0 top-full z-50 w-full max-w-xs bg-[#1a1a1a] border border-white/10 rounded-xl shadow-2xl overflow-hidden"
+                      >
+                        {mentionSuggestions.map((user) => (
+                          <button
+                            key={user._id}
+                            onMouseDown={(e) => { e.preventDefault(); handleMentionSelect(user); }}
+                            className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-white/5 transition-colors text-left"
+                          >
+                            <img
+                              src={user.avatar?.url || 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y'}
+                              alt={user.name}
+                              className="w-7 h-7 rounded-full border border-white/10 object-cover"
+                            />
+                            <div>
+                              <p className="text-sm text-white font-medium leading-tight">{user.name}</p>
+                            </div>
+                          </button>
+                        ))}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
 
                 {/* Drag & Drop style Image Placeholder if mode is image and no preview yet */}
                 {activeAttachmentType === 'image' && !imagePreview && (
