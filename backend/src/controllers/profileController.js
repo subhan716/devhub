@@ -488,8 +488,8 @@ const getFollowing = async (req, res) => {
     const profile = await Profile.findOne({ user: req.user.id });
     if (!profile) return res.status(404).json({ msg: 'Profile not found' });
     
-    // following array contains Profile IDs
-    const followingProfiles = await Profile.find({ _id: { $in: profile.following } }).populate('user', 'name avatar status');
+    // following array contains User IDs
+    const followingProfiles = await Profile.find({ user: { $in: profile.following } }).populate('user', 'name avatar status');
     res.json(followingProfiles);
   } catch (err) {
     console.error(err.message);
