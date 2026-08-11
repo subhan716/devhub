@@ -83,7 +83,7 @@ const FeedPage = () => {
       const query = atMatch[1].toLowerCase();
       setMentionQuery(query);
       const filtered = connections.filter(conn => {
-        const name = (conn.name || '').toLowerCase();
+        const name = (conn.user?.name || '').toLowerCase();
         return name.includes(query);
       });
       setMentionSuggestions(filtered.slice(0, 6));
@@ -489,19 +489,19 @@ const FeedPage = () => {
                         transition={{ duration: 0.15 }}
                         className="absolute left-0 top-full z-50 w-full max-w-xs bg-[#1a1a1a] border border-white/10 rounded-xl shadow-2xl overflow-hidden"
                       >
-                        {mentionSuggestions.map((user) => (
+                        {mentionSuggestions.map((conn) => (
                           <button
-                            key={user._id}
-                            onMouseDown={(e) => { e.preventDefault(); handleMentionSelect(user); }}
+                            key={conn.connectionId || conn.user?._id}
+                            onMouseDown={(e) => { e.preventDefault(); handleMentionSelect(conn.user); }}
                             className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-white/5 transition-colors text-left"
                           >
                             <img
-                              src={user.avatar?.url || 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y'}
-                              alt={user.name}
+                              src={conn.user?.avatar?.url || 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y'}
+                              alt={conn.user?.name}
                               className="w-7 h-7 rounded-full border border-white/10 object-cover"
                             />
                             <div>
-                              <p className="text-sm text-white font-medium leading-tight">{user.name}</p>
+                              <p className="text-sm text-white font-medium leading-tight">{conn.user?.name}</p>
                             </div>
                           </button>
                         ))}
