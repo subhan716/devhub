@@ -53,10 +53,14 @@ const PostCard = ({ post, idx = 0, currentUser, onDelete, onEdit }) => {
   // Follow system local state
   const [isFollowing, setIsFollowing] = useState(false);
   const [followLoading, setFollowLoading] = useState(false);
+  const [isCheckingFollow, setIsCheckingFollow] = useState(true);
 
   // Fetch follow status for this post's author on mount
   useEffect(() => {
-    if (!myUserId || isAuthor || !authorId) return;
+    if (!myUserId || isAuthor || !authorId) {
+      setIsCheckingFollow(false);
+      return;
+    }
     const checkFollowStatus = async () => {
       try {
         const { data } = await axios.get(`${import.meta.env.VITE_API_URL}/api/profile/following`, { withCredentials: true });
@@ -65,6 +69,8 @@ const PostCard = ({ post, idx = 0, currentUser, onDelete, onEdit }) => {
         setIsFollowing(isAlreadyFollowing);
       } catch {
         // silently ignore
+      } finally {
+        setIsCheckingFollow(false);
       }
     };
     checkFollowStatus();
@@ -175,7 +181,9 @@ const PostCard = ({ post, idx = 0, currentUser, onDelete, onEdit }) => {
         <div className="flex items-center gap-2">
           {/* Follow Button / Following Badge */}
           {!isAuthor && myUserId && (
-            isFollowing ? (
+            isCheckingFollow ? (
+              <div className="w-[72px] h-6 rounded-full bg-white/5 animate-pulse" />
+            ) : isFollowing ? (
               <span className="text-xs font-semibold px-3 py-1 rounded-full border border-white/10 text-gray-400 bg-white/5 flex items-center gap-1 cursor-default">
                 <Check size={12} /> Following
               </span>
