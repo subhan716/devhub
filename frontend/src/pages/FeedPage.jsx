@@ -5,6 +5,7 @@ import axios from 'axios';
 import toast from 'react-hot-toast';
 import { motion, AnimatePresence } from 'framer-motion';
 import PostCard from '../components/common/PostCard';
+import { PostSkeleton } from '../components/common/Skeletons';
 import useFeedStore from '../store/useFeedStore';
 import { Virtuoso } from 'react-virtuoso';
 
@@ -415,9 +416,11 @@ const FeedPage = () => {
       {/* Feed Stream */}
       <div className="flex flex-col gap-6">
         {isLoading ? (
-          <div className="flex justify-center items-center py-10">
-            <Loader2 className="animate-spin h-8 w-8 text-[#00F0FF]" />
-          </div>
+          <>
+            <PostSkeleton />
+            <PostSkeleton />
+            <PostSkeleton />
+          </>
         ) : posts.length === 0 ? (
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
@@ -428,7 +431,6 @@ const FeedPage = () => {
             <h3 className="text-xl font-bold text-gray-200">No posts yet</h3>
             <p className="text-sm">Be the first to share a professional update!</p>
           </motion.div>
-        ) : (
         ) : (
           <Virtuoso
             useWindowScroll
@@ -453,8 +455,8 @@ const FeedPage = () => {
             )}
             components={{
               Footer: () => isFetchingMore ? (
-                <div className="flex justify-center items-center py-4 pb-10">
-                  <Loader2 className="animate-spin h-6 w-6 text-[#00F0FF]" />
+                <div className="pb-10">
+                  <PostSkeleton />
                 </div>
               ) : null
             }}

@@ -7,6 +7,7 @@ import toast from 'react-hot-toast';
 import { useSocket } from '../context/SocketContext';
 import { format } from 'date-fns';
 import EmojiPicker from 'emoji-picker-react';
+import { ChatListSkeleton, MessageSkeleton } from '../components/common/Skeletons';
 
 const MessagesPage = () => {
   const { currentUser } = useOutletContext();
@@ -985,15 +986,10 @@ const MessagesPage = () => {
         <div data-lenis-prevent="true" className={`flex-1 overflow-y-auto custom-scrollbar min-h-0 ${conversations.length === 0 && connections.length === 0 && !isLoadingConvos ? 'flex flex-col items-center justify-center' : ''}`}>
           {isLoadingConvos ? (
             // Skeleton Loader
-            <div className="flex flex-col">
-              {[...Array(5)].map((_, i) => (
-                <div key={i} className="px-4 py-3 flex items-center gap-3 border-b border-white/5">
-                  <div className="w-12 h-12 rounded-full bg-white/5 animate-pulse flex-shrink-0" />
-                  <div className="flex-1 space-y-2">
-                    <div className="h-3 bg-white/5 rounded-full animate-pulse w-2/3" />
-                    <div className="h-2.5 bg-white/5 rounded-full animate-pulse w-1/2" />
-                  </div>
-                  <div className="w-8 h-2 bg-white/5 rounded-full animate-pulse" />
+            <div className="flex flex-col w-full">
+              {[...Array(7)].map((_, i) => (
+                <div key={i} className="border-b border-white/5 w-full">
+                  <ChatListSkeleton />
                 </div>
               ))}
             </div>
@@ -1257,11 +1253,12 @@ const MessagesPage = () => {
             {/* Chat Messages Area */}
             <div ref={scrollContainerRef} data-lenis-prevent="true" className="flex-1 overflow-y-auto custom-scrollbar min-h-0 flex flex-col relative bg-[#131317] bg-[url('/grid.svg')] bg-[length:40px_40px] px-8 py-6">
               {isLoadingMessages ? (
-                <div className="flex-1 flex items-center justify-center">
-                  <div className="flex flex-col items-center gap-3">
-                    <Loader2 className="w-10 h-10 animate-spin text-[#00F0FF]" />
-                    <span className="text-sm text-gray-500">Loading messages...</span>
-                  </div>
+                <div className="flex-1 flex flex-col justify-end w-full space-y-1">
+                  <MessageSkeleton isOwn={false} />
+                  <MessageSkeleton isOwn={true} />
+                  <MessageSkeleton isOwn={false} />
+                  <MessageSkeleton isOwn={false} />
+                  <MessageSkeleton isOwn={true} />
                 </div>
               ) : (
                 <>
