@@ -6,6 +6,7 @@ import toast from 'react-hot-toast';
 import { motion, AnimatePresence } from 'framer-motion';
 import PostCard from '../components/common/PostCard';
 import useFeedStore from '../store/useFeedStore';
+import { Virtuoso } from 'react-virtuoso';
 
 const FeedPage = () => {
   const { currentUser } = useOutletContext();
@@ -13,18 +14,6 @@ const FeedPage = () => {
   const [isLoading, setIsLoading] = useState(!isInitialized);
   
   const [isFetchingMore, setIsFetchingMore] = useState(false);
-  const observer = useRef();
-
-  const lastPostElementRef = useCallback(node => {
-    if (isLoading || isFetchingMore) return;
-    if (observer.current) observer.current.disconnect();
-    observer.current = new IntersectionObserver(entries => {
-      if (entries[0].isIntersecting && hasMore) {
-        incrementPage();
-      }
-    });
-    if (node) observer.current.observe(node);
-  }, [isLoading, isFetchingMore, hasMore]);
 
   // Modal States
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -440,28 +429,36 @@ const FeedPage = () => {
             <p className="text-sm">Be the first to share a professional update!</p>
           </motion.div>
         ) : (
-          <AnimatePresence>
-            {posts.map((post, idx) => {
-              const isLastPost = posts.length === idx + 1;
-              return (
-                <div key={post._id} ref={isLastPost ? lastPostElementRef : null}>
-                  <PostCard 
-                    post={post} 
-                    idx={idx} 
-                    isHighlighted={idx === 0} 
-                    currentUser={currentUser}
-                    onDelete={handleDeletePost}
-                    onEdit={handleEditPostClick}
-                  />
+        ) : (
+          <Virtuoso
+            useWindowScroll
+            data={posts}
+            endReached={() => {
+              if (hasMore && !isFetchingMore) {
+                incrementPage();
+              }
+            }}
+            itemContent={(idx, post) => (
+              <div className="mb-6">
+                <PostCard 
+                  key={post._id} 
+                  post={post} 
+                  idx={idx} 
+                  isHighlighted={idx === 0} 
+                  currentUser={currentUser}
+                  onDelete={handleDeletePost}
+                  onEdit={handleEditPostClick}
+                />
+              </div>
+            )}
+            components={{
+              Footer: () => isFetchingMore ? (
+                <div className="flex justify-center items-center py-4 pb-10">
+                  <Loader2 className="animate-spin h-6 w-6 text-[#00F0FF]" />
                 </div>
-              );
-            })}
-          </AnimatePresence>
-        )}
-        {isFetchingMore && (
-          <div className="flex justify-center items-center py-4">
-            <Loader2 className="animate-spin h-6 w-6 text-[#00F0FF]" />
-          </div>
+              ) : null
+            }}
+          />
         )}
       </div>
 
