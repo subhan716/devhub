@@ -79,8 +79,13 @@ const getCurrentProfile = async (req, res) => {
       status: 'accepted'
     });
 
+    const followersCount = await Follow.countDocuments({ following: req.user.id });
+    const followingCount = await Follow.countDocuments({ follower: req.user.id });
+
     const profileData = profile.toJSON();
     profileData.connectionCount = connectionCount;
+    profileData.followersCount = followersCount;
+    profileData.followingCount = followingCount;
 
     res.json(profileData);
   } catch (err) {
@@ -119,8 +124,13 @@ const getProfileByUserId = async (req, res) => {
       status: 'accepted'
     });
 
+    const followersCount = await Follow.countDocuments({ following: req.params.user_id });
+    const followingCount = await Follow.countDocuments({ follower: req.params.user_id });
+
     const profileData = profile.toJSON();
     profileData.connectionCount = connectionCount;
+    profileData.followersCount = followersCount;
+    profileData.followingCount = followingCount;
 
     res.json(profileData);
   } catch (err) {
