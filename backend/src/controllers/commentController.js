@@ -33,6 +33,11 @@ const addComment = async (req, res) => {
     // Increment post comments count
     post.commentsCount += 1;
     await post.save();
+    
+    try {
+      getIo().emit('post_updated', { postId: post._id, commentsCount: post.commentsCount });
+      getIo().emit('comment_added', { postId: post._id, comment });
+    } catch(e) {}
 
     // Populate user details for returning
     await comment.populate('user', ['name', 'avatar']);
@@ -132,6 +137,10 @@ const deleteComment = async (req, res) => {
     if (post) {
       post.commentsCount = Math.max(0, post.commentsCount - deleteCount);
       await post.save();
+      try {
+        getIo().emit('post_updated', { postId: post._id, commentsCount: post.commentsCount });
+        getIo().emit('comment_deleted', { postId: post._id, commentId: req.params.commentId });
+      } catch(e) {}
     }
 
     res.json({ message: 'Comment removed' });
@@ -167,6 +176,9 @@ const likeComment = async (req, res) => {
     }
 
     await comment.save();
+    try {
+      getIo().emit('comment_updated', { commentId: comment._id, likes: comment.likes, postId: comment.post });
+    } catch(e) {}
     res.json(comment.likes);
   } catch (err) {
     console.error(err.message);

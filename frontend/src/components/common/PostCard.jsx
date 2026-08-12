@@ -8,6 +8,7 @@ import { vs2015 } from 'react-syntax-highlighter/dist/esm/styles/hljs';
 import toast from 'react-hot-toast';
 import axios from 'axios';
 import CommentsList from './CommentsList';
+import { useSocket } from '../../context/SocketContext';
 
 SyntaxHighlighter.registerLanguage('javascript', js);
 SyntaxHighlighter.registerLanguage('php', php);
@@ -57,6 +58,25 @@ const PostCard = ({ post, idx = 0, currentUser, onDelete, onEdit, autoOpenCommen
   const [isFollowing, setIsFollowing] = useState(false);
   const [followLoading, setFollowLoading] = useState(false);
   const [isCheckingFollow, setIsCheckingFollow] = useState(true);
+  
+  const { socket } = useSocket();
+
+  useEffect(() => {
+    if (!socket) return;
+    
+    const handlePostUpdate = (data) => {
+      if (data.postId === post._id) {
+        if (data.likes !== undefined) setLikes(data.likes);
+        if (data.commentsCount !== undefined) setCommentsCount(data.commentsCount);
+      }
+    };
+
+    socket.on('post_updated', handlePostUpdate);
+    
+    return () => {
+      socket.off('post_updated', handlePostUpdate);
+    };
+  }, [socket, post._id]);
 
   // Fetch follow status for this post's author on mount
   useEffect(() => {

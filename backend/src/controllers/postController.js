@@ -234,6 +234,17 @@ const likePost = async (req, res) => {
     post.likesCount = post.likes.length;
     await post.save();
 
+    try {
+      const { getIo } = require('../socket');
+      getIo().emit('post_updated', { 
+        postId: post._id, 
+        likes: post.likes,
+        likesCount: post.likesCount
+      });
+    } catch (e) {
+      console.log('Socket emit failed', e.message);
+    }
+
     res.json({
       _id: post._id,
       likes: post.likes,
