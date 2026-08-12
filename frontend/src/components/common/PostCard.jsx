@@ -5,10 +5,10 @@ import { Light as SyntaxHighlighter } from 'react-syntax-highlighter';
 import js from 'react-syntax-highlighter/dist/esm/languages/hljs/javascript';
 import php from 'react-syntax-highlighter/dist/esm/languages/hljs/php';
 import { vs2015 } from 'react-syntax-highlighter/dist/esm/styles/hljs';
-import toast from 'react-hot-toast';
 import axios from 'axios';
 import CommentsList from './CommentsList';
 import { useSocket } from '../../context/SocketContext';
+import useFeedStore from '../../store/useFeedStore';
 
 SyntaxHighlighter.registerLanguage('javascript', js);
 SyntaxHighlighter.registerLanguage('php', php);
@@ -50,8 +50,9 @@ const PostCard = ({ post, idx = 0, currentUser, onDelete, onEdit, autoOpenCommen
   const authorId = post.author?._id || post.author;
   const isAuthor = myUserId && authorId && myUserId === authorId;
 
-  // Like system local state for instant feedback
-  const [likes, setLikes] = useState(post.likes || []);
+  // Like system using global Zustand store for true cross-app optimistic updates
+  const { optimisticLikePost, revertPostUpdate, updatePostInFeed } = useFeedStore();
+  const likes = post.likes || [];
   const isLiked = myUserId && likes.includes(myUserId);
 
   // Follow system local state
@@ -66,7 +67,7 @@ const PostCard = ({ post, idx = 0, currentUser, onDelete, onEdit, autoOpenCommen
     
     const handlePostUpdate = (data) => {
       if (data.postId === post._id) {
-        if (data.likes !== undefined) setLikes(data.likes);
+        if (data.likes !== undefined) updatePostInFeed({ ...post, likes: data.likes, likesCount: data.likesCount });
         if (data.commentsCount !== undefined) setCommentsCount(data.commentsCount);
       }
     };
@@ -168,13 +169,8 @@ const PostCard = ({ post, idx = 0, currentUser, onDelete, onEdit, autoOpenCommen
       return;
     }
 
-    // Optimistic Update
-    const originalLikes = [...likes];
-    const updatedLikes = isLiked 
-      ? likes.filter(id => id !== myUserId)
-      : [...likes, myUserId];
-
-    setLikes(updatedLikes);
+    // Global Optimistic Update via Zustand
+    const previousPostState = optimisticLikePost(post._id, myUserId);
 
     try {
       const { data } = await axios.put(
@@ -182,11 +178,11 @@ const PostCard = ({ post, idx = 0, currentUser, onDelete, onEdit, autoOpenCommen
         {},
         { withCredentials: true }
       );
-      // Sync strictly with server response
-      setLikes(data.likes);
+      // Ensure the server's exact state is applied
+      updatePostInFeed(data);
     } catch (error) {
       // Rollback on failure
-      setLikes(originalLikes);
+      if (previousPostState) revertPostUpdate(previousPostState);
       toast.error('Failed to update like');
     }
   };

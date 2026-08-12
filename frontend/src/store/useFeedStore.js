@@ -23,6 +23,29 @@ const useFeedStore = create((set, get) => ({
   updatePostInFeed: (updatedPost) => set((state) => ({
     posts: state.posts.map(p => p._id === updatedPost._id ? updatedPost : p)
   })),
+
+  optimisticLikePost: (postId, userId) => {
+    let previousPost = null;
+    set((state) => ({
+      posts: state.posts.map(p => {
+        if (p._id === postId) {
+          previousPost = { ...p }; // Clone for backup
+          const hasLiked = p.likes.includes(userId);
+          return {
+            ...p,
+            likes: hasLiked ? p.likes.filter(id => id !== userId) : [userId, ...p.likes],
+            likesCount: hasLiked ? Math.max(0, p.likesCount - 1) : p.likesCount + 1
+          };
+        }
+        return p;
+      })
+    }));
+    return previousPost; // Return the exact backup so it can be reverted if API fails
+  },
+
+  revertPostUpdate: (originalPost) => set((state) => ({
+    posts: state.posts.map(p => p._id === originalPost._id ? originalPost : p)
+  })),
   
   resetFeed: () => set({ posts: [], page: 1, hasMore: true, isInitialized: false })
 }));
