@@ -45,7 +45,7 @@ const CommentItem = ({ comment, postId, onReply, onDelete, depth = 0, isTarget, 
         <div className="relative group">
           <div className="flex items-center gap-2 mb-0.5">
             <span className="font-bold text-sm text-gray-100 hover:underline cursor-pointer">{comment.user?.name}</span>
-            <span className="text-[11px] text-gray-500">• {formatDistanceToNow(new Date(comment.createdAt))}</span>
+            <span className="text-[11px] text-gray-500">• {formatDistanceToNow(new Date(comment.createdAt), { addSuffix: true })}</span>
           </div>
           <p className="text-[14px] text-gray-200 leading-relaxed whitespace-pre-wrap">{comment.text}</p>
           
@@ -60,8 +60,9 @@ const CommentItem = ({ comment, postId, onReply, onDelete, depth = 0, isTarget, 
 
         {/* Comment Actions */}
         <div className="flex items-center gap-4 mt-1.5 text-[12px] font-semibold text-gray-500">
-          <button onClick={handleLike} className={`hover:text-[#00F0FF] transition-colors flex items-center gap-1 ${isLiked ? 'text-[#00F0FF]' : ''}`}>
-            Like {likes.length > 0 && <span>({likes.length})</span>}
+          <button onClick={handleLike} className={`group flex items-center gap-1.5 transition-colors ${isLiked ? 'text-red-500' : 'hover:text-gray-300'}`}>
+            <Heart size={14} className={`transition-all ${isLiked ? 'fill-red-500' : 'group-hover:text-red-500'}`} />
+            {likes.length > 0 && <span>{likes.length}</span>}
           </button>
           {depth < 2 && (
             <button onClick={() => onReply(comment)} className="hover:text-white transition-colors">
