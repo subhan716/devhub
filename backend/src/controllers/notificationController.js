@@ -5,11 +5,16 @@ const Notification = require('../models/Notification');
 // @access  Private
 const getNotifications = async (req, res) => {
   try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 50;
+    const skip = (page - 1) * limit;
+
     const notifications = await Notification.find({ recipient: req.user._id })
       .populate('sender', 'name avatar')
       .populate('relatedPost', 'title') // if applicable
       .sort('-createdAt')
-      .limit(50); // Get latest 50 notifications
+      .skip(skip)
+      .limit(limit);
 
     res.status(200).json(notifications);
   } catch (error) {
@@ -22,18 +27,15 @@ const getNotifications = async (req, res) => {
 // @access  Private
 const markAsRead = async (req, res) => {
   try {
-    const notification = await Notification.findById(req.params.id);
+    const notification = await Notification.findOneAndUpdate(
+      { _id: req.params.id, recipient: req.user._id },
+      { $set: { read: true } },
+      { new: true }
+    );
 
     if (!notification) {
-      return res.status(404).json({ message: 'Notification not found' });
+      return res.status(404).json({ message: 'Notification not found or unauthorized' });
     }
-
-    if (notification.recipient.toString() !== req.user._id.toString()) {
-      return res.status(403).json({ message: 'User not authorized' });
-    }
-
-    notification.read = true;
-    await notification.save();
 
     res.status(200).json(notification);
   } catch (error) {

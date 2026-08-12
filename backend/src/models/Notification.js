@@ -39,4 +39,10 @@ const notificationSchema = new mongoose.Schema(
   }
 );
 
+// Compound index for hyper-fast querying of unread/recent notifications per user
+notificationSchema.index({ recipient: 1, read: 1, createdAt: -1 });
+
+// TTL Index: Automatically delete notifications older than 30 days to prevent infinite database growth
+notificationSchema.index({ createdAt: 1 }, { expireAfterSeconds: 30 * 24 * 60 * 60 });
+
 module.exports = mongoose.model('Notification', notificationSchema);
