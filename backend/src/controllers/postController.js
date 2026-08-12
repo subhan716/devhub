@@ -1,6 +1,8 @@
 const Post = require('../models/Post');
 const Profile = require('../models/Profile');
 const User = require('../models/User');
+const Follow = require('../models/Follow');
+const mongoose = require('mongoose');
 
 // @desc    Create a new post
 // @route   POST /api/posts
@@ -32,28 +34,102 @@ const createPost = async (req, res) => {
 // @access  Private
 const getPosts = async (req, res) => {
   try {
-    // Sort by newest first
-    const posts = await Post.find()
-      .sort({ createdAt: -1 })
-      .populate('author', 'name avatar');
+    const { feedType } = req.query; // 'following' or 'foryou'
+    const userId = req.user.id;
+
+    // Get the list of users the current user follows
+    const follows = await Follow.find({ follower: userId });
+    const followingIds = follows.map(f => f.following);
+
+    let posts = [];
+
+    if (feedType === 'following') {
+      posts = await Post.find({ author: { $in: followingIds } })
+        .sort({ createdAt: -1 })
+        .limit(50)
+        .populate('author', 'name avatar');
+    } else {
+      // 'For You' - Highly Scalable Aggregation Pipeline
+      const pipeline = [
+        // 1. Filter: Only process posts from the last 14 days to keep the pipeline extremely fast
+        { $match: { createdAt: { $gte: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000) } } },
+        
+        // 2. Pre-compute fields for scoring
+        {
+          $addFields: {
+            isFollowing: { $in: ["$author", followingIds] },
+            ageInHours: { $divide: [{ $subtract: [new Date(), "$createdAt"] }, 1000 * 60 * 60] },
+            contentLen: { $strLenCP: { $ifNull: ["$content", ""] } },
+            hasMedia: { 
+              $or: [
+                { $gt: [{ $type: "$image.url" }, "missing"] },
+                { $gt: [{ $type: "$video.url" }, "missing"] }
+              ]
+            }
+          }
+        },
+        
+        // 3. Calculate Base Score and Multipliers
+        {
+          $addFields: {
+            baseScore: { 
+              $add: [
+                1, // Base point
+                { $ifNull: ["$likesCount", 0] }, // 1 point per like
+                { $multiply: [{ $ifNull: ["$commentsCount", 0] }, 5] } // 5 points per comment (LinkedIn style)
+              ] 
+            },
+            contentBoost: {
+              $cond: {
+                 if: { $gt: ["$contentLen", 100] }, then: 1.1, // Long-form insight boost
+                 else: { $cond: { if: { $lt: ["$contentLen", 15] }, then: 0.3, else: 1.0 } } // Spam penalty
+              }
+            },
+            mediaBoost: { $cond: [{ $eq: ["$hasMedia", true] }, 1.2, 1.0] },
+            networkBoost: { $cond: [{ $eq: ["$isFollowing", true] }, 2.0, 1.0] },
+            echoPenalty: { $cond: [{ $eq: ["$author", new mongoose.Types.ObjectId(userId)] }, 0.2, 1.0] }
+          }
+        },
+        
+        // 4. Calculate Final Gravity Score
+        {
+          $addFields: {
+            finalScore: { 
+              $divide: [
+                { $multiply: ["$baseScore", "$contentBoost", "$mediaBoost", "$networkBoost", "$echoPenalty"] },
+                { $pow: [{ $add: ["$ageInHours", 2] }, 1.5] } // Gravity penalty
+              ]
+            }
+          }
+        },
+        
+        // 5. Sort by Final Score and Limit
+        { $sort: { finalScore: -1 } },
+        { $limit: 30 }
+      ];
+
+      const rawPosts = await Post.aggregate(pipeline);
+      // Populate author details after aggregation
+      posts = await Post.populate(rawPosts, { path: 'author', select: 'name avatar' });
+    }
     
     // For a real app, we would aggregate the Profile data (status, handle) with the User data.
-    // We'll map through posts and fetch the profile for each author to get their handle/status.
-    
     const postsWithProfiles = await Promise.all(posts.map(async (post) => {
-      if (!post.author) {
+      // Handle the case where post is a lean object from aggregate or full Mongoose document
+      const authorId = post.author?._id || post.author;
+      if (!authorId) {
         return {
-          ...post._doc,
+          ...(post._doc || post),
           authorProfile: { status: 'Deleted User', handle: 'deleted' }
         };
       }
-      const profile = await Profile.findOne({ user: post.author._id });
+      const profile = await Profile.findOne({ user: authorId });
       return {
-        ...post._doc,
+        ...(post._doc || post),
         authorProfile: profile ? {
           status: profile.status,
           handle: profile.githubusername || post.author.name.toLowerCase().replace(/\s+/g, ''),
-        } : { status: 'Developer', handle: 'dev' }
+        } : { status: 'Professional', handle: 'user' }
       };
     }));
 
