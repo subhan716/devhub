@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Heart, MessageCircle, MoreHorizontal, Trash2, ChevronDown, ChevronUp } from 'lucide-react';
+import { Heart, MessageCircle, MoreHorizontal, Trash2, ChevronDown, ChevronUp, Edit3, Copy } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import toast from 'react-hot-toast';
 import { useSocket } from '../../context/SocketContext';
@@ -103,49 +103,34 @@ const CommentItem = ({ comment, postId, onReply, onDelete, depth = 0, isTarget, 
             <p className="text-[14px] text-gray-200 leading-relaxed whitespace-pre-wrap">{comment.text}</p>
           )}
           
-          {/* 3-Dot Menu */}
+          {/* Horizontal Actions (Edit, Delete, Copy) */}
           {!isEditing && (
-            <div className="absolute top-0 right-0 opacity-0 group-hover:opacity-100 transition-opacity" ref={menuRef}>
-              <button 
-                onClick={() => setIsMenuOpen(!isMenuOpen)} 
-                className="p-1 text-gray-500 hover:text-white bg-[#111] hover:bg-white/10 rounded-full transition-colors"
-              >
-                <MoreHorizontal size={16} />
-              </button>
-              
-              <AnimatePresence>
-                {isMenuOpen && (
-                  <motion.div 
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.95 }}
-                    className="absolute right-0 top-full mt-1 w-32 bg-[#1A1A1A] border border-white/10 rounded-xl shadow-2xl overflow-hidden z-20 py-1"
+            <div className="absolute top-0 right-0 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1 bg-[#111] rounded-full p-1 border border-white/5 shadow-lg">
+              {isAuthor && (
+                <>
+                  <button 
+                    onClick={() => setIsEditing(true)} 
+                    className="p-1.5 text-gray-500 hover:text-white hover:bg-white/10 rounded-full transition-colors"
+                    title="Edit Comment"
                   >
-                    {isAuthor && (
-                      <>
-                        <button 
-                          onClick={() => { setIsEditing(true); setIsMenuOpen(false); }}
-                          className="w-full text-left px-4 py-2 text-xs text-gray-300 hover:bg-white/5 hover:text-white transition-colors"
-                        >
-                          Edit
-                        </button>
-                        <button 
-                          onClick={() => { onDelete(comment._id); setIsMenuOpen(false); }}
-                          className="w-full text-left px-4 py-2 text-xs text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-colors"
-                        >
-                          Delete
-                        </button>
-                      </>
-                    )}
-                    <button 
-                      onClick={copyToClipboard}
-                      className="w-full text-left px-4 py-2 text-xs text-gray-300 hover:bg-white/5 hover:text-white transition-colors"
-                    >
-                      Copy text
-                    </button>
-                  </motion.div>
-                )}
-              </AnimatePresence>
+                    <Edit3 size={14} />
+                  </button>
+                  <button 
+                    onClick={() => onDelete(comment._id)} 
+                    className="p-1.5 text-gray-500 hover:text-red-400 hover:bg-red-500/10 rounded-full transition-colors"
+                    title="Delete Comment"
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                </>
+              )}
+              <button 
+                onClick={copyToClipboard} 
+                className="p-1.5 text-gray-500 hover:text-white hover:bg-white/10 rounded-full transition-colors"
+                title="Copy Text"
+              >
+                <Copy size={14} />
+              </button>
             </div>
           )}
         </div>
