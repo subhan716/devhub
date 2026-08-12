@@ -405,7 +405,7 @@ const searchProfiles = async (req, res) => {
     const query = {};
     
     if (q) {
-      const users = await User.find({ name: { $regex: q, $options: 'i' } }).select('_id');
+      const users = await User.find({ $text: { $search: q } }).select('_id');
       const userIds = users.map(u => u._id);
       
       query.$or = [

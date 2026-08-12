@@ -190,10 +190,9 @@ const searchPosts = async (req, res) => {
     if (!q) return res.json([]);
     
     const posts = await Post.find({
-      $or: [
-        { content: { $regex: q, $options: 'i' } }
-      ]
-    })
+      $text: { $search: q }
+    }, { score: { $meta: "textScore" } })
+    .sort({ score: { $meta: "textScore" } })
     .sort({ createdAt: -1 })
     .populate('author', 'name avatar')
     .limit(20);

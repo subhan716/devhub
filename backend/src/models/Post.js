@@ -45,4 +45,7 @@ const postSchema = new mongoose.Schema(
   }
 );
 
+// Create text index for highly scalable search
+postSchema.index({ content: 'text' });
+
 module.exports = mongoose.model('Post', postSchema);

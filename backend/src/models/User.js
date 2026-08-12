@@ -90,4 +90,7 @@ userSchema.methods.matchPassword = async function (enteredPassword) {
   return await bcrypt.compare(enteredPassword, this.passwordHash);
 };
 
+// Create text index for highly scalable search
+userSchema.index({ name: 'text' });
+
 module.exports = mongoose.model('User', userSchema);
