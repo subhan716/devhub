@@ -6,70 +6,102 @@ const SuggestionCache = require('../models/SuggestionCache');
 
 const calculateSuggestionsForUser = async (userId) => {
   const limit = 15;
+  const userObjectId = new mongoose.Types.ObjectId(userId);
 
-  // 1. Get current user's 1st-degree connections (accepted or pending to exclude them)
-  const directConnections = await Connection.find({
-    $or: [{ requester: userId }, { recipient: userId }]
-  });
-
-  const excludeIds = new Set([userId.toString()]);
-  const firstDegreeIds = new Set();
-  
-  directConnections.forEach(conn => {
-    const otherId = conn.requester.toString() === userId.toString() ? conn.recipient.toString() : conn.requester.toString();
-    excludeIds.add(otherId);
-    if (conn.status === 'accepted') {
-      firstDegreeIds.add(otherId);
-    }
-  });
-
-  const excludeObjectIds = Array.from(excludeIds).map(id => new mongoose.Types.ObjectId(id));
-  const firstDegreeObjectIds = Array.from(firstDegreeIds).map(id => new mongoose.Types.ObjectId(id));
-
-  let suggestions = [];
-
-  // 2. Intelligent Mutual Connections Algorithm (2nd Degree Network)
-  if (firstDegreeObjectIds.length > 0) {
-    const mutualSuggestions = await Connection.aggregate([
-      {
-        $match: {
-          status: 'accepted',
-          $or: [
-            { requester: { $in: firstDegreeObjectIds } },
-            { recipient: { $in: firstDegreeObjectIds } }
-          ]
-        }
-      },
-      {
-        $project: {
-          secondDegreeUser: {
-            $cond: {
-              if: { $in: ["$requester", firstDegreeObjectIds] },
-              then: "$recipient",
-              else: "$requester"
-            }
+  // 1. The Limitless Pipeline (Executes entirely inside MongoDB C++ engine)
+  const pipelineResult = await Connection.aggregate([
+    // Step A: Find all 1st-degree connections
+    {
+      $match: {
+        $or: [{ requester: userObjectId }, { recipient: userObjectId }]
+      }
+    },
+    // Step B: Group them into arrays internally
+    {
+      $group: {
+        _id: null,
+        excludeIds: {
+          $addToSet: {
+            $cond: [{ $eq: ["$requester", userObjectId] }, "$recipient", "$requester"]
+          }
+        },
+        firstDegreeIds: {
+          $addToSet: {
+            $cond: [
+              { $eq: ["$status", "accepted"] },
+              { $cond: [{ $eq: ["$requester", userObjectId] }, "$recipient", "$requester"] },
+              null
+            ]
           }
         }
-      },
-      {
-        $match: {
-          secondDegreeUser: { $nin: excludeObjectIds }
+      }
+    },
+    {
+      $project: {
+        excludeIds: 1,
+        firstDegreeIds: {
+          $filter: { input: "$firstDegreeIds", as: "id", cond: { $ne: ["$$id", null] } }
         }
-      },
-      {
-        $group: {
-          _id: "$secondDegreeUser",
-          mutualCount: { $sum: 1 }
-        }
-      },
-      { $sort: { mutualCount: -1 } },
-      { $limit: limit }
-    ]);
+      }
+    },
+    // Step C: Massive double-join lookup for 2nd degree connections
+    {
+      $lookup: {
+        from: 'connections',
+        let: { fdIds: '$firstDegreeIds', exIds: '$excludeIds' },
+        pipeline: [
+          {
+            $match: {
+              status: 'accepted',
+              $expr: {
+                $or: [
+                  { $in: ["$requester", "$$fdIds"] },
+                  { $in: ["$recipient", "$$fdIds"] }
+                ]
+              }
+            }
+          },
+          {
+            $project: {
+              secondDegreeUser: {
+                $cond: [{ $in: ["$requester", "$$fdIds"] }, "$recipient", "$requester"]
+              }
+            }
+          },
+          // Step D: Filter out 1st degree network and self
+          {
+            $match: {
+              $expr: {
+                $and: [
+                  { $not: { $in: ["$secondDegreeUser", "$$exIds"] } },
+                  { $ne: ["$secondDegreeUser", userObjectId] }
+                ]
+              }
+            }
+          },
+          // Step E: Group by user and count mutuals!
+          {
+            $group: {
+              _id: "$secondDegreeUser",
+              mutualCount: { $sum: 1 }
+            }
+          },
+          { $sort: { mutualCount: -1 } },
+          { $limit: limit }
+        ],
+        as: 'mutualSuggestions'
+      }
+    }
+  ]);
 
+  let suggestions = [];
+  let excludeObjectIds = [userObjectId];
+
+  if (pipelineResult.length > 0) {
+    const mutualSuggestions = pipelineResult[0].mutualSuggestions;
+    excludeObjectIds = [...excludeObjectIds, ...pipelineResult[0].excludeIds];
+    
     if (mutualSuggestions.length > 0) {
-      const suggestionIds = mutualSuggestions.map(s => s._id);
-      const usersInfo = await User.find({ _id: { $in: suggestionIds } }).select('_id'); // Just need IDs for cache array
-      
       suggestions = mutualSuggestions.map(m => ({
         user: m._id,
         mutualConnections: m.mutualCount
@@ -77,7 +109,7 @@ const calculateSuggestionsForUser = async (userId) => {
     }
   }
 
-  // 3. Fallback: If not enough mutual connections, fill the rest with diverse sampling
+  // 2. Fallback: If not enough mutual connections, fill the rest with diverse sampling
   if (suggestions.length < limit) {
     const remainingLimit = limit - suggestions.length;
     
