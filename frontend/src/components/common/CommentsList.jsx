@@ -64,13 +64,18 @@ const CommentItem = ({ comment, postId, onReply, onDelete, depth = 0, isTarget, 
   };
 
   const handleLike = async () => {
+    const originalLikes = [...likes];
+    const updatedLikes = isLiked ? likes.filter(id => id !== myUserId) : [...likes, myUserId];
+    
+    // Optimistic UI update
+    setLikes(updatedLikes);
+    
     try {
-      const originalLikes = [...likes];
-      setLikes(isLiked ? likes.filter(id => id !== myUserId) : [...likes, myUserId]);
-      
       const { data } = await axios.put(`${import.meta.env.VITE_API_URL}/api/comments/like/${comment._id}`, {}, { withCredentials: true });
       setLikes(data);
     } catch (error) {
+      // Rollback on failure
+      setLikes(originalLikes);
       toast.error('Failed to like comment');
     }
   };

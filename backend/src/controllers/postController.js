@@ -353,6 +353,43 @@ const likePost = async (req, res) => {
   }
 };
 
+// @desc    Repost a post (Atomic)
+// @route   PUT /api/posts/repost/:id
+// @access  Private
+exports.repostPost = async (req, res) => {
+  try {
+    const postId = req.params.id;
+    // Scalable atomic increment for reposts
+    const updatedPost = await Post.findByIdAndUpdate(
+      postId,
+      { $inc: { repostsCount: 1 } },
+      { new: true }
+    );
+
+    if (!updatedPost) {
+      return res.status(404).json({ message: 'Post not found' });
+    }
+
+    try {
+      const { getIo } = require('../socket');
+      getIo().emit('post_updated', { 
+        postId: updatedPost._id, 
+        repostsCount: updatedPost.repostsCount
+      });
+    } catch (e) {
+      console.log('Socket emit failed', e.message);
+    }
+
+    res.json({ repostsCount: updatedPost.repostsCount });
+  } catch (err) {
+    console.error(err.message);
+    if (err.kind === 'ObjectId') {
+      return res.status(404).json({ message: 'Post not found' });
+    }
+    res.status(500).send('Server Error');
+  }
+};
+
 module.exports = {
   createPost,
   getPosts,
@@ -362,4 +399,5 @@ module.exports = {
   updatePost,
   deletePost,
   likePost,
+  repostPost,
 };

@@ -42,7 +42,6 @@ const formatPostDate = (dateString) => {
 const PostCard = ({ post, idx = 0, currentUser, onDelete, onEdit, autoOpenComments = false, targetCommentId = null }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [showComments, setShowComments] = useState(autoOpenComments);
-  const [commentsCount, setCommentsCount] = useState(post.commentsCount || 0);
   const menuRef = useRef(null);
 
   // Safely extract IDs for comparison
@@ -50,10 +49,11 @@ const PostCard = ({ post, idx = 0, currentUser, onDelete, onEdit, autoOpenCommen
   const authorId = post.author?._id || post.author;
   const isAuthor = myUserId && authorId && myUserId === authorId;
 
-  // Like system using global Zustand store for true cross-app optimistic updates
-  const { optimisticLikePost, revertPostUpdate, updatePostInFeed } = useFeedStore();
+  // Global Zustand store for optimistic UI
+  const { optimisticLikePost, revertPostUpdate, updatePostInFeed, optimisticRepostPost, optimisticUpdateCommentsCount } = useFeedStore();
   const likes = post.likes || [];
   const isLiked = myUserId && likes.includes(myUserId);
+  const commentsCount = post.commentsCount || 0;
 
   // Follow system local state
   const [isFollowing, setIsFollowing] = useState(false);
@@ -67,8 +67,17 @@ const PostCard = ({ post, idx = 0, currentUser, onDelete, onEdit, autoOpenCommen
     
     const handlePostUpdate = (data) => {
       if (data.postId === post._id) {
-        if (data.likes !== undefined) updatePostInFeed({ ...post, likes: data.likes, likesCount: data.likesCount });
-        if (data.commentsCount !== undefined) setCommentsCount(data.commentsCount);
+        let updatedFields = {};
+        if (data.likes !== undefined) {
+          updatedFields.likes = data.likes;
+          updatedFields.likesCount = data.likesCount;
+        }
+        if (data.commentsCount !== undefined) updatedFields.commentsCount = data.commentsCount;
+        if (data.repostsCount !== undefined) updatedFields.repostsCount = data.repostsCount;
+        
+        if (Object.keys(updatedFields).length > 0) {
+          updatePostInFeed({ ...post, ...updatedFields });
+        }
       }
     };
 
@@ -184,6 +193,22 @@ const PostCard = ({ post, idx = 0, currentUser, onDelete, onEdit, autoOpenCommen
       // Rollback on failure
       if (previousPostState) revertPostUpdate(previousPostState);
       toast.error('Failed to update like');
+    }
+  };
+
+  const handleRepostClick = async () => {
+    if (!myUserId) {
+      toast.error('Please log in to repost');
+      return;
+    }
+    const previousPostState = optimisticRepostPost(post._id);
+    try {
+      const { data } = await axios.put(`${import.meta.env.VITE_API_URL}/api/posts/repost/${post._id}`, {}, { withCredentials: true });
+      updatePostInFeed({ ...post, repostsCount: data.repostsCount });
+      toast.success('Reposted successfully');
+    } catch (err) {
+      if (previousPostState) revertPostUpdate(previousPostState);
+      toast.error('Failed to repost');
     }
   };
 
@@ -363,7 +388,7 @@ const PostCard = ({ post, idx = 0, currentUser, onDelete, onEdit, autoOpenCommen
           <span>{commentsCount}</span>
         </button>
         
-        <button className="flex items-center gap-1.5 hover:text-[#00F0FF] hover:bg-[#00F0FF]/10 px-3 py-1.5 rounded-full transition-colors">
+        <button onClick={handleRepostClick} className="flex items-center gap-1.5 hover:text-[#00F0FF] hover:bg-[#00F0FF]/10 px-3 py-1.5 rounded-full transition-colors cursor-pointer">
           <Repeat2 size={18} />
           <span>{post.repostsCount || 0}</span>
         </button>
@@ -405,7 +430,7 @@ const PostCard = ({ post, idx = 0, currentUser, onDelete, onEdit, autoOpenCommen
                 <CommentsList 
                   postId={post._id} 
                   targetCommentId={targetCommentId}
-                  onUpdateCount={(diff) => setCommentsCount(prev => Math.max(0, prev + diff))} 
+                  onUpdateCount={(diff) => optimisticUpdateCommentsCount(post._id, diff)} 
                   currentUser={currentUser}
                 />
               </div>

@@ -43,6 +43,30 @@ const useFeedStore = create((set, get) => ({
     return previousPost; // Return the exact backup so it can be reverted if API fails
   },
 
+  optimisticRepostPost: (postId) => {
+    let previousPost = null;
+    set((state) => ({
+      posts: state.posts.map(p => {
+        if (p._id === postId) {
+          previousPost = { ...p };
+          return { ...p, repostsCount: (p.repostsCount || 0) + 1 };
+        }
+        return p;
+      })
+    }));
+    return previousPost;
+  },
+
+  optimisticUpdateCommentsCount: (postId, diff) => {
+    set((state) => ({
+      posts: state.posts.map(p => {
+        if (p._id === postId) {
+          return { ...p, commentsCount: Math.max(0, (p.commentsCount || 0) + diff) };
+        }
+        return p;
+      })
+    }));
+  },
   revertPostUpdate: (originalPost) => set((state) => ({
     posts: state.posts.map(p => p._id === originalPost._id ? originalPost : p)
   })),
