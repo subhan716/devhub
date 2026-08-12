@@ -279,7 +279,9 @@ const getSuggestions = async (req, res) => {
     const suggestions = await User.aggregate([
       // 1. Exclude the current user
       { $match: { _id: { $ne: new mongoose.Types.ObjectId(userId) } } },
-      // 2. Lookup existing connections efficiently inside the database
+      // 2. Pre-sample to avoid running heavy lookups on millions of users (Hyper-scalability)
+      { $sample: { size: 200 } },
+      // 3. Lookup existing connections efficiently inside the database
       {
         $lookup: {
           from: 'connections',
@@ -299,11 +301,11 @@ const getSuggestions = async (req, res) => {
           as: 'existingConnection'
         }
       },
-      // 3. Keep only those with no existing connection
+      // 4. Keep only those with no existing connection
       { $match: { existingConnection: { $size: 0 } } },
-      // 4. Random sample to always show fresh suggestions
-      { $sample: { size: limit } },
-      // 5. Select only required fields
+      // 5. Final limit to required amount
+      { $limit: limit },
+      // 6. Select only required fields
       { $project: { name: 1, avatar: 1, role: 1 } }
     ]);
 
