@@ -60,8 +60,8 @@ const CommentItem = ({ comment, postId, onReply, onDelete, depth = 0, isTarget, 
 
         {/* Comment Actions */}
         <div className="flex items-center gap-4 mt-1.5 text-[12px] font-semibold text-gray-500">
-          <button onClick={handleLike} className={`group flex items-center gap-1.5 transition-colors ${isLiked ? 'text-red-500' : 'hover:text-gray-300'}`}>
-            <Heart size={14} className={`transition-all ${isLiked ? 'fill-red-500' : 'group-hover:text-red-500'}`} />
+          <button onClick={handleLike} className={`group flex items-center gap-1.5 transition-colors ${isLiked ? 'text-red-500' : 'text-gray-500 hover:text-gray-300'}`}>
+            <Heart size={14} className={`transition-all ${isLiked ? 'fill-red-500 text-red-500' : 'text-gray-500 group-hover:text-gray-300'}`} />
             {likes.length > 0 && <span>{likes.length}</span>}
           </button>
           {depth < 2 && (
