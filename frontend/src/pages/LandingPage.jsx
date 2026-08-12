@@ -6,7 +6,7 @@ import ThreeDNetwork from '../components/ui/ThreeDNetwork';
 
 const LandingPage = () => {
   return (
-    <div className="min-h-screen bg-[#0A0A0A] text-white overflow-x-hidden font-sans selection:bg-[#00F0FF]/30">
+    <main className="min-h-screen bg-[#0A0A0A] text-white overflow-x-hidden font-sans selection:bg-[#00F0FF]/30">
       <Navbar />
 
       {/* 1. Hero Section */}
@@ -27,7 +27,7 @@ const LandingPage = () => {
                 Those Who Build.
               </span>
             </h1>
-            <p className="text-lg md:text-xl text-gray-400 mb-10 max-w-2xl mx-auto lg:mx-0 leading-relaxed">
+            <p className="text-lg md:text-xl text-gray-300 mb-10 max-w-2xl mx-auto lg:mx-0 leading-relaxed">
               Connect with elite developers, showcase your code, and build your professional portfolio in an ecosystem designed exclusively for engineers.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4">
@@ -156,7 +156,7 @@ const LandingPage = () => {
           </div>
         </div>
       </footer>
-    </div>
+    </main>
   );
 };
 
