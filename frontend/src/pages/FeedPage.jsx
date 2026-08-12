@@ -5,15 +5,13 @@ import axios from 'axios';
 import toast from 'react-hot-toast';
 import { motion, AnimatePresence } from 'framer-motion';
 import PostCard from '../components/common/PostCard';
+import useFeedStore from '../store/useFeedStore';
 
 const FeedPage = () => {
   const { currentUser } = useOutletContext();
-  const [posts, setPosts] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const { posts, page, hasMore, isInitialized, setPosts, appendPosts, incrementPage, setHasMore, removePost, updatePostInFeed } = useFeedStore();
+  const [isLoading, setIsLoading] = useState(!isInitialized);
   
-  // Pagination / Infinite Scroll States
-  const [page, setPage] = useState(1);
-  const [hasMore, setHasMore] = useState(true);
   const [isFetchingMore, setIsFetchingMore] = useState(false);
   const observer = useRef();
 
@@ -22,7 +20,7 @@ const FeedPage = () => {
     if (observer.current) observer.current.disconnect();
     observer.current = new IntersectionObserver(entries => {
       if (entries[0].isIntersecting && hasMore) {
-        setPage(prevPage => prevPage + 1);
+        incrementPage();
       }
     });
     if (node) observer.current.observe(node);
@@ -59,14 +57,14 @@ const FeedPage = () => {
   const fileInputRef = useRef(null);
   const videoInputRef = useRef(null);
 
-  // Initial Load
+  // Initial Load (Stale-While-Revalidate pattern)
   useEffect(() => {
     const fetchPosts = async () => {
       try {
-        setIsLoading(true);
-        const { data } = await axios.get(`${import.meta.env.VITE_API_URL}/api/posts?page=1&limit=10`, { withCredentials: true });
+        if (!isInitialized) setIsLoading(true);
+        const { data } = await axios.get(`${import.meta.env.VITE_API_URL}/api/posts?page=1&limit=20`, { withCredentials: true });
         setPosts(data);
-        if (data.length < 10) setHasMore(false);
+        if (data.length < 20) setHasMore(false);
       } catch (error) {
         toast.error('Failed to load feed');
       } finally {
@@ -74,7 +72,7 @@ const FeedPage = () => {
       }
     };
     fetchPosts();
-  }, []);
+  }, [isInitialized, setPosts, setHasMore]);
 
   // Fetch More (Infinite Scroll)
   useEffect(() => {
@@ -82,9 +80,9 @@ const FeedPage = () => {
     const fetchMorePosts = async () => {
       try {
         setIsFetchingMore(true);
-        const { data } = await axios.get(`${import.meta.env.VITE_API_URL}/api/posts?page=${page}&limit=10`, { withCredentials: true });
-        setPosts(prev => [...prev, ...data]);
-        if (data.length === 0 || data.length < 10) setHasMore(false);
+        const { data } = await axios.get(`${import.meta.env.VITE_API_URL}/api/posts?page=${page}&limit=20`, { withCredentials: true });
+        appendPosts(data);
+        if (data.length === 0 || data.length < 20) setHasMore(false);
       } catch (error) {
         toast.error('Failed to load more posts');
       } finally {
@@ -92,7 +90,7 @@ const FeedPage = () => {
       }
     };
     fetchMorePosts();
-  }, [page]);
+  }, [page, appendPosts, setHasMore]);
 
   // Fetch user's connections for mention autocomplete
   useEffect(() => {
@@ -195,7 +193,7 @@ const FeedPage = () => {
     if (!postToDelete) return;
     try {
       await axios.delete(`${import.meta.env.VITE_API_URL}/api/posts/${postToDelete}`, { withCredentials: true });
-      setPosts(prev => prev.filter(post => post._id !== postToDelete));
+      removePost(postToDelete);
       toast.success('Post deleted successfully');
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to delete post');
@@ -315,7 +313,7 @@ const FeedPage = () => {
       if (editingPostId) {
         // Edit flow
         const { data } = await axios.put(`${import.meta.env.VITE_API_URL}/api/posts/${editingPostId}`, postData, { withCredentials: true });
-        setPosts(prev => prev.map(p => p._id === editingPostId ? data : p));
+        updatePostInFeed(data);
         toast.success('Post updated successfully!');
       } else {
         // Create flow
