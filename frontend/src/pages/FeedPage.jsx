@@ -10,6 +10,23 @@ const FeedPage = () => {
   const { currentUser } = useOutletContext();
   const [posts, setPosts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  
+  // Pagination / Infinite Scroll States
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [isFetchingMore, setIsFetchingMore] = useState(false);
+  const observer = useRef();
+
+  const lastPostElementRef = useCallback(node => {
+    if (isLoading || isFetchingMore) return;
+    if (observer.current) observer.current.disconnect();
+    observer.current = new IntersectionObserver(entries => {
+      if (entries[0].isIntersecting && hasMore) {
+        setPage(prevPage => prevPage + 1);
+      }
+    });
+    if (node) observer.current.observe(node);
+  }, [isLoading, isFetchingMore, hasMore]);
 
   // Modal States
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -42,12 +59,14 @@ const FeedPage = () => {
   const fileInputRef = useRef(null);
   const videoInputRef = useRef(null);
 
+  // Initial Load
   useEffect(() => {
     const fetchPosts = async () => {
       try {
         setIsLoading(true);
-        const { data } = await axios.get(`${import.meta.env.VITE_API_URL}/api/posts`, { withCredentials: true });
+        const { data } = await axios.get(`${import.meta.env.VITE_API_URL}/api/posts?page=1&limit=10`, { withCredentials: true });
         setPosts(data);
+        if (data.length < 10) setHasMore(false);
       } catch (error) {
         toast.error('Failed to load feed');
       } finally {
@@ -56,6 +75,24 @@ const FeedPage = () => {
     };
     fetchPosts();
   }, []);
+
+  // Fetch More (Infinite Scroll)
+  useEffect(() => {
+    if (page === 1) return;
+    const fetchMorePosts = async () => {
+      try {
+        setIsFetchingMore(true);
+        const { data } = await axios.get(`${import.meta.env.VITE_API_URL}/api/posts?page=${page}&limit=10`, { withCredentials: true });
+        setPosts(prev => [...prev, ...data]);
+        if (data.length === 0 || data.length < 10) setHasMore(false);
+      } catch (error) {
+        toast.error('Failed to load more posts');
+      } finally {
+        setIsFetchingMore(false);
+      }
+    };
+    fetchMorePosts();
+  }, [page]);
 
   // Fetch user's connections for mention autocomplete
   useEffect(() => {
@@ -150,9 +187,9 @@ const FeedPage = () => {
   };
 
   // Delete Post Handler
-  const handleDeletePost = (postId) => {
+  const handleDeletePost = useCallback((postId) => {
     setPostToDelete(postId);
-  };
+  }, []);
 
   const handleConfirmDelete = async () => {
     if (!postToDelete) return;
@@ -168,7 +205,7 @@ const FeedPage = () => {
   };
 
   // Edit Post Trigger
-  const handleEditPostClick = (post) => {
+  const handleEditPostClick = useCallback((post) => {
     setEditingPostId(post._id);
     setPostContent(post.content);
     
@@ -194,7 +231,7 @@ const FeedPage = () => {
     }
 
     setIsModalOpen(true);
-  };
+  }, []);
 
   const handlePostSubmit = async () => {
     if (!postContent.trim() && !codeContent.trim() && !selectedImage && !selectedVideo && !imagePreview && !videoPreview) {
@@ -406,18 +443,27 @@ const FeedPage = () => {
           </motion.div>
         ) : (
           <AnimatePresence>
-            {posts.map((post, idx) => (
-              <PostCard 
-                key={post._id} 
-                post={post} 
-                idx={idx} 
-                isHighlighted={idx === 0} 
-                currentUser={currentUser}
-                onDelete={handleDeletePost}
-                onEdit={handleEditPostClick}
-              />
-            ))}
+            {posts.map((post, idx) => {
+              const isLastPost = posts.length === idx + 1;
+              return (
+                <div key={post._id} ref={isLastPost ? lastPostElementRef : null}>
+                  <PostCard 
+                    post={post} 
+                    idx={idx} 
+                    isHighlighted={idx === 0} 
+                    currentUser={currentUser}
+                    onDelete={handleDeletePost}
+                    onEdit={handleEditPostClick}
+                  />
+                </div>
+              );
+            })}
           </AnimatePresence>
+        )}
+        {isFetchingMore && (
+          <div className="flex justify-center items-center py-4">
+            <Loader2 className="animate-spin h-6 w-6 text-[#00F0FF]" />
+          </div>
         )}
       </div>
 

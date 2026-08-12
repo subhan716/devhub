@@ -40,6 +40,10 @@ const getPosts = async (req, res) => {
     const follows = await Follow.find({ follower: userId });
     const followingIds = follows.map(f => f.following);
 
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
     let posts = [];
 
     // Unified Feed - Highly Scalable Aggregation Pipeline
@@ -98,7 +102,8 @@ const getPosts = async (req, res) => {
         
         // 5. Sort by Final Score and Limit
         { $sort: { finalScore: -1 } },
-        { $limit: 30 }
+        { $skip: skip },
+        { $limit: limit }
       ];
 
     const rawPosts = await Post.aggregate(pipeline);
@@ -156,8 +161,14 @@ const getPostById = async (req, res) => {
 // @access  Private
 const getUserPosts = async (req, res) => {
   try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
     const posts = await Post.find({ author: req.params.user_id })
       .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit)
       .populate('author', 'name avatar');
     
     const postsWithProfiles = await Promise.all(posts.map(async (post) => {

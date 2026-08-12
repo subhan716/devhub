@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, memo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MoreHorizontal, Heart, MessageCircle, Repeat2, Edit3, Trash2, Link2, Bookmark, Check, UserMinus, X } from 'lucide-react';
 import { Light as SyntaxHighlighter } from 'react-syntax-highlighter';
@@ -421,4 +421,4 @@ const PostCard = ({ post, idx = 0, currentUser, onDelete, onEdit, autoOpenCommen
   );
 };
 
-export default PostCard;
+export default memo(PostCard);
