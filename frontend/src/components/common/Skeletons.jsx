@@ -80,3 +80,17 @@ export const ProfileHeaderSkeleton = () => (
     </div>
   </div>
 );
+
+export const CommentSkeleton = () => (
+  <div className="flex gap-3 mb-5">
+    <Shimmer className="w-9 h-9 rounded-full flex-shrink-0" />
+    <div className="flex-1 space-y-2 pt-1">
+      <Shimmer className="h-3 w-1/4" />
+      <Shimmer className="h-10 w-full rounded-2xl rounded-tl-none" />
+      <div className="flex gap-4">
+        <Shimmer className="h-2 w-8" />
+        <Shimmer className="h-2 w-12" />
+      </div>
+    </div>
+  </div>
+);

@@ -356,7 +356,7 @@ const likePost = async (req, res) => {
 // @desc    Repost a post (Atomic)
 // @route   PUT /api/posts/repost/:id
 // @access  Private
-exports.repostPost = async (req, res) => {
+const repostPost = async (req, res) => {
   try {
     const postId = req.params.id;
     // Scalable atomic increment for reposts

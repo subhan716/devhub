@@ -6,6 +6,7 @@ import { formatDistanceToNow } from 'date-fns';
 import toast from 'react-hot-toast';
 import { useSocket } from '../../context/SocketContext';
 import ConfirmModal from './ConfirmModal';
+import { CommentSkeleton } from './Skeletons';
 
 const CommentItem = ({ comment, postId, onReply, onDelete, depth = 0, isTarget, currentUser }) => {
   const [likes, setLikes] = useState(comment.likes || []);
@@ -362,8 +363,10 @@ const CommentsList = ({ postId, targetCommentId, onUpdateCount, currentUser }) =
 
       {/* List */}
       {loading ? (
-        <div className="flex justify-center py-4">
-          <div className="w-5 h-5 border-2 border-[#00F0FF] border-t-transparent rounded-full animate-spin"></div>
+        <div className="py-4">
+          <CommentSkeleton />
+          <CommentSkeleton />
+          <CommentSkeleton />
         </div>
       ) : comments.length > 0 ? (
         comments.map(c => (

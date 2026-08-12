@@ -1355,34 +1355,39 @@ const ProfilePage = () => {
 
           <div className="flex flex-col gap-6">
             {isPostsLoading ? (
-              <div className="flex justify-center items-center py-10">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#00F0FF]"></div>
-              </div>
+              <>
+                <PostSkeleton />
+                <PostSkeleton />
+              </>
             ) : userPosts.length === 0 ? (
               <div className="text-center text-gray-500 py-10 bg-[#111] rounded-2xl border border-white/5">
                 No recent activity found.
               </div>
             ) : (
               <>
-                {/* Show only the latest 1 post */}
-                <PostCard
-                  key={userPosts[0]._id}
-                  post={userPosts[0]}
-                  idx={0}
-                  currentUser={currentUserProfile?.user || null}
-                  onDelete={(postId) => setUserPosts(prev => prev.filter(p => p._id !== postId))}
-                  onEdit={() => {}}
-                />
+                {/* Show up to 3 latest posts */}
+                {userPosts.slice(0, 3).map((post, idx) => (
+                  <PostCard
+                    key={post._id}
+                    post={post}
+                    idx={idx}
+                    currentUser={currentUserProfile?.user || null}
+                    onDelete={(postId) => setUserPosts(prev => prev.filter(p => p._id !== postId))}
+                    onEdit={() => {}}
+                  />
+                ))}
 
                 {/* Show All button */}
-                <div className="flex justify-center">
-                  <Link
-                    to={`/profile/${id || profile?.user?._id}/posts`}
-                    className="flex items-center gap-2 px-8 py-2.5 bg-white/5 hover:bg-[#00F0FF]/10 text-white hover:text-[#00F0FF] font-medium rounded-full border border-white/10 hover:border-[#00F0FF]/30 transition-all text-sm shadow-lg"
-                  >
-                    Show All {userPosts.length > 1 ? `${userPosts.length} Posts` : 'Posts'}
-                  </Link>
-                </div>
+                {userPosts.length > 3 && (
+                  <div className="flex justify-center mt-4">
+                    <Link
+                      to={`/profile/${id || profile?.user?._id}/posts`}
+                      className="flex items-center gap-2 px-8 py-2.5 bg-white/5 hover:bg-[#00F0FF]/10 text-white hover:text-[#00F0FF] font-medium rounded-full border border-white/10 hover:border-[#00F0FF]/30 transition-all text-sm shadow-lg"
+                    >
+                      Show All {userPosts.length} Posts
+                    </Link>
+                  </div>
+                )}
               </>
             )}
           </div>

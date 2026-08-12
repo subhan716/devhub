@@ -23,6 +23,16 @@ router.get('/search', protect, searchPosts);
 // @access  Private
 router.get('/user/:user_id', protect, getUserPosts);
 
+// @route   PUT /api/posts/like/:id
+// @desc    Like / Unlike a post
+// @access  Private
+router.put('/like/:id', protect, likePost);
+
+// @route   PUT /api/posts/repost/:id
+// @desc    Repost a post
+// @access  Private
+router.put('/repost/:id', protect, repostPost);
+
 // @route   GET /api/posts/:id
 // @desc    Get a single post
 // @access  Private
@@ -37,15 +47,5 @@ router.put('/:id', protect, updatePost);
 // @desc    Delete a post
 // @access  Private
 router.delete('/:id', protect, deletePost);
-
-// @route   PUT /api/posts/like/:id
-// @desc    Like / Unlike a post
-// @access  Private
-router.put('/like/:id', protect, likePost);
-
-// @route   PUT /api/posts/repost/:id
-// @desc    Repost a post
-// @access  Private
-router.put('/repost/:id', protect, repostPost);
 
 module.exports = router;
