@@ -1366,8 +1366,8 @@ const ProfilePage = () => {
               </div>
             ) : (
               <>
-                {/* Show up to 3 latest posts */}
-                {userPosts.slice(0, 3).map((post, idx) => (
+                {/* Show only 1 latest post */}
+                {userPosts.slice(0, 1).map((post, idx) => (
                   <PostCard
                     key={post._id}
                     post={post}
@@ -1379,7 +1379,7 @@ const ProfilePage = () => {
                 ))}
 
                 {/* Show All button */}
-                {userPosts.length > 3 && (
+                {userPosts.length > 1 && (
                   <div className="flex justify-center mt-4">
                     <Link
                       to={`/profile/${id || profile?.user?._id}/posts`}
