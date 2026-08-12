@@ -3,10 +3,12 @@ import axios from 'axios';
 import { formatDistanceToNow } from 'date-fns';
 import { Bell, UserPlus, Heart, MessageSquare, Check, X, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 
 const NotificationsPage = () => {
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchNotifications();
@@ -26,6 +28,21 @@ const NotificationsPage = () => {
       console.error('Failed to fetch notifications', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleNotificationClick = (notif) => {
+    if (notif.relatedPost) {
+      // If it has a relatedComment, deep link to it
+      const commentId = notif.relatedComment || (notif.type === 'comment' ? notif._id : null); 
+      // Wait, the relatedComment is directly available from the backend now.
+      if (notif.relatedComment) {
+        navigate(`/post/${notif.relatedPost._id || notif.relatedPost}?commentId=${notif.relatedComment}`);
+      } else {
+        navigate(`/post/${notif.relatedPost._id || notif.relatedPost}`);
+      }
+    } else if (notif.type === 'follow' || notif.type.includes('connection')) {
+      navigate(`/profile/${notif.sender._id}`);
     }
   };
 
@@ -72,9 +89,10 @@ const NotificationsPage = () => {
               {notifications.map((notif) => (
                 <motion.div
                   key={notif._id}
+                  onClick={() => handleNotificationClick(notif)}
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className={`p-4 rounded-xl border border-white/5 transition-all flex items-start gap-4 ${
+                  className={`p-4 rounded-xl border border-white/5 transition-all flex items-start gap-4 cursor-pointer hover:bg-white/5 ${
                     !notif.read ? 'bg-[#00F0FF]/5' : 'bg-white/[0.02]'
                   }`}
                 >

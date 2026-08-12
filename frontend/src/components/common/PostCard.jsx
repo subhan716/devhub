@@ -7,6 +7,7 @@ import php from 'react-syntax-highlighter/dist/esm/languages/hljs/php';
 import { vs2015 } from 'react-syntax-highlighter/dist/esm/styles/hljs';
 import toast from 'react-hot-toast';
 import axios from 'axios';
+import CommentsList from './CommentsList';
 
 SyntaxHighlighter.registerLanguage('javascript', js);
 SyntaxHighlighter.registerLanguage('php', php);
@@ -37,8 +38,10 @@ const formatPostDate = (dateString) => {
   return `${day}/${month}/${year} at ${timeStr}`;
 };
 
-const PostCard = ({ post, idx = 0, currentUser, onDelete, onEdit }) => {
+const PostCard = ({ post, idx = 0, currentUser, onDelete, onEdit, autoOpenComments = false, targetCommentId = null }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [showComments, setShowComments] = useState(autoOpenComments);
+  const [commentsCount, setCommentsCount] = useState(post.commentsCount || 0);
   const menuRef = useRef(null);
 
   // Safely extract IDs for comparison
@@ -339,22 +342,34 @@ const PostCard = ({ post, idx = 0, currentUser, onDelete, onEdit }) => {
           <span>{likes.length} Likes</span>
         </motion.button>
         
-        <motion.button 
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          className="flex items-center gap-2 hover:text-white transition-colors cursor-pointer"
-        >
-          <MessageCircle size={16} /> {post.commentsCount || 0} Comments
-        </motion.button>
+        <button onClick={() => setShowComments(!showComments)} className="flex items-center gap-1.5 hover:text-[#00F0FF] hover:bg-[#00F0FF]/10 px-3 py-1.5 rounded-full transition-colors">
+          <MessageCircle size={18} />
+          <span>{commentsCount}</span>
+        </button>
         
-        <motion.button 
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          className="flex items-center gap-2 hover:text-[#8A2BE2] transition-colors cursor-pointer"
-        >
-          <Repeat2 size={16} /> {post.repostsCount || 0} Reposts
-        </motion.button>
+        <button className="flex items-center gap-1.5 hover:text-[#00F0FF] hover:bg-[#00F0FF]/10 px-3 py-1.5 rounded-full transition-colors">
+          <Repeat2 size={18} />
+          <span>{post.repostsCount || 0}</span>
+        </button>
       </div>
+
+      {/* Comments Section */}
+      <AnimatePresence>
+        {showComments && (
+          <motion.div 
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            className="overflow-hidden"
+          >
+            <CommentsList 
+              postId={post._id} 
+              targetCommentId={targetCommentId}
+              onUpdateCount={(diff) => setCommentsCount(prev => Math.max(0, prev + diff))} 
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 };

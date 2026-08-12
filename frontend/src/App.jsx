@@ -18,6 +18,7 @@ import SearchPage from './pages/SearchPage';
 import NetworkPage from './pages/NetworkPage';
 import MessagesPage from './pages/MessagesPage';
 import UserPostsPage from './pages/UserPostsPage';
+import PostPage from './pages/PostPage';
 import MainLayout from './components/layout/MainLayout';
 
 // Protected Route Component
@@ -155,6 +156,17 @@ function App() {
             <Route path=":id/connections" element={<ProfileConnectionsPage />} />
             <Route path=":id/posts" element={<UserPostsPage />} />
             <Route path="posts" element={<UserPostsPage />} />
+          </Route>
+
+          <Route
+            path="/post"
+            element={
+              <ProtectedRoute>
+                <MainLayout />
+              </ProtectedRoute>
+            }
+          >
+            <Route path=":postId" element={<PostPage />} />
           </Route>
 
           <Route
