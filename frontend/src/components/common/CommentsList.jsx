@@ -197,8 +197,20 @@ const CommentsList = ({ postId, targetCommentId, onUpdateCount, currentUser }) =
   const [text, setText] = useState('');
   const [replyTo, setReplyTo] = useState(null);
   const [sort, setSort] = useState('newest'); // 'newest', 'oldest', 'top'
+  const [isSortMenuOpen, setIsSortMenuOpen] = useState(false);
+  const sortMenuRef = useRef(null);
   const [deleteCommentId, setDeleteCommentId] = useState(null);
   const { socket } = useSocket();
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (sortMenuRef.current && !sortMenuRef.current.contains(event.target)) {
+        setIsSortMenuOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   useEffect(() => {
     fetchComments();
@@ -361,18 +373,48 @@ const CommentsList = ({ postId, targetCommentId, onUpdateCount, currentUser }) =
       </div>
 
       {/* Filters */}
-      <div className="flex justify-end items-center mb-5 px-2 relative w-full">
-        <div className="relative inline-block">
-          <select 
-            value={sort}
-            onChange={(e) => setSort(e.target.value)}
-            className="bg-[#1a1a1a] border border-white/10 rounded-full pl-4 pr-8 py-1.5 text-xs font-semibold text-gray-300 hover:text-white hover:border-[#00F0FF]/50 cursor-pointer outline-none transition-all appearance-none shadow-sm"
+      <div className="flex justify-end items-center mb-5 px-2 relative w-full z-20">
+        <div className="relative inline-block" ref={sortMenuRef}>
+          <button 
+            onClick={() => setIsSortMenuOpen(!isSortMenuOpen)}
+            className={`flex items-center gap-2 bg-[#1a1a1a] border rounded-full px-4 py-1.5 text-xs font-semibold cursor-pointer outline-none transition-all shadow-sm ${isSortMenuOpen ? 'border-[#00F0FF]/50 text-white' : 'border-white/10 text-gray-300 hover:text-white hover:border-white/20'}`}
           >
-            <option value="newest" className="bg-[#1a1a1a] text-gray-200 py-1">Newest first</option>
-            <option value="top" className="bg-[#1a1a1a] text-gray-200 py-1">Top comments</option>
-            <option value="oldest" className="bg-[#1a1a1a] text-gray-200 py-1">Oldest first</option>
-          </select>
-          <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400" />
+            {sort === 'newest' ? 'Newest first' : sort === 'top' ? 'Top comments' : 'Oldest first'}
+            <ChevronDown size={14} className={`transition-transform duration-200 ${isSortMenuOpen ? 'rotate-180 text-[#00F0FF]' : 'text-gray-400'}`} />
+          </button>
+          
+          <AnimatePresence>
+            {isSortMenuOpen && (
+              <motion.div 
+                initial={{ opacity: 0, y: -10, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                transition={{ duration: 0.15 }}
+                className="absolute right-0 top-full mt-2 w-36 bg-[#181820] border border-white/10 rounded-xl shadow-2xl py-1.5 z-50 overflow-hidden backdrop-blur-md"
+              >
+                {[
+                  { value: 'newest', label: 'Newest first' },
+                  { value: 'top', label: 'Top comments' },
+                  { value: 'oldest', label: 'Oldest first' }
+                ].map(option => (
+                  <button
+                    key={option.value}
+                    onClick={() => {
+                      setSort(option.value);
+                      setIsSortMenuOpen(false);
+                    }}
+                    className={`w-full text-left px-4 py-2 text-xs font-medium transition-colors ${
+                      sort === option.value 
+                        ? 'text-[#00F0FF] bg-[#00F0FF]/10' 
+                        : 'text-gray-300 hover:text-white hover:bg-white/5'
+                    }`}
+                  >
+                    {option.label}
+                  </button>
+                ))}
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </div>
 

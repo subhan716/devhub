@@ -38,4 +38,8 @@ const commentSchema = new mongoose.Schema(
   }
 );
 
+// Indexes for highly scalable sorting
+commentSchema.index({ post: 1, createdAt: -1 });
+commentSchema.index({ post: 1, likesCount: -1, createdAt: -1 });
+
 module.exports = mongoose.model('Comment', commentSchema);
