@@ -361,16 +361,19 @@ const CommentsList = ({ postId, targetCommentId, onUpdateCount, currentUser }) =
       </div>
 
       {/* Filters */}
-      <div className="flex justify-end items-center mb-4 px-2">
-        <select 
-          value={sort}
-          onChange={(e) => setSort(e.target.value)}
-          className="bg-transparent border-none text-xs font-semibold text-gray-400 hover:text-white cursor-pointer outline-none"
-        >
-          <option value="newest" className="bg-[#111]">Newest first</option>
-          <option value="top" className="bg-[#111]">Top comments</option>
-          <option value="oldest" className="bg-[#111]">Oldest first</option>
-        </select>
+      <div className="flex justify-end items-center mb-5 px-2 relative w-full">
+        <div className="relative inline-block">
+          <select 
+            value={sort}
+            onChange={(e) => setSort(e.target.value)}
+            className="bg-[#1a1a1a] border border-white/10 rounded-full pl-4 pr-8 py-1.5 text-xs font-semibold text-gray-300 hover:text-white hover:border-[#00F0FF]/50 cursor-pointer outline-none transition-all appearance-none shadow-sm"
+          >
+            <option value="newest" className="bg-[#1a1a1a] text-gray-200 py-1">Newest first</option>
+            <option value="top" className="bg-[#1a1a1a] text-gray-200 py-1">Top comments</option>
+            <option value="oldest" className="bg-[#1a1a1a] text-gray-200 py-1">Oldest first</option>
+          </select>
+          <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400" />
+        </div>
       </div>
 
 
