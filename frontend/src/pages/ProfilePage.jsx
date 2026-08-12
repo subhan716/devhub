@@ -705,8 +705,6 @@ const ProfilePage = () => {
 
             <div className="flex items-center gap-2 mt-2 text-sm text-gray-400">
               <span>{profile.location || 'Location not specified'}</span>
-              <span>·</span>
-              <span className="text-[#00F0FF] font-semibold cursor-pointer hover:underline">Contact info</span>
             </div>
 
             <Link to={`/profile/${profile.user?._id}/connections`} className="inline-block mt-2 text-sm font-semibold text-[#00F0FF] hover:underline">
