@@ -209,7 +209,8 @@ const CommentsList = ({ postId, targetCommentId, onUpdateCount, currentUser }) =
     
     const handleCommentChange = (data) => {
       if (data.postId === postId) {
-        fetchComments();
+        // Silent refresh so the UI doesn't flicker with loaders
+        fetchComments(true);
       }
     };
 
@@ -224,9 +225,9 @@ const CommentsList = ({ postId, targetCommentId, onUpdateCount, currentUser }) =
     };
   }, [socket, postId]);
 
-  const fetchComments = async () => {
+  const fetchComments = async (silent = false) => {
     try {
-      setLoading(true);
+      if (!silent) setLoading(true);
       const { data } = await axios.get(`${import.meta.env.VITE_API_URL}/api/comments/${postId}?sort=${sort}`, { withCredentials: true });
       
       // Build reply tree
@@ -247,7 +248,7 @@ const CommentsList = ({ postId, targetCommentId, onUpdateCount, currentUser }) =
     } catch (err) {
       toast.error('Failed to load comments');
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   };
 
@@ -262,7 +263,7 @@ const CommentsList = ({ postId, targetCommentId, onUpdateCount, currentUser }) =
       await axios.post(`${import.meta.env.VITE_API_URL}/api/comments/${postId}`, payload, { withCredentials: true });
       setText('');
       setReplyTo(null);
-      fetchComments();
+      // Let the socket event trigger the silent fetch
       if (onUpdateCount) onUpdateCount(1);
     } catch (err) {
       toast.error('Failed to post comment');
@@ -273,14 +274,27 @@ const CommentsList = ({ postId, targetCommentId, onUpdateCount, currentUser }) =
     setDeleteCommentId(commentId);
   };
 
+  const removeCommentFromState = (list, idToRemove) => {
+    return list.filter(c => c._id !== idToRemove).map(c => ({
+      ...c,
+      replies: c.replies ? removeCommentFromState(c.replies, idToRemove) : []
+    }));
+  };
+
   const confirmDelete = async () => {
     if (!deleteCommentId) return;
+    const idToDelete = deleteCommentId;
+    
+    // Optimistic UI Update
+    setComments(prev => removeCommentFromState(prev, idToDelete));
+    if (onUpdateCount) onUpdateCount(-1);
+    setDeleteCommentId(null);
+    
     try {
-      await axios.delete(`${import.meta.env.VITE_API_URL}/api/comments/${deleteCommentId}`, { withCredentials: true });
-      fetchComments();
-      setDeleteCommentId(null);
+      await axios.delete(`${import.meta.env.VITE_API_URL}/api/comments/${idToDelete}`, { withCredentials: true });
     } catch (err) {
       toast.error('Failed to delete comment');
+      fetchComments(true);
     }
   };
 
