@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { addComment, getComments, deleteComment, likeComment } = require('../controllers/commentController');
+const { addComment, getComments, deleteComment, likeComment, editComment } = require('../controllers/commentController');
 const { protect } = require('../middleware/authMiddleware');
 
 // @route   POST /api/comments/:postId
@@ -17,6 +17,11 @@ router.get('/:postId', protect, getComments);
 // @desc    Delete a comment
 // @access  Private
 router.delete('/:commentId', protect, deleteComment);
+
+// @route   PUT /api/comments/:commentId
+// @desc    Edit a comment
+// @access  Private
+router.put('/:commentId', protect, editComment);
 
 // @route   PUT /api/comments/like/:commentId
 // @desc    Like / Unlike a comment

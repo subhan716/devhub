@@ -4,20 +4,35 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Heart, MessageCircle, MoreHorizontal, Trash2, ChevronDown, ChevronUp } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import toast from 'react-hot-toast';
+import { useSocket } from '../../context/SocketContext';
 
 const CommentItem = ({ comment, postId, onReply, onDelete, depth = 0, isTarget, currentUser }) => {
   const [likes, setLikes] = useState(comment.likes || []);
   const [showReplies, setShowReplies] = useState(depth === 0);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editText, setEditText] = useState(comment.text);
+  
   const myUserId = currentUser?._id || currentUser?.id;
   const isLiked = myUserId && likes.includes(myUserId);
   const isAuthor = myUserId === (comment.user?._id || comment.user);
   const commentRef = useRef(null);
+  const menuRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setIsMenuOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   useEffect(() => {
     if (isTarget && commentRef.current) {
       setTimeout(() => {
         commentRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        // Add a temporary highlight class
         commentRef.current.classList.add('bg-white/10');
         setTimeout(() => {
           if (commentRef.current) commentRef.current.classList.remove('bg-white/10');
@@ -25,6 +40,27 @@ const CommentItem = ({ comment, postId, onReply, onDelete, depth = 0, isTarget, 
       }, 500);
     }
   }, [isTarget]);
+
+  const handleEditSubmit = async () => {
+    if (!editText.trim() || editText === comment.text) {
+      setIsEditing(false);
+      return;
+    }
+    try {
+      await axios.put(`${import.meta.env.VITE_API_URL}/api/comments/${comment._id}`, { text: editText }, { withCredentials: true });
+      setIsEditing(false);
+      // We will rely on socket for real-time or trigger a fetch, but for instant UI we can update comment text locally or via props
+      comment.text = editText; // optimistic
+    } catch (err) {
+      toast.error('Failed to update comment');
+    }
+  };
+
+  const copyToClipboard = () => {
+    navigator.clipboard.writeText(comment.text);
+    toast.success('Copied to clipboard');
+    setIsMenuOpen(false);
+  };
 
   const handleLike = async () => {
     try {
@@ -51,13 +87,66 @@ const CommentItem = ({ comment, postId, onReply, onDelete, depth = 0, isTarget, 
                 : formatDistanceToNow(new Date(comment.createdAt), { addSuffix: true })
             }</span>
           </div>
-          <p className="text-[14px] text-gray-200 leading-relaxed whitespace-pre-wrap">{comment.text}</p>
+          {isEditing ? (
+            <div className="mt-1 mb-2">
+              <textarea
+                value={editText}
+                onChange={(e) => setEditText(e.target.value)}
+                className="w-full bg-[#1a1a1a] border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-[#00F0FF] resize-none h-20 custom-scrollbar"
+              />
+              <div className="flex gap-2 justify-end mt-2">
+                <button onClick={() => setIsEditing(false)} className="text-xs text-gray-400 hover:text-white px-3 py-1.5 rounded-full">Cancel</button>
+                <button onClick={handleEditSubmit} className="text-xs bg-[#00F0FF] text-black font-bold px-3 py-1.5 rounded-full hover:bg-[#00F0FF]/90">Save</button>
+              </div>
+            </div>
+          ) : (
+            <p className="text-[14px] text-gray-200 leading-relaxed whitespace-pre-wrap">{comment.text}</p>
+          )}
           
-          {/* Delete Button (Only for author) */}
-          {isAuthor && (
-            <button onClick={() => onDelete(comment._id)} className="absolute top-0 right-0 p-1.5 text-gray-500 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity bg-[#111] rounded-full">
-              <Trash2 size={14} />
-            </button>
+          {/* 3-Dot Menu */}
+          {!isEditing && (
+            <div className="absolute top-0 right-0 opacity-0 group-hover:opacity-100 transition-opacity" ref={menuRef}>
+              <button 
+                onClick={() => setIsMenuOpen(!isMenuOpen)} 
+                className="p-1 text-gray-500 hover:text-white bg-[#111] hover:bg-white/10 rounded-full transition-colors"
+              >
+                <MoreHorizontal size={16} />
+              </button>
+              
+              <AnimatePresence>
+                {isMenuOpen && (
+                  <motion.div 
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.95 }}
+                    className="absolute right-0 top-full mt-1 w-32 bg-[#1A1A1A] border border-white/10 rounded-xl shadow-2xl overflow-hidden z-20 py-1"
+                  >
+                    {isAuthor && (
+                      <>
+                        <button 
+                          onClick={() => { setIsEditing(true); setIsMenuOpen(false); }}
+                          className="w-full text-left px-4 py-2 text-xs text-gray-300 hover:bg-white/5 hover:text-white transition-colors"
+                        >
+                          Edit
+                        </button>
+                        <button 
+                          onClick={() => { onDelete(comment._id); setIsMenuOpen(false); }}
+                          className="w-full text-left px-4 py-2 text-xs text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-colors"
+                        >
+                          Delete
+                        </button>
+                      </>
+                    )}
+                    <button 
+                      onClick={copyToClipboard}
+                      className="w-full text-left px-4 py-2 text-xs text-gray-300 hover:bg-white/5 hover:text-white transition-colors"
+                    >
+                      Copy text
+                    </button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
           )}
         </div>
         
@@ -116,10 +205,31 @@ const CommentsList = ({ postId, targetCommentId, onUpdateCount, currentUser }) =
   const [text, setText] = useState('');
   const [replyTo, setReplyTo] = useState(null);
   const [sort, setSort] = useState('newest'); // 'newest', 'oldest', 'top'
+  const { socket } = useSocket();
 
   useEffect(() => {
     fetchComments();
   }, [postId, sort]);
+
+  useEffect(() => {
+    if (!socket) return;
+    
+    const handleCommentChange = (data) => {
+      if (data.postId === postId) {
+        fetchComments();
+      }
+    };
+
+    socket.on('comment_added', handleCommentChange);
+    socket.on('comment_deleted', handleCommentChange);
+    socket.on('comment_updated', handleCommentChange);
+    
+    return () => {
+      socket.off('comment_added', handleCommentChange);
+      socket.off('comment_deleted', handleCommentChange);
+      socket.off('comment_updated', handleCommentChange);
+    };
+  }, [socket, postId]);
 
   const fetchComments = async () => {
     try {
@@ -176,6 +286,28 @@ const CommentsList = ({ postId, targetCommentId, onUpdateCount, currentUser }) =
       toast.error('Failed to delete comment');
     }
   };
+
+  const targetChecked = useRef(false);
+
+  useEffect(() => {
+    if (!loading && targetCommentId && !targetChecked.current && comments.length >= 0) {
+      const checkTargetExists = (list) => {
+        for (const c of list) {
+          if (c._id === targetCommentId) return true;
+          if (c.replies && checkTargetExists(c.replies)) return true;
+        }
+        return false;
+      };
+      
+      // Give a slight delay to ensure render tree is ready before checking
+      setTimeout(() => {
+        if (!checkTargetExists(comments)) {
+          toast.error('The comment you are looking for has been deleted.');
+        }
+      }, 100);
+      targetChecked.current = true;
+    }
+  }, [loading, comments, targetCommentId]);
 
   return (
     <div className="flex flex-col h-full">

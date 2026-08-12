@@ -189,9 +189,45 @@ const likeComment = async (req, res) => {
   }
 };
 
+// @desc    Edit a comment
+// @route   PUT /api/comments/:commentId
+// @access  Private
+const editComment = async (req, res) => {
+  try {
+    const { text } = req.body;
+    
+    if (!text) {
+      return res.status(400).json({ message: 'Comment text is required' });
+    }
+
+    const comment = await Comment.findById(req.params.commentId);
+    
+    if (!comment) {
+      return res.status(404).json({ message: 'Comment not found' });
+    }
+
+    // Check user authorization
+    if (comment.user.toString() !== req.user.id) {
+      return res.status(401).json({ message: 'User not authorized to edit this comment' });
+    }
+
+    comment.text = text;
+    await comment.save();
+
+    res.json(comment);
+  } catch (err) {
+    console.error(err.message);
+    if (err.kind === 'ObjectId') {
+      return res.status(404).json({ message: 'Comment not found' });
+    }
+    res.status(500).send('Server Error');
+  }
+};
+
 module.exports = {
   addComment,
   getComments,
   deleteComment,
-  likeComment
+  likeComment,
+  editComment
 };
