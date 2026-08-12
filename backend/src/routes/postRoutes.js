@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { createPost, getPosts, getUserPosts, searchPosts, updatePost, deletePost, likePost } = require('../controllers/postController');
+const { createPost, getPosts, getPostById, getUserPosts, searchPosts, updatePost, deletePost, likePost } = require('../controllers/postController');
 const { protect } = require('../middleware/authMiddleware');
 
 // @route   POST /api/posts
@@ -22,6 +22,11 @@ router.get('/search', protect, searchPosts);
 // @desc    Get user posts
 // @access  Private
 router.get('/user/:user_id', protect, getUserPosts);
+
+// @route   GET /api/posts/:id
+// @desc    Get a single post
+// @access  Private
+router.get('/:id', protect, getPostById);
 
 // @route   PUT /api/posts/:id
 // @desc    Update a post

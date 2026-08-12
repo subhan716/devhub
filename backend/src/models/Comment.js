@@ -17,6 +17,21 @@ const commentSchema = new mongoose.Schema(
       required: [true, 'Comment text is required'],
       maxlength: [500, 'Comment cannot exceed 500 characters'],
     },
+    parentComment: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Comment',
+      default: null,
+    },
+    likes: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+      },
+    ],
+    likesCount: {
+      type: Number,
+      default: 0,
+    },
   },
   {
     timestamps: true,
