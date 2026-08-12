@@ -10,7 +10,6 @@ const FeedPage = () => {
   const { currentUser } = useOutletContext();
   const [posts, setPosts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [feedType, setFeedType] = useState('foryou'); // 'foryou' or 'following'
 
   // Modal States
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -47,7 +46,7 @@ const FeedPage = () => {
     const fetchPosts = async () => {
       try {
         setIsLoading(true);
-        const { data } = await axios.get(`${import.meta.env.VITE_API_URL}/api/posts?feedType=${feedType}`, { withCredentials: true });
+        const { data } = await axios.get(`${import.meta.env.VITE_API_URL}/api/posts`, { withCredentials: true });
         setPosts(data);
       } catch (error) {
         toast.error('Failed to load feed');
@@ -56,7 +55,7 @@ const FeedPage = () => {
       }
     };
     fetchPosts();
-  }, [feedType]);
+  }, []);
 
   // Fetch user's connections for mention autocomplete
   useEffect(() => {
@@ -389,28 +388,6 @@ const FeedPage = () => {
         className="hidden" 
       />
 
-      {/* Feed Tabs */}
-      <div className="flex border-b border-white/10 mb-2">
-        <button
-          onClick={() => setFeedType('foryou')}
-          className={`flex-1 py-3 text-sm font-semibold transition-colors relative ${feedType === 'foryou' ? 'text-white' : 'text-gray-500 hover:text-gray-300'}`}
-        >
-          For You
-          {feedType === 'foryou' && (
-            <motion.div layoutId="feedTab" className="absolute bottom-0 left-0 right-0 h-1 bg-[#00F0FF] rounded-t-full" />
-          )}
-        </button>
-        <button
-          onClick={() => setFeedType('following')}
-          className={`flex-1 py-3 text-sm font-semibold transition-colors relative ${feedType === 'following' ? 'text-white' : 'text-gray-500 hover:text-gray-300'}`}
-        >
-          Following
-          {feedType === 'following' && (
-            <motion.div layoutId="feedTab" className="absolute bottom-0 left-0 right-0 h-1 bg-[#00F0FF] rounded-t-full" />
-          )}
-        </button>
-      </div>
-
       {/* Feed Stream */}
       <div className="flex flex-col gap-6">
         {isLoading ? (
@@ -421,24 +398,11 @@ const FeedPage = () => {
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-center text-gray-400 py-16 bg-[#111] rounded-2xl border border-white/5 flex flex-col items-center gap-3"
+            className="text-center text-gray-500 py-12 bg-[#111] rounded-2xl border border-white/5 flex flex-col items-center gap-3"
           >
-            {feedType === 'following' ? (
-              <>
-                <Globe size={40} className="text-gray-600 mb-2" />
-                <h3 className="text-xl font-bold text-gray-200">Build Your Network</h3>
-                <p className="text-sm max-w-sm">You aren't following anyone yet, or they haven't posted recently. Switch to 'For You' to discover professional insights.</p>
-                <button onClick={() => setFeedType('foryou')} className="mt-4 px-6 py-2 bg-[#1A1A1A] hover:bg-white/10 border border-white/10 rounded-full font-medium transition-colors">
-                  Explore For You
-                </button>
-              </>
-            ) : (
-              <>
-                <FileText size={40} className="text-gray-600 mb-2" />
-                <h3 className="text-xl font-bold text-gray-200">No posts yet</h3>
-                <p className="text-sm">Be the first to share a professional update!</p>
-              </>
-            )}
+            <FileText size={40} className="text-gray-600 mb-2" />
+            <h3 className="text-xl font-bold text-gray-200">No posts yet</h3>
+            <p className="text-sm">Be the first to share a professional update!</p>
           </motion.div>
         ) : (
           <AnimatePresence>

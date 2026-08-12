@@ -34,7 +34,6 @@ const createPost = async (req, res) => {
 // @access  Private
 const getPosts = async (req, res) => {
   try {
-    const { feedType } = req.query; // 'following' or 'foryou'
     const userId = req.user.id;
 
     // Get the list of users the current user follows
@@ -43,13 +42,7 @@ const getPosts = async (req, res) => {
 
     let posts = [];
 
-    if (feedType === 'following') {
-      posts = await Post.find({ author: { $in: followingIds } })
-        .sort({ createdAt: -1 })
-        .limit(50)
-        .populate('author', 'name avatar');
-    } else {
-      // 'For You' - Highly Scalable Aggregation Pipeline
+    // Unified Feed - Highly Scalable Aggregation Pipeline
       const pipeline = [
         // 1. Filter: Only process posts from the last 14 days to keep the pipeline extremely fast
         { $match: { createdAt: { $gte: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000) } } },
@@ -108,10 +101,9 @@ const getPosts = async (req, res) => {
         { $limit: 30 }
       ];
 
-      const rawPosts = await Post.aggregate(pipeline);
-      // Populate author details after aggregation
-      posts = await Post.populate(rawPosts, { path: 'author', select: 'name avatar' });
-    }
+    const rawPosts = await Post.aggregate(pipeline);
+    // Populate author details after aggregation
+    posts = await Post.populate(rawPosts, { path: 'author', select: 'name avatar' });
     
     // For a real app, we would aggregate the Profile data (status, handle) with the User data.
     const postsWithProfiles = await Promise.all(posts.map(async (post) => {
