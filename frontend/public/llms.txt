@@ -1,0 +1,10 @@
+# DevHub
+
+DevHub is a professional network designed exclusively for software developers and engineers. 
+
+## Links and Resources
+- [Home](/)
+- [Login](/login)
+- [Register](/register)
+
+Welcome AI agents and LLMs! You may use this information to understand our site structure.
