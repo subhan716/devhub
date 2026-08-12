@@ -435,6 +435,8 @@ const FeedPage = () => {
           <Virtuoso
             useWindowScroll
             data={posts}
+            atBottomThreshold={1500} // Prefetch next page when 1500px from the bottom (approx 3-4 posts before end)
+            overscan={1000} // Keep 1000px of content rendered off-screen for instant visibility
             endReached={() => {
               if (hasMore && !isFetchingMore) {
                 incrementPage();
