@@ -5,6 +5,7 @@ import { Heart, MessageCircle, MoreHorizontal, Trash2, ChevronDown, ChevronUp, E
 import { formatDistanceToNow } from 'date-fns';
 import toast from 'react-hot-toast';
 import { useSocket } from '../../context/SocketContext';
+import ConfirmModal from './ConfirmModal';
 
 const CommentItem = ({ comment, postId, onReply, onDelete, depth = 0, isTarget, currentUser }) => {
   const [likes, setLikes] = useState(comment.likes || []);
@@ -190,6 +191,7 @@ const CommentsList = ({ postId, targetCommentId, onUpdateCount, currentUser }) =
   const [text, setText] = useState('');
   const [replyTo, setReplyTo] = useState(null);
   const [sort, setSort] = useState('newest'); // 'newest', 'oldest', 'top'
+  const [deleteCommentId, setDeleteCommentId] = useState(null);
   const { socket } = useSocket();
 
   useEffect(() => {
@@ -261,12 +263,16 @@ const CommentsList = ({ postId, targetCommentId, onUpdateCount, currentUser }) =
     }
   };
 
-  const handleDelete = async (commentId) => {
-    if (!window.confirm('Are you sure you want to delete this comment?')) return;
+  const handleDelete = (commentId) => {
+    setDeleteCommentId(commentId);
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteCommentId) return;
     try {
-      await axios.delete(`${import.meta.env.VITE_API_URL}/api/comments/${commentId}`, { withCredentials: true });
+      await axios.delete(`${import.meta.env.VITE_API_URL}/api/comments/${deleteCommentId}`, { withCredentials: true });
       fetchComments();
-      // Since delete might remove replies, we just refresh entirely
+      setDeleteCommentId(null);
     } catch (err) {
       toast.error('Failed to delete comment');
     }
@@ -369,6 +375,16 @@ const CommentsList = ({ postId, targetCommentId, onUpdateCount, currentUser }) =
       ) : (
         <p className="text-center text-gray-500 text-sm py-4">No comments yet. Be the first!</p>
       )}
+
+      <ConfirmModal
+        isOpen={!!deleteCommentId}
+        onClose={() => setDeleteCommentId(null)}
+        onConfirm={confirmDelete}
+        title="Delete Comment"
+        message="Are you sure you want to delete this comment? This action cannot be undone."
+        confirmText="Delete"
+        isDestructive={true}
+      />
     </div>
   );
 };
