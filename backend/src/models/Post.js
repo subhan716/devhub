@@ -9,7 +9,6 @@ const postSchema = new mongoose.Schema(
     },
     content: {
       type: String,
-      required: [true, 'Post content is required'],
       maxlength: [2000, 'Post cannot exceed 2000 characters'],
     },
     image: {
@@ -35,9 +34,23 @@ const postSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+    reposts: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+      },
+    ],
     repostsCount: {
       type: Number,
       default: 0,
+    },
+    isRepost: {
+      type: Boolean,
+      default: false,
+    },
+    originalPost: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Post',
     },
   },
   {

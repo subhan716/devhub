@@ -107,8 +107,11 @@ const getPosts = async (req, res) => {
       ];
 
     const rawPosts = await Post.aggregate(pipeline);
-    // Populate author details after aggregation
-    posts = await Post.populate(rawPosts, { path: 'author', select: 'name avatar' });
+    // Populate author details and originalPost after aggregation
+    posts = await Post.populate(rawPosts, [
+      { path: 'author', select: 'name avatar' },
+      { path: 'originalPost', populate: { path: 'author', select: 'name avatar' } }
+    ]);
     
     // For a real app, we would aggregate the Profile data (status, handle) with the User data.
     const postsWithProfiles = await Promise.all(posts.map(async (post) => {
@@ -169,7 +172,8 @@ const getUserPosts = async (req, res) => {
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit)
-      .populate('author', 'name avatar');
+      .populate('author', 'name avatar')
+      .populate({ path: 'originalPost', populate: { path: 'author', select: 'name avatar' } });
     
     const postsWithProfiles = await Promise.all(posts.map(async (post) => {
       const profile = await Profile.findOne({ user: post.author._id });
@@ -358,29 +362,61 @@ const likePost = async (req, res) => {
 // @access  Private
 const repostPost = async (req, res) => {
   try {
-    const postId = req.params.id;
-    // Scalable atomic increment for reposts
-    const updatedPost = await Post.findByIdAndUpdate(
-      postId,
-      { $inc: { repostsCount: 1 } },
-      { new: true }
-    );
+    const originalPostId = req.params.id;
+    const userId = req.user.id;
 
-    if (!updatedPost) {
+    const originalPost = await Post.findById(originalPostId);
+    if (!originalPost) {
       return res.status(404).json({ message: 'Post not found' });
+    }
+
+    // Check if user already reposted
+    const existingRepost = await Post.findOne({ author: userId, isRepost: true, originalPost: originalPostId });
+
+    let updatedPost;
+
+    if (existingRepost) {
+      // Undo repost
+      await Post.findByIdAndDelete(existingRepost._id);
+      
+      updatedPost = await Post.findByIdAndUpdate(
+        originalPostId,
+        { 
+          $pull: { reposts: userId },
+          $inc: { repostsCount: -1 } 
+        },
+        { new: true }
+      );
+    } else {
+      // Create repost
+      await Post.create({
+        author: userId,
+        isRepost: true,
+        originalPost: originalPostId,
+      });
+
+      updatedPost = await Post.findByIdAndUpdate(
+        originalPostId,
+        { 
+          $addToSet: { reposts: userId },
+          $inc: { repostsCount: 1 } 
+        },
+        { new: true }
+      );
     }
 
     try {
       const { getIo } = require('../socket');
       getIo().emit('post_updated', { 
         postId: updatedPost._id, 
-        repostsCount: updatedPost.repostsCount
+        repostsCount: updatedPost.repostsCount,
+        reposts: updatedPost.reposts
       });
     } catch (e) {
       console.log('Socket emit failed', e.message);
     }
 
-    res.json({ repostsCount: updatedPost.repostsCount });
+    res.json({ repostsCount: updatedPost.repostsCount, reposts: updatedPost.reposts });
   } catch (err) {
     console.error(err.message);
     if (err.kind === 'ObjectId') {

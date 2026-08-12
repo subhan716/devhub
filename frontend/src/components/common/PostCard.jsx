@@ -40,21 +40,34 @@ const formatPostDate = (dateString) => {
   return `${day}/${month}/${year} at ${timeStr}`;
 };
 
-const PostCard = ({ post, idx = 0, currentUser, onDelete, onEdit, autoOpenComments = false, targetCommentId = null }) => {
+const PostCard = memo(({ post: rootPost, idx = 0, currentUser, onDelete, onEdit, autoOpenComments = false, targetCommentId = null }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [showComments, setShowComments] = useState(autoOpenComments);
   const menuRef = useRef(null);
 
+  const isRepost = rootPost?.isRepost;
+  const reposter = isRepost ? rootPost.author : null;
+  const post = isRepost && rootPost.originalPost ? rootPost.originalPost : rootPost;
+  const isDeletedRepost = isRepost && !rootPost.originalPost;
+
   // Safely extract IDs for comparison
   const myUserId = currentUser?._id || currentUser?.user?._id;
-  const authorId = post.author?._id || post.author;
+  
+  // Author of the actual content being displayed
+  const authorId = post?.author?._id || post?.author;
   const isAuthor = myUserId && authorId && myUserId === authorId;
+  
+  // Author of the root post (for deletion of the repost itself)
+  const rootAuthorId = rootPost?.author?._id || rootPost?.author;
+  const isRootAuthor = myUserId && rootAuthorId && myUserId === rootAuthorId;
 
   // Global Zustand store for optimistic UI
   const { optimisticLikePost, revertPostUpdate, updatePostInFeed, optimisticRepostPost, optimisticUpdateCommentsCount } = useFeedStore();
-  const likes = post.likes || [];
+  const likes = post?.likes || [];
   const isLiked = myUserId && likes.includes(myUserId);
-  const commentsCount = post.commentsCount || 0;
+  const commentsCount = post?.commentsCount || 0;
+  const reposts = post?.reposts || [];
+  const isRepostedByMe = myUserId && reposts.includes(myUserId);
 
   // Follow system local state
   const [isFollowing, setIsFollowing] = useState(false);
@@ -202,14 +215,14 @@ const PostCard = ({ post, idx = 0, currentUser, onDelete, onEdit, autoOpenCommen
       toast.error('Please log in to repost');
       return;
     }
-    const previousPostState = optimisticRepostPost(post._id);
+    const previousPostState = optimisticRepostPost(post._id, myUserId);
     try {
       const { data } = await axios.put(`${import.meta.env.VITE_API_URL}/api/posts/repost/${post._id}`, {}, { withCredentials: true });
-      updatePostInFeed({ ...post, repostsCount: data.repostsCount });
-      toast.success('Reposted successfully');
+      updatePostInFeed({ ...post, repostsCount: data.repostsCount, reposts: data.reposts });
+      toast.success(isRepostedByMe ? 'Repost removed' : 'Reposted successfully');
     } catch (err) {
       if (previousPostState) revertPostUpdate(previousPostState);
-      toast.error('Failed to repost');
+      toast.error('Failed to update repost');
     }
   };
 
@@ -221,19 +234,40 @@ const PostCard = ({ post, idx = 0, currentUser, onDelete, onEdit, autoOpenCommen
       transition={{ duration: 0.3, delay: Math.min(idx * 0.1, 0.5) }}
       className="bg-[#111] rounded-2xl p-5 shadow-lg flex flex-col gap-4 relative overflow-visible group transition-colors duration-300 border border-white/5 hover:border-white/10"
     >
-      {/* Post Header */}
-      <div className="flex justify-between items-start">
-        <div className="flex gap-3">
-          <img 
-            src={post.author?.avatar?.url || 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y'} 
-            alt={post.author?.name || 'Unknown User'} 
-            className="w-10 h-10 rounded-full object-cover border border-white/10 cursor-pointer" 
-          />
-          <div className="flex flex-col leading-tight cursor-pointer">
-            <span className="text-white font-medium text-sm">{post.author?.name || 'Unknown User'}</span>
-            <span className="text-[11px] text-gray-500 mt-0.5">{formatPostDate(post.createdAt)}</span>
-          </div>
+      {isRepost && (
+        <div className="flex items-center gap-2 text-gray-400 text-xs font-medium pb-2 border-b border-white/5 mb-2 -mt-2">
+          <Repeat2 size={14} />
+          <span>{reposter?.name || 'Unknown User'} reposted</span>
+          {isRootAuthor && (
+            <button 
+              onClick={(e) => { e.stopPropagation(); onDelete(rootPost._id); }}
+              className="ml-auto text-gray-500 hover:text-red-400 transition-colors"
+            >
+              <Trash2 size={14} />
+            </button>
+          )}
         </div>
+      )}
+
+      {isDeletedRepost ? (
+        <div className="p-4 border border-white/5 rounded-xl text-gray-500 text-sm text-center italic">
+          This post has been deleted by the original author.
+        </div>
+      ) : (
+        <>
+          {/* Post Header */}
+          <div className="flex justify-between items-start">
+            <div className="flex gap-3">
+              <img 
+                src={post?.author?.avatar?.url || 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y'} 
+                alt={post?.author?.name || 'Unknown User'} 
+                className="w-10 h-10 rounded-full object-cover border border-white/10 cursor-pointer" 
+              />
+              <div className="flex flex-col leading-tight cursor-pointer">
+                <span className="text-white font-medium text-sm">{post?.author?.name || 'Unknown User'}</span>
+                <span className="text-[11px] text-gray-500 mt-0.5">{formatPostDate(post?.createdAt)}</span>
+              </div>
+            </div>
 
         {/* Right side: Follow button + 3-dots Menu */}
         <div className="flex items-center gap-2">
@@ -389,9 +423,9 @@ const PostCard = ({ post, idx = 0, currentUser, onDelete, onEdit, autoOpenCommen
           <span>{commentsCount}</span>
         </button>
         
-        <button onClick={handleRepostClick} className="flex items-center gap-1.5 hover:text-[#00F0FF] hover:bg-[#00F0FF]/10 px-3 py-1.5 rounded-full transition-colors cursor-pointer">
+        <button onClick={handleRepostClick} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full transition-colors cursor-pointer ${isRepostedByMe ? 'text-[#00F0FF] bg-[#00F0FF]/10' : 'hover:text-[#00F0FF] hover:bg-[#00F0FF]/10'}`}>
           <Repeat2 size={18} />
-          <span>{post.repostsCount || 0}</span>
+          <span>{post?.repostsCount || 0}</span>
         </button>
       </div>
 
@@ -437,8 +471,9 @@ const PostCard = ({ post, idx = 0, currentUser, onDelete, onEdit, autoOpenCommen
               </div>
             </motion.div>
           </motion.div>
-        )}
       </AnimatePresence>
+      </>
+      )}
     </motion.div>
   );
 };

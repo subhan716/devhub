@@ -21,7 +21,13 @@ const useFeedStore = create((set) => ({
   })),
 
   updatePostInFeed: (updatedPost) => set((state) => ({
-    posts: state.posts.map(p => p._id === updatedPost._id ? { ...p, ...updatedPost } : p)
+    posts: state.posts.map(p => {
+      if (p._id === updatedPost._id) return { ...p, ...updatedPost };
+      if (p.originalPost && p.originalPost._id === updatedPost._id) {
+        return { ...p, originalPost: { ...p.originalPost, ...updatedPost } };
+      }
+      return p;
+    })
   })),
 
   optimisticLikePost: (postId, userId) => {
@@ -29,27 +35,60 @@ const useFeedStore = create((set) => ({
     set((state) => ({
       posts: state.posts.map(p => {
         if (p._id === postId) {
-          previousPost = { ...p }; // Clone for backup
-          const hasLiked = p.likes.includes(userId);
-          return {
-            ...p,
-            likes: hasLiked ? p.likes.filter(id => id !== userId) : [userId, ...p.likes],
-            likesCount: hasLiked ? Math.max(0, p.likesCount - 1) : p.likesCount + 1
-          };
+          previousPost = { ...p };
+          const hasLiked = p.likes?.includes(userId);
+          const newLikes = hasLiked
+            ? p.likes.filter(id => id !== userId)
+            : [...(p.likes || []), userId];
+          const newCount = hasLiked 
+            ? Math.max(0, (p.likesCount || 1) - 1) 
+            : (p.likesCount || 0) + 1;
+          
+          return { ...p, likes: newLikes, likesCount: newCount };
+        }
+        if (p.originalPost && p.originalPost._id === postId) {
+          if (!previousPost) previousPost = { ...p.originalPost };
+          const hasLiked = p.originalPost.likes?.includes(userId);
+          const newLikes = hasLiked
+            ? p.originalPost.likes.filter(id => id !== userId)
+            : [...(p.originalPost.likes || []), userId];
+          const newCount = hasLiked 
+            ? Math.max(0, (p.originalPost.likesCount || 1) - 1) 
+            : (p.originalPost.likesCount || 0) + 1;
+          return { ...p, originalPost: { ...p.originalPost, likes: newLikes, likesCount: newCount } };
         }
         return p;
       })
     }));
-    return previousPost; // Return the exact backup so it can be reverted if API fails
+    return previousPost; 
   },
 
-  optimisticRepostPost: (postId) => {
+  optimisticRepostPost: (postId, userId) => {
     let previousPost = null;
     set((state) => ({
       posts: state.posts.map(p => {
         if (p._id === postId) {
           previousPost = { ...p };
-          return { ...p, repostsCount: (p.repostsCount || 0) + 1 };
+          const hasReposted = p.reposts?.includes(userId);
+          const newReposts = hasReposted
+            ? p.reposts.filter(id => id !== userId)
+            : [...(p.reposts || []), userId];
+          const newCount = hasReposted
+            ? Math.max(0, (p.repostsCount || 1) - 1)
+            : (p.repostsCount || 0) + 1;
+          
+          return { ...p, reposts: newReposts, repostsCount: newCount };
+        }
+        if (p.originalPost && p.originalPost._id === postId) {
+          if (!previousPost) previousPost = { ...p.originalPost };
+          const hasReposted = p.originalPost.reposts?.includes(userId);
+          const newReposts = hasReposted
+            ? p.originalPost.reposts.filter(id => id !== userId)
+            : [...(p.originalPost.reposts || []), userId];
+          const newCount = hasReposted
+            ? Math.max(0, (p.originalPost.repostsCount || 1) - 1)
+            : (p.originalPost.repostsCount || 0) + 1;
+          return { ...p, originalPost: { ...p.originalPost, reposts: newReposts, repostsCount: newCount } };
         }
         return p;
       })
@@ -62,6 +101,9 @@ const useFeedStore = create((set) => ({
       posts: state.posts.map(p => {
         if (p._id === postId) {
           return { ...p, commentsCount: Math.max(0, (p.commentsCount || 0) + diff) };
+        }
+        if (p.originalPost && p.originalPost._id === postId) {
+          return { ...p, originalPost: { ...p.originalPost, commentsCount: Math.max(0, (p.originalPost.commentsCount || 0) + diff) } };
         }
         return p;
       })
