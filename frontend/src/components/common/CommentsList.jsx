@@ -39,19 +39,19 @@ const CommentItem = ({ comment, postId, onReply, onDelete, depth = 0, isTarget, 
   };
 
   return (
-    <div ref={commentRef} className={`flex gap-3 mb-4 transition-colors duration-1000 p-2 rounded-xl ${isTarget ? 'bg-white/5' : ''}`}>
-      <img src={comment.user?.avatar?.url || 'https://www.gravatar.com/avatar/0?d=mp'} alt={comment.user?.name} className="w-8 h-8 rounded-full border border-white/10 mt-1" />
+    <div ref={commentRef} className={`flex gap-3 mb-5 transition-colors duration-1000 ${isTarget ? 'bg-[#00F0FF]/10 -mx-2 px-2 py-1 rounded-lg' : ''}`}>
+      <img src={comment.user?.avatar?.url || 'https://www.gravatar.com/avatar/0?d=mp'} alt={comment.user?.name} className="w-9 h-9 rounded-full object-cover mt-0.5 border border-white/5" />
       <div className="flex-1">
-        <div className="bg-[#1a1a1a] p-3 rounded-2xl rounded-tl-none border border-white/5 relative group">
-          <div className="flex justify-between items-start mb-1">
-            <span className="font-medium text-sm text-white">{comment.user?.name}</span>
-            <span className="text-[10px] text-gray-500">{formatDistanceToNow(new Date(comment.createdAt), { addSuffix: true })}</span>
+        <div className="relative group">
+          <div className="flex items-center gap-2 mb-0.5">
+            <span className="font-bold text-sm text-gray-100 hover:underline cursor-pointer">{comment.user?.name}</span>
+            <span className="text-[11px] text-gray-500">• {formatDistanceToNow(new Date(comment.createdAt))}</span>
           </div>
-          <p className="text-sm text-gray-300">{comment.text}</p>
+          <p className="text-[14px] text-gray-200 leading-relaxed whitespace-pre-wrap">{comment.text}</p>
           
           {/* Delete Button (Only for author) */}
           {isAuthor && (
-            <button onClick={() => onDelete(comment._id)} className="absolute top-2 right-2 p-1 text-gray-500 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity">
+            <button onClick={() => onDelete(comment._id)} className="absolute top-0 right-0 p-1.5 text-gray-500 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity bg-[#111] rounded-full">
               <Trash2 size={14} />
             </button>
           )}
@@ -59,8 +59,10 @@ const CommentItem = ({ comment, postId, onReply, onDelete, depth = 0, isTarget, 
         
         {/* Comment Actions */}
         <div className="flex gap-4 mt-1.5 ml-2 text-xs font-semibold text-gray-500">
-          <button onClick={handleLike} className={`hover:text-white transition-colors ${isLiked ? 'text-[#00F0FF]' : ''}`}>
-            Like {likes.length > 0 && `(${likes.length})`}
+        {/* Comment Actions */}
+        <div className="flex items-center gap-4 mt-1.5 text-[12px] font-semibold text-gray-500">
+          <button onClick={handleLike} className={`hover:text-[#00F0FF] transition-colors flex items-center gap-1 ${isLiked ? 'text-[#00F0FF]' : ''}`}>
+            Like {likes.length > 0 && <span>({likes.length})</span>}
           </button>
           {depth < 2 && (
             <button onClick={() => onReply(comment)} className="hover:text-white transition-colors">
@@ -72,26 +74,28 @@ const CommentItem = ({ comment, postId, onReply, onDelete, depth = 0, isTarget, 
         {/* Replies */}
         {comment.replies && comment.replies.length > 0 && (
           <div className="mt-2">
-            <button onClick={() => setShowReplies(!showReplies)} className="flex items-center gap-1 text-xs text-[#00F0FF] hover:underline mb-3 font-medium">
-              {showReplies ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+            <button onClick={() => setShowReplies(!showReplies)} className="flex items-center gap-1 text-[12px] text-[#00F0FF] hover:underline mb-3 font-semibold">
+              <span className="w-6 border-b border-[#00F0FF]/30 mr-1 inline-block mb-1"></span>
               {showReplies ? 'Hide replies' : `View ${comment.replies.length} replies`}
             </button>
             
             <AnimatePresence>
               {showReplies && (
                 <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}>
-                  {comment.replies.map(reply => (
-                    <CommentItem 
-                      key={reply._id} 
-                      comment={reply} 
-                      postId={postId} 
-                      onReply={onReply} 
-                      onDelete={onDelete} 
-                      depth={depth + 1} 
-                      isTarget={reply._id === isTarget}
-                      currentUser={currentUser}
-                    />
-                  ))}
+                  <div className="pl-2 border-l border-white/5 ml-3 mt-2">
+                    {comment.replies.map(reply => (
+                      <CommentItem 
+                        key={reply._id} 
+                        comment={reply} 
+                        postId={postId} 
+                        onReply={onReply} 
+                        onDelete={onDelete} 
+                        depth={depth + 1} 
+                        isTarget={reply._id === isTarget}
+                        currentUser={currentUser}
+                      />
+                    ))}
+                  </div>
                 </motion.div>
               )}
             </AnimatePresence>
@@ -170,46 +174,59 @@ const CommentsList = ({ postId, targetCommentId, onUpdateCount, currentUser }) =
   };
 
   return (
-    <div className="mt-4 pt-4 border-t border-white/5">
+    <div className="flex flex-col h-full">
+      {/* Input Form at Top */}
+      <div className="mb-6 sticky top-0 bg-[#111] z-10 pt-2 pb-4 border-b border-white/5">
+        <form onSubmit={handleSubmit} className="flex flex-col gap-2">
+          {replyTo && (
+            <div className="flex items-center justify-between bg-white/5 px-3 py-1.5 rounded-lg text-xs text-gray-300">
+              <span>Replying to <span className="font-bold text-[#00F0FF]">{replyTo.user?.name}</span></span>
+              <button type="button" onClick={() => setReplyTo(null)} className="text-gray-500 hover:text-white">Cancel</button>
+            </div>
+          )}
+          <div className="flex gap-3 items-start">
+            <img src={currentUser?.avatar?.url || 'https://www.gravatar.com/avatar/0?d=mp'} alt="Me" className="w-9 h-9 rounded-full object-cover border border-white/10" />
+            <div className="flex-1 bg-[#1a1a1a] border border-white/5 rounded-2xl overflow-hidden focus-within:border-white/20 transition-colors">
+              <textarea
+                placeholder={replyTo ? 'Write a reply...' : 'Add a comment...'}
+                value={text}
+                onChange={(e) => setText(e.target.value)}
+                className="w-full bg-transparent px-4 py-3 text-sm text-white placeholder-gray-500 focus:outline-none resize-none h-[44px] min-h-[44px] max-h-32 custom-scrollbar"
+                rows="1"
+                onInput={(e) => {
+                  e.target.style.height = '44px';
+                  e.target.style.height = Math.min(e.target.scrollHeight, 128) + 'px';
+                }}
+              />
+              {text.trim() && (
+                <div className="flex justify-end px-3 pb-2 pt-1 border-t border-white/5 bg-[#1a1a1a]">
+                  <button 
+                    type="submit" 
+                    className="bg-[#00F0FF] text-black px-4 py-1.5 rounded-full font-bold text-sm hover:bg-[#00F0FF]/90 transition-all"
+                  >
+                    Reply
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        </form>
+      </div>
+
       {/* Filters */}
-      <div className="flex justify-between items-center mb-4">
-        <h4 className="text-sm font-bold text-white">Comments</h4>
+      <div className="flex justify-end items-center mb-4 px-2">
         <select 
           value={sort}
           onChange={(e) => setSort(e.target.value)}
-          className="bg-[#111] border border-white/10 text-xs text-gray-400 rounded-lg px-2 py-1 outline-none"
+          className="bg-transparent border-none text-xs font-semibold text-gray-400 hover:text-white cursor-pointer outline-none"
         >
-          <option value="newest">Newest first</option>
-          <option value="top">Top comments</option>
-          <option value="oldest">Oldest first</option>
+          <option value="newest" className="bg-[#111]">Newest first</option>
+          <option value="top" className="bg-[#111]">Top comments</option>
+          <option value="oldest" className="bg-[#111]">Oldest first</option>
         </select>
       </div>
 
-      {/* Input */}
-      <form onSubmit={handleSubmit} className="mb-6 flex flex-col gap-2">
-        {replyTo && (
-          <div className="flex items-center justify-between bg-white/5 px-3 py-1.5 rounded-lg text-xs text-gray-300">
-            <span>Replying to <span className="font-bold text-[#00F0FF]">{replyTo.user?.name}</span></span>
-            <button type="button" onClick={() => setReplyTo(null)} className="text-gray-500 hover:text-white">Cancel</button>
-          </div>
-        )}
-        <div className="flex gap-3">
-          <input
-            type="text"
-            placeholder={replyTo ? 'Write a reply...' : 'Add a comment...'}
-            value={text}
-            onChange={(e) => setText(e.target.value)}
-            className="flex-1 bg-[#1a1a1a] border border-white/10 rounded-full px-4 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-[#00F0FF]/50 transition-colors"
-          />
-          <button 
-            type="submit" 
-            disabled={!text.trim()}
-            className="bg-[#00F0FF] text-black px-4 py-2 rounded-full font-bold text-sm disabled:opacity-50 transition-all hover:bg-[#00F0FF]/90"
-          >
-            Post
-          </button>
-        </div>
-      </form>
+
 
       {/* List */}
       {loading ? (
