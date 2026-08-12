@@ -885,79 +885,46 @@ const ProfilePage = () => {
             </div>
           </div>
 
-          {/* Stats Bar — Premium Design */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-8 pb-2">
-
-            {/* Followers */}
+          {/* Inline Stats — LinkedIn/GitHub style */}
+          <div className="flex flex-wrap items-center gap-x-5 gap-y-2 mt-5 pb-1">
             <button
               onClick={() => navigate(`/profile/${profile.user?._id}/connections`)}
-              className="group relative bg-[#111] hover:bg-[#161616] border border-white/8 hover:border-white/15 rounded-2xl p-4 flex flex-col items-start gap-1 transition-all duration-300 cursor-pointer text-left overflow-hidden"
+              className="flex items-baseline gap-1.5 hover:opacity-80 transition-opacity cursor-pointer group"
             >
-              <div className="absolute inset-0 bg-gradient-to-br from-white/3 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-              <div className="flex items-center justify-between w-full mb-1">
-                <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center">
-                  <Users size={15} className="text-gray-400 group-hover:text-white transition-colors" />
-                </div>
-                <span className="text-[10px] text-gray-600 group-hover:text-gray-400 font-medium transition-colors">↗</span>
-              </div>
-              <span className="text-white font-bold text-2xl leading-none">
+              <span className="text-white font-semibold text-sm">
                 {profile.followersCount ?? profile.followers?.length ?? 0}
               </span>
-              <span className="text-gray-500 text-xs font-medium group-hover:text-gray-400 transition-colors">Followers</span>
+              <span className="text-gray-500 text-sm group-hover:text-gray-400 transition-colors">Followers</span>
             </button>
 
-            {/* Following */}
+            <span className="text-white/10 text-sm select-none">·</span>
+
             <button
               onClick={() => navigate(`/profile/${profile.user?._id}/connections`)}
-              className="group relative bg-[#111] hover:bg-[#161616] border border-white/8 hover:border-white/15 rounded-2xl p-4 flex flex-col items-start gap-1 transition-all duration-300 cursor-pointer text-left overflow-hidden"
+              className="flex items-baseline gap-1.5 hover:opacity-80 transition-opacity cursor-pointer group"
             >
-              <div className="absolute inset-0 bg-gradient-to-br from-white/3 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-              <div className="flex items-center justify-between w-full mb-1">
-                <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center">
-                  <Users size={15} className="text-gray-400 group-hover:text-white transition-colors" />
-                </div>
-                <span className="text-[10px] text-gray-600 group-hover:text-gray-400 font-medium transition-colors">↗</span>
-              </div>
-              <span className="text-white font-bold text-2xl leading-none">
+              <span className="text-white font-semibold text-sm">
                 {profile.followingCount ?? profile.following?.length ?? 0}
               </span>
-              <span className="text-gray-500 text-xs font-medium group-hover:text-gray-400 transition-colors">Following</span>
+              <span className="text-gray-500 text-sm group-hover:text-gray-400 transition-colors">Following</span>
             </button>
 
-            {/* Profile Views */}
-            <div className="group relative bg-[#111] hover:bg-[#0d1a1a] border border-[#00F0FF]/10 hover:border-[#00F0FF]/25 rounded-2xl p-4 flex flex-col items-start gap-1 transition-all duration-300 cursor-default overflow-hidden">
-              <div className="absolute inset-0 bg-gradient-to-br from-[#00F0FF]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-              <div className="absolute top-0 right-0 w-20 h-20 bg-[#00F0FF]/5 rounded-full blur-2xl group-hover:bg-[#00F0FF]/10 transition-all duration-500" />
-              <div className="flex items-center justify-between w-full mb-1">
-                <div className="w-8 h-8 rounded-lg bg-[#00F0FF]/8 flex items-center justify-center">
-                  <Eye size={15} className="text-[#00F0FF]/60 group-hover:text-[#00F0FF] transition-colors" />
-                </div>
-              </div>
-              <span className="text-[#00F0FF] font-bold text-2xl leading-none drop-shadow-[0_0_10px_rgba(0,240,255,0.4)]">
-                {profile.views || 0}
-              </span>
-              <span className="text-[#00F0FF]/50 text-xs font-medium group-hover:text-[#00F0FF]/70 transition-colors">Profile Views</span>
-            </div>
+            <span className="text-white/10 text-sm select-none">·</span>
 
-            {/* Total Posts */}
             <button
               onClick={() => navigate(`/profile/${profile.user?._id}/posts`)}
-              className="group relative bg-[#111] hover:bg-[#120d1a] border border-[#8A2BE2]/10 hover:border-[#8A2BE2]/25 rounded-2xl p-4 flex flex-col items-start gap-1 transition-all duration-300 cursor-pointer text-left overflow-hidden"
+              className="flex items-baseline gap-1.5 hover:opacity-80 transition-opacity cursor-pointer group"
             >
-              <div className="absolute inset-0 bg-gradient-to-br from-[#8A2BE2]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-              <div className="absolute bottom-0 left-0 w-20 h-20 bg-[#8A2BE2]/5 rounded-full blur-2xl group-hover:bg-[#8A2BE2]/10 transition-all duration-500" />
-              <div className="flex items-center justify-between w-full mb-1">
-                <div className="w-8 h-8 rounded-lg bg-[#8A2BE2]/8 flex items-center justify-center">
-                  <Activity size={15} className="text-[#8A2BE2]/60 group-hover:text-[#8A2BE2] transition-colors" />
-                </div>
-                <span className="text-[10px] text-gray-600 group-hover:text-[#8A2BE2]/60 font-medium transition-colors">↗</span>
-              </div>
-              <span className="text-[#8A2BE2] font-bold text-2xl leading-none drop-shadow-[0_0_10px_rgba(138,43,226,0.4)]">
-                {userPosts.length}
-              </span>
-              <span className="text-[#8A2BE2]/50 text-xs font-medium group-hover:text-[#8A2BE2]/70 transition-colors">Total Posts</span>
+              <span className="text-white font-semibold text-sm">{userPosts.length}</span>
+              <span className="text-gray-500 text-sm group-hover:text-gray-400 transition-colors">Posts</span>
             </button>
 
+            <span className="text-white/10 text-sm select-none">·</span>
+
+            <div className="flex items-baseline gap-1.5">
+              <span className="text-white font-semibold text-sm">{profile.views || 0}</span>
+              <span className="text-gray-500 text-sm">Profile views</span>
+            </div>
           </div>
         </div>
       </div>
