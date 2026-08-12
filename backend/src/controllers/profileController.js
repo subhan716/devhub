@@ -401,28 +401,52 @@ const getProfileAnalytics = async (req, res) => {
 // @access  Private
 const searchProfiles = async (req, res) => {
   try {
-    const { q, skill, location } = req.query;
-    const query = {};
+    const { q } = req.query;
     
-    if (q) {
-      const users = await User.find({ $text: { $search: q } }).select('_id');
-      const userIds = users.map(u => u._id);
-      
-      query.$or = [
-        { user: { $in: userIds } },
-        { status: { $regex: q, $options: 'i' } },
-        { company: { $regex: q, $options: 'i' } }
-      ];
+    if (!q) {
+      const profiles = await Profile.find().populate('user', 'name avatar').limit(20);
+      return res.json(profiles);
     }
-    if (skill) {
-      query.skills = { $in: [new RegExp(skill, 'i')] };
-    }
-    if (location) {
-      query.location = { $regex: location, $options: 'i' };
-    }
+    
+    // 1. Parallel native text search on User (for names)
+    const users = await User.find({ $text: { $search: q } }, { score: { $meta: "textScore" } }).select('_id');
+    const userIds = users.map(u => u._id);
 
-    const profiles = await Profile.find(query).populate('user', 'name avatar').limit(20);
-    res.json(profiles);
+    // 2. Query Profiles for User Name matches
+    const profilesFromUsersPromise = Profile.find({ user: { $in: userIds } }).populate('user', 'name avatar').lean();
+
+    // 3. Parallel native text search on Profile (for status, company, skills, location, bio)
+    const profilesFromTextPromise = Profile.find(
+      { $text: { $search: q } }, 
+      { score: { $meta: "textScore" } }
+    )
+    .sort({ score: { $meta: "textScore" } })
+    .populate('user', 'name avatar')
+    .lean();
+
+    // Execute both in parallel for blazing fast performance
+    const [profilesFromUsers, profilesFromText] = await Promise.all([
+      profilesFromUsersPromise,
+      profilesFromTextPromise
+    ]);
+
+    // 4. Merge and Deduplicate Results
+    const profileMap = new Map();
+    
+    // Text matches (Company/Skills) have implicit score sorting, we add them first if we want them prioritized, 
+    // but name matches are also very important. We will add Name matches first.
+    profilesFromUsers.forEach(p => profileMap.set(p._id.toString(), p));
+    
+    profilesFromText.forEach(p => {
+      if (!profileMap.has(p._id.toString())) {
+        profileMap.set(p._id.toString(), p);
+      }
+    });
+
+    // Limit to top 20 combined results
+    const combinedProfiles = Array.from(profileMap.values()).slice(0, 20);
+
+    res.json(combinedProfiles);
   } catch (err) {
     console.error(err.message);
     res.status(500).send('Server Error');

@@ -122,5 +122,22 @@ const profileSchema = new mongoose.Schema(
     timestamps: true,
   }
 );
+// LinkedIn-grade Compound Text Index with Weights
+profileSchema.index({
+  status: 'text',
+  company: 'text',
+  skills: 'text',
+  location: 'text',
+  bio: 'text'
+}, {
+  weights: {
+    status: 10,
+    company: 8,
+    skills: 6,
+    location: 4,
+    bio: 2
+  },
+  name: "ProfileTextIndex"
+});
 
 module.exports = mongoose.model('Profile', profileSchema);
