@@ -45,7 +45,11 @@ const CommentItem = ({ comment, postId, onReply, onDelete, depth = 0, isTarget, 
         <div className="relative group">
           <div className="flex items-center gap-2 mb-0.5">
             <span className="font-bold text-sm text-gray-100 hover:underline cursor-pointer">{comment.user?.name}</span>
-            <span className="text-[11px] text-gray-500">• {formatDistanceToNow(new Date(comment.createdAt), { addSuffix: true })}</span>
+            <span className="text-[11px] text-gray-500">• {
+              formatDistanceToNow(new Date(comment.createdAt), { addSuffix: true }) === 'less than a minute ago' 
+                ? 'just now' 
+                : formatDistanceToNow(new Date(comment.createdAt), { addSuffix: true })
+            }</span>
           </div>
           <p className="text-[14px] text-gray-200 leading-relaxed whitespace-pre-wrap">{comment.text}</p>
           
