@@ -189,10 +189,11 @@ const getConnections = async (req, res) => {
   try {
     const userId = req.user._id;
 
+    const limit = parseInt(req.query.limit) || 50;
     const connections = await Connection.find({
       $or: [{ requester: userId }, { recipient: userId }],
       status: 'accepted'
-    }).populate('requester recipient', 'name avatar email role');
+    }).populate('requester recipient', 'name avatar email role').limit(limit);
 
     const connectedUsersMap = connections.map(conn => {
       return conn.requester._id.toString() === userId.toString() ? conn.recipient : conn.requester;
@@ -231,10 +232,11 @@ const getUserConnections = async (req, res) => {
   try {
     const userId = req.params.userId;
 
+    const limit = parseInt(req.query.limit) || 50;
     const connections = await Connection.find({
       $or: [{ requester: userId }, { recipient: userId }],
       status: 'accepted'
-    }).populate('requester recipient', 'name avatar email role');
+    }).populate('requester recipient', 'name avatar email role').limit(limit);
 
     const connectedUsersMap = connections.map(conn => {
       return conn.requester._id.toString() === userId.toString() ? conn.recipient : conn.requester;
@@ -273,26 +275,37 @@ const getSuggestions = async (req, res) => {
   try {
     const userId = req.user._id;
 
-    // Get all connections (pending, accepted, rejected)
-    const existingConnections = await Connection.find({
-      $or: [{ requester: userId }, { recipient: userId }]
-    });
-
-    // Build a Set of user IDs to exclude (as strings for dedup), then convert to ObjectIds
-    const excludeSet = new Set([userId.toString()]);
-    existingConnections.forEach(conn => {
-      excludeSet.add(conn.requester.toString());
-      excludeSet.add(conn.recipient.toString());
-    });
-
-    const excludeObjectIds = Array.from(excludeSet).map(id => new mongoose.Types.ObjectId(id));
-
-    // Find users who are not in the exclude list
-    const suggestions = await User.find({
-      _id: { $nin: excludeObjectIds }
-    })
-      .select('name avatar role')
-      .limit(10);
+    const limit = parseInt(req.query.limit) || 10;
+    const suggestions = await User.aggregate([
+      // 1. Exclude the current user
+      { $match: { _id: { $ne: new mongoose.Types.ObjectId(userId) } } },
+      // 2. Lookup existing connections efficiently inside the database
+      {
+        $lookup: {
+          from: 'connections',
+          let: { candidateId: '$_id' },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $or: [
+                    { $and: [{ $eq: ['$requester', new mongoose.Types.ObjectId(userId)] }, { $eq: ['$recipient', '$$candidateId'] }] },
+                    { $and: [{ $eq: ['$recipient', new mongoose.Types.ObjectId(userId)] }, { $eq: ['$requester', '$$candidateId'] }] }
+                  ]
+                }
+              }
+            }
+          ],
+          as: 'existingConnection'
+        }
+      },
+      // 3. Keep only those with no existing connection
+      { $match: { existingConnection: { $size: 0 } } },
+      // 4. Random sample to always show fresh suggestions
+      { $sample: { size: limit } },
+      // 5. Select only required fields
+      { $project: { name: 1, avatar: 1, role: 1 } }
+    ]);
 
     res.status(200).json(suggestions);
   } catch (error) {
