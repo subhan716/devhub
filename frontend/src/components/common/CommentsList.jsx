@@ -4,13 +4,11 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Heart, MessageCircle, MoreHorizontal, Trash2, ChevronDown, ChevronUp } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import toast from 'react-hot-toast';
-import { useAuth } from '../../context/AuthContext';
 
-const CommentItem = ({ comment, postId, onReply, onDelete, depth = 0, isTarget }) => {
-  const { user } = useAuth();
+const CommentItem = ({ comment, postId, onReply, onDelete, depth = 0, isTarget, currentUser }) => {
   const [likes, setLikes] = useState(comment.likes || []);
   const [showReplies, setShowReplies] = useState(depth === 0);
-  const myUserId = user?._id || user?.id;
+  const myUserId = currentUser?._id || currentUser?.id;
   const isLiked = myUserId && likes.includes(myUserId);
   const isAuthor = myUserId === (comment.user?._id || comment.user);
   const commentRef = useRef(null);
@@ -90,7 +88,8 @@ const CommentItem = ({ comment, postId, onReply, onDelete, depth = 0, isTarget }
                       onReply={onReply} 
                       onDelete={onDelete} 
                       depth={depth + 1} 
-                      isTarget={reply._id === isTarget} 
+                      isTarget={reply._id === isTarget}
+                      currentUser={currentUser}
                     />
                   ))}
                 </motion.div>
@@ -103,7 +102,7 @@ const CommentItem = ({ comment, postId, onReply, onDelete, depth = 0, isTarget }
   );
 };
 
-const CommentsList = ({ postId, targetCommentId, onUpdateCount }) => {
+const CommentsList = ({ postId, targetCommentId, onUpdateCount, currentUser }) => {
   const [comments, setComments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [text, setText] = useState('');
@@ -225,7 +224,8 @@ const CommentsList = ({ postId, targetCommentId, onUpdateCount }) => {
             postId={postId} 
             onReply={setReplyTo} 
             onDelete={handleDelete} 
-            isTarget={c._id === targetCommentId} 
+            isTarget={c._id === targetCommentId}
+            currentUser={currentUser}
           />
         ))
       ) : (
