@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MoreHorizontal, Heart, MessageCircle, Repeat2, Edit3, Trash2, Link2, Bookmark, Check, UserMinus } from 'lucide-react';
+import { MoreHorizontal, Heart, MessageCircle, Repeat2, Edit3, Trash2, Link2, Bookmark, Check, UserMinus, X } from 'lucide-react';
 import { Light as SyntaxHighlighter } from 'react-syntax-highlighter';
 import js from 'react-syntax-highlighter/dist/esm/languages/hljs/javascript';
 import php from 'react-syntax-highlighter/dist/esm/languages/hljs/php';
@@ -353,20 +353,47 @@ const PostCard = ({ post, idx = 0, currentUser, onDelete, onEdit, autoOpenCommen
         </button>
       </div>
 
-      {/* Comments Section */}
+      {/* Comments Modal Overlay */}
       <AnimatePresence>
         {showComments && (
           <motion.div 
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            className="overflow-hidden"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 sm:p-6"
+            onClick={() => setShowComments(false)}
           >
-            <CommentsList 
-              postId={post._id} 
-              targetCommentId={targetCommentId}
-              onUpdateCount={(diff) => setCommentsCount(prev => Math.max(0, prev + diff))} 
-            />
+            <motion.div 
+              initial={{ scale: 0.95, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.95, opacity: 0, y: 20 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-[#111] border border-white/10 rounded-2xl shadow-2xl w-full max-w-2xl max-h-[85vh] flex flex-col overflow-hidden"
+            >
+              {/* Modal Header */}
+              <div className="flex items-center justify-between p-4 sm:p-5 border-b border-white/5 bg-[#181820]">
+                <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                  <MessageCircle className="text-[#00F0FF]" size={20} />
+                  Comments
+                </h3>
+                <button 
+                  onClick={() => setShowComments(false)}
+                  className="text-gray-400 hover:text-white p-2 hover:bg-white/5 rounded-full transition-colors cursor-pointer"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+              
+              {/* Modal Body (Scrollable) */}
+              <div className="flex-1 overflow-y-auto p-4 sm:p-5 custom-scrollbar">
+                <CommentsList 
+                  postId={post._id} 
+                  targetCommentId={targetCommentId}
+                  onUpdateCount={(diff) => setCommentsCount(prev => Math.max(0, prev + diff))} 
+                  currentUser={currentUser}
+                />
+              </div>
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
