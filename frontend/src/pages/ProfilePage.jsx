@@ -15,6 +15,7 @@ import AnalyticsModal from '../components/profile/AnalyticsModal';
 import OpenToWorkModal from '../components/profile/OpenToWorkModal';
 import ProvidingServicesModal from '../components/profile/ProvidingServicesModal';
 import ResumeTemplate from '../components/profile/ResumeTemplate';
+import { PostSkeleton } from '../components/common/Skeletons';
 import ConfirmModal from '../components/common/ConfirmModal';
 import PostCard from '../components/common/PostCard';
 import { jsPDF } from 'jspdf';

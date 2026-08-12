@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Briefcase, Code, GitBranch, TerminalSquare, Building, ArrowRight, UserCircle, X, ChevronDown } from 'lucide-react';
+import { Briefcase, Code, GitBranch, TerminalSquare, Building, ArrowRight, UserCircle, X, ChevronDown, FileText } from 'lucide-react';
 import toast from 'react-hot-toast';
 import axios from 'axios';
 

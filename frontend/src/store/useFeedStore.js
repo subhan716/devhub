@@ -21,7 +21,7 @@ const useFeedStore = create((set, get) => ({
   })),
 
   updatePostInFeed: (updatedPost) => set((state) => ({
-    posts: state.posts.map(p => p._id === updatedPost._id ? updatedPost : p)
+    posts: state.posts.map(p => p._id === updatedPost._id ? { ...p, ...updatedPost } : p)
   })),
 
   optimisticLikePost: (postId, userId) => {
