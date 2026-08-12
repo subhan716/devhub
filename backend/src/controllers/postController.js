@@ -282,40 +282,59 @@ const deletePost = async (req, res) => {
 // @access  Private
 const likePost = async (req, res) => {
   try {
-    const post = await Post.findById(req.params.id);
+    const postId = req.params.id;
+    const userId = req.user.id;
+
+    const post = await Post.findById(postId);
     if (!post) {
       return res.status(404).json({ message: 'Post not found' });
     }
 
-    // Check if the post has already been liked by this user
-    const likeIndex = post.likes.indexOf(req.user.id);
+    const hasLiked = post.likes.includes(userId);
+    let updatedPost;
 
-    if (likeIndex > -1) {
-      // User has already liked, so unlike
-      post.likes.splice(likeIndex, 1);
+    // Use highly scalable Atomic Operations ($pull, $push, $inc) to prevent race conditions on concurrent likes
+    if (hasLiked) {
+      updatedPost = await Post.findByIdAndUpdate(
+        postId,
+        { 
+          $pull: { likes: userId },
+          $inc: { likesCount: -1 } 
+        },
+        { new: true }
+      );
+      if (updatedPost && updatedPost.likesCount < 0) {
+        updatedPost = await Post.findByIdAndUpdate(postId, { likesCount: 0 }, { new: true });
+      }
     } else {
-      // User hasn't liked, so like
-      post.likes.push(req.user.id);
+      updatedPost = await Post.findByIdAndUpdate(
+        postId,
+        { 
+          $push: { likes: {
+             $each: [userId],
+             $position: 0 
+          }},
+          $inc: { likesCount: 1 } 
+        },
+        { new: true }
+      );
     }
-
-    post.likesCount = post.likes.length;
-    await post.save();
 
     try {
       const { getIo } = require('../socket');
       getIo().emit('post_updated', { 
-        postId: post._id, 
-        likes: post.likes,
-        likesCount: post.likesCount
+        postId: updatedPost._id, 
+        likes: updatedPost.likes,
+        likesCount: updatedPost.likesCount
       });
     } catch (e) {
       console.log('Socket emit failed', e.message);
     }
 
     res.json({
-      _id: post._id,
-      likes: post.likes,
-      likesCount: post.likesCount
+      _id: updatedPost._id,
+      likes: updatedPost.likes,
+      likesCount: updatedPost.likesCount
     });
   } catch (err) {
     console.error(err.message);

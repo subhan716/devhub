@@ -90,7 +90,11 @@ const addComment = async (req, res) => {
 const getComments = async (req, res) => {
   try {
     const postId = req.params.postId;
-    const { sort } = req.query; // 'newest', 'oldest', 'top'
+    const { sort, page, limit } = req.query; // 'newest', 'oldest', 'top'
+
+    const pageNum = parseInt(page) || 1;
+    const limitNum = parseInt(limit) || 20;
+    const skip = (pageNum - 1) * limitNum;
 
     let sortObj = { createdAt: -1 }; // default newest
     if (sort === 'oldest') sortObj = { createdAt: 1 };
@@ -98,7 +102,9 @@ const getComments = async (req, res) => {
 
     const comments = await Comment.find({ post: postId })
       .populate('user', ['name', 'avatar'])
-      .sort(sortObj);
+      .sort(sortObj)
+      .skip(skip)
+      .limit(limitNum);
 
     res.json(comments);
   } catch (err) {
@@ -158,28 +164,50 @@ const deleteComment = async (req, res) => {
 // @access  Private
 const likeComment = async (req, res) => {
   try {
-    const comment = await Comment.findById(req.params.commentId);
+    const commentId = req.params.commentId;
+    const userId = req.user.id;
+
+    const comment = await Comment.findById(commentId);
 
     if (!comment) {
       return res.status(404).json({ message: 'Comment not found' });
     }
 
-    // Check if the comment has already been liked by this user
-    if (comment.likes.some(like => like.toString() === req.user.id)) {
-      // Unlike
-      comment.likes = comment.likes.filter(like => like.toString() !== req.user.id);
-      comment.likesCount = Math.max(0, comment.likesCount - 1);
+    const hasLiked = comment.likes.some(like => like.toString() === userId);
+    let updatedComment;
+
+    // Use highly scalable Atomic Operations ($pull, $push, $inc) to prevent race conditions on concurrent likes
+    if (hasLiked) {
+      updatedComment = await Comment.findByIdAndUpdate(
+        commentId,
+        { 
+          $pull: { likes: userId },
+          $inc: { likesCount: -1 } 
+        },
+        { new: true }
+      );
+      // Ensure likesCount never drops below 0 (data integrity)
+      if (updatedComment && updatedComment.likesCount < 0) {
+        updatedComment = await Comment.findByIdAndUpdate(commentId, { likesCount: 0 }, { new: true });
+      }
     } else {
-      // Like
-      comment.likes.unshift(req.user.id);
-      comment.likesCount += 1;
+      updatedComment = await Comment.findByIdAndUpdate(
+        commentId,
+        { 
+          $push: { likes: {
+             $each: [userId],
+             $position: 0 
+          }},
+          $inc: { likesCount: 1 } 
+        },
+        { new: true }
+      );
     }
 
-    await comment.save();
     try {
-      getIo().emit('comment_updated', { commentId: comment._id, likes: comment.likes, postId: comment.post });
+      getIo().emit('comment_updated', { commentId: updatedComment._id, likes: updatedComment.likes, postId: updatedComment.post });
     } catch(e) {}
-    res.json(comment.likes);
+    res.json(updatedComment.likes);
   } catch (err) {
     console.error(err.message);
     if (err.kind === 'ObjectId') {
