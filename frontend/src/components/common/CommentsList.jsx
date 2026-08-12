@@ -57,8 +57,7 @@ const CommentItem = ({ comment, postId, onReply, onDelete, depth = 0, isTarget, 
           )}
         </div>
         
-        {/* Comment Actions */}
-        <div className="flex gap-4 mt-1.5 ml-2 text-xs font-semibold text-gray-500">
+
         {/* Comment Actions */}
         <div className="flex items-center gap-4 mt-1.5 text-[12px] font-semibold text-gray-500">
           <button onClick={handleLike} className={`hover:text-[#00F0FF] transition-colors flex items-center gap-1 ${isLiked ? 'text-[#00F0FF]' : ''}`}>
