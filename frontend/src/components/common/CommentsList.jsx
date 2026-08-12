@@ -176,7 +176,7 @@ const CommentsList = ({ postId, targetCommentId, onUpdateCount, currentUser }) =
   return (
     <div className="flex flex-col h-full">
       {/* Input Form at Top */}
-      <div className="mb-6 sticky top-0 bg-[#111] z-10 pt-2 pb-4 border-b border-white/5">
+      <div className="mb-6 sticky top-0 -mt-4 sm:-mt-5 pt-4 sm:pt-5 bg-[#111] z-10 pb-4 border-b border-white/5">
         <form onSubmit={handleSubmit} className="flex flex-col gap-2">
           {replyTo && (
             <div className="flex items-center justify-between bg-white/5 px-3 py-1.5 rounded-lg text-xs text-gray-300">
