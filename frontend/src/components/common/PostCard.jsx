@@ -40,7 +40,7 @@ const formatPostDate = (dateString) => {
   return `${day}/${month}/${year} at ${timeStr}`;
 };
 
-const PostCard = memo(({ post: rootPost, idx = 0, currentUser, onDelete, onEdit, autoOpenComments = false, targetCommentId = null }) => {
+const PostCard = ({ post: rootPost, idx = 0, currentUser, onDelete, onEdit, autoOpenComments = false, targetCommentId = null }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [showComments, setShowComments] = useState(autoOpenComments);
   const menuRef = useRef(null);
@@ -472,6 +472,7 @@ const PostCard = memo(({ post: rootPost, idx = 0, currentUser, onDelete, onEdit,
               </div>
             </motion.div>
           </motion.div>
+        )}
       </AnimatePresence>
       </>
       )}
