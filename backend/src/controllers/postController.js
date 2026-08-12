@@ -48,8 +48,16 @@ const getPosts = async (req, res) => {
 
     // Unified Feed - Highly Scalable Aggregation Pipeline
       const pipeline = [
-        // 1. Filter: Only process posts from the last 14 days to keep the pipeline extremely fast
-        { $match: { createdAt: { $gte: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000) } } },
+        // 1. Filter: Only process posts from the last 14 days and exclude user's own reposts
+        { 
+          $match: { 
+            createdAt: { $gte: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000) },
+            $or: [
+              { isRepost: { $ne: true } },
+              { author: { $ne: new mongoose.Types.ObjectId(userId) } }
+            ]
+          } 
+        },
         
         // 2. Pre-compute fields for scoring
         {
