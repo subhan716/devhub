@@ -28,7 +28,7 @@ const UserPostsPage = () => {
         // Fetch this user's posts
         const postsRes = await axios.get(`${import.meta.env.VITE_API_URL}/api/posts/user/${profileRes.data.user._id}`);
         setPosts(postsRes.data);
-      } catch (err) {
+      } catch {
         toast.error('Failed to load posts');
       } finally {
         setIsLoading(false);
@@ -47,7 +47,7 @@ const UserPostsPage = () => {
     }
   };
 
-  const handleEditPost = (post) => {
+  const handleEditPost = () => {
     // navigate to feed with edit, or just ignore for now
   };
 

@@ -74,7 +74,7 @@ const VerifyOtpPage = () => {
 
     setIsLoading(true);
     try {
-      const { data } = await axios.post(
+      await axios.post(
         `${import.meta.env.VITE_API_URL}/api/auth/verify-otp`,
         { email, otp: otpCode },
         { withCredentials: true }

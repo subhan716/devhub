@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 
-const useFeedStore = create((set, get) => ({
+const useFeedStore = create((set) => ({
   posts: [],
   page: 1,
   hasMore: true,

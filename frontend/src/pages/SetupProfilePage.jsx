@@ -96,6 +96,7 @@ const SetupProfilePage = () => {
       const filtered = COMMON_SKILLS.filter(
         skill => skill.toLowerCase().includes(skillInput.toLowerCase()) && !selectedSkills.includes(skill)
       );
+      // eslint-disable-next-line react-hooks/exhaustive-deps
       setSkillSuggestions(filtered.slice(0, 5)); // Show top 5
     } else {
       setSkillSuggestions([]);
@@ -108,6 +109,7 @@ const SetupProfilePage = () => {
       const filtered = statusOptions.filter(
         status => status.toLowerCase().includes(statusInput.toLowerCase())
       );
+      // eslint-disable-next-line react-hooks/exhaustive-deps
       setStatusSuggestions(filtered.slice(0, 5)); // Show top 5
     } else {
       setStatusSuggestions([]);
