@@ -88,9 +88,10 @@ const PostCard = memo(({ post: rootPost, idx = 0, currentUser, onDelete, onEdit,
         }
         if (data.commentsCount !== undefined) updatedFields.commentsCount = data.commentsCount;
         if (data.repostsCount !== undefined) updatedFields.repostsCount = data.repostsCount;
+        if (data.reposts !== undefined) updatedFields.reposts = data.reposts;
         
         if (Object.keys(updatedFields).length > 0) {
-          updatePostInFeed({ ...post, ...updatedFields });
+          updatePostInFeed({ _id: post._id, ...updatedFields });
         }
       }
     };
@@ -218,7 +219,7 @@ const PostCard = memo(({ post: rootPost, idx = 0, currentUser, onDelete, onEdit,
     const previousPostState = optimisticRepostPost(post._id, myUserId);
     try {
       const { data } = await axios.put(`${import.meta.env.VITE_API_URL}/api/posts/repost/${post._id}`, {}, { withCredentials: true });
-      updatePostInFeed({ ...post, repostsCount: data.repostsCount, reposts: data.reposts });
+      updatePostInFeed({ _id: post._id, repostsCount: data.repostsCount, reposts: data.reposts });
       toast.success(isRepostedByMe ? 'Repost removed' : 'Reposted successfully');
     } catch (err) {
       if (previousPostState) revertPostUpdate(previousPostState);
