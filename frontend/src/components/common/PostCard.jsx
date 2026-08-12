@@ -45,10 +45,22 @@ const PostCard = ({ post: rootPost, idx = 0, currentUser, onDelete, onEdit, auto
   const [showComments, setShowComments] = useState(autoOpenComments);
   const menuRef = useRef(null);
 
-  const isRepost = rootPost?.isRepost;
-  const reposter = isRepost ? rootPost.author : null;
-  const post = isRepost && rootPost.originalPost ? rootPost.originalPost : rootPost;
-  const isDeletedRepost = isRepost && !rootPost.originalPost;
+  const [localPost, setLocalPost] = useState(rootPost);
+  useEffect(() => { setLocalPost(rootPost); }, [rootPost]);
+
+  const updateLocalPost = (updatedFields) => {
+    setLocalPost(prev => {
+      if (prev.isRepost && prev.originalPost) {
+        return { ...prev, originalPost: { ...prev.originalPost, ...updatedFields } };
+      }
+      return { ...prev, ...updatedFields };
+    });
+  };
+
+  const isRepost = localPost?.isRepost;
+  const reposter = isRepost ? localPost.author : null;
+  const post = isRepost && localPost.originalPost ? localPost.originalPost : localPost;
+  const isDeletedRepost = isRepost && !localPost.originalPost;
 
   // Safely extract IDs for comparison
   const myUserId = currentUser?._id || currentUser?.user?._id;
@@ -58,7 +70,7 @@ const PostCard = ({ post: rootPost, idx = 0, currentUser, onDelete, onEdit, auto
   const isAuthor = myUserId && authorId && myUserId === authorId;
   
   // Author of the root post (for deletion of the repost itself)
-  const rootAuthorId = rootPost?.author?._id || rootPost?.author;
+  const rootAuthorId = localPost?.author?._id || localPost?.author;
   const isRootAuthor = myUserId && rootAuthorId && myUserId === rootAuthorId;
 
   // Global Zustand store for optimistic UI
@@ -92,6 +104,7 @@ const PostCard = ({ post: rootPost, idx = 0, currentUser, onDelete, onEdit, auto
         
         if (Object.keys(updatedFields).length > 0) {
           updatePostInFeed({ _id: post._id, ...updatedFields });
+          updateLocalPost(updatedFields);
         }
       }
     };
@@ -196,6 +209,12 @@ const PostCard = ({ post: rootPost, idx = 0, currentUser, onDelete, onEdit, auto
     // Global Optimistic Update via Zustand
     const previousPostState = optimisticLikePost(post._id, myUserId);
 
+    // Local Optimistic Update
+    const hasLiked = likes.includes(myUserId);
+    const newLikes = hasLiked ? likes.filter(id => id !== myUserId) : [...likes, myUserId];
+    const newLikesCount = hasLiked ? Math.max(0, post.likesCount - 1) : (post.likesCount || 0) + 1;
+    updateLocalPost({ likes: newLikes, likesCount: newLikesCount });
+
     try {
       const { data } = await axios.put(
         `${import.meta.env.VITE_API_URL}/api/posts/like/${post._id}`,
@@ -204,9 +223,11 @@ const PostCard = ({ post: rootPost, idx = 0, currentUser, onDelete, onEdit, auto
       );
       // Ensure the server's exact state is applied
       updatePostInFeed(data);
+      updateLocalPost(data);
     } catch (error) {
       // Rollback on failure
       if (previousPostState) revertPostUpdate(previousPostState);
+      updateLocalPost({ likes, likesCount: post.likesCount });
       toast.error('Failed to update like');
     }
   };
@@ -217,12 +238,21 @@ const PostCard = ({ post: rootPost, idx = 0, currentUser, onDelete, onEdit, auto
       return;
     }
     const previousPostState = optimisticRepostPost(post._id, myUserId);
+    
+    // Local Optimistic Update
+    const hasReposted = reposts.includes(myUserId);
+    const newReposts = hasReposted ? reposts.filter(id => id !== myUserId) : [...reposts, myUserId];
+    const newRepostsCount = hasReposted ? Math.max(0, post.repostsCount - 1) : (post.repostsCount || 0) + 1;
+    updateLocalPost({ reposts: newReposts, repostsCount: newRepostsCount });
+
     try {
       const { data } = await axios.put(`${import.meta.env.VITE_API_URL}/api/posts/repost/${post._id}`, {}, { withCredentials: true });
       updatePostInFeed({ _id: post._id, repostsCount: data.repostsCount, reposts: data.reposts });
+      updateLocalPost({ repostsCount: data.repostsCount, reposts: data.reposts });
       toast.success(isRepostedByMe ? 'Repost removed' : 'Reposted successfully');
     } catch (err) {
       if (previousPostState) revertPostUpdate(previousPostState);
+      updateLocalPost({ reposts, repostsCount: post.repostsCount });
       toast.error('Failed to update repost');
     }
   };
@@ -236,26 +266,35 @@ const PostCard = ({ post: rootPost, idx = 0, currentUser, onDelete, onEdit, auto
       className="bg-[#111] rounded-2xl p-5 shadow-lg flex flex-col gap-4 relative overflow-visible group transition-colors duration-300 border border-white/5 hover:border-white/10"
     >
       {isRepost && (
-        <div className="flex items-center gap-2 text-gray-400 text-xs font-medium pb-2 border-b border-white/5 mb-2 -mt-2">
-          <Repeat2 size={14} />
-          <span>{reposter?.name || 'Unknown User'} reposted</span>
+        <div className="flex justify-between items-start mb-1">
+          <div className="flex gap-3 items-center">
+            <img src={reposter?.avatar?.url || 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y'} className="w-8 h-8 rounded-full object-cover border border-white/10" />
+            <div className="flex flex-col leading-tight">
+              <div className="text-gray-300 font-medium text-sm flex items-center gap-1.5">
+                 {reposter?.name || 'Unknown User'} 
+                 <span className="text-gray-500 text-xs font-normal flex items-center gap-1"><Repeat2 size={12}/> shared a post</span>
+              </div>
+              <span className="text-[11px] text-gray-500">{formatPostDate(localPost?.createdAt)}</span>
+            </div>
+          </div>
           {isRootAuthor && (
             <button 
               onClick={(e) => { e.stopPropagation(); onDelete(rootPost._id); }}
-              className="ml-auto text-gray-500 hover:text-red-400 transition-colors"
+              className="text-gray-500 hover:text-red-400 p-2 hover:bg-red-500/10 rounded-full transition-colors"
+              title="Delete Repost"
             >
-              <Trash2 size={14} />
+              <Trash2 size={16} />
             </button>
           )}
         </div>
       )}
 
       {isDeletedRepost ? (
-        <div className="p-4 border border-white/5 rounded-xl text-gray-500 text-sm text-center italic">
+        <div className="p-4 border border-white/5 rounded-xl text-gray-500 text-sm text-center italic bg-[#16161c]">
           This post has been deleted by the original author.
         </div>
       ) : (
-        <>
+        <div className={isRepost ? "border border-white/10 rounded-xl p-4 bg-[#16161c] flex flex-col gap-4 mt-1" : "flex flex-col gap-4"}>
           {/* Post Header */}
           <div className="flex justify-between items-start">
             <div className="flex gap-3">
@@ -474,7 +513,7 @@ const PostCard = ({ post: rootPost, idx = 0, currentUser, onDelete, onEdit, auto
           </motion.div>
         )}
       </AnimatePresence>
-      </>
+      </div>
       )}
     </motion.div>
   );
