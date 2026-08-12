@@ -3,6 +3,8 @@ const Connection = require('../models/Connection');
 const User = require('../models/User');
 const Profile = require('../models/Profile');
 const Notification = require('../models/Notification');
+const SuggestionCache = require('../models/SuggestionCache');
+const { calculateSuggestionsForUser } = require('../services/suggestionService');
 const { getIo, getReceiverSocketId } = require('../socket');
 
 // @desc    Send connection request
@@ -276,106 +278,32 @@ const getSuggestions = async (req, res) => {
     const userId = req.user._id;
     const limit = parseInt(req.query.limit) || 10;
 
-    // 1. Get current user's 1st-degree connections (accepted or pending to exclude them)
-    const directConnections = await Connection.find({
-      $or: [{ requester: userId }, { recipient: userId }]
-    });
-
-    const excludeIds = new Set([userId.toString()]);
-    const firstDegreeIds = new Set();
+    // 1. Try to fetch from pre-calculated Background Cache
+    const cachedData = await SuggestionCache.findOne({ user: userId }).populate('suggestions.user', 'name avatar role');
     
-    directConnections.forEach(conn => {
-      const otherId = conn.requester.toString() === userId.toString() ? conn.recipient.toString() : conn.requester.toString();
-      excludeIds.add(otherId);
-      if (conn.status === 'accepted') {
-        firstDegreeIds.add(otherId);
-      }
-    });
-
-    const excludeObjectIds = Array.from(excludeIds).map(id => new mongoose.Types.ObjectId(id));
-    const firstDegreeObjectIds = Array.from(firstDegreeIds).map(id => new mongoose.Types.ObjectId(id));
-
-    let suggestions = [];
-
-    // 2. Intelligent Mutual Connections Algorithm (2nd Degree Network)
-    if (firstDegreeObjectIds.length > 0) {
-      const mutualSuggestions = await Connection.aggregate([
-        // Find connections where one of the parties is a 1st degree connection
-        {
-          $match: {
-            status: 'accepted',
-            $or: [
-              { requester: { $in: firstDegreeObjectIds } },
-              { recipient: { $in: firstDegreeObjectIds } }
-            ]
-          }
-        },
-        // Determine the ID of the 2nd degree connection
-        {
-          $project: {
-            secondDegreeUser: {
-              $cond: {
-                if: { $in: ["$requester", firstDegreeObjectIds] },
-                then: "$recipient",
-                else: "$requester"
-              }
-            }
-          }
-        },
-        // Exclude anyone already in our 1st degree network or ourselves
-        {
-          $match: {
-            secondDegreeUser: { $nin: excludeObjectIds }
-          }
-        },
-        // Group by the 2nd degree user and count mutuals!
-        {
-          $group: {
-            _id: "$secondDegreeUser",
-            mutualCount: { $sum: 1 }
-          }
-        },
-        // Sort by highest mutual connections
-        { $sort: { mutualCount: -1 } },
-        { $limit: limit }
-      ]);
-
-      if (mutualSuggestions.length > 0) {
-        const suggestionIds = mutualSuggestions.map(s => s._id);
-        const usersInfo = await User.find({ _id: { $in: suggestionIds } }).select('name avatar role');
-        
-        // Merge with mutual count
-        suggestions = usersInfo.map(user => {
-          const match = mutualSuggestions.find(m => m._id.toString() === user._id.toString());
-          return {
-            ...user.toObject(),
-            mutualConnections: match ? match.mutualCount : 0
-          };
-        }).sort((a, b) => b.mutualConnections - a.mutualConnections);
-      }
-    }
-
-    // 3. Fallback: If not enough mutual connections, fill the rest with diverse sampling
-    if (suggestions.length < limit) {
-      const remainingLimit = limit - suggestions.length;
-      
-      // Update exclude list to avoid duplicates
-      const currentSuggestionIds = suggestions.map(s => new mongoose.Types.ObjectId(s._id));
-      const fullExcludeList = [...excludeObjectIds, ...currentSuggestionIds];
-
-      const fallbackSuggestions = await User.aggregate([
-        { $match: { _id: { $nin: fullExcludeList } } },
-        { $sample: { size: remainingLimit } }, // Highly efficient randomized fallback
-        { $project: { name: 1, avatar: 1, role: 1 } }
-      ]);
-
-      const formattedFallbacks = fallbackSuggestions.map(user => ({
-        ...user,
-        mutualConnections: 0
+    if (cachedData && cachedData.suggestions.length > 0) {
+      // Format cache to match frontend expectations
+      const suggestions = cachedData.suggestions.slice(0, limit).map(item => ({
+        ...(item.user ? item.user.toObject() : {}),
+        mutualConnections: item.mutualConnections
       }));
-
-      suggestions = [...suggestions, ...formattedFallbacks];
+      return res.status(200).json(suggestions);
     }
+
+    // 2. Cache Miss Fallback: Calculate live if cache doesn't exist (e.g., new user)
+    const rawSuggestions = await calculateSuggestionsForUser(userId);
+    
+    // We need to populate the raw suggestions since the service just returns IDs
+    const suggestionIds = rawSuggestions.map(s => s.user);
+    const usersInfo = await User.find({ _id: { $in: suggestionIds } }).select('name avatar role');
+    
+    const suggestions = rawSuggestions.slice(0, limit).map(item => {
+      const userInfo = usersInfo.find(u => u._id.toString() === item.user.toString());
+      return {
+        ...(userInfo ? userInfo.toObject() : {}),
+        mutualConnections: item.mutualConnections
+      };
+    });
 
     res.status(200).json(suggestions);
   } catch (error) {

@@ -12,8 +12,13 @@ const server = app.listen(PORT, () => {
   console.log(`Server running in ${process.env.NODE_ENV || 'development'} mode on port ${PORT}`);
 });
 
+const { startSuggestionCronJob } = require('./src/services/suggestionService');
+
 // Initialize Socket.io
 initSocket(server);
+
+// Initialize Background Jobs
+startSuggestionCronJob();
 
 // Handle unhandled promise rejections (e.g. database connection crash)
 process.on('unhandledRejection', (err, promise) => {
