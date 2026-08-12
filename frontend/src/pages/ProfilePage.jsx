@@ -16,6 +16,7 @@ import OpenToWorkModal from '../components/profile/OpenToWorkModal';
 import ProvidingServicesModal from '../components/profile/ProvidingServicesModal';
 import ResumeTemplate from '../components/profile/ResumeTemplate';
 import ConfirmModal from '../components/common/ConfirmModal';
+import PostCard from '../components/common/PostCard';
 import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas';
 import { GitHubCalendar } from 'react-github-calendar';
@@ -1348,73 +1349,27 @@ const ProfilePage = () => {
                 No recent activity found.
               </div>
             ) : (
-              userPosts.map((post) => (
-                <div
-                  key={post._id}
-                  className="bg-[#111] rounded-2xl p-5 shadow-lg flex flex-col gap-4 border border-white/5 hover:border-white/10 transition-colors"
-                >
-                  {/* Post Header */}
-                  <div className="flex justify-between items-start">
-                    <div className="flex gap-3">
-                      <img
-                        src={post.author?.avatar?.url || 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y'}
-                        alt={post.author?.name || 'Unknown User'}
-                        className="w-10 h-10 rounded-full object-cover border border-white/10"
-                      />
-                      <div className="flex flex-col leading-tight">
-                        <span className="text-white font-medium text-sm">{post.author?.name || 'Unknown User'}</span>
-                        <div className="flex items-center gap-2 text-xs text-gray-500 mt-0.5">
-                          <span>@{post.authorProfile?.handle || post.author?.name?.toLowerCase()?.replace(/\s+/g, '') || 'dev'}</span>
-                          <span>•</span>
-                          <span>{new Date(post.createdAt).toLocaleDateString()}</span>
-                        </div>
-                      </div>
-                    </div>
-                    <button className="text-gray-500 hover:text-white transition-colors cursor-pointer">
-                      <MoreHorizontal size={18} />
-                    </button>
-                  </div>
+              <>
+                {/* Show only the latest 1 post */}
+                <PostCard
+                  key={userPosts[0]._id}
+                  post={userPosts[0]}
+                  idx={0}
+                  currentUser={currentUserProfile?.user || null}
+                  onDelete={(postId) => setUserPosts(prev => prev.filter(p => p._id !== postId))}
+                  onEdit={() => {}}
+                />
 
-                  {/* Post Content */}
-                  <p className="text-sm text-gray-200 leading-relaxed whitespace-pre-wrap">
-                    {post.content}
-                  </p>
-
-                  {/* Code Snippet */}
-                  {post.codeSnippet && (
-                    <div className="rounded-xl overflow-hidden border border-white/10 my-2 shadow-inner text-sm relative">
-                      <SyntaxHighlighter
-                        language={post.codeSnippet.language}
-                        style={vs2015}
-                        customStyle={{ margin: 0, padding: '1.5rem', background: '#0d0d0d' }}
-                        wrapLongLines={true}
-                      >
-                        {post.codeSnippet.code}
-                      </SyntaxHighlighter>
-                    </div>
-                  )}
-
-                  {/* Image attachment */}
-                  {post.image && (
-                    <div className="rounded-xl overflow-hidden border border-[#8A2BE2]/30 my-2 shadow-[0_0_15px_rgba(138,43,226,0.1)]">
-                      <img src={post.image.url} alt="Post attachment" className="w-full h-auto object-cover max-h-80" />
-                    </div>
-                  )}
-
-                  {/* Post Footer Actions */}
-                  <div className="flex items-center gap-6 mt-2 pt-4 border-t border-white/5 text-xs font-medium text-gray-400">
-                    <button className="flex items-center gap-2 hover:text-[#00F0FF] transition-colors cursor-pointer">
-                      <Heart size={16} /> {post.likesCount || 0} Likes
-                    </button>
-                    <button className="flex items-center gap-2 hover:text-white transition-colors cursor-pointer">
-                      <MessageCircle size={16} /> {post.commentsCount || 0} Comments
-                    </button>
-                    <button className="flex items-center gap-2 hover:text-[#8A2BE2] transition-colors cursor-pointer">
-                      <Repeat2 size={16} /> {post.repostsCount || 0} Reposts
-                    </button>
-                  </div>
+                {/* Show All button */}
+                <div className="flex justify-center">
+                  <Link
+                    to={`/profile/${id || profile?.user?._id}/posts`}
+                    className="flex items-center gap-2 px-8 py-2.5 bg-white/5 hover:bg-[#00F0FF]/10 text-white hover:text-[#00F0FF] font-medium rounded-full border border-white/10 hover:border-[#00F0FF]/30 transition-all text-sm shadow-lg"
+                  >
+                    Show All {userPosts.length > 1 ? `${userPosts.length} Posts` : 'Posts'}
+                  </Link>
                 </div>
-              ))
+              </>
             )}
           </div>
         </div>
