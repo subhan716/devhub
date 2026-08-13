@@ -20,6 +20,23 @@ initSocket(server);
 // Initialize Background Jobs
 startSuggestionCronJob();
 
+// --- SELF-PING MECHANISM FOR RENDER FREE TIER ---
+// Ping the server every 14 minutes to prevent it from going to sleep
+const https = require('https');
+setInterval(() => {
+  const url = 'https://devhub-api-node.onrender.com/api';
+  https.get(url, (res) => {
+    if (res.statusCode === 200) {
+      console.log('Self-ping successful. Server kept alive.');
+    } else {
+      console.log(`Self-ping failed with status code: ${res.statusCode}`);
+    }
+  }).on('error', (e) => {
+    console.log(`Self-ping error: ${e.message}`);
+  });
+}, 14 * 60 * 1000); // 14 minutes
+// ------------------------------------------------
+
 // Handle unhandled promise rejections (e.g. database connection crash)
 process.on('unhandledRejection', (err, promise) => {
   console.log(`Error: ${err.message}`);
