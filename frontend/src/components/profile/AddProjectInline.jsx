@@ -151,7 +151,7 @@ const AddProjectInline = ({ onClose, onAdd, initialData = null }) => {
           <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-3">
           <h3 className="text-lg font-bold text-white">{initialData ? 'Edit Project' : 'Add Project'}</h3>
           
-          <div className={`flex items-center gap-2 relative ${showGithubRepos ? 'z-50' : 'z-10'}`}>
+          <div className={`flex items-center gap-2 relative ${showRepoDropdown ? 'z-50' : 'z-10'}`}>
             <GitBranch size={16} className="text-gray-400 absolute left-2 pointer-events-none" />
             <input 
               type="text" 
