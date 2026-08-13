@@ -1,7 +1,7 @@
 import React from 'react';
 
 // Generic Shimmer Base
-const Shimmer = ({ className }) => (
+export const Shimmer = ({ className }) => (
   <div className={`animate-pulse bg-white/5 rounded ${className}`} />
 );
 
@@ -90,6 +90,66 @@ export const CommentSkeleton = () => (
       <div className="flex gap-4">
         <Shimmer className="h-2 w-8" />
         <Shimmer className="h-2 w-12" />
+      </div>
+    </div>
+  </div>
+);
+
+export const PageSkeleton = () => (
+  <div className="bg-[#050505] min-h-[100dvh] text-white flex flex-col overflow-hidden w-full absolute inset-0 z-50">
+    {/* Navbar Skeleton */}
+    <div className="h-16 border-b border-white/5 flex items-center justify-between px-4 sm:px-6 lg:px-8 w-full bg-[#050505]">
+      <div className="flex items-center gap-4">
+        <Shimmer className="w-8 h-8 rounded-xl" />
+        <Shimmer className="w-24 h-6 hidden sm:block" />
+      </div>
+      <div className="flex-1 max-w-xl px-4 hidden md:block">
+        <Shimmer className="w-full h-10 rounded-lg" />
+      </div>
+      <div className="flex items-center gap-4">
+        <Shimmer className="w-8 h-8 rounded-full hidden sm:block" />
+        <Shimmer className="w-8 h-8 rounded-full hidden sm:block" />
+        <Shimmer className="w-10 h-10 rounded-full" />
+      </div>
+    </div>
+
+    {/* Main Body Skeleton */}
+    <div className="flex-1 max-w-7xl mx-auto w-full flex">
+      {/* Sidebar Skeleton (Hidden on mobile) */}
+      <div className="hidden lg:flex w-64 flex-col gap-4 py-6 pr-6 border-r border-white/5">
+        {[1, 2, 3, 4, 5, 6].map(i => (
+          <div key={i} className="flex items-center gap-4 p-3">
+            <Shimmer className="w-6 h-6 rounded-md" />
+            <Shimmer className="h-4 w-32" />
+          </div>
+        ))}
+      </div>
+
+      {/* Main Content Skeleton */}
+      <div className="flex-1 w-full p-4 sm:p-6 flex flex-col gap-6">
+        <div className="bg-[#111] rounded-2xl p-5 mb-2 border border-white/5 flex gap-4">
+           <Shimmer className="w-12 h-12 rounded-full flex-shrink-0" />
+           <Shimmer className="flex-1 h-12 rounded-xl" />
+        </div>
+        {[1, 2].map(i => (
+          <PostSkeleton key={`post-${i}`} />
+        ))}
+      </div>
+
+      {/* Right Sidebar Skeleton (Hidden on smaller screens) */}
+      <div className="hidden xl:flex w-80 flex-col gap-6 py-6 pl-6 border-l border-white/5">
+        <div className="bg-[#111] rounded-2xl p-5 border border-white/5 flex flex-col gap-4">
+          <Shimmer className="h-4 w-1/2 mb-2" />
+          {[1, 2, 3].map(i => (
+            <div key={`sug-${i}`} className="flex items-center gap-3">
+              <Shimmer className="w-10 h-10 rounded-full flex-shrink-0" />
+              <div className="flex flex-col gap-2 flex-1">
+                <Shimmer className="h-3 w-3/4" />
+                <Shimmer className="h-2 w-1/2" />
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   </div>

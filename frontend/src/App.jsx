@@ -23,6 +23,7 @@ const NetworkPage = lazy(() => import('./pages/NetworkPage'));
 const MessagesPage = lazy(() => import('./pages/MessagesPage'));
 const UserPostsPage = lazy(() => import('./pages/UserPostsPage'));
 const PostPage = lazy(() => import('./pages/PostPage'));
+import { PageSkeleton } from './components/common/Skeletons';
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
@@ -115,7 +116,7 @@ function App() {
         }} 
       />
       <Router>
-        <Suspense fallback={<div className="flex h-screen items-center justify-center bg-[#050505]"><div className="w-8 h-8 border-2 border-[#00F0FF] border-t-transparent rounded-full animate-spin"></div></div>}>
+        <Suspense fallback={<PageSkeleton />}>
           <Routes>
             {/* Public Routes */}
             <Route path="/" element={<GuestRoute><LandingPage /></GuestRoute>} />
