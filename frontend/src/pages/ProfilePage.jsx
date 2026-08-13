@@ -15,7 +15,7 @@ import AnalyticsModal from '../components/profile/AnalyticsModal';
 import OpenToWorkModal from '../components/profile/OpenToWorkModal';
 import ProvidingServicesModal from '../components/profile/ProvidingServicesModal';
 import ResumeTemplate from '../components/profile/ResumeTemplate';
-import { PostSkeleton } from '../components/common/Skeletons';
+import { PostSkeleton, ProfileHeaderSkeleton } from '../components/common/Skeletons';
 import ConfirmModal from '../components/common/ConfirmModal';
 import PostCard from '../components/common/PostCard';
 import { jsPDF } from 'jspdf';
@@ -445,8 +445,8 @@ const ProfilePage = () => {
 
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center py-20">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#00F0FF]"></div>
+      <div className="w-full">
+        <ProfileHeaderSkeleton />
       </div>
     );
   }
