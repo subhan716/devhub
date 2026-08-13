@@ -1275,50 +1275,72 @@ const ProfilePage = () => {
             )}
           </AnimatePresence>
 
-          <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pb-6 ${isAddProjectOpen || editingProjectId ? 'mt-6' : ''}`}>
+          <div className={`grid grid-cols-1 md:grid-cols-2 gap-8 pb-6 ${isAddProjectOpen || editingProjectId ? 'mt-6' : ''}`}>
             {profile.projects && profile.projects.length > 0 ? (
               <>
                 {profile.projects.slice(0, visibleProjectsCount).map(prj => (
-                  <div key={prj._id} className="group bg-black/30 border border-white/5 rounded-xl overflow-hidden hover:border-white/20 transition-all flex flex-col shadow-lg hover:shadow-[0_10px_30px_rgba(0,0,0,0.5)]">
-                    {prj.image?.url && (
-                      <div className="w-full h-40 overflow-hidden bg-gray-900">
-                        <img src={prj.image.url} alt={prj.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                      </div>
-                    )}
-                    <div className="p-4 relative">
+                  <div key={prj._id} className="group relative bg-[#0a0a0a] border border-white/10 rounded-2xl overflow-hidden hover:border-[#00F0FF]/50 transition-all duration-500 flex flex-col shadow-2xl hover:shadow-[0_0_40px_rgba(0,240,255,0.15)]">
+                    
+                    {/* Image Section or Gradient Placeholder */}
+                    <div className="w-full h-56 relative overflow-hidden bg-gray-900">
+                      {prj.image?.url ? (
+                        <>
+                          <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] to-transparent z-10 opacity-90"></div>
+                          <img src={prj.image.url} alt={prj.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out" />
+                        </>
+                      ) : (
+                        <div className="w-full h-full bg-[conic-gradient(at_top_right,_var(--tw-gradient-stops))] from-slate-900 via-[#00F0FF]/20 to-slate-900 opacity-80 group-hover:opacity-100 transition-opacity duration-500 flex items-center justify-center">
+                          <FolderGit2 size={48} className="text-white/20 group-hover:text-[#00F0FF]/40 transition-colors duration-500 transform group-hover:scale-110" />
+                        </div>
+                      )}
+
+                      {/* Top Right Actions (Edit/Duplicate/Delete) */}
                       {isOwner && (
-                        <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 flex items-center gap-1 bg-[#1a1a1a]/90 backdrop-blur-sm border border-white/10 rounded-lg p-1 shadow-[0_4px_12px_rgba(0,0,0,0.5)] transition-opacity duration-300">
-                          <button onClick={() => setEditingProjectId(prj._id)} title="Edit" className="p-1.5 text-blue-400 hover:bg-blue-500 hover:text-white rounded-md transition-all cursor-pointer">
-                            <Edit3 size={14} />
+                        <div className="absolute top-4 right-4 z-20 opacity-0 group-hover:opacity-100 flex items-center gap-2 transition-opacity duration-300">
+                          <button onClick={() => setEditingProjectId(prj._id)} title="Edit" className="p-2 bg-black/60 backdrop-blur-md text-blue-400 hover:text-white rounded-full border border-white/10 hover:border-blue-500 transition-all cursor-pointer shadow-lg">
+                            <Edit3 size={16} />
                           </button>
-                          <button onClick={() => handleDuplicateProject(prj)} title="Duplicate" className="p-1.5 text-purple-400 hover:bg-purple-500 hover:text-white rounded-md transition-all cursor-pointer">
-                            <Copy size={14} />
+                          <button onClick={() => handleDuplicateProject(prj)} title="Duplicate" className="p-2 bg-black/60 backdrop-blur-md text-purple-400 hover:text-white rounded-full border border-white/10 hover:border-purple-500 transition-all cursor-pointer shadow-lg">
+                            <Copy size={16} />
                           </button>
-                          <div className="w-[1px] h-4 bg-white/10 mx-0.5"></div>
-                          <button onClick={() => handleDeleteProject(prj._id)} title="Delete" className="p-1.5 text-red-500 hover:bg-red-500 hover:text-white rounded-md transition-all cursor-pointer">
-                            <Trash2 size={14} />
+                          <button onClick={() => handleDeleteProject(prj._id)} title="Delete" className="p-2 bg-black/60 backdrop-blur-md text-red-500 hover:text-white rounded-full border border-white/10 hover:border-red-500 transition-all cursor-pointer shadow-lg">
+                            <Trash2 size={16} />
                           </button>
                         </div>
                       )}
-                      <h4 className="text-white font-bold text-sm mb-1 pr-14">{prj.title}</h4>
-                      <p className="text-xs text-gray-400 line-clamp-2 mb-3">{prj.description}</p>
+                    </div>
+
+                    {/* Content Section */}
+                    <div className="p-6 relative flex-1 flex flex-col z-20 -mt-16 bg-gradient-to-b from-transparent via-[#0a0a0a] to-[#0a0a0a]">
+                      <h4 className="text-white font-black text-2xl mb-2 tracking-tight group-hover:text-[#00F0FF] transition-colors drop-shadow-md">{prj.title}</h4>
+                      <p className="text-sm text-gray-400 line-clamp-3 mb-6 leading-relaxed">{prj.description}</p>
+                      
                       {prj.technologies && prj.technologies.length > 0 && Array.isArray(prj.technologies) && (
-                        <div className="flex flex-wrap gap-1 mb-3">
-                          {prj.technologies.slice(0, 3).map(tech => (
-                            <span key={tech} className="px-2 py-0.5 bg-white/5 text-[10px] text-gray-300 rounded-sm">{tech}</span>
+                        <div className="flex flex-wrap gap-2 mb-6">
+                          {prj.technologies.slice(0, 4).map(tech => (
+                            <span key={tech} className="px-3 py-1 bg-white/5 border border-white/10 text-xs font-medium text-gray-300 rounded-full flex items-center gap-1.5 shadow-sm">
+                              <span className="w-1.5 h-1.5 rounded-full bg-[#00F0FF]"></span>
+                              {tech}
+                            </span>
                           ))}
-                          {prj.technologies.length > 3 && <span className="px-2 py-0.5 bg-white/5 text-[10px] text-gray-300 rounded-sm">+{prj.technologies.length - 3}</span>}
+                          {prj.technologies.length > 4 && (
+                            <span className="px-3 py-1 bg-white/5 border border-white/10 text-xs font-medium text-gray-300 rounded-full shadow-sm">
+                              +{prj.technologies.length - 4}
+                            </span>
+                          )}
                         </div>
                       )}
-                      <div className="flex items-center gap-3 mt-auto">
+
+                      {/* Footer Links */}
+                      <div className="flex items-center gap-3 mt-auto pt-5 border-t border-white/10">
                         {prj.liveUrl && (
-                          <a href={prj.liveUrl} target="_blank" rel="noreferrer" className="text-xs font-medium text-[#00F0FF] hover:underline flex items-center gap-1">
-                            <LinkIcon size={12} /> Live
+                          <a href={prj.liveUrl} target="_blank" rel="noreferrer" className="flex-1 flex justify-center items-center gap-2 py-2.5 bg-[#00F0FF]/10 hover:bg-[#00F0FF]/20 text-[#00F0FF] text-sm font-bold rounded-xl transition-all border border-[#00F0FF]/20 hover:border-[#00F0FF]/50 shadow-[0_0_15px_rgba(0,240,255,0.1)] hover:shadow-[0_0_20px_rgba(0,240,255,0.3)]">
+                            <LinkIcon size={16} /> Live Demo
                           </a>
                         )}
                         {prj.repositoryUrl && (
-                          <a href={prj.repositoryUrl} target="_blank" rel="noreferrer" className="text-xs font-medium text-gray-400 hover:text-white transition-colors flex items-center gap-1">
-                            <FolderGit2 size={12} /> Repo
+                          <a href={prj.repositoryUrl} target="_blank" rel="noreferrer" className="flex-1 flex justify-center items-center gap-2 py-2.5 bg-white/5 hover:bg-white/10 text-white text-sm font-bold rounded-xl transition-all border border-white/10 hover:border-white/30">
+                            <FolderGit2 size={16} /> Source Code
                           </a>
                         )}
                       </div>
@@ -1327,8 +1349,15 @@ const ProfilePage = () => {
                 ))}
               </>
             ) : (
-              <div className="col-span-full text-sm text-gray-500 text-center py-6">
-                No projects added yet.
+              <div className="col-span-full flex flex-col items-center justify-center py-16 px-4 text-center bg-white/[0.02] rounded-xl border border-dashed border-white/10">
+                <FolderGit2 className="text-gray-600 mb-3" size={36} />
+                <h4 className="text-white font-medium mb-1">No projects added yet</h4>
+                <p className="text-sm text-gray-500 mb-4 max-w-sm">Share your work and let your projects speak for you.</p>
+                {isOwner && (
+                  <button onClick={() => setIsAddProjectOpen(true)} className="px-5 py-2 bg-white/10 hover:bg-white/20 text-white rounded-full text-sm font-medium transition-colors border border-white/5">
+                    Add Project
+                  </button>
+                )}
               </div>
             )}
           </div>
