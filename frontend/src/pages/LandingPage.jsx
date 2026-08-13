@@ -48,7 +48,7 @@ const LandingPage = () => {
             className="w-full lg:w-1/2 h-[400px] lg:h-[600px] mt-12 lg:mt-0 relative"
           >
             <div className="absolute inset-0 bg-[#00F0FF] opacity-20 blur-[120px] rounded-full" />
-            <Suspense fallback={<div className="w-full h-full flex items-center justify-center"><div className="w-8 h-8 border-2 border-[#00F0FF] border-t-transparent rounded-full animate-spin"></div></div>}>
+            <Suspense fallback={null}>
               <ThreeDNetwork />
             </Suspense>
           </motion.div>
