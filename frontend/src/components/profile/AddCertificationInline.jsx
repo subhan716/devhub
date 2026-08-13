@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import toast from 'react-hot-toast';
 import { motion } from 'framer-motion';
+import { X } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 const AddCertificationInline = ({ setProfile, onClose }) => {
   const [formData, setFormData] = useState({
@@ -65,15 +66,20 @@ const AddCertificationInline = ({ setProfile, onClose }) => {
   };
 
   return (
-    <motion.div 
-      initial={{ height: 0, opacity: 0 }}
-      animate={{ height: 'auto', opacity: 1 }}
-      exit={{ height: 0, opacity: 0 }}
-      transition={{ duration: 0.3, ease: 'easeInOut' }}
-      className={isCompanyFocused ? "!overflow-visible" : "overflow-hidden"}
-    >
-      <div className="bg-[#1a1a1a] border border-white/10 rounded-xl mt-4 p-5">
-        <h3 className="text-lg font-bold text-white mb-4">Add Certification</h3>
+    <div className="fixed inset-0 z-[999] flex items-center justify-center p-2 sm:p-4 bg-black/80 backdrop-blur-sm overflow-y-auto">
+      <motion.div 
+        initial={{ scale: 0.95, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        exit={{ scale: 0.95, opacity: 0 }}
+        transition={{ duration: 0.2 }}
+        className="bg-[#1a1a1a] border border-white/10 rounded-xl w-full max-w-2xl max-h-[90vh] sm:max-h-[85vh] overflow-y-auto relative shadow-2xl my-auto"
+      >
+        <button onClick={onClose} type="button" className="absolute top-4 right-4 text-gray-400 hover:text-white bg-white/5 hover:bg-white/10 rounded-full p-1.5 sm:p-2 transition-colors z-[100]">
+          <X size={20} />
+        </button>
+
+        <div className="p-4 sm:p-6 md:p-8">
+          <h3 className="text-xl sm:text-2xl font-bold text-white mb-6">Add Certification</h3>
 
         <form onSubmit={onSubmit} className="space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -195,8 +201,9 @@ const AddCertificationInline = ({ setProfile, onClose }) => {
             </button>
           </div>
         </form>
-      </div>
-    </motion.div>
+        </div>
+      </motion.div>
+    </div>
   );
 };
 
