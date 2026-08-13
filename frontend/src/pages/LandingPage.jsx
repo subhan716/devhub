@@ -2,7 +2,10 @@ import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Code2, Users, Briefcase, TerminalSquare, Rocket, GitBranch, Quote } from 'lucide-react';
 import Navbar from '../components/layout/Navbar';
-import ThreeDNetwork from '../components/ui/ThreeDNetwork';
+import { lazy, Suspense } from 'react';
+
+// Lazy load the heavy 3D component to improve PageSpeed Performance (Total Blocking Time)
+const ThreeDNetwork = lazy(() => import('../components/ui/ThreeDNetwork'));
 
 const LandingPage = () => {
   return (
@@ -45,7 +48,9 @@ const LandingPage = () => {
             className="w-full lg:w-1/2 h-[400px] lg:h-[600px] mt-12 lg:mt-0 relative"
           >
             <div className="absolute inset-0 bg-[#00F0FF] opacity-20 blur-[120px] rounded-full" />
-            <ThreeDNetwork />
+            <Suspense fallback={<div className="w-full h-full flex items-center justify-center"><div className="w-8 h-8 border-2 border-[#00F0FF] border-t-transparent rounded-full animate-spin"></div></div>}>
+              <ThreeDNetwork />
+            </Suspense>
           </motion.div>
         </div>
       </section>
