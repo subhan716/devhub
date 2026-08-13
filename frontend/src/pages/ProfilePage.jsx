@@ -1275,75 +1275,53 @@ const ProfilePage = () => {
             )}
           </AnimatePresence>
 
-          <div className={`grid grid-cols-1 md:grid-cols-2 gap-8 pb-6 ${isAddProjectOpen || editingProjectId ? 'mt-6' : ''}`}>
+          <div className={`space-y-8 ${isAddProjectOpen || editingProjectId ? 'mt-6' : ''}`}>
             {profile.projects && profile.projects.length > 0 ? (
               <>
                 {profile.projects.slice(0, visibleProjectsCount).map(prj => (
-                  <div key={prj._id} className="group relative bg-[#0a0a0a] border border-white/10 rounded-2xl overflow-hidden hover:border-[#00F0FF]/50 transition-all duration-500 flex flex-col shadow-2xl hover:shadow-[0_0_40px_rgba(0,240,255,0.15)]">
+                  <div key={prj._id} className="relative group border-l-2 border-white/10 pl-6 pb-2">
+                    {/* Timeline Node */}
+                    <div className="absolute w-3.5 h-3.5 bg-[#0a0a0a] border-2 border-gray-400 rounded-full -left-[8px] top-1.5 group-hover:border-[#00F0FF] transition-colors"></div>
                     
-                    {/* Image Section or Gradient Placeholder */}
-                    <div className="w-full h-56 relative overflow-hidden bg-gray-900">
-                      {prj.image?.url ? (
-                        <>
-                          <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] to-transparent z-10 opacity-90"></div>
-                          <img src={prj.image.url} alt={prj.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out" />
-                        </>
-                      ) : (
-                        <div className="w-full h-full bg-[conic-gradient(at_top_right,_var(--tw-gradient-stops))] from-slate-900 via-[#00F0FF]/20 to-slate-900 opacity-80 group-hover:opacity-100 transition-opacity duration-500 flex items-center justify-center">
-                          <FolderGit2 size={48} className="text-white/20 group-hover:text-[#00F0FF]/40 transition-colors duration-500 transform group-hover:scale-110" />
+                    <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-4">
+                      {/* Left: Content */}
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <h4 className="text-white font-bold text-lg group-hover:text-[#00F0FF] transition-colors">{prj.title}</h4>
                         </div>
-                      )}
-
-                      {/* Top Right Actions (Edit/Duplicate/Delete) */}
-                      {isOwner && (
-                        <div className="absolute top-4 right-4 z-20 opacity-0 group-hover:opacity-100 flex items-center gap-2 transition-opacity duration-300">
-                          <button onClick={() => setEditingProjectId(prj._id)} title="Edit" className="p-2 bg-black/60 backdrop-blur-md text-blue-400 hover:text-white rounded-full border border-white/10 hover:border-blue-500 transition-all cursor-pointer shadow-lg">
-                            <Edit3 size={16} />
-                          </button>
-                          <button onClick={() => handleDuplicateProject(prj)} title="Duplicate" className="p-2 bg-black/60 backdrop-blur-md text-purple-400 hover:text-white rounded-full border border-white/10 hover:border-purple-500 transition-all cursor-pointer shadow-lg">
-                            <Copy size={16} />
-                          </button>
-                          <button onClick={() => handleDeleteProject(prj._id)} title="Delete" className="p-2 bg-black/60 backdrop-blur-md text-red-500 hover:text-white rounded-full border border-white/10 hover:border-red-500 transition-all cursor-pointer shadow-lg">
-                            <Trash2 size={16} />
-                          </button>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Content Section */}
-                    <div className="p-6 relative flex-1 flex flex-col z-20 -mt-16 bg-gradient-to-b from-transparent via-[#0a0a0a] to-[#0a0a0a]">
-                      <h4 className="text-white font-black text-2xl mb-2 tracking-tight group-hover:text-[#00F0FF] transition-colors drop-shadow-md">{prj.title}</h4>
-                      <p className="text-sm text-gray-400 line-clamp-3 mb-6 leading-relaxed">{prj.description}</p>
-                      
-                      {prj.technologies && prj.technologies.length > 0 && Array.isArray(prj.technologies) && (
-                        <div className="flex flex-wrap gap-2 mb-6">
-                          {prj.technologies.slice(0, 4).map(tech => (
-                            <span key={tech} className="px-3 py-1 bg-white/5 border border-white/10 text-xs font-medium text-gray-300 rounded-full flex items-center gap-1.5 shadow-sm">
-                              <span className="w-1.5 h-1.5 rounded-full bg-[#00F0FF]"></span>
-                              {tech}
-                            </span>
-                          ))}
-                          {prj.technologies.length > 4 && (
-                            <span className="px-3 py-1 bg-white/5 border border-white/10 text-xs font-medium text-gray-300 rounded-full shadow-sm">
-                              +{prj.technologies.length - 4}
-                            </span>
-                          )}
-                        </div>
-                      )}
-
-                      {/* Footer Links */}
-                      <div className="flex items-center gap-3 mt-auto pt-5 border-t border-white/10">
-                        {prj.liveUrl && (
-                          <a href={prj.liveUrl} target="_blank" rel="noreferrer" className="flex-1 flex justify-center items-center gap-2 py-2.5 bg-[#00F0FF]/10 hover:bg-[#00F0FF]/20 text-[#00F0FF] text-sm font-bold rounded-xl transition-all border border-[#00F0FF]/20 hover:border-[#00F0FF]/50 shadow-[0_0_15px_rgba(0,240,255,0.1)] hover:shadow-[0_0_20px_rgba(0,240,255,0.3)]">
-                            <LinkIcon size={16} /> Live Demo
-                          </a>
+                        
+                        {prj.technologies && prj.technologies.length > 0 && Array.isArray(prj.technologies) && (
+                          <p className="text-sm text-gray-500 font-medium mb-3">
+                            {prj.technologies.join(' · ')}
+                          </p>
                         )}
-                        {prj.repositoryUrl && (
-                          <a href={prj.repositoryUrl} target="_blank" rel="noreferrer" className="flex-1 flex justify-center items-center gap-2 py-2.5 bg-white/5 hover:bg-white/10 text-white text-sm font-bold rounded-xl transition-all border border-white/10 hover:border-white/30">
-                            <FolderGit2 size={16} /> Source Code
-                          </a>
+                        
+                        <p className="text-sm text-gray-300 leading-relaxed whitespace-pre-wrap">{prj.description}</p>
+
+                        {/* Show Project Button (LinkedIn Style) */}
+                        {(prj.liveUrl || prj.repositoryUrl) && (
+                          <div className="mt-5">
+                            <a href={prj.liveUrl || prj.repositoryUrl} target="_blank" rel="noreferrer" className="inline-flex items-center justify-center px-4 py-1.5 border border-white/30 hover:border-white/60 hover:bg-white/10 text-white text-sm font-semibold rounded-full transition-all">
+                              Show project <LinkIcon size={14} className="ml-2" />
+                            </a>
+                          </div>
                         )}
                       </div>
+
+                      {/* Right: Actions */}
+                      {isOwner && (
+                        <div className="flex items-center gap-1 md:opacity-0 group-hover:opacity-100 transition-opacity mt-4 md:mt-0">
+                          <button onClick={() => setEditingProjectId(prj._id)} title="Edit" className="p-2 text-gray-400 hover:text-blue-400 hover:bg-blue-400/10 rounded-lg transition-all cursor-pointer">
+                            <Edit3 size={18} />
+                          </button>
+                          <button onClick={() => handleDuplicateProject(prj)} title="Duplicate" className="p-2 text-gray-400 hover:text-purple-400 hover:bg-purple-400/10 rounded-lg transition-all cursor-pointer">
+                            <Copy size={18} />
+                          </button>
+                          <button onClick={() => handleDeleteProject(prj._id)} title="Delete" className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-all cursor-pointer">
+                            <Trash2 size={18} />
+                          </button>
+                        </div>
+                      )}
                     </div>
                   </div>
                 ))}
