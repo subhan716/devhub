@@ -85,19 +85,7 @@ const profileSchema = new mongoose.Schema(
         credentialUrl: { type: String },
       }
     ],
-    projects: [
-      {
-        title: { type: String, required: true },
-        description: { type: String, required: true },
-        repositoryUrl: { type: String },
-        liveUrl: { type: String },
-        technologies: { type: [String], default: [] },
-        image: {
-          public_id: String,
-          url: String,
-        },
-      },
-    ],
+
     resume: {
       url: { type: String },
       originalName: { type: String },

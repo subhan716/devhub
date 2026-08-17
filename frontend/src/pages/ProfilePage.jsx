@@ -9,7 +9,6 @@ import Lenis from 'lenis';
 import AddExperienceInline from '../components/profile/AddExperienceInline';
 import AddEducationInline from '../components/profile/AddEducationInline';
 import AddCertificationInline from '../components/profile/AddCertificationInline';
-import AddProjectInline from '../components/profile/AddProjectInline';
 import EditProfileForm from '../components/profile/EditProfileForm';
 import AnalyticsModal from '../components/profile/AnalyticsModal';
 import OpenToWorkModal from '../components/profile/OpenToWorkModal';
@@ -55,8 +54,6 @@ const ProfilePage = () => {
   const [isProvidingServicesModalOpen, setIsProvidingServicesModalOpen] = useState(false);
   
   const [isAddCertOpen, setIsAddCertOpen] = useState(false);
-  const [isAddProjectOpen, setIsAddProjectOpen] = useState(false);
-  const [editingProjectId, setEditingProjectId] = useState(null);
   const [uploadingResume, setUploadingResume] = useState(false);
   const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
@@ -109,7 +106,6 @@ const ProfilePage = () => {
   const [showAllExp, setShowAllExp] = useState(false);
   const [showAllEdu, setShowAllEdu] = useState(false);
   const [showAllCert, setShowAllCert] = useState(false);
-  const [visibleProjectsCount, setVisibleProjectsCount] = useState(6);
 
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
   const resumePdfRef = useRef(null);
@@ -373,50 +369,6 @@ const ProfilePage = () => {
     });
   };
 
-  const handleDeleteProject = (id) => {
-    setConfirmModal({
-      isOpen: true,
-      title: 'Delete Project',
-      message: 'Are you sure you want to delete this project? This action cannot be undone.',
-      confirmText: 'Delete',
-      isDestructive: true,
-      onConfirm: async () => {
-        try {
-          const { data } = await axios.delete(`${import.meta.env.VITE_API_URL}/api/profile/projects/${id}`, { withCredentials: true });
-          setProfile(data);
-          toast.success('Project removed');
-        } catch (error) {
-          toast.error('Failed to remove project');
-        }
-      }
-    });
-  };
-
-  const handleDuplicateProject = (prj) => {
-    setConfirmModal({
-      isOpen: true,
-      title: 'Duplicate Project',
-      message: `Are you sure you want to duplicate "${prj.title}"?`,
-      confirmText: 'Duplicate',
-      isDestructive: false,
-      onConfirm: async () => {
-        try {
-          const duplicateData = {
-            title: prj.title + ' (Copy)',
-            description: prj.description,
-            repositoryUrl: prj.repositoryUrl,
-            liveUrl: prj.liveUrl,
-            technologies: Array.isArray(prj.technologies) ? prj.technologies.join(', ') : prj.technologies
-          };
-          const { data } = await axios.put(`${import.meta.env.VITE_API_URL}/api/profile/projects`, duplicateData, { withCredentials: true });
-          setProfile(data);
-          toast.success('Project duplicated!');
-        } catch (error) {
-          toast.error('Failed to duplicate project');
-        }
-      }
-    });
-  };
 
   const handleDownloadPdf = async () => {
     if (!resumePdfRef.current) return;
@@ -930,7 +882,7 @@ const ProfilePage = () => {
 
       {/* Tabs Navigation */}
       <div className="flex border-b border-white/10 mb-8 overflow-x-auto scrollbar-none">
-        {['overview', 'projects', 'activity'].map(tab => (
+        {['overview', 'activity'].map(tab => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
@@ -940,7 +892,6 @@ const ProfilePage = () => {
               }`}
           >
             {tab === 'overview' && 'Overview'}
-            {tab === 'projects' && `Projects (${profile.projects?.length || 0})`}
             {tab === 'activity' && 'Activity'}
           </button>
         ))}
@@ -1244,115 +1195,7 @@ const ProfilePage = () => {
         </>
       )}
 
-      {/* Tab Content: PROJECTS */}
-      {activeTab === 'projects' && (
-        <div className="bg-[#111] border border-white/5 rounded-2xl p-6 shadow-lg">
-          <div className="flex justify-between items-center mb-6">
-            <h3 className="text-white font-bold text-lg flex items-center gap-2">
-              <FolderGit2 size={20} className="text-white" /> Projects
-            </h3>
-            {isOwner && (
-              <button onClick={() => setIsAddProjectOpen(!isAddProjectOpen)} className={`p-1.5 rounded-lg transition-colors cursor-pointer ${isAddProjectOpen ? 'bg-white/10 text-white' : 'bg-white/5 hover:bg-white/10 text-gray-300 hover:text-white'}`}>
-                <Plus size={18} className={`transform transition-transform ${isAddProjectOpen ? 'rotate-45' : ''}`} />
-              </button>
-            )}
-          </div>
 
-          <AnimatePresence>
-            {(isAddProjectOpen || editingProjectId) && (
-              <AddProjectInline
-                initialData={editingProjectId ? profile.projects.find(p => p._id === editingProjectId) : null}
-                onClose={() => {
-                  setIsAddProjectOpen(false);
-                  setEditingProjectId(null);
-                }}
-                onAdd={(data) => {
-                  setProfile(data);
-                  setIsAddProjectOpen(false);
-                  setEditingProjectId(null);
-                }}
-              />
-            )}
-          </AnimatePresence>
-
-          <div className={`space-y-8 ${isAddProjectOpen || editingProjectId ? 'mt-6' : ''}`}>
-            {profile.projects && profile.projects.length > 0 ? (
-              <>
-                {profile.projects.slice(0, visibleProjectsCount).map(prj => (
-                  <div key={prj._id} className="relative group border-l-2 border-white/10 pl-6 pb-2">
-                    {/* Timeline Node */}
-                    <div className="absolute w-3.5 h-3.5 bg-[#0a0a0a] border-2 border-gray-400 rounded-full -left-[8px] top-1.5 group-hover:border-[#00F0FF] transition-colors"></div>
-                    
-                    <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-4">
-                      {/* Left: Content */}
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-1">
-                          <h4 className="text-white font-bold text-lg group-hover:text-[#00F0FF] transition-colors">{prj.title}</h4>
-                        </div>
-                        
-                        {prj.technologies && prj.technologies.length > 0 && Array.isArray(prj.technologies) && (
-                          <p className="text-sm text-gray-500 font-medium mb-3">
-                            {prj.technologies.join(' · ')}
-                          </p>
-                        )}
-                        
-                        <p className="text-sm text-gray-300 leading-relaxed whitespace-pre-wrap">{prj.description}</p>
-
-                        {/* Show Project Button (LinkedIn Style) */}
-                        {(prj.liveUrl || prj.repositoryUrl) && (
-                          <div className="mt-5">
-                            <a href={prj.liveUrl || prj.repositoryUrl} target="_blank" rel="noreferrer" className="inline-flex items-center justify-center px-4 py-1.5 border border-white/30 hover:border-white/60 hover:bg-white/10 text-white text-sm font-semibold rounded-full transition-all">
-                              Show project <LinkIcon size={14} className="ml-2" />
-                            </a>
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Right: Actions */}
-                      {isOwner && (
-                        <div className="flex items-center gap-1 md:opacity-0 group-hover:opacity-100 transition-opacity mt-4 md:mt-0">
-                          <button onClick={() => setEditingProjectId(prj._id)} title="Edit" className="p-2 text-gray-400 hover:text-blue-400 hover:bg-blue-400/10 rounded-lg transition-all cursor-pointer">
-                            <Edit3 size={18} />
-                          </button>
-                          <button onClick={() => handleDuplicateProject(prj)} title="Duplicate" className="p-2 text-gray-400 hover:text-purple-400 hover:bg-purple-400/10 rounded-lg transition-all cursor-pointer">
-                            <Copy size={18} />
-                          </button>
-                          <button onClick={() => handleDeleteProject(prj._id)} title="Delete" className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-all cursor-pointer">
-                            <Trash2 size={18} />
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </>
-            ) : (
-              <div className="col-span-full flex flex-col items-center justify-center py-16 px-4 text-center bg-white/[0.02] rounded-xl border border-dashed border-white/10">
-                <FolderGit2 className="text-gray-600 mb-3" size={36} />
-                <h4 className="text-white font-medium mb-1">No projects added yet</h4>
-                <p className="text-sm text-gray-500 mb-4 max-w-sm">Share your work and let your projects speak for you.</p>
-                {isOwner && (
-                  <button onClick={() => setIsAddProjectOpen(true)} className="px-5 py-2 bg-white/10 hover:bg-white/20 text-white rounded-full text-sm font-medium transition-colors border border-white/5">
-                    Add Project
-                  </button>
-                )}
-              </div>
-            )}
-          </div>
-          
-          {/* Show More Button */}
-          {profile.projects && profile.projects.length > visibleProjectsCount && (
-            <div className="flex justify-center mt-4 mb-6">
-              <button
-                onClick={() => setVisibleProjectsCount(prev => prev + 6)}
-                className="px-8 py-2.5 bg-white/5 hover:bg-[#00F0FF]/10 text-white hover:text-[#00F0FF] font-medium rounded-full border border-white/10 hover:border-[#00F0FF]/30 transition-all flex items-center gap-2 text-sm cursor-pointer shadow-lg"
-              >
-                Show More Projects
-              </button>
-            </div>
-          )}
-        </div>
-      )}
 
       {/* Tab Content: ACTIVITY */}
       {activeTab === 'activity' && (

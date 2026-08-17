@@ -10,9 +10,6 @@ const {
   deleteEducation,
   addCertification,
   deleteCertification,
-  addProject,
-  deleteProject,
-  editProject,
   followUser,
   unfollowUser,
   getProfileAnalytics,
@@ -44,10 +41,6 @@ router.delete('/education/:edu_id', protect, deleteEducation);
 router.put('/certifications', protect, addCertification);
 router.delete('/certifications/:cert_id', protect, deleteCertification);
 
-// Projects routes
-router.put('/projects', protect, addProject);
-router.put('/projects/:prj_id', protect, editProject);
-router.delete('/projects/:prj_id', protect, deleteProject);
 
 // Follow / Unfollow routes
 router.post('/follow/:user_id', protect, followUser);

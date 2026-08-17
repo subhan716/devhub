@@ -238,60 +238,7 @@ const deleteCertification = async (req, res) => {
   }
 };
 
-// @desc    Add profile project
-// @route   PUT /api/profile/projects
-// @access  Private
-const addProject = async (req, res) => {
-  try {
-    const profile = await Profile.findOne({ user: req.user.id });
-    profile.projects.unshift(req.body);
-    await profile.save();
-    res.json(profile);
-  } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server Error');
-  }
-};
 
-// @desc    Delete profile project
-// @route   DELETE /api/profile/projects/:prj_id
-// @access  Private
-const deleteProject = async (req, res) => {
-  try {
-    const profile = await Profile.findOne({ user: req.user.id });
-    profile.projects = profile.projects.filter(
-      (prj) => prj._id.toString() !== req.params.prj_id
-    );
-    await profile.save();
-    res.json(profile);
-  } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server Error');
-  }
-};
-
-// @desc    Edit profile project
-// @route   PUT /api/profile/projects/:prj_id
-// @access  Private
-const editProject = async (req, res) => {
-  try {
-    const profile = await Profile.findOne({ user: req.user.id });
-    const projectIndex = profile.projects.findIndex(
-      (prj) => prj._id.toString() === req.params.prj_id
-    );
-
-    if (projectIndex === -1) {
-      return res.status(404).json({ message: 'Project not found' });
-    }
-
-    profile.projects[projectIndex] = { _id: req.params.prj_id, ...req.body };
-    await profile.save();
-    res.json(profile);
-  } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server Error');
-  }
-};
 
 // @desc    Follow a user
 // @route   POST /api/profile/follow/:user_id
@@ -541,9 +488,7 @@ module.exports = {
   deleteEducation,
   addCertification,
   deleteCertification,
-  addProject,
-  deleteProject,
-  editProject,
+
   followUser,
   unfollowUser,
   getProfileAnalytics,

@@ -84,22 +84,7 @@ router.post('/resume', protect, uploadDocument.single('document'), async (req, r
   }
 });
 
-// @route   POST /api/upload/project-image
-// @desc    Upload project thumbnail image
-// @access  Private
-router.post('/project-image', protect, uploadImage.single('image'), async (req, res) => {
-  try {
-    if (!req.file) {
-      return res.status(400).json({ message: 'No image uploaded' });
-    }
 
-    const imageUrl = req.file.path;
-    
-    res.json({ url: imageUrl });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-});
 
 // @route   POST /api/upload/chat-attachment
 // @desc    Upload chat attachment (image or document)
