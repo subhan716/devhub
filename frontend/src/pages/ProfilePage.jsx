@@ -979,14 +979,6 @@ const ProfilePage = () => {
                   labels={{
                     totalCount: `{{count}} contributions in ${isCurrentYearSelected ? 'Current Year' : 'Previous Year'}`
                   }}
-                  tooltips={{
-                    activity: {
-                      text: activity => {
-                        const dateFormatted = new Date(activity.date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-                        return `${activity.count === 0 ? 'No' : activity.count} contribution${activity.count === 1 ? '' : 's'} on ${dateFormatted}`;
-                      }
-                    }
-                  }}
                   renderBlock={(block, activity) => {
                     const dateFormatted = new Date(activity.date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
                     const tooltipText = `${activity.count === 0 ? 'No' : activity.count} contribution${activity.count === 1 ? '' : 's'} on ${dateFormatted}`;
