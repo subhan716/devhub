@@ -48,13 +48,27 @@ const userSchema = new mongoose.Schema(
     },
     role: {
       type: String,
-      enum: ['user', 'admin'],
+      enum: ['user', 'moderator', 'admin', 'super_admin'],
       default: 'user',
     },
     isVerified: {
       type: Boolean,
       default: false,
     },
+    isVerifiedBadge: {
+      type: Boolean,
+      default: false,
+    },
+    isSuspended: {
+      type: Boolean,
+      default: false,
+    },
+    isShadowBanned: {
+      type: Boolean,
+      default: false,
+    },
+    suspendedReason: String,
+    suspendedAt: Date,
     otp: String,
     otpExpire: Date,
     otpResendAttempts: {

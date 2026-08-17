@@ -52,6 +52,32 @@ const postSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Post',
     },
+    isReported: {
+      type: Boolean,
+      default: false,
+    },
+    reports: [
+      {
+        reporter: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: 'User',
+        },
+        reason: {
+          type: String,
+          enum: ['spam', 'harassment', 'inappropriate', 'hate_speech', 'scam', 'other'],
+          default: 'spam',
+        },
+        comment: String,
+        createdAt: {
+          type: Date,
+          default: Date.now,
+        },
+      },
+    ],
+    reportsCount: {
+      type: Number,
+      default: 0,
+    },
   },
   {
     timestamps: true,

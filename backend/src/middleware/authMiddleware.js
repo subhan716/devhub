@@ -19,6 +19,10 @@ const protect = async (req, res, next) => {
         return res.status(401).json({ message: 'Not authorized, user not found' });
       }
 
+      if (req.user.isSuspended) {
+        return res.status(403).json({ message: 'Your account has been suspended by an administrator.' });
+      }
+
       next();
     } catch (error) {
       console.error(error);
@@ -29,12 +33,21 @@ const protect = async (req, res, next) => {
   }
 };
 
-const admin = (req, res, next) => {
-  if (req.user && req.user.role === 'admin') {
+const protectAdmin = (req, res, next) => {
+  if (!req.user) {
+    return res.status(401).json({ message: 'Not authorized, no user found' });
+  }
+
+  const allowedRoles = ['admin', 'super_admin', 'moderator'];
+  if (allowedRoles.includes(req.user.role)) {
     next();
   } else {
-    return res.status(403).json({ message: 'Not authorized as an admin' });
+    return res.status(403).json({ message: 'Access denied. Administrator privileges required.' });
   }
+};
+
+const admin = (req, res, next) => {
+  return protectAdmin(req, res, next);
 };
 
 const protectOptional = async (req, res, next) => {
@@ -49,4 +62,4 @@ const protectOptional = async (req, res, next) => {
   next();
 };
 
-module.exports = { protect, protectOptional, admin };
+module.exports = { protect, protectOptional, admin, protectAdmin };

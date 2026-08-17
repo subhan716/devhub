@@ -11,10 +11,28 @@ const app = express();
 app.use(helmet({
   crossOriginResourcePolicy: { policy: "cross-origin" }
 }));
+const allowedOrigins = [
+  process.env.CLIENT_URL,
+  process.env.ADMIN_CLIENT_URL,
+  'http://localhost:5173',
+  'http://localhost:5174',
+  'http://localhost:3000'
+].filter(Boolean);
+
 app.use(
   cors({
-    origin: process.env.CLIENT_URL || 'http://localhost:5173',
-    credentials: true, // Allow cookies to be sent (for refresh tokens later)
+    origin: function (origin, callback) {
+      if (!origin) return callback(null, true);
+      if (
+        allowedOrigins.indexOf(origin) !== -1 ||
+        origin.includes('localhost') ||
+        origin.includes('vercel.app')
+      ) {
+        return callback(null, true);
+      }
+      return callback(null, true);
+    },
+    credentials: true,
   })
 );
 
@@ -40,6 +58,7 @@ app.use('/api/upload', require('./routes/uploadRoutes'));
 app.use('/api/messages', require('./routes/messageRoutes'));
 app.use('/api/network', require('./routes/connectionRoutes'));
 app.use('/api/notifications', require('./routes/notificationRoutes'));
+app.use('/api/admin', require('./routes/adminRoutes'));
 
 // Basic health check route
 app.get('/api', (req, res) => {
