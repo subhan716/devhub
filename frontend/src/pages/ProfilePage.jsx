@@ -1,6 +1,6 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, cloneElement } from 'react';
 import { createPortal } from 'react-dom';
-import { MapPin, Briefcase, Calendar, Link as LinkIcon, Heart, MessageCircle, Repeat2, GraduationCap, FolderGit2, FileText, Trash2, Plus, Edit3, Image, Copy, MoreHorizontal, Users, Eye, Activity, Award, X, ChevronDown, Share2 } from 'lucide-react';
+import { MapPin, Briefcase, Calendar, Link as LinkIcon, Heart, MessageCircle, Repeat2, GraduationCap, FolderGit2, FileText, Trash2, Plus, Edit3, Image, Copy, MoreHorizontal, Users, Eye, Activity, Award, X, ChevronDown, ChevronLeft, ChevronRight, Share2 } from 'lucide-react';
 import { useNavigate, useParams, useSearchParams, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
@@ -59,8 +59,8 @@ const ProfilePage = () => {
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [isAnalyticsOpen, setIsAnalyticsOpen] = useState(false);
   const currentYear = new Date().getFullYear();
-  const [selectedGithubYear, setSelectedGithubYear] = useState(currentYear);
-  const availableGithubYears = [currentYear, currentYear - 1, currentYear - 2];
+  const [isCurrentYearSelected, setIsCurrentYearSelected] = useState(true);
+  const selectedGithubYear = isCurrentYearSelected ? currentYear : currentYear - 1;
   const resumeInputRef = useRef(null);
   const drawerRef = useRef(null);
   const navigate = useNavigate();
@@ -925,21 +925,41 @@ const ProfilePage = () => {
                   GitHub Contributions
                 </h3>
 
-                {/* Year Switcher (Jan - Dec) */}
-                <div className="flex items-center gap-1.5 bg-[#1a1a1a] border border-white/10 rounded-xl p-1 self-start sm:self-auto">
-                  {availableGithubYears.map(yr => (
-                    <button
-                      key={yr}
-                      onClick={() => setSelectedGithubYear(yr)}
-                      className={`px-3 py-1 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
-                        selectedGithubYear === yr
-                          ? 'bg-[#00F0FF] text-black shadow-[0_0_10px_rgba(0,240,255,0.4)]'
-                          : 'text-gray-400 hover:text-white hover:bg-white/5'
-                      }`}
-                    >
-                      {yr}
-                    </button>
-                  ))}
+                {/* Year Switcher (Arrow Navigation: Current & Previous Year) */}
+                <div className="flex items-center gap-2 bg-[#1a1a1a] border border-white/10 rounded-xl p-1 self-start sm:self-auto shadow-inner">
+                  <button
+                    type="button"
+                    onClick={() => setIsCurrentYearSelected(false)}
+                    disabled={!isCurrentYearSelected}
+                    className={`p-1.5 rounded-lg transition-all flex items-center justify-center cursor-pointer ${
+                      !isCurrentYearSelected
+                        ? 'opacity-30 cursor-not-allowed text-gray-600'
+                        : 'text-gray-400 hover:text-[#00F0FF] hover:bg-white/10 active:scale-95'
+                    }`}
+                    title="Previous Year"
+                    aria-label="Previous Year"
+                  >
+                    <ChevronLeft size={16} />
+                  </button>
+
+                  <span className="px-2 text-xs font-semibold text-gray-300 min-w-[90px] text-center select-none">
+                    {isCurrentYearSelected ? 'Current Year' : 'Previous Year'}
+                  </span>
+
+                  <button
+                    type="button"
+                    onClick={() => setIsCurrentYearSelected(true)}
+                    disabled={isCurrentYearSelected}
+                    className={`p-1.5 rounded-lg transition-all flex items-center justify-center cursor-pointer ${
+                      isCurrentYearSelected
+                        ? 'opacity-30 cursor-not-allowed text-gray-600'
+                        : 'text-gray-400 hover:text-[#00F0FF] hover:bg-white/10 active:scale-95'
+                    }`}
+                    title="Current Year"
+                    aria-label="Current Year"
+                  >
+                    <ChevronRight size={16} />
+                  </button>
                 </div>
               </div>
 
@@ -957,7 +977,22 @@ const ProfilePage = () => {
                   blockSize={14}
                   blockMargin={5}
                   labels={{
-                    totalCount: `{{count}} contributions in ${selectedGithubYear}`
+                    totalCount: `{{count}} contributions in ${isCurrentYearSelected ? 'Current Year' : 'Previous Year'}`
+                  }}
+                  tooltips={{
+                    activity: {
+                      text: activity => {
+                        const dateFormatted = new Date(activity.date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+                        return `${activity.count === 0 ? 'No' : activity.count} contribution${activity.count === 1 ? '' : 's'} on ${dateFormatted}`;
+                      }
+                    }
+                  }}
+                  renderBlock={(block, activity) => {
+                    const dateFormatted = new Date(activity.date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+                    const tooltipText = `${activity.count === 0 ? 'No' : activity.count} contribution${activity.count === 1 ? '' : 's'} on ${dateFormatted}`;
+                    return cloneElement(block, {
+                      children: <title>{tooltipText}</title>
+                    });
                   }}
                 />
               </div>
