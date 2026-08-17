@@ -1,15 +1,19 @@
-﻿# 🛡️ DevHub Enterprise Admin Panel & Operations Ecosystem
+﻿# 🛡️ Enterprise Admin Panel & Universal Social Platform Operations Ecosystem
 **Architectural Blueprint, Multi-Tier Governance & Massive Scalability Specification**
+
+> **Note on Platform Scope & Branding:**
+> 1. **Universal Social & Professional Network:** This platform is engineered as a universal professional and social networking ecosystem for **all user demographics and industries** (Developers, Designers, Marketers, Founders, Content Creators, Students, Recruiters, and the General Public).
+> 2. **Dynamic Brand & Domain Architecture:** The current working name ("DevHub") is a placeholder. All admin branding, notification templates, domain references, and metadata are built dynamically from environment variables and database system settings (`APP_NAME`, `APP_DOMAIN`) to allow seamless re-branding when the production custom domain is finalized.
 
 ---
 
 ## 1. Executive Overview & System Architecture
 
-As a professional developer social network, **DevHub** requires an enterprise-grade administration and moderation architecture. Managing a platform with millions of end-users and hundreds to thousands of internal operations personnel (moderators, support agents, safety officers, and executives) requires moving beyond basic single-admin dashboards to a **distributed, role-based, concurrency-safe operations system**.
+As a high-growth universal professional social network, the platform requires an enterprise-grade administration and moderation architecture. Managing a platform with millions of diverse end-users and hundreds to thousands of internal operations personnel (moderators, support agents, safety officers, and executives) requires moving beyond basic single-admin dashboards to a **distributed, role-based, concurrency-safe operations system**.
 
 ```
                            +------------------------------------------+
-                           |       DevHub Enterprise Admin UI         |
+                           |       Enterprise Admin Portal UI         |
                            |   (Role-Based Modular SPA / Dashboard)   |
                            +--------------------+---------------------+
                                                 |
@@ -48,13 +52,13 @@ As a professional developer social network, **DevHub** requires an enterprise-gr
 
 ## 2. Multi-Tier Role-Based Access Control (RBAC) & Security Architecture
 
-When hundreds or thousands of people work on a platform, **least-privilege access** is strictly enforced. No regular moderator should have database access or the ability to view user passwords/emails indiscriminately.
+When hundreds or thousands of staff manage a multi-category social network, **least-privilege access** is strictly enforced. No regular moderator should have database access or the ability to view user passwords/emails indiscriminately.
 
 ### 2.1 Role Hierarchy Matrix
 
 | Tier | Role Name | Intended Audience | Core Responsibilities & Permissions |
 | :--- | :--- | :--- | :--- |
-| **L5** | **Super Admin** | C-Level, CTO, Founders | Full system control, role creation/granting, financial data, database disaster recovery, emergency platform lockdown. |
+| **L5** | **Super Admin** | C-Level, CTO, Founders | Full system control, role creation/granting, financial data, database disaster recovery, emergency platform lockdown, brand/domain settings. |
 | **L4** | **Lead Operations / Ops Manager** | Trust & Safety Managers | Manage moderator shifts, resolve escalations, adjust automated spam thresholds, broadcast system-wide alerts. |
 | **L3** | **Trust & Safety Officer** | Senior Compliance Staff | Hard account bans, legal/DMCA takedowns, child safety/harassment triage, dual-authorization review. |
 | **L2** | **Community Moderator** | Content Moderators (100s-1000s) | Review reported posts/comments, dismiss false flags, delete spam, apply warnings. (No access to user PII). |
@@ -75,12 +79,12 @@ Permissions are enforced at the API route level as cryptographic scope arrays in
     "users:warn"
   ],
   "maxDailyActions": 2500,
-  "assignedQueues": ["spam_feed_en", "code_snippets"]
+  "assignedQueues": ["spam_feed_global", "media_reports"]
 }
 ```
 
 ### 2.3 Defense-in-Depth Multi-Layer Security Architecture
-To ensure unauthorized users, automated bots, and attackers cannot even discover or reach the admin panel, DevHub implements a 4-layer defense system:
+To ensure unauthorized users, automated bots, and attackers cannot even discover or reach the admin panel, the platform implements a 4-layer defense system:
 
 ```
                        [ 🌐 Random User / Hacker ]
@@ -101,34 +105,35 @@ To ensure unauthorized users, automated bots, and attackers cannot even discover
                       [ 👑 Admin Dashboard Access ]
 ```
 
-1. **Layer 1 (Secret Camouflage URL):** The route slug is configured via environment variables (e.g. `VITE_ADMIN_PATH=/devhub-control-center-x9` or `/ops-hub`). Standard generic paths like `/admin`, `/administrator`, `/cpanel` do not serve the dashboard.
+1. **Layer 1 (Secret Camouflage URL):** The route slug is configured via environment variables (e.g. `VITE_ADMIN_PATH=/platform-ops-control-x9` or `/hq-center`). Standard generic paths like `/admin`, `/administrator`, `/cpanel` do not serve the dashboard.
 2. **Layer 2 (The Ghost 404 Guard):** If an unauthorized user or guest stumbles upon or brute-forces the secret URL, the frontend route guard immediately renders a fake **404 Not Found** page (pretending the route doesn't exist) rather than an "Access Denied" page.
 3. **Layer 3 (Iron Vault Backend JWT Guard):** Every admin API endpoint (`/api/admin/*`) verifies the cryptographically signed HTTP-only JWT cookie and verifies `req.user.role` directly against MongoDB. If unauthorized, the API returns `403 Forbidden` and logs the security attempt.
 4. **Layer 4 (IP Rate Limiting & Brute Force Shield):** Strict window rate-limiters on admin routes immediately blacklist IPs exceeding consecutive unauthorized requests.
 
 ### 2.4 Seamless Admin Access Flow (Smart Navbar Entry)
 Admin users never need to memorize complex URLs or use separate login pages:
-1. **Unified Authentication:** Admin users log in through standard DevHub login credentials (with optional 2FA).
+1. **Unified Authentication:** Admin users log in through standard platform login credentials (with optional 2FA).
 2. **Smart Dynamic Navigation:** For regular users, the Profile dropdown shows standard options (`Profile`, `Settings`, `Logout`). For authenticated Admin/Moderator accounts, an exclusive, sleek button **"🛡️ Admin Console"** or **"⚙️ Control Center"** dynamically appears in their top navigation bar.
 3. **1-Click Secure Routing:** Clicking the button directly routes the verified admin to the secret admin portal.
 
 ### 2.5 Unified Role-Adaptive Portal vs Multiple Separate Panels
-Instead of creating multiple disjointed admin dashboards (which creates code duplication and maintenance nightmares), DevHub utilizes **One Unified Role-Adaptive Portal** (the architectural standard used by LinkedIn, Stripe, and Shopify):
+Instead of creating multiple disjointed admin dashboards (which creates code duplication and maintenance nightmares), the platform utilizes **One Unified Role-Adaptive Portal** (the architectural standard used by LinkedIn, Stripe, and Shopify):
 
 ```
-                       [ 🛡️ DevHub Unified Admin Portal ]
-                                       |
-          +----------------------------+----------------------------+
-          |                            |                            |
-[ 👑 Super Admin Login ]      [ 🛡️ Moderator Login ]       [ 🎧 Support Agent Login ]
-          |                            |                            |
-          v                            v                            v
-   Tamam Tabs Active:           Sirf Mod Tabs:              Sirf Support Tabs:
-   - Full Analytics             - Reported Content Queue    - User Lookup & Reset
-   - User Management            - Spam Auto-Filter          - Ticket Responses
-   - Roles & Permissions        (Sensitive tabs hidden)     (Sensitive tabs hidden)
+                       [ 🛡️ Unified Admin Portal ]
+                                    |
+          +-------------------------+-------------------------+
+          |                         |                         |
+[ 👑 Super Admin Login ]   [ 🛡️ Moderator Login ]    [ 🎧 Support Agent Login ]
+          |                         |                         |
+          v                         v                         v
+   Tamam Tabs Active:        Sirf Mod Tabs:           Sirf Support Tabs:
+   - Full Analytics          - Reported Content Queue - User Lookup & Reset
+   - User Management         - Spam Auto-Filter       - Ticket Responses
+   - Roles & Permissions     (Sensitive tabs hidden)  (Sensitive tabs hidden)
    - Content Moderation
    - System Broadcast
+   - Brand & Domain Settings
 ```
 
 * **Modular Sidebar:** The sidebar dynamically filters navigation items based on the user's role tier.
@@ -169,8 +174,8 @@ For catastrophic or high-impact actions (e.g. deleting a verified user with 50,0
 ## 4. Core Operational Modules Breakdown
 
 ### Module 1: Trust & Safety / Content Moderation Engine
-* **Automated Keyword & RegEx Triage:** Auto-flags phishing URLs, malicious code injections, and hate speech into high-priority triage queues.
-* **Keyboard-First Speed Console:** Hotkeys for ultra-fast moderation:
+* **Automated Keyword & RegEx Triage:** Auto-flags phishing URLs, scam links, hate speech, and inappropriate content into high-priority triage queues.
+* **Keyboard-First Speed Console:** Hotkeys for ultra-fast moderation across general social feeds:
   - `J` / `K` -> Next / Previous Case
   - `D` -> Delete Post & Warn Author
   - `S` -> Shadowban User
@@ -179,24 +184,28 @@ For catastrophic or high-impact actions (e.g. deleting a verified user with 50,0
   - The offending user can still post, like, and comment normally on their screen.
   - The feed algorithm invisibly filters their content for all other platform users (`isShadowBanned: true`). This prevents spam bots from detecting that they have been blocked and generating new accounts.
 
-### Module 2: User Identity & Forensics Hub
-* **Verification Authority:** Issue/revoke **Verified Developer** badges, **Top Contributor** status, and **Recruiter** badges with audit trails.
+### Module 2: Universal User Identity & Verification Hub
+* **Multi-Category Verification Authority:** Issue/revoke specialized badges across different demographics:
+  - 🔵 **Verified Professional / Identity**
+  - 🌟 **Top Creator / Influencer**
+  - 🏢 **Verified Business / Organization**
+  - 🎓 **Verified Academic / Institution**
 * **Multi-Account & Ban-Evasion Detection:**
-  - Correlates accounts sharing identical IP subnets, browser canvas fingerprints, or identical GitHub usernames.
+  - Correlates accounts sharing identical IP subnets, browser canvas fingerprints, or identical linked social accounts.
 * **Impersonation Sentinel:**
-  - Automated fuzzy matching on display names and Levenshtein distance on handles (e.g. `dan_abramov_official` vs `dan_abramov`).
+  - Automated fuzzy matching on display names and Levenshtein distance on handles (e.g. `elon_musk_official` vs `elon_musk`).
 
 ### Module 3: Network & Real-Time Platform Analytics
 * **Live System Pulse:**
   - Active WebSocket connections (via Socket.io Redis adapter).
-  - Messages exchanged per second.
-  - Connection request velocity (identifies mass-connection scraping bots).
-* **Cohort Retention:** Day-1, Day-7, Day-30 user return rates by signup channel.
+  - Messages exchanged per second across all user categories.
+  - Connection / Follow request velocity (identifies mass-scraping bots).
+* **Cohort Retention:** Day-1, Day-7, Day-30 user return rates by category/niche.
 * **Network Graph Health:** Number of isolated (orphan) users vs super-connected hub nodes.
 
 ### Module 4: Global Communications & Announcement Engine
 * **Emergency Top Banner:** Dismissible/persistent announcements across the platform with color-coded severity (Info, Warning, Critical Maintenance).
-* **Direct System Push:** Injects official DevHub team notifications directly into users' notification feeds.
+* **Direct System Push:** Injects official platform notifications directly into users' notification feeds.
 * **Maintenance Switch:** 1-click toggle to set the platform into **Read-Only Mode** during database maintenance.
 
 ### Module 5: Immutable Audit Trails & Compliance
@@ -205,16 +214,16 @@ For catastrophic or high-impact actions (e.g. deleting a verified user with 50,0
   {
     "timestamp": "2026-08-17T11:25:00.000Z",
     "adminId": "66b1...",
-    "adminEmail": "ops_lead@devhub.com",
+    "adminEmail": "ops_lead@customdomain.com",
     "action": "USER_SHADOWBANNED",
     "targetUserId": "66a4...",
-    "reason": "Mass scraping connection emails",
+    "reason": "Mass spamming promotional messages",
     "ipAddress": "192.168.1.100",
     "previousState": { "isShadowBanned": false },
     "newState": { "isShadowBanned": true }
   }
   ```
-* **GDPR Compliance:** Automated tools for 1-click user data export and complete cryptographic erasure ("Right to be Forgotten").
+* **GDPR & Privacy Compliance:** Automated tools for 1-click user data export and complete cryptographic erasure ("Right to be Forgotten").
 
 ---
 
@@ -292,9 +301,10 @@ auditLogSchema.index({ targetId: 1, createdAt: -1 });
 ```
 +-------------------------------------------------------------------------+
 | Phase 1: Foundations (Single-Admin MVP)                                 |
+| - Dynamic platform name & domain config from .env                       |
 | - Admin Role in User model & requireAdmin middleware                     |
 | - Route: Secret slug with Ghost 404 Guard & dark-glass dashboard        |
-| - Basic User Management (Ban/Unban, Search, Verified Badge)             |
+| - Universal User Management (Ban/Unban, Search, Verified Badge)         |
 | - Reported Posts Queue with 1-click Delete / Dismiss                     |
 +-------------------------------------------------------------------------+
                                     |
