@@ -58,6 +58,9 @@ const ProfilePage = () => {
   const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [isAnalyticsOpen, setIsAnalyticsOpen] = useState(false);
+  const currentYear = new Date().getFullYear();
+  const [selectedGithubYear, setSelectedGithubYear] = useState(currentYear);
+  const availableGithubYears = [currentYear, currentYear - 1, currentYear - 2];
   const resumeInputRef = useRef(null);
   const drawerRef = useRef(null);
   const navigate = useNavigate();
@@ -916,13 +919,35 @@ const ProfilePage = () => {
           {/* GitHub Contributions Graph */}
           {profile.githubusername && (
             <div className="bg-[#111] border border-white/5 rounded-2xl p-6 shadow-lg mb-6 overflow-hidden">
-              <h3 className="text-white font-bold text-lg flex items-center gap-2 mb-6">
-                <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" className="text-[#00F0FF]"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg>
-                GitHub Contributions
-              </h3>
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
+                <h3 className="text-white font-bold text-lg flex items-center gap-2">
+                  <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" className="text-[#00F0FF]"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg>
+                  GitHub Contributions
+                </h3>
+
+                {/* Year Switcher (Jan - Dec) */}
+                <div className="flex items-center gap-1.5 bg-[#1a1a1a] border border-white/10 rounded-xl p-1 self-start sm:self-auto">
+                  {availableGithubYears.map(yr => (
+                    <button
+                      key={yr}
+                      onClick={() => setSelectedGithubYear(yr)}
+                      className={`px-3 py-1 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
+                        selectedGithubYear === yr
+                          ? 'bg-[#00F0FF] text-black shadow-[0_0_10px_rgba(0,240,255,0.4)]'
+                          : 'text-gray-400 hover:text-white hover:bg-white/5'
+                      }`}
+                    >
+                      {yr}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               <div className="flex justify-center overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-[#00F0FF]/30 scrollbar-track-transparent">
                 <GitHubCalendar
+                  key={selectedGithubYear}
                   username={profile.githubusername}
+                  year={selectedGithubYear}
                   colorScheme="dark"
                   theme={{
                     light: ['#ebedf0', '#9be9a8', '#40c463', '#30a14e', '#216e39'],
@@ -931,6 +956,9 @@ const ProfilePage = () => {
                   fontSize={12}
                   blockSize={14}
                   blockMargin={5}
+                  labels={{
+                    totalCount: `{{count}} contributions in ${selectedGithubYear}`
+                  }}
                 />
               </div>
             </div>
