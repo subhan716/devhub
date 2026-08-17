@@ -1,6 +1,6 @@
-import { useState, useEffect, useRef, cloneElement } from 'react';
+import { useState, useEffect, useRef, useMemo, cloneElement } from 'react';
 import { createPortal } from 'react-dom';
-import { MapPin, Briefcase, Calendar, Link as LinkIcon, Heart, MessageCircle, Repeat2, GraduationCap, FolderGit2, FileText, Trash2, Plus, Edit3, Image, Copy, MoreHorizontal, Users, Eye, Activity, Award, X, ChevronDown, ChevronLeft, ChevronRight, Share2 } from 'lucide-react';
+import { MapPin, Briefcase, Calendar, Link as LinkIcon, Heart, MessageCircle, Repeat2, GraduationCap, FolderGit2, FileText, Trash2, Plus, Edit3, Image, Copy, MoreHorizontal, Users, Eye, Activity, Award, X, ChevronDown, ChevronLeft, ChevronRight, Share2, RefreshCw, AlertCircle } from 'lucide-react';
 import { useNavigate, useParams, useSearchParams, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
@@ -19,13 +19,264 @@ import ConfirmModal from '../components/common/ConfirmModal';
 import PostCard from '../components/common/PostCard';
 import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas';
-import { GitHubCalendar } from 'react-github-calendar';
 
 import { Light as SyntaxHighlighter } from 'react-syntax-highlighter';
 import js from 'react-syntax-highlighter/dist/esm/languages/hljs/javascript';
 import { vs2015 } from 'react-syntax-highlighter/dist/esm/styles/hljs';
 
 SyntaxHighlighter.registerLanguage('javascript', js);
+
+const MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+const LEVEL_COLORS = [
+  'bg-white/[0.07] border border-white/5', // Level 0
+  'bg-[#004d4d] border border-[#004d4d]', // Level 1
+  'bg-[#008080] border border-[#008080]', // Level 2
+  'bg-[#00b3b3] border border-[#00b3b3]', // Level 3
+  'bg-[#00F0FF] border border-[#00F0FF] shadow-[0_0_8px_rgba(0,240,255,0.4)]' // Level 4
+];
+
+const GitHubContributions = ({ username }) => {
+  const currentYear = new Date().getFullYear();
+  const [isCurrentYearSelected, setIsCurrentYearSelected] = useState(true);
+  const selectedYear = isCurrentYearSelected ? currentYear : currentYear - 1;
+
+  const [data, setData] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    if (!username) return;
+
+    let isMounted = true;
+    setIsLoading(true);
+    setError(null);
+
+    const fetchContributions = async () => {
+      try {
+        const response = await fetch(
+          `https://github-contributions-api.jogruber.de/v4/${username}?y=${selectedYear}`
+        );
+        if (!response.ok) {
+          throw new Error('Failed to load GitHub activity');
+        }
+        const json = await response.json();
+        if (isMounted) {
+          setData(json);
+        }
+      } catch (err) {
+        if (isMounted) {
+          setError(err.message || 'Error loading contributions');
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    fetchContributions();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [username, selectedYear]);
+
+  // Group contributions by month and structure into columns of weeks
+  const monthsData = useMemo(() => {
+    if (!data || !data.contributions) return [];
+
+    return MONTH_NAMES.map((name, monthIndex) => {
+      const daysInMonth = data.contributions.filter(item => {
+        const d = new Date(item.date + 'T00:00:00');
+        return d.getMonth() === monthIndex;
+      });
+
+      if (daysInMonth.length === 0) {
+        return { name, weeks: [], total: 0 };
+      }
+
+      const firstDayOfWeek = new Date(daysInMonth[0].date + 'T00:00:00').getDay();
+      const paddedDays = [...Array(firstDayOfWeek).fill(null), ...daysInMonth];
+
+      while (paddedDays.length % 7 !== 0) {
+        paddedDays.push(null);
+      }
+
+      const weeks = [];
+      for (let i = 0; i < paddedDays.length; i += 7) {
+        weeks.push(paddedDays.slice(i, i + 7));
+      }
+
+      const total = daysInMonth.reduce((acc, curr) => acc + curr.count, 0);
+
+      return {
+        name,
+        weeks,
+        total
+      };
+    });
+  }, [data]);
+
+  const totalYearContributions = useMemo(() => {
+    if (!data || !data.contributions) return 0;
+    return data.contributions.reduce((sum, item) => sum + item.count, 0);
+  }, [data]);
+
+  const formatTooltip = (day) => {
+    if (!day) return '';
+    const dateObj = new Date(day.date + 'T00:00:00');
+    const formattedDate = dateObj.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric'
+    });
+    const countText = day.count === 0 ? 'No' : day.count;
+    const contributionText = day.count === 1 ? 'contribution' : 'contributions';
+    return `${countText} ${contributionText} on ${formattedDate}`;
+  };
+
+  return (
+    <div className="bg-[#111] border border-white/5 rounded-2xl p-6 shadow-lg mb-6 overflow-hidden">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
+        <h3 className="text-white font-bold text-lg flex items-center gap-2">
+          <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" className="text-[#00F0FF]">
+            <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path>
+          </svg>
+          GitHub Contributions
+        </h3>
+
+        {/* Year Switcher (Arrow Navigation) */}
+        <div className="flex items-center gap-2 bg-[#1a1a1a] border border-white/10 rounded-xl p-1 self-start sm:self-auto shadow-inner">
+          <button
+            type="button"
+            onClick={() => setIsCurrentYearSelected(false)}
+            disabled={!isCurrentYearSelected}
+            className={`p-1.5 rounded-lg transition-all flex items-center justify-center cursor-pointer ${
+              !isCurrentYearSelected
+                ? 'opacity-30 cursor-not-allowed text-gray-600'
+                : 'text-gray-400 hover:text-[#00F0FF] hover:bg-white/10 active:scale-95'
+            }`}
+            title="Previous Year"
+            aria-label="Previous Year"
+          >
+            <ChevronLeft size={16} />
+          </button>
+
+          <span className="px-2 text-xs font-semibold text-gray-300 min-w-[90px] text-center select-none">
+            {isCurrentYearSelected ? 'Current Year' : 'Previous Year'}
+          </span>
+
+          <button
+            type="button"
+            onClick={() => setIsCurrentYearSelected(true)}
+            disabled={isCurrentYearSelected}
+            className={`p-1.5 rounded-lg transition-all flex items-center justify-center cursor-pointer ${
+              isCurrentYearSelected
+                ? 'opacity-30 cursor-not-allowed text-gray-600'
+                : 'text-gray-400 hover:text-[#00F0FF] hover:bg-white/10 active:scale-95'
+            }`}
+            title="Current Year"
+            aria-label="Current Year"
+          >
+            <ChevronRight size={16} />
+          </button>
+        </div>
+      </div>
+
+      {/* Content */}
+      {isLoading ? (
+        <div className="py-12 flex flex-col items-center justify-center gap-3 text-gray-500">
+          <RefreshCw size={24} className="animate-spin text-[#00F0FF]" />
+          <span className="text-xs">Loading contributions...</span>
+        </div>
+      ) : error ? (
+        <div className="py-8 flex flex-col items-center justify-center gap-2 text-gray-400 text-center">
+          <AlertCircle size={24} className="text-red-400" />
+          <p className="text-xs text-red-400">{error}</p>
+        </div>
+      ) : (
+        <>
+          {/* Scrollable Month-Divided Grid */}
+          <div className="overflow-x-auto pb-3 scrollbar-thin scrollbar-thumb-[#00F0FF]/30 scrollbar-track-transparent">
+            <div className="inline-flex items-start gap-3 min-w-full justify-start py-1">
+              {/* Weekday Labels Column */}
+              <div className="flex flex-col pt-7 pr-1 flex-shrink-0">
+                <div className="flex flex-col gap-1.5">
+                  <span className="h-3 text-[10px] text-gray-500 font-medium leading-none flex items-center">Sun</span>
+                  <span className="h-3 text-[10px] text-gray-500 font-medium leading-none flex items-center">Mon</span>
+                  <span className="h-3 text-[10px] text-gray-500 font-medium leading-none flex items-center">Tue</span>
+                  <span className="h-3 text-[10px] text-gray-500 font-medium leading-none flex items-center">Wed</span>
+                  <span className="h-3 text-[10px] text-gray-500 font-medium leading-none flex items-center">Thu</span>
+                  <span className="h-3 text-[10px] text-gray-500 font-medium leading-none flex items-center">Fri</span>
+                  <span className="h-3 text-[10px] text-gray-500 font-medium leading-none flex items-center">Sat</span>
+                </div>
+              </div>
+
+              {/* 12 Month Sections with distinct separation */}
+              {monthsData.map((month) => (
+                <div
+                  key={month.name}
+                  className="flex flex-col items-center bg-white/[0.02] border border-white/5 rounded-xl px-2.5 py-2 flex-shrink-0 hover:border-white/10 transition-colors"
+                >
+                  {/* Month Name */}
+                  <span className="text-xs font-bold text-gray-300 mb-2 select-none tracking-wide">
+                    {month.name}
+                  </span>
+
+                  {/* Month Days (Columns of Weeks) */}
+                  <div className="flex gap-1.5">
+                    {month.weeks.map((week, wIdx) => (
+                      <div key={wIdx} className="flex flex-col gap-1.5">
+                        {week.map((day, dIdx) =>
+                          day ? (
+                            <div
+                              key={day.date}
+                              title={formatTooltip(day)}
+                              className={`w-3 h-3 rounded-[3px] transition-all cursor-pointer hover:scale-125 hover:z-10 hover:ring-1 hover:ring-white ${LEVEL_COLORS[day.level] || LEVEL_COLORS[0]}`}
+                            />
+                          ) : (
+                            <div
+                              key={`empty-${dIdx}`}
+                              className="w-3 h-3 opacity-0 pointer-events-none"
+                            />
+                          )
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Footer */}
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mt-4 pt-4 border-t border-white/5 text-xs text-gray-400">
+            <div>
+              <span className="font-semibold text-white">{totalYearContributions}</span> contributions in {isCurrentYearSelected ? 'Current Year' : 'Previous Year'}
+            </div>
+
+            {/* Legend */}
+            <div className="flex items-center gap-2 select-none self-end sm:self-auto">
+              <span>Less</span>
+              <div className="flex items-center gap-1">
+                {LEVEL_COLORS.map((colorClass, idx) => (
+                  <div
+                    key={idx}
+                    className={`w-3 h-3 rounded-[3px] ${colorClass}`}
+                    title={`Level ${idx}`}
+                  />
+                ))}
+              </div>
+              <span>More</span>
+            </div>
+          </div>
+        </>
+      )}
+    </div>
+  );
+};
 
 const ProfilePage = () => {
   const [profile, setProfile] = useState(null);
@@ -58,9 +309,6 @@ const ProfilePage = () => {
   const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [isAnalyticsOpen, setIsAnalyticsOpen] = useState(false);
-  const currentYear = new Date().getFullYear();
-  const [isCurrentYearSelected, setIsCurrentYearSelected] = useState(true);
-  const selectedGithubYear = isCurrentYearSelected ? currentYear : currentYear - 1;
   const resumeInputRef = useRef(null);
   const drawerRef = useRef(null);
   const navigate = useNavigate();
@@ -918,77 +1166,7 @@ const ProfilePage = () => {
 
           {/* GitHub Contributions Graph */}
           {profile.githubusername && (
-            <div className="bg-[#111] border border-white/5 rounded-2xl p-6 shadow-lg mb-6 overflow-hidden">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
-                <h3 className="text-white font-bold text-lg flex items-center gap-2">
-                  <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" className="text-[#00F0FF]"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg>
-                  GitHub Contributions
-                </h3>
-
-                {/* Year Switcher (Arrow Navigation: Current & Previous Year) */}
-                <div className="flex items-center gap-2 bg-[#1a1a1a] border border-white/10 rounded-xl p-1 self-start sm:self-auto shadow-inner">
-                  <button
-                    type="button"
-                    onClick={() => setIsCurrentYearSelected(false)}
-                    disabled={!isCurrentYearSelected}
-                    className={`p-1.5 rounded-lg transition-all flex items-center justify-center cursor-pointer ${
-                      !isCurrentYearSelected
-                        ? 'opacity-30 cursor-not-allowed text-gray-600'
-                        : 'text-gray-400 hover:text-[#00F0FF] hover:bg-white/10 active:scale-95'
-                    }`}
-                    title="Previous Year"
-                    aria-label="Previous Year"
-                  >
-                    <ChevronLeft size={16} />
-                  </button>
-
-                  <span className="px-2 text-xs font-semibold text-gray-300 min-w-[90px] text-center select-none">
-                    {isCurrentYearSelected ? 'Current Year' : 'Previous Year'}
-                  </span>
-
-                  <button
-                    type="button"
-                    onClick={() => setIsCurrentYearSelected(true)}
-                    disabled={isCurrentYearSelected}
-                    className={`p-1.5 rounded-lg transition-all flex items-center justify-center cursor-pointer ${
-                      isCurrentYearSelected
-                        ? 'opacity-30 cursor-not-allowed text-gray-600'
-                        : 'text-gray-400 hover:text-[#00F0FF] hover:bg-white/10 active:scale-95'
-                    }`}
-                    title="Current Year"
-                    aria-label="Current Year"
-                  >
-                    <ChevronRight size={16} />
-                  </button>
-                </div>
-              </div>
-
-              <div className="flex justify-center overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-[#00F0FF]/30 scrollbar-track-transparent">
-                <GitHubCalendar
-                  key={selectedGithubYear}
-                  username={profile.githubusername}
-                  year={selectedGithubYear}
-                  colorScheme="dark"
-                  theme={{
-                    light: ['#ebedf0', '#9be9a8', '#40c463', '#30a14e', '#216e39'],
-                    dark: ['#1a1a1a', '#004d4d', '#008080', '#00b3b3', '#00F0FF']
-                  }}
-                  fontSize={12}
-                  blockSize={14}
-                  blockMargin={5}
-                  labels={{
-                    totalCount: `{{count}} contributions in ${isCurrentYearSelected ? 'Current Year' : 'Previous Year'}`
-                  }}
-                  renderBlock={(block, activity) => {
-                    const dateFormatted = new Date(activity.date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-                    const tooltipText = `${activity.count === 0 ? 'No' : activity.count} contribution${activity.count === 1 ? '' : 's'} on ${dateFormatted}`;
-                    return cloneElement(block, {
-                      children: <title>{tooltipText}</title>
-                    });
-                  }}
-                />
-              </div>
-            </div>
+            <GitHubContributions username={profile.githubusername} />
           )}
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
