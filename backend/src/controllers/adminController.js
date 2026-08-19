@@ -206,7 +206,7 @@ const getUserForensics = async (req, res) => {
       Post.find({ author: userId })
         .sort({ createdAt: -1 })
         .limit(5)
-        .select('content codeSnippet media commentsCount likesCount createdAt reportsCount')
+        .select('content codeSnippet image commentsCount likesCount createdAt reportsCount isFlagged')
         .lean(),
       AuditLog.find({ 'target.entityId': userId })
         .sort({ createdAt: -1 })
@@ -267,7 +267,7 @@ const issueUserStrike = async (req, res) => {
       targetUser.isSuspended = true;
       targetUser.suspendedReason = `Account automatically suspended after accumulating ${targetUser.strikesCount} strikes. Latest strike: ${reason}`;
       targetUser.suspendedAt = new Date();
-      targetUser.tokenVersion = (targetUser.tokenVersion || 0) + 1; // Invalidate sessions
+      targetUser.tokenVersion = (targetUser.tokenVersion || 0) + 1;
       autoSuspended = true;
     }
 
@@ -586,9 +586,17 @@ const revokeUserSessions = async (req, res) => {
 // @access  Private (Admin)
 const getReportedContent = async (req, res) => {
   try {
-    const reportedPosts = await Post.find({ reportsCount: { $gt: 0 } })
-      .populate('author', 'name email avatar role isVerifiedBadge')
-      .populate('reports.user', 'name avatar')
+    const { category, search } = req.query;
+    const query = { reportsCount: { $gt: 0 } };
+
+    if (category && category !== 'all') {
+      query['reports.category'] = category;
+    }
+
+    const reportedPosts = await Post.find(query)
+      .populate('author', 'name email avatar role isVerifiedBadge strikesCount isSuspended createdAt')
+      .populate('reports.user', 'name email avatar')
+      .populate('reports.reporter', 'name email avatar')
       .sort({ reportsCount: -1, updatedAt: -1 })
       .lean();
 
@@ -599,47 +607,120 @@ const getReportedContent = async (req, res) => {
   }
 };
 
-// @desc    Moderate Reported Post (Dismiss, Delete, or Ban Author)
+// @desc    Moderate Reported Post (Dismiss, Delete, Strike, Ban, or Shadow-filter)
 // @route   POST /api/admin/reports/:id/action
 // @access  Private (Admin)
 const moderateReportedPost = async (req, res) => {
   try {
-    const { action, reason } = req.body; // 'dismiss' | 'delete' | 'delete_and_ban'
+    const { action, reason } = req.body; // 'dismiss' | 'delete' | 'delete_and_strike' | 'delete_and_ban' | 'shadow_filter'
     const post = await Post.findById(req.params.id);
 
     if (!post) {
-      return res.status(404).json({ message: 'Post not found' });
+      return res.status(404).json({ message: 'Reported post not found or already deleted' });
     }
+
+    const author = await User.findById(post.author);
 
     if (action === 'dismiss') {
       post.reports = [];
       post.reportsCount = 0;
       post.isFlagged = false;
-      post.isModerated = true;
+      post.isReported = false;
       await post.save();
 
       await logAuditAction(
         req,
         'REPORT_DISMISSED',
         { entityType: 'Post', entityId: post._id },
-        { action: 'dismiss', reason }
+        { action: 'dismiss', reason: reason || 'Dismissed as false report' }
       );
 
-      return res.json({ message: 'Reports dismissed successfully', postId: post._id });
+      return res.json({ message: 'Reports dismissed and post cleared successfully', postId: post._id });
     }
 
     if (action === 'delete') {
       const postId = post._id;
       await Post.findByIdAndDelete(post._id);
 
+      if (author) {
+        await Notification.create({
+          recipient: author._id,
+          sender: req.user._id,
+          type: 'admin_notice',
+          title: 'Post Removed by Trust & Safety',
+          message: `Your post was removed for violating community guidelines. Justification: "${reason || 'Unspecified policy violation'}"`,
+          read: false,
+        });
+      }
+
+      try {
+        getIo().emit('post_deleted', { postId });
+      } catch (sockErr) {
+        console.warn('Socket post_deleted emit skipped:', sockErr.message);
+      }
+
       await logAuditAction(
         req,
         'POST_DELETED_BY_ADMIN',
         { entityType: 'Post', entityId: postId },
-        { action: 'delete', reason, authorId: post.author }
+        { action: 'delete', reason, authorId: post.author, authorEmail: author?.email }
       );
 
-      return res.json({ message: 'Post deleted successfully', postId });
+      return res.json({ message: 'Post deleted and removed from all feeds', postId });
+    }
+
+    if (action === 'delete_and_strike') {
+      const postId = post._id;
+      await Post.findByIdAndDelete(post._id);
+
+      let autoSuspended = false;
+      if (author) {
+        author.strikesCount = (author.strikesCount || 0) + 1;
+        author.warnings = author.warnings || [];
+        author.warnings.unshift({
+          reason: `Content violation on post: ${reason || 'Inappropriate content'}`,
+          issuedBy: req.user._id,
+          issuedAt: new Date(),
+        });
+
+        if (author.strikesCount >= 3) {
+          author.isSuspended = true;
+          author.suspendedReason = `Account automatically suspended after reaching 3 strikes. Latest strike on post removal: ${reason}`;
+          author.suspendedAt = new Date();
+          author.tokenVersion = (author.tokenVersion || 0) + 1;
+          autoSuspended = true;
+        }
+
+        await author.save();
+
+        await Notification.create({
+          recipient: author._id,
+          sender: req.user._id,
+          type: 'admin_notice',
+          title: `Post Removed & Official Strike #${author.strikesCount} Issued`,
+          message: `Your post was removed and a strike was recorded: "${reason || 'Policy breach'}". ${autoSuspended ? 'Your account has been suspended.' : ''}`,
+          read: false,
+        });
+      }
+
+      try {
+        getIo().emit('post_deleted', { postId });
+      } catch (sockErr) {
+        console.warn('Socket post_deleted emit skipped:', sockErr.message);
+      }
+
+      await logAuditAction(
+        req,
+        'POST_DELETED_AND_STRIKE_ISSUED',
+        { entityType: 'Post', entityId: postId },
+        { action: 'delete_and_strike', reason, authorId: post.author, strikesCount: author?.strikesCount, autoSuspended }
+      );
+
+      return res.json({
+        message: `Post deleted and Strike #${author?.strikesCount || 1} issued to author.${autoSuspended ? ' Author account suspended!' : ''}`,
+        postId,
+        strikesCount: author?.strikesCount,
+      });
     }
 
     if (action === 'delete_and_ban') {
@@ -648,11 +729,20 @@ const moderateReportedPost = async (req, res) => {
         Post.findByIdAndDelete(post._id),
         User.findByIdAndUpdate(post.author, {
           isSuspended: true,
-          suspendedReason: reason || 'Severe violation of community guidelines via posted content.',
+          suspendedReason: reason || 'Severe content violation resulting in immediate account ban.',
           suspendedAt: new Date(),
           $inc: { tokenVersion: 1 },
         }),
       ]);
+
+      try {
+        getIo().emit('post_deleted', { postId });
+        getIo().to(post.author.toString()).emit('force_logout', {
+          reason: 'Your account was suspended due to severe content violations.',
+        });
+      } catch (sockErr) {
+        console.warn('Socket force_logout emit skipped:', sockErr.message);
+      }
 
       await logAuditAction(
         req,
@@ -661,13 +751,30 @@ const moderateReportedPost = async (req, res) => {
         { action: 'delete_and_ban', reason, authorId: post.author }
       );
 
-      return res.json({ message: 'Post deleted and author account suspended successfully', postId });
+      return res.json({ message: 'Post deleted and author permanently suspended', postId });
     }
 
-    return res.status(400).json({ message: 'Invalid action' });
+    if (action === 'shadow_filter') {
+      post.isShadowFiltered = true;
+      post.isFlagged = false;
+      post.reports = [];
+      post.reportsCount = 0;
+      await post.save();
+
+      await logAuditAction(
+        req,
+        'POST_SHADOW_FILTERED',
+        { entityType: 'Post', entityId: post._id },
+        { action: 'shadow_filter', reason }
+      );
+
+      return res.json({ message: 'Post placed in stealth shadow-filter', postId: post._id });
+    }
+
+    return res.status(400).json({ message: 'Invalid moderation action specified' });
   } catch (error) {
     console.error('Error in moderateReportedPost:', error);
-    res.status(500).json({ message: 'Failed to moderate post' });
+    res.status(500).json({ message: 'Failed to execute moderation action' });
   }
 };
 
@@ -815,31 +922,52 @@ const getAuditLogs = async (req, res) => {
 // @access  Private
 const reportPostByUser = async (req, res) => {
   try {
-    const { reason, comment } = req.body;
+    const { category, reason, comment } = req.body;
     const post = await Post.findById(req.params.id);
 
     if (!post) {
       return res.status(404).json({ message: 'Post not found' });
     }
 
-    const alreadyReported = post.reports.some((r) => r.user.toString() === req.user.id);
+    const currentUserId = req.user._id ? req.user._id.toString() : req.user.id;
+    const alreadyReported = post.reports.some(
+      (r) => (r.user && r.user.toString() === currentUserId) || (r.reporter && r.reporter.toString() === currentUserId)
+    );
 
     if (alreadyReported) {
       return res.status(400).json({ message: 'You have already reported this post' });
     }
 
+    const selectedCategory = category || 'spam';
     post.reports.push({
-      user: req.user.id,
-      reason: reason || 'spam',
+      user: currentUserId,
+      reporter: currentUserId,
+      category: selectedCategory,
+      reason: reason || selectedCategory,
       comment: comment || '',
       reportedAt: new Date(),
     });
     post.reportsCount = (post.reportsCount || 0) + 1;
     post.isFlagged = true;
+    post.isReported = true;
 
     await post.save();
 
-    res.json({ message: 'Post reported to moderators for review' });
+    // Alert Admin Operations Sentinel via Socket
+    try {
+      getIo().emit('new_post_reported', {
+        postId: post._id,
+        category: selectedCategory,
+        reportsCount: post.reportsCount,
+      });
+    } catch (sockErr) {
+      console.warn('Socket report notification emit skipped:', sockErr.message);
+    }
+
+    res.json({
+      message: 'Thank you. The content has been reported to the Trust & Safety team for review.',
+      reportsCount: post.reportsCount,
+    });
   } catch (error) {
     console.error('Error in reportPostByUser:', error);
     res.status(500).json({ message: 'Failed to submit report' });

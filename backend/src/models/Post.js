@@ -56,18 +56,38 @@ const postSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    isFlagged: {
+      type: Boolean,
+      default: false,
+    },
+    isShadowFiltered: {
+      type: Boolean,
+      default: false,
+    },
     reports: [
       {
+        user: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: 'User',
+        },
         reporter: {
           type: mongoose.Schema.Types.ObjectId,
           ref: 'User',
         },
+        category: {
+          type: String,
+          enum: ['spam', 'malicious_code', 'harassment', 'inappropriate', 'hate_speech', 'copyright', 'scam', 'other'],
+          default: 'spam',
+        },
         reason: {
           type: String,
-          enum: ['spam', 'harassment', 'inappropriate', 'hate_speech', 'scam', 'other'],
           default: 'spam',
         },
         comment: String,
+        reportedAt: {
+          type: Date,
+          default: Date.now,
+        },
         createdAt: {
           type: Date,
           default: Date.now,

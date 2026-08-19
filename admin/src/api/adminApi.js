@@ -74,6 +74,8 @@ export const getReportedContent = async (params = {}) => {
   return data;
 };
 
+export const getReports = getReportedContent;
+
 export const moderateReport = async (reportId, payload) => {
   const { data } = await api.post(`/admin/reports/${reportId}/action`, payload);
   return data;

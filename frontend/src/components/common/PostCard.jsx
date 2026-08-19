@@ -1,12 +1,26 @@
 import { useState, useRef, useEffect, memo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MoreHorizontal, Heart, MessageCircle, Repeat2, Edit3, Trash2, Link2, Bookmark, Check, UserMinus, X } from 'lucide-react';
+import { 
+  MoreHorizontal, 
+  Heart, 
+  MessageCircle, 
+  Repeat2, 
+  Edit3, 
+  Trash2, 
+  Link2, 
+  Bookmark, 
+  Check, 
+  UserMinus, 
+  X,
+  Flag
+} from 'lucide-react';
 import { Light as SyntaxHighlighter } from 'react-syntax-highlighter';
 import js from 'react-syntax-highlighter/dist/esm/languages/hljs/javascript';
 import php from 'react-syntax-highlighter/dist/esm/languages/hljs/php';
 import { vs2015 } from 'react-syntax-highlighter/dist/esm/styles/hljs';
 import axios from 'axios';
 import CommentsList from './CommentsList';
+import ReportPostModal from './ReportPostModal';
 import { useSocket } from '../../context/SocketContext';
 import useFeedStore from '../../store/useFeedStore';
 import toast from 'react-hot-toast';
@@ -43,6 +57,7 @@ const formatPostDate = (dateString) => {
 const PostCard = ({ post: rootPost, idx = 0, currentUser, onDelete, onEdit, autoOpenComments = false, targetCommentId = null }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [showComments, setShowComments] = useState(autoOpenComments);
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const menuRef = useRef(null);
 
   const [localPost, setLocalPost] = useState(rootPost);
@@ -221,11 +236,9 @@ const PostCard = ({ post: rootPost, idx = 0, currentUser, onDelete, onEdit, auto
         {},
         { withCredentials: true }
       );
-      // Ensure the server's exact state is applied
       updatePostInFeed(data);
       updateLocalPost(data);
     } catch (error) {
-      // Rollback on failure
       if (previousPostState) revertPostUpdate(previousPostState);
       updateLocalPost({ likes, likesCount: post.likesCount });
       toast.error('Failed to update like');
@@ -239,7 +252,6 @@ const PostCard = ({ post: rootPost, idx = 0, currentUser, onDelete, onEdit, auto
     }
     const previousPostState = optimisticRepostPost(post._id, myUserId);
     
-    // Local Optimistic Update
     const hasReposted = reposts.includes(myUserId);
     const newReposts = hasReposted ? reposts.filter(id => id !== myUserId) : [...reposts, myUserId];
     const newRepostsCount = hasReposted ? Math.max(0, post.repostsCount - 1) : (post.repostsCount || 0) + 1;
@@ -339,7 +351,7 @@ const PostCard = ({ post: rootPost, idx = 0, currentUser, onDelete, onEdit, auto
             <MoreHorizontal size={18} />
           </button>
 
-                {/* Options Dropdown */}
+          {/* Options Dropdown */}
           <AnimatePresence>
             {isMenuOpen && (
               <motion.div 
@@ -356,7 +368,7 @@ const PostCard = ({ post: rootPost, idx = 0, currentUser, onDelete, onEdit, auto
                         handleFollowToggle(e);
                         setIsMenuOpen(false);
                       }}
-                      className="w-full px-4 py-2.5 text-left text-sm text-red-400 hover:bg-red-500/10 transition-colors flex items-center gap-2"
+                      className="w-full px-4 py-2.5 text-left text-sm text-red-400 hover:bg-red-500/10 transition-colors flex items-center gap-2 cursor-pointer"
                     >
                       <UserMinus size={15} />
                       <span>Unfollow {post.author?.name?.split(' ')[0]}</span>
@@ -372,7 +384,7 @@ const PostCard = ({ post: rootPost, idx = 0, currentUser, onDelete, onEdit, auto
                         onEdit(post);
                         setIsMenuOpen(false);
                       }}
-                      className="w-full px-4 py-2.5 text-left text-sm text-gray-200 hover:bg-white/5 hover:text-white transition-colors flex items-center gap-2"
+                      className="w-full px-4 py-2.5 text-left text-sm text-gray-200 hover:bg-white/5 hover:text-white transition-colors flex items-center gap-2 cursor-pointer"
                     >
                       <Edit3 size={15} className="text-gray-400" />
                       <span>Edit Post</span>
@@ -382,7 +394,7 @@ const PostCard = ({ post: rootPost, idx = 0, currentUser, onDelete, onEdit, auto
                         onDelete(post._id);
                         setIsMenuOpen(false);
                       }}
-                      className="w-full px-4 py-2.5 text-left text-sm text-red-400 hover:bg-red-500/10 transition-colors flex items-center gap-2"
+                      className="w-full px-4 py-2.5 text-left text-sm text-red-400 hover:bg-red-500/10 transition-colors flex items-center gap-2 cursor-pointer"
                     >
                       <Trash2 size={15} />
                       <span>Delete Post</span>
@@ -393,7 +405,7 @@ const PostCard = ({ post: rootPost, idx = 0, currentUser, onDelete, onEdit, auto
 
                 <button 
                   onClick={handleCopyLink}
-                  className="w-full px-4 py-2.5 text-left text-sm text-gray-200 hover:bg-white/5 hover:text-white transition-colors flex items-center gap-2"
+                  className="w-full px-4 py-2.5 text-left text-sm text-gray-200 hover:bg-white/5 hover:text-white transition-colors flex items-center gap-2 cursor-pointer"
                 >
                   <Link2 size={15} className="text-gray-400" />
                   <span>Copy Link</span>
@@ -401,11 +413,28 @@ const PostCard = ({ post: rootPost, idx = 0, currentUser, onDelete, onEdit, auto
                 
                 <button 
                   onClick={handleSavePost}
-                  className="w-full px-4 py-2.5 text-left text-sm text-gray-200 hover:bg-white/5 hover:text-white transition-colors flex items-center gap-2"
+                  className="w-full px-4 py-2.5 text-left text-sm text-gray-200 hover:bg-white/5 hover:text-white transition-colors flex items-center gap-2 cursor-pointer"
                 >
                   <Bookmark size={15} className="text-gray-400" />
                   <span>Save Post</span>
                 </button>
+
+                {/* Report Post Action (Available to all non-authors) */}
+                {!isAuthor && (
+                  <>
+                    <div className="h-px bg-white/5 my-1" />
+                    <button 
+                      onClick={() => {
+                        setIsReportModalOpen(true);
+                        setIsMenuOpen(false);
+                      }}
+                      className="w-full px-4 py-2.5 text-left text-sm text-amber-400 hover:bg-amber-500/10 transition-colors flex items-center gap-2 cursor-pointer"
+                    >
+                      <Flag size={15} />
+                      <span>Report Content</span>
+                    </button>
+                  </>
+                )}
               </motion.div>
             )}
           </AnimatePresence>
@@ -458,7 +487,7 @@ const PostCard = ({ post: rootPost, idx = 0, currentUser, onDelete, onEdit, auto
           <span>{likes.length} Likes</span>
         </motion.button>
         
-        <button onClick={() => setShowComments(!showComments)} className="flex items-center gap-1.5 hover:text-[#00F0FF] hover:bg-[#00F0FF]/10 px-3 py-1.5 rounded-full transition-colors">
+        <button onClick={() => setShowComments(!showComments)} className="flex items-center gap-1.5 hover:text-[#00F0FF] hover:bg-[#00F0FF]/10 px-3 py-1.5 rounded-full transition-colors cursor-pointer">
           <MessageCircle size={18} />
           <span>{commentsCount}</span>
         </button>
@@ -513,6 +542,13 @@ const PostCard = ({ post: rootPost, idx = 0, currentUser, onDelete, onEdit, auto
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Report Post Modal for Trust & Safety Sentinel */}
+      <ReportPostModal
+        isOpen={isReportModalOpen}
+        onClose={() => setIsReportModalOpen(false)}
+        post={post}
+      />
       </div>
       )}
     </motion.div>
