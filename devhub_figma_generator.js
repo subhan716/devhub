@@ -1,34 +1,42 @@
 // ============================================================================
-// 💎 DEVHUB PRODUCTION MOBILE DESIGN SYSTEM - MASTER FIGMA GENERATOR
+// 💎 DEVHUB PRODUCTION MOBILE DESIGN SYSTEM - MASTER FIGMA CANVAS GENERATOR
 // ============================================================================
 // 1. Open your Figma File: https://www.figma.com/design/lV43yXloGSQ2iPfia4DsLl/Untitled
 // 2. Open Console: Press Ctrl + Shift + I (or Right Click -> Inspect -> Console)
 // 3. Paste this code and press Enter!
 // ============================================================================
 
-(async function generateMasterpiece() {
-  console.log("🚀 Generating Ultra-Premium DevHub Production Mobile Design System...");
+(async function generateDevHubProductionSystem() {
+  console.log("🚀 Initializing Master DevHub Production Mobile Design System...");
 
-  await Promise.all([
-    figma.loadFontAsync({ family: "Inter", style: "Regular" }),
-    figma.loadFontAsync({ family: "Inter", style: "Medium" }),
-    figma.loadFontAsync({ family: "Inter", style: "Semi Bold" }),
-    figma.loadFontAsync({ family: "Inter", style: "Bold" })
-  ]).catch(async () => {
-    await figma.loadFontAsync({ family: "Roboto", style: "Regular" });
-    await figma.loadFontAsync({ family: "Roboto", style: "Bold" });
-  });
+  // Load essential fonts with fallback
+  try {
+    await Promise.all([
+      figma.loadFontAsync({ family: "Inter", style: "Regular" }),
+      figma.loadFontAsync({ family: "Inter", style: "Medium" }),
+      figma.loadFontAsync({ family: "Inter", style: "Semi Bold" }),
+      figma.loadFontAsync({ family: "Inter", style: "Bold" })
+    ]);
+  } catch (e) {
+    try {
+      await figma.loadFontAsync({ family: "Roboto", style: "Regular" });
+      await figma.loadFontAsync({ family: "Roboto", style: "Bold" });
+    } catch(err) {
+      console.log("Using default canvas font");
+    }
+  }
 
   const page = figma.currentPage;
   page.children.filter(n => n.name.startsWith("📱") || n.name.startsWith("🎨")).forEach(n => n.remove());
-  page.name = "📱 DevHub Mobile Production Design";
+  page.name = "📱 DevHub Production Mobile App";
 
+  // World-Class Obsidian & Neon Palette (sRGB 0-1)
   const C = {
-    bg: { r: 9/255, g: 10/255, b: 15/255 },             // #090A0F (Deep Obsidian)
+    bg: { r: 9/255, g: 10/255, b: 15/255 },             // #090A0F (Obsidian Dark)
     card: { r: 18/255, g: 20/255, b: 28/255 },         // #12141C (Surface Card)
     cardBorder: { r: 30/255, g: 34/255, b: 48/255 },   // #1E2230
     codeBg: { r: 7/255, g: 8/255, b: 11/255 },         // #07080B
-    cyan: { r: 0/255, g: 240/255, b: 255/255 },         // #00F0FF (Neon Cyan Brand)
+    cyan: { r: 0/255, g: 240/255, b: 255/255 },         // #00F0FF (Primary Neon)
     indigo: { r: 99/255, g: 102/255, b: 241/255 },     // #6366F1
     emerald: { r: 16/255, g: 185/255, b: 129/255 },    // #10B981
     rose: { r: 244/255, g: 63/255, b: 94/255 },        // #F43F5E
@@ -49,111 +57,34 @@
     return t;
   }
 
-  function createIcon(type, size = 20, color = C.tSecondary) {
-    const f = figma.createFrame();
-    f.name = "icon_" + type;
-    f.resize(size, size);
-    f.fills = [];
-    f.clipsContent = false;
+  function addGlow(node, color = C.cyan, radius = 20, opacity = 0.25) {
+    node.effects = [{
+      type: "DROP_SHADOW",
+      color: { r: color.r, g: color.g, b: color.b, a: opacity },
+      offset: { x: 0, y: 6 },
+      radius: radius,
+      spread: 0,
+      visible: true
+    }];
+  }
 
-    const colFill = [{ type: "SOLID", color: { r: color.r, g: color.g, b: color.b } }];
-    const strokeCol = [{ type: "SOLID", color: { r: color.r, g: color.g, b: color.b } }];
+  function createDot(size = 8, color = C.cyan) {
+    const d = figma.createEllipse();
+    d.resize(size, size);
+    d.fills = [{ type: "SOLID", color: { r: color.r, g: color.g, b: color.b } }];
+    return d;
+  }
 
-    if (type === "home") {
-      const v = figma.createVector();
-      v.vectorPaths = [{ windingRule: "NONZERO", data: "M 2 10 L 10 2 L 18 10 L 18 20 L 13 20 L 13 13 L 7 13 L 7 20 L 2 20 Z" }];
-      v.resize(size * 0.9, size * 0.9);
-      v.x = size * 0.05; v.y = size * 0.05;
-      v.fills = colFill;
-      f.appendChild(v);
-    } else if (type === "network") {
-      const c1 = figma.createEllipse(); c1.resize(5, 5); c1.x = size/2 - 2.5; c1.y = 2; c1.fills = colFill;
-      const c2 = figma.createEllipse(); c2.resize(5, 5); c2.x = 2; c2.y = size - 7; c2.fills = colFill;
-      const c3 = figma.createEllipse(); c3.resize(5, 5); c3.x = size - 7; c3.y = size - 7; c3.fills = colFill;
-      const l1 = figma.createLine(); l1.x = size/2; l1.y = 5; l1.resize(size * 0.6, 0); l1.rotation = 120; l1.strokes = strokeCol; l1.strokeWeight = 1.5;
-      const l2 = figma.createLine(); l2.x = size/2; l2.y = 5; l2.resize(size * 0.6, 0); l2.rotation = 60; l2.strokes = strokeCol; l2.strokeWeight = 1.5;
-      f.appendChild(l1); f.appendChild(l2); f.appendChild(c1); f.appendChild(c2); f.appendChild(c3);
-    } else if (type === "chat") {
-      const v = figma.createVector();
-      v.vectorPaths = [{ windingRule: "NONZERO", data: "M 2 4 L 18 4 L 18 15 L 7 15 L 2 19 Z" }];
-      v.resize(size * 0.9, size * 0.85);
-      v.x = size * 0.05; v.y = size * 0.05;
-      v.fills = colFill;
-      f.appendChild(v);
-    } else if (type === "heart") {
-      const v = figma.createVector();
-      v.vectorPaths = [{ windingRule: "NONZERO", data: "M 10 18 L 2 10 C 0 5 6 1 10 6 C 14 1 20 5 18 10 Z" }];
-      v.resize(size * 0.85, size * 0.85);
-      v.x = size * 0.075; v.y = size * 0.075;
-      v.fills = colFill;
-      f.appendChild(v);
-    } else if (type === "check") {
-      const bg = figma.createEllipse();
-      bg.resize(size, size);
-      bg.fills = [{ type: "SOLID", color: C.cyan }];
-      f.appendChild(bg);
-      const v = figma.createVector();
-      v.vectorPaths = [{ windingRule: "NONE", data: "M 3 7 L 6 10 L 11 4" }];
-      v.strokes = [{ type: "SOLID", color: C.bg }];
-      v.strokeWeight = 2;
-      v.strokeCap = "ROUND";
-      v.strokeJoin = "ROUND";
-      v.fills = [];
-      v.resize(size * 0.6, size * 0.45);
-      v.x = size * 0.2; v.y = size * 0.28;
-      f.appendChild(v);
-    } else if (type === "search") {
-      const c = figma.createEllipse();
-      c.resize(size * 0.6, size * 0.6);
-      c.x = 2; c.y = 2;
-      c.fills = [];
-      c.strokes = strokeCol;
-      c.strokeWeight = 1.8;
-      const l = figma.createLine();
-      l.x = size * 0.6; l.y = size * 0.6;
-      l.resize(size * 0.35, 0);
-      l.rotation = 45;
-      l.strokes = strokeCol;
-      l.strokeWeight = 2;
-      f.appendChild(c); f.appendChild(l);
-    } else if (type === "bell") {
-      const b = figma.createVector();
-      b.vectorPaths = [{ windingRule: "NONZERO", data: "M 4 14 L 16 14 L 14 10 L 14 6 C 14 4 12 2 10 2 C 8 2 6 4 6 6 L 6 10 Z" }];
-      b.resize(size * 0.8, size * 0.7);
-      b.x = size * 0.1; b.y = 2;
-      b.fills = colFill;
-      const dot = figma.createEllipse();
-      dot.resize(4, 4); dot.x = size/2 - 2; dot.y = size - 4; dot.fills = colFill;
-      f.appendChild(b); f.appendChild(dot);
-    } else if (type === "repost") {
-      const v = figma.createVector();
-      v.vectorPaths = [{ windingRule: "NONZERO", data: "M 4 6 L 14 6 L 12 3 L 14 3 L 18 7 L 14 11 L 12 11 L 14 8 L 4 8 Z M 16 14 L 6 14 L 8 17 L 6 17 L 2 13 L 6 9 L 8 9 L 6 12 L 16 12 Z" }];
-      v.resize(size * 0.85, size * 0.7);
-      v.x = size * 0.075; v.y = size * 0.15;
-      v.fills = colFill;
-      f.appendChild(v);
-    } else if (type === "bookmark") {
-      const v = figma.createVector();
-      v.vectorPaths = [{ windingRule: "NONZERO", data: "M 3 2 L 15 2 L 15 18 L 9 13 L 3 18 Z" }];
-      v.resize(size * 0.75, size * 0.85);
-      v.x = size * 0.125; v.y = size * 0.075;
-      v.fills = colFill;
-      f.appendChild(v);
-    } else if (type === "comment") {
-      const v = figma.createVector();
-      v.vectorPaths = [{ windingRule: "NONZERO", data: "M 2 4 C 2 3 3 2 4 2 L 16 2 C 17 2 18 3 18 4 L 18 12 C 18 13 17 14 16 14 L 6 14 L 2 18 Z" }];
-      v.resize(size * 0.85, size * 0.8);
-      v.x = size * 0.075; v.y = size * 0.1;
-      v.fills = colFill;
-      f.appendChild(v);
-    } else {
-      const d = figma.createEllipse();
-      d.resize(size * 0.5, size * 0.5);
-      d.x = size * 0.25; d.y = size * 0.25;
-      d.fills = colFill;
-      f.appendChild(d);
-    }
-    return f;
+  function createBadge() {
+    const b = figma.createFrame();
+    b.resize(16, 16);
+    b.cornerRadius = 8;
+    b.fills = [{ type: "SOLID", color: C.cyan }];
+    b.layoutMode = "HORIZONTAL";
+    b.primaryAxisAlignItems = "CENTER";
+    b.counterAxisAlignItems = "CENTER";
+    b.appendChild(txt("✓", 10, "Bold", C.bg));
+    return b;
   }
 
   async function loadImg(url) {
@@ -172,13 +103,6 @@
     loadImg("https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&fit=crop"),
     loadImg("https://images.unsplash.com/photo-1517841905240-472988babdf9?w=200&fit=crop")
   ]);
-
-  function createDot(size = 8, color = C.cyan) {
-    const d = figma.createEllipse();
-    d.resize(size, size);
-    d.fills = [{ type: "SOLID", color }];
-    return d;
-  }
 
   function buildStatusBar() {
     const bar = figma.createFrame();
@@ -218,15 +142,8 @@
     dock.cornerRadius = 34;
     dock.fills = [{ type: "SOLID", color: C.card, opacity: 0.96 }];
     dock.strokes = [{ type: "SOLID", color: C.cyan, opacity: 0.25 }];
-    dock.strokeWeight = 1;
-    dock.effects = [{
-      type: "DROP_SHADOW",
-      color: { r: 0, g: 240/255, b: 255/255, a: 0.15 },
-      offset: { x: 0, y: 8 },
-      radius: 24,
-      spread: 0,
-      visible: true
-    }];
+    dock.strokeWeight = 1.5;
+    addGlow(dock, C.cyan, 24, 0.2);
 
     dock.layoutMode = "HORIZONTAL";
     dock.primaryAxisAlignItems = "SPACE_BETWEEN";
@@ -235,10 +152,10 @@
     dock.paddingRight = 20;
 
     const items = [
-      { id: "feed", type: "home", label: "Feed" },
-      { id: "network", type: "network", label: "Network" },
+      { id: "feed", icon: "⌂", label: "Feed" },
+      { id: "network", icon: "⌬", label: "Network" },
       { id: "create", isCta: true },
-      { id: "messages", type: "chat", label: "Messages" },
+      { id: "messages", icon: "✉", label: "Messages" },
       { id: "profile", isAv: true, label: "Profile" }
     ];
 
@@ -248,14 +165,7 @@
         cta.resize(46, 46);
         cta.cornerRadius = 23;
         cta.fills = [{ type: "SOLID", color: C.cyan }];
-        cta.effects = [{
-          type: "DROP_SHADOW",
-          color: { r: 0, g: 240/255, b: 255/255, a: 0.4 },
-          offset: { x: 0, y: 4 },
-          radius: 16,
-          spread: 0,
-          visible: true
-        }];
+        addGlow(cta, C.cyan, 16, 0.4);
         cta.layoutMode = "HORIZONTAL";
         cta.primaryAxisAlignItems = "CENTER";
         cta.counterAxisAlignItems = "CENTER";
@@ -266,7 +176,7 @@
         pCol.fills = [];
         pCol.layoutMode = "VERTICAL";
         pCol.counterAxisAlignItems = "CENTER";
-        pCol.itemSpacing = 3;
+        pCol.itemSpacing = 2;
         const avMini = figma.createFrame();
         avMini.resize(22, 22);
         avMini.cornerRadius = 11;
@@ -281,9 +191,9 @@
         col.fills = [];
         col.layoutMode = "VERTICAL";
         col.counterAxisAlignItems = "CENTER";
-        col.itemSpacing = 3;
+        col.itemSpacing = 2;
         const isAct = activeTab === it.id;
-        col.appendChild(createIcon(it.type, 20, isAct ? C.cyan : C.tMuted));
+        col.appendChild(txt(it.icon, 18, isAct ? "Bold" : "Regular", isAct ? C.cyan : C.tMuted));
         col.appendChild(txt(it.label, 10, isAct ? "Semi Bold" : "Medium", isAct ? C.cyan : C.tMuted));
         dock.appendChild(col);
       }
@@ -366,7 +276,7 @@
   bellBtn.layoutMode = "HORIZONTAL";
   bellBtn.primaryAxisAlignItems = "CENTER";
   bellBtn.counterAxisAlignItems = "CENTER";
-  bellBtn.appendChild(createIcon("bell", 16, C.tSecondary));
+  bellBtn.appendChild(txt("🔔", 13, "Regular", C.tSecondary));
   appHeader.appendChild(bellBtn);
   feedScreen.appendChild(appHeader);
 
@@ -397,6 +307,7 @@
     ring.fills = st.img;
     ring.strokes = [{ type: "SOLID", color: st.isSelf ? C.tMuted : C.cyan }];
     ring.strokeWeight = 2.5;
+    if (!st.isSelf) addGlow(ring, C.cyan, 10, 0.35);
     sItem.appendChild(ring);
     sItem.appendChild(txt(st.name, 11, "Medium", st.isSelf ? C.tMuted : C.tSecondary));
     storiesReel.appendChild(sItem);
@@ -446,7 +357,7 @@
   nameCheck1.itemSpacing = 5;
   nameCheck1.counterAxisAlignItems = "CENTER";
   nameCheck1.appendChild(txt("Sarah Chen", 14, "Bold", C.white));
-  nameCheck1.appendChild(createIcon("check", 14, C.cyan));
+  nameCheck1.appendChild(createBadge());
   aMeta1.appendChild(nameCheck1);
   aMeta1.appendChild(txt("Staff AI Architect @DeepTech • 2h ago", 11, "Medium", C.tSecondary));
   aLeft1.appendChild(aMeta1);
@@ -497,7 +408,7 @@
   codeBox.appendChild(txt("pub async fn dispatch_event(&self, payload: Bytes) {\n    let clients = self.subscribers.read().await;\n    clients.broadcast(payload).await;\n}", 11, "Regular", C.cyan));
   post1.appendChild(codeBox);
 
-  // Vector Reaction Bar
+  // Reaction Bar
   const actBar1 = figma.createFrame();
   actBar1.layoutAlign = "STRETCH";
   actBar1.fills = [];
@@ -507,19 +418,19 @@
   actBar1.paddingTop = 4;
 
   const acts = [
-    { label: "1.4k", type: "heart", color: C.rose },
-    { label: "128", type: "comment", color: C.tSecondary },
-    { label: "64", type: "repost", color: C.tSecondary },
-    { label: "", type: "bookmark", color: C.tSecondary }
+    { icon: "♥", label: "1.4k", color: C.rose },
+    { icon: "💬", label: "128", color: C.tSecondary },
+    { icon: "🔄", label: "64", color: C.tSecondary },
+    { icon: "🔖", label: "", color: C.tSecondary }
   ];
 
   acts.forEach(ac => {
     const pill = figma.createFrame();
     pill.fills = [];
     pill.layoutMode = "HORIZONTAL";
-    pill.itemSpacing = 6;
+    pill.itemSpacing = 5;
     pill.counterAxisAlignItems = "CENTER";
-    pill.appendChild(createIcon(ac.type, 16, ac.color));
+    pill.appendChild(txt(ac.icon, 14, "Bold", ac.color));
     if (ac.label) pill.appendChild(txt(ac.label, 11.5, "Semi Bold", ac.color));
     actBar1.appendChild(pill);
   });
@@ -562,8 +473,9 @@
   nameRow2.fills = [];
   nameRow2.layoutMode = "HORIZONTAL";
   nameRow2.itemSpacing = 4;
+  nameRow2.counterAxisAlignItems = "CENTER";
   nameRow2.appendChild(txt("Alex Rivera", 14, "Bold", C.white));
-  nameRow2.appendChild(createIcon("check", 14, C.cyan));
+  nameRow2.appendChild(createBadge());
   aMeta2.appendChild(nameRow2);
   aMeta2.appendChild(txt("Mobile Lead @Stripe • 4h ago", 11, "Medium", C.tSecondary));
   aLeft2.appendChild(aMeta2);
@@ -636,6 +548,7 @@
   mainAvatar.fills = av1;
   mainAvatar.strokes = [{ type: "SOLID", color: C.cyan }];
   mainAvatar.strokeWeight = 3;
+  addGlow(mainAvatar, C.cyan, 22, 0.45);
   heroCard.appendChild(mainAvatar);
 
   const heroNameRow = figma.createFrame();
@@ -644,7 +557,7 @@
   heroNameRow.itemSpacing = 6;
   heroNameRow.counterAxisAlignItems = "CENTER";
   heroNameRow.appendChild(txt("Subhan Chaudhry", 19, "Bold", C.white));
-  heroNameRow.appendChild(createIcon("check", 16, C.cyan));
+  heroNameRow.appendChild(createBadge());
   heroCard.appendChild(heroNameRow);
 
   heroCard.appendChild(txt("Senior Full-Stack Architect | React Native & Rust", 12.5, "Medium", C.cyan));
@@ -663,6 +576,7 @@
   btnConnect.layoutMode = "HORIZONTAL";
   btnConnect.primaryAxisAlignItems = "CENTER";
   btnConnect.counterAxisAlignItems = "CENTER";
+  addGlow(btnConnect, C.cyan, 14, 0.3);
   btnConnect.appendChild(txt("Connect", 13, "Bold", C.bg));
 
   const btnMsg = figma.createFrame();
@@ -775,8 +689,9 @@
   cNameCheck.fills = [];
   cNameCheck.layoutMode = "HORIZONTAL";
   cNameCheck.itemSpacing = 4;
+  cNameCheck.counterAxisAlignItems = "CENTER";
   cNameCheck.appendChild(txt("Sarah Chen", 13.5, "Bold", C.white));
-  cNameCheck.appendChild(createIcon("check", 13, C.cyan));
+  cNameCheck.appendChild(createBadge());
   cInfo.appendChild(cNameCheck);
   cInfo.appendChild(txt("🟢 Online • Active Now", 10.5, "Medium", C.emerald));
   cLeft.appendChild(cInfo);
@@ -798,6 +713,7 @@
   bSent.x = 107; bSent.y = 202;
   bSent.cornerRadius = 20;
   bSent.fills = [{ type: "SOLID", color: C.cyan }];
+  addGlow(bSent, C.cyan, 16, 0.25);
   bSent.paddingLeft = 16; bSent.paddingRight = 16; bSent.paddingTop = 14; bSent.paddingBottom = 14;
   bSent.appendChild(txt("Thanks Sarah! We reduced bridge serialization overhead by 70%. Here is the snippet:", 12.5, "Medium", C.bg, "HEIGHT"));
   chatScreen.appendChild(bSent);
@@ -834,6 +750,7 @@
   sendBtn.layoutMode = "HORIZONTAL";
   sendBtn.primaryAxisAlignItems = "CENTER";
   sendBtn.counterAxisAlignItems = "CENTER";
+  addGlow(sendBtn, C.cyan, 12, 0.4);
   sendBtn.appendChild(txt("➤", 14, "Bold", C.bg));
   chatInput.appendChild(sendBtn);
   chatScreen.appendChild(chatInput);
@@ -858,7 +775,7 @@
   nTop.primaryAxisAlignItems = "SPACE_BETWEEN";
   nTop.counterAxisAlignItems = "CENTER";
   nTop.appendChild(txt("Developer Network", 19, "Bold", C.white));
-  nTop.appendChild(createIcon("search", 18, C.tSecondary));
+  nTop.appendChild(txt("🔍", 15, "Regular", C.tSecondary));
   netScreen.appendChild(nTop);
 
   const tabRow = figma.createFrame();
@@ -913,8 +830,9 @@
     nameRow.fills = [];
     nameRow.layoutMode = "HORIZONTAL";
     nameRow.itemSpacing = 4;
+    nameRow.counterAxisAlignItems = "CENTER";
     nameRow.appendChild(txt(d.name, 14, "Bold", C.white));
-    nameRow.appendChild(createIcon("check", 13, C.cyan));
+    nameRow.appendChild(createBadge());
     info.appendChild(nameRow);
     info.appendChild(txt(d.role, 11, "Medium", C.tSecondary));
     info.appendChild(txt("👥 " + d.mut, 10.5, "Medium", C.cyan));
@@ -985,5 +903,5 @@
   });
 
   figma.viewport.scrollAndZoomIntoView([feedScreen, profScreen, chatScreen, netScreen, dsBoard]);
-  console.log("🎉 SUCCESS: Pixel-Perfect DevHub Mobile Design System Generated!");
+  console.log("🎉 SUCCESS: DevHub Production Mobile Design System Generated Flawlessly!");
 })();
