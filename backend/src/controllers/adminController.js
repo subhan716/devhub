@@ -1,10 +1,38 @@
-﻿const User = require('../models/User');
+const User = require('../models/User');
 const Profile = require('../models/Profile');
 const Post = require('../models/Post');
 const Connection = require('../models/Connection');
 const Message = require('../models/Message');
 const Notification = require('../models/Notification');
+const AppConfig = require('../models/AppConfig');
+const AuditLog = require('../models/AuditLog');
 const { getIo } = require('../socket');
+
+// Helper to log administrative actions
+const logAuditAction = async (req, action, target, details) => {
+  try {
+    await AuditLog.create({
+      actor: {
+        adminId: req.user._id,
+        name: req.user.name,
+        email: req.user.email,
+        role: req.user.role,
+      },
+      action,
+      target: {
+        entityType: target.entityType || 'User',
+        entityId: target.entityId || null,
+        targetEmail: target.targetEmail || '',
+        targetName: target.targetName || '',
+      },
+      details: details || {},
+      ipAddress: req.ip || req.connection?.remoteAddress || '',
+      userAgent: req.headers['user-agent'] || '',
+    });
+  } catch (err) {
+    console.error('Failed to write audit log:', err.message);
+  }
+};
 
 // @desc    Get Admin Overview Metrics & 7-Day Growth Trends
 // @route   GET /api/admin/stats
@@ -18,7 +46,8 @@ const getAdminStats = async (req, res) => {
       totalPosts,
       totalConnections,
       totalMessages,
-      pendingReportsCount
+      pendingReportsCount,
+      recentAuditLogsCount,
     ] = await Promise.all([
       User.countDocuments({}),
       User.countDocuments({ isVerifiedBadge: true }),
@@ -26,7 +55,8 @@ const getAdminStats = async (req, res) => {
       Post.countDocuments({}),
       Connection.countDocuments({ status: 'accepted' }),
       Message.countDocuments({}),
-      Post.countDocuments({ reportsCount: { $gt: 0 } })
+      Post.countDocuments({ reportsCount: { $gt: 0 } }),
+      AuditLog.countDocuments({}),
     ]);
 
     // Calculate Signups in the last 7 days
@@ -38,11 +68,11 @@ const getAdminStats = async (req, res) => {
       { $match: { createdAt: { $gte: sevenDaysAgo } } },
       {
         $group: {
-          _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } },
-          count: { $sum: 1 }
-        }
+          _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } },
+          count: { $sum: 1 },
+        },
       },
-      { $sort: { _id: 1 } }
+      { $sort: { _id: 1 } },
     ]);
 
     // Calculate Posts in the last 7 days
@@ -50,11 +80,11 @@ const getAdminStats = async (req, res) => {
       { $match: { createdAt: { $gte: sevenDaysAgo } } },
       {
         $group: {
-          _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } },
-          count: { $sum: 1 }
-        }
+          _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } },
+          count: { $sum: 1 },
+        },
       },
-      { $sort: { _id: 1 } }
+      { $sort: { _id: 1 } },
     ]);
 
     res.json({
@@ -65,12 +95,13 @@ const getAdminStats = async (req, res) => {
         totalPosts,
         totalConnections,
         totalMessages,
-        pendingReportsCount
+        pendingReportsCount,
+        recentAuditLogsCount,
       },
       trends: {
         signups: recentSignups,
-        posts: recentPosts
-      }
+        posts: recentPosts,
+      },
     });
   } catch (error) {
     console.error('Error in getAdminStats:', error);
@@ -94,7 +125,7 @@ const getAllUsers = async (req, res) => {
     if (search) {
       query.$or = [
         { name: { $regex: search, $options: 'i' } },
-        { email: { $regex: search, $options: 'i' } }
+        { email: { $regex: search, $options: 'i' } },
       ];
     }
 
@@ -119,13 +150,15 @@ const getAllUsers = async (req, res) => {
       .lean();
 
     // Fetch matching profiles for status/company details
-    const userIds = users.map(u => u._id);
-    const profiles = await Profile.find({ user: { $in: userIds } }).select('user status company location').lean();
-    const profileMap = new Map(profiles.map(p => [p.user.toString(), p]));
+    const userIds = users.map((u) => u._id);
+    const profiles = await Profile.find({ user: { $in: userIds } })
+      .select('user status company location headline')
+      .lean();
+    const profileMap = new Map(profiles.map((p) => [p.user.toString(), p]));
 
-    const enrichedUsers = users.map(u => ({
+    const enrichedUsers = users.map((u) => ({
       ...u,
-      profile: profileMap.get(u._id.toString()) || null
+      profile: profileMap.get(u._id.toString()) || null,
     }));
 
     res.json({
@@ -133,8 +166,8 @@ const getAllUsers = async (req, res) => {
       pagination: {
         total,
         page,
-        pages: Math.ceil(total / limit)
-      }
+        pages: Math.ceil(total / limit),
+      },
     });
   } catch (error) {
     console.error('Error in getAllUsers:', error);
@@ -159,13 +192,19 @@ const updateUserStatus = async (req, res) => {
       return res.status(403).json({ message: 'Super Administrators cannot be modified' });
     }
 
+    let auditAction = 'USER_STATUS_UPDATED';
+
     if (action === 'toggleSuspend') {
       targetUser.isSuspended = value !== undefined ? value : !targetUser.isSuspended;
-      targetUser.suspensionReason = targetUser.isSuspended ? (reason || 'Violation of terms') : null;
+      targetUser.suspendedReason = targetUser.isSuspended ? (reason || 'Violation of terms') : null;
+      targetUser.suspendedAt = targetUser.isSuspended ? new Date() : null;
+      auditAction = targetUser.isSuspended ? 'USER_SUSPENDED' : 'USER_UNSUSPENDED';
     } else if (action === 'toggleShadowban') {
       targetUser.isShadowBanned = value !== undefined ? value : !targetUser.isShadowBanned;
+      auditAction = targetUser.isShadowBanned ? 'USER_SHADOWBANNED' : 'USER_SHADOWBAN_REMOVED';
     } else if (action === 'toggleVerifiedBadge') {
       targetUser.isVerifiedBadge = value !== undefined ? value : !targetUser.isVerifiedBadge;
+      auditAction = targetUser.isVerifiedBadge ? 'USER_BADGE_GRANTED' : 'USER_BADGE_REVOKED';
     } else if (action === 'changeRole') {
       if (['user', 'moderator', 'admin'].includes(value)) {
         targetUser.role = value;
@@ -174,11 +213,20 @@ const updateUserStatus = async (req, res) => {
       } else {
         return res.status(400).json({ message: 'Invalid role assignment' });
       }
+      auditAction = 'USER_ROLE_CHANGED';
     } else {
       return res.status(400).json({ message: 'Invalid action specified' });
     }
 
     await targetUser.save();
+
+    // Log to immutable audit trail
+    await logAuditAction(
+      req,
+      auditAction,
+      { entityType: 'User', entityId: targetUser._id, targetEmail: targetUser.email, targetName: targetUser.name },
+      { action, value, reason }
+    );
 
     res.json({
       message: 'User status updated successfully',
@@ -190,12 +238,92 @@ const updateUserStatus = async (req, res) => {
         isVerifiedBadge: targetUser.isVerifiedBadge,
         isSuspended: targetUser.isSuspended,
         isShadowBanned: targetUser.isShadowBanned,
-        suspensionReason: targetUser.suspensionReason
-      }
+        suspendedReason: targetUser.suspendedReason,
+      },
     });
   } catch (error) {
     console.error('Error in updateUserStatus:', error);
     res.status(500).json({ message: 'Failed to update user status' });
+  }
+};
+
+// @desc    Toggle Verified Badge (1-Click Shortcut)
+// @route   PUT /api/admin/users/:id/badge
+// @access  Private (Admin)
+const toggleUserVerifiedBadge = async (req, res) => {
+  try {
+    const targetUser = await User.findById(req.params.id);
+    if (!targetUser) return res.status(404).json({ message: 'User not found' });
+
+    targetUser.isVerifiedBadge = !targetUser.isVerifiedBadge;
+    await targetUser.save();
+
+    await logAuditAction(
+      req,
+      targetUser.isVerifiedBadge ? 'USER_BADGE_GRANTED' : 'USER_BADGE_REVOKED',
+      { entityType: 'User', entityId: targetUser._id, targetEmail: targetUser.email, targetName: targetUser.name },
+      { isVerifiedBadge: targetUser.isVerifiedBadge }
+    );
+
+    res.json({
+      message: `Verified badge ${targetUser.isVerifiedBadge ? 'granted' : 'revoked'} successfully`,
+      isVerifiedBadge: targetUser.isVerifiedBadge,
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc    Change User Role (Super Admin Only)
+// @route   PUT /api/admin/users/:id/role
+// @access  Private (Super Admin)
+const updateUserRole = async (req, res) => {
+  try {
+    const { role } = req.body;
+    if (!['user', 'moderator', 'admin', 'super_admin'].includes(role)) {
+      return res.status(400).json({ message: 'Invalid role' });
+    }
+    const targetUser = await User.findById(req.params.id);
+    if (!targetUser) return res.status(404).json({ message: 'User not found' });
+
+    const prevRole = targetUser.role;
+    targetUser.role = role;
+    await targetUser.save();
+
+    await logAuditAction(
+      req,
+      'USER_ROLE_CHANGED',
+      { entityType: 'User', entityId: targetUser._id, targetEmail: targetUser.email, targetName: targetUser.name },
+      { previousRole: prevRole, newRole: role }
+    );
+
+    res.json({ message: `Role updated to ${role}`, role: targetUser.role });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc    Revoke All Active Mobile & Web Sessions
+// @route   POST /api/admin/users/:id/revoke-sessions
+// @access  Private (Super Admin)
+const revokeUserSessions = async (req, res) => {
+  try {
+    const targetUser = await User.findById(req.params.id);
+    if (!targetUser) return res.status(404).json({ message: 'User not found' });
+
+    targetUser.refreshToken = null;
+    await targetUser.save();
+
+    await logAuditAction(
+      req,
+      'USER_SESSIONS_REVOKED',
+      { entityType: 'User', entityId: targetUser._id, targetEmail: targetUser.email, targetName: targetUser.name },
+      { reason: req.body?.reason || 'Administrative session revocation' }
+    );
+
+    res.json({ message: 'All active sessions for this user have been terminated.' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
   }
 };
 
@@ -222,7 +350,7 @@ const getReportedContent = async (req, res) => {
 // @access  Private (Admin)
 const moderateReportedPost = async (req, res) => {
   try {
-    const { action } = req.body; // 'dismiss' | 'delete' | 'delete_and_ban'
+    const { action, reason } = req.body; // 'dismiss' | 'delete' | 'delete_and_ban'
     const post = await Post.findById(req.params.id);
 
     if (!post) {
@@ -235,23 +363,50 @@ const moderateReportedPost = async (req, res) => {
       post.isFlagged = false;
       post.isModerated = true;
       await post.save();
+
+      await logAuditAction(
+        req,
+        'REPORT_DISMISSED',
+        { entityType: 'Post', entityId: post._id },
+        { action: 'dismiss', reason }
+      );
+
       return res.json({ message: 'Reports dismissed successfully', postId: post._id });
     }
 
     if (action === 'delete') {
+      const postId = post._id;
       await Post.findByIdAndDelete(post._id);
-      return res.json({ message: 'Post deleted successfully', postId: post._id });
+
+      await logAuditAction(
+        req,
+        'POST_DELETED_BY_ADMIN',
+        { entityType: 'Post', entityId: postId },
+        { action: 'delete', reason, authorId: post.author }
+      );
+
+      return res.json({ message: 'Post deleted successfully', postId });
     }
 
     if (action === 'delete_and_ban') {
+      const postId = post._id;
       await Promise.all([
         Post.findByIdAndDelete(post._id),
         User.findByIdAndUpdate(post.author, {
           isSuspended: true,
-          suspensionReason: 'Severe violation of community guidelines via posted content.'
-        })
+          suspendedReason: reason || 'Severe violation of community guidelines via posted content.',
+          suspendedAt: new Date(),
+        }),
       ]);
-      return res.json({ message: 'Post deleted and author suspended', postId: post._id });
+
+      await logAuditAction(
+        req,
+        'POST_DELETED_AND_AUTHOR_BANNED',
+        { entityType: 'Post', entityId: postId },
+        { action: 'delete_and_ban', reason, authorId: post.author }
+      );
+
+      return res.json({ message: 'Post deleted and author suspended', postId });
     }
 
     res.status(400).json({ message: 'Invalid moderation action' });
@@ -277,7 +432,7 @@ const broadcastNotification = async (req, res) => {
       message,
       type,
       link: link || null,
-      timestamp: new Date()
+      timestamp: new Date(),
     };
 
     // Emit live WebSocket event across all connected sockets
@@ -286,10 +441,109 @@ const broadcastNotification = async (req, res) => {
       io.emit('globalAnnouncement', payload);
     }
 
+    await logAuditAction(
+      req,
+      'GLOBAL_BROADCAST_SENT',
+      { entityType: 'Broadcast', entityId: null },
+      payload
+    );
+
     res.json({ message: 'Broadcast sent successfully', payload });
   } catch (error) {
     console.error('Error in broadcastNotification:', error);
     res.status(500).json({ message: 'Failed to send broadcast' });
+  }
+};
+
+// @desc    Get System & Mobile App Configuration
+// @route   GET /api/admin/app-config
+// @access  Private (Admin)
+const getAppConfig = async (req, res) => {
+  try {
+    let config = await AppConfig.findOne({ key: 'global_config' });
+    if (!config) {
+      config = await AppConfig.create({ key: 'global_config' });
+    }
+    res.json(config);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc    Update System & Mobile App Configuration
+// @route   PUT /api/admin/app-config
+// @access  Private (Super Admin)
+const updateAppConfig = async (req, res) => {
+  try {
+    const { android, ios, maintenanceMode, featureFlags } = req.body;
+    let config = await AppConfig.findOne({ key: 'global_config' });
+    if (!config) {
+      config = new AppConfig({ key: 'global_config' });
+    }
+
+    if (android) config.android = { ...config.android.toObject(), ...android };
+    if (ios) config.ios = { ...config.ios.toObject(), ...ios };
+    if (maintenanceMode) config.maintenanceMode = { ...config.maintenanceMode.toObject(), ...maintenanceMode };
+    if (featureFlags) config.featureFlags = { ...config.featureFlags.toObject(), ...featureFlags };
+
+    await config.save();
+
+    await logAuditAction(
+      req,
+      'APP_CONFIG_UPDATED',
+      { entityType: 'SystemConfig', entityId: config._id },
+      req.body
+    );
+
+    res.json({ message: 'App configuration updated successfully', config });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc    Get Public Mobile App Configuration (Client Handshake)
+// @route   GET /api/app/config
+// @access  Public
+const getPublicAppConfig = async (req, res) => {
+  try {
+    let config = await AppConfig.findOne({ key: 'global_config' }).lean();
+    if (!config) {
+      config = {
+        android: { minVersion: '1.0.0', latestVersion: '1.0.0', forceUpdate: false },
+        ios: { minVersion: '1.0.0', latestVersion: '1.0.0', forceUpdate: false },
+        maintenanceMode: { enabled: false },
+      };
+    }
+    res.json(config);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc    Get Immutable Security Audit Logs
+// @route   GET /api/admin/audit-logs
+// @access  Private (Super Admin)
+const getAuditLogs = async (req, res) => {
+  try {
+    const page = parseInt(req.query.page, 10) || 1;
+    const limit = parseInt(req.query.limit, 10) || 30;
+    const skip = (page - 1) * limit;
+
+    const [logs, total] = await Promise.all([
+      AuditLog.find().sort({ createdAt: -1 }).skip(skip).limit(limit).lean(),
+      AuditLog.countDocuments(),
+    ]);
+
+    res.json({
+      logs,
+      pagination: {
+        total,
+        page,
+        pages: Math.ceil(total / limit),
+      },
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
   }
 };
 
@@ -305,9 +559,7 @@ const reportPostByUser = async (req, res) => {
       return res.status(404).json({ message: 'Post not found' });
     }
 
-    const alreadyReported = post.reports.some(
-      r => r.user.toString() === req.user.id
-    );
+    const alreadyReported = post.reports.some((r) => r.user.toString() === req.user.id);
 
     if (alreadyReported) {
       return res.status(400).json({ message: 'You have already reported this post' });
@@ -317,7 +569,7 @@ const reportPostByUser = async (req, res) => {
       user: req.user.id,
       reason: reason || 'spam',
       comment: comment || '',
-      reportedAt: new Date()
+      reportedAt: new Date(),
     });
     post.reportsCount = (post.reportsCount || 0) + 1;
     post.isFlagged = true;
@@ -335,8 +587,15 @@ module.exports = {
   getAdminStats,
   getAllUsers,
   updateUserStatus,
+  toggleUserVerifiedBadge,
+  updateUserRole,
+  revokeUserSessions,
   getReportedContent,
   moderateReportedPost,
   broadcastNotification,
-  reportPostByUser
+  getAppConfig,
+  updateAppConfig,
+  getPublicAppConfig,
+  getAuditLogs,
+  reportPostByUser,
 };
