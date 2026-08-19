@@ -1,43 +1,44 @@
-# 📱 DevHub Mobile App — Enterprise Architecture & API Synchronization Roadmap
-> **LinkedIn-Grade Mobile Architecture & Full-Stack Synchronization Guide**  
-> *Target Platforms:* iOS & Android (React Native / Expo / Native)  
+# 📱 DevHub Flutter Mobile App — Enterprise Architecture & API Synchronization Roadmap
+> **LinkedIn-Grade Mobile Architecture & Full-Stack Synchronization Guide for Flutter & Dart**  
+> *Target Platforms:* iOS & Android (Flutter 3.x / Dart 3.x)  
 > *Backend Parity:* Node.js, Express.js, MongoDB (Mongoose), Socket.IO  
-> *Design System:* Obsidian Dark (`#0A0A0A`), Neon Cyan (`#00F0FF`), Slate (`#94A3B8`)
+> *Design System:* Obsidian Dark (`#0A0A0A`), Neon Cyan (`#00F0FF`), Slate (`#94A3B8`)  
+> *Architecture Pattern:* Feature-First Clean Architecture (Presentation, Domain, Data) with Riverpod / BLoC
 
 ---
 
 ## 📑 Table of Contents
-1. [Enterprise Architecture Overview](#1-enterprise-architecture-overview)
-2. [Dual Authentication & Token Sync Engine (Web + Mobile Parity)](#2-dual-authentication--token-sync-engine)
-3. [Step-by-Step Implementation Roadmap (Phased Execution)](#3-step-by-step-implementation-roadmap)
+1. [Flutter Enterprise Architecture & Tech Stack](#1-flutter-enterprise-architecture--tech-stack)
+2. [Project Directory & Feature-First Structure](#2-project-directory--feature-first-structure)
+3. [Dual Authentication & Token Sync Engine (Dio + SecureStorage)](#3-dual-authentication--token-sync-engine)
+4. [Step-by-Step Implementation Roadmap (Phased Execution)](#4-step-by-step-implementation-roadmap)
    - [Phase 1: Authentication & Onboarding (Login, Register, OTP, OAuth)](#phase-1-authentication--onboarding)
-   - [Phase 2: Global State, Network Client & Socket Layer](#phase-2-global-state-network-client--socket-layer)
-   - [Phase 3: Core Social Feed & Code Engine](#phase-3-core-social-feed--code-engine)
+   - [Phase 2: Global State, Network Client & Socket.IO Service](#phase-2-global-state-network-client--socketio-service)
+   - [Phase 3: Core Social Feed & Syntax-Highlighted Code Engine](#phase-3-core-social-feed--syntax-highlighted-code-engine)
    - [Phase 4: Developer Network & Connections Engine](#phase-4-developer-network--connections-engine)
    - [Phase 5: Real-Time Direct Messaging & Chat Engine](#phase-5-real-time-direct-messaging--chat-engine)
    - [Phase 6: Developer Profile, Portfolio & Verification](#phase-6-developer-profile-portfolio--verification)
-4. [Comprehensive Backend API Reference Dictionary](#4-comprehensive-backend-api-reference-dictionary)
-5. [Real-Time WebSocket (Socket.IO) Protocol Dictionary](#5-real-time-websocket-protocol-dictionary)
-6. [TypeScript Interfaces & Schema Synchronization](#6-typescript-interfaces--schema-synchronization)
-7. [Mobile Design System & Component Library Tokens](#7-mobile-design-system--component-library-tokens)
+5. [Production Flutter Package Ecosystem (`pubspec.yaml`)](#5-production-flutter-package-ecosystem)
+6. [Comprehensive Backend API Reference Dictionary](#6-comprehensive-backend-api-reference-dictionary)
+7. [Real-Time WebSocket (Socket.IO) Protocol in Dart](#7-real-time-websocket-socketio-protocol-in-dart)
+8. [Dart Models & JSON Serialization](#8-dart-models--json-serialization)
+9. [Flutter Theme & Design System Tokens (`AppColors` & `AppTheme`)](#9-flutter-theme--design-system-tokens)
 
 ---
 
-## 1. Enterprise Architecture Overview
-
-The DevHub Mobile Application is structured as an **offline-first, real-time social & developer networking platform** built to match the high-performance standards of LinkedIn, GitHub Mobile, and Twitter/X.
+## 1. Flutter Enterprise Architecture & Tech Stack
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│                           DEVHUB MOBILE CLIENT                              │
+│                       DEVHUB FLUTTER MOBILE APP                             │
 ├──────────────────────┬───────────────────────────────┬──────────────────────┤
-│  UI / Screen Layer   │      State & Data Layer       │  Network & Real-time │
+│  Presentation Layer  │      State & Domain Layer     │  Network & Data Layer│
 ├──────────────────────┼───────────────────────────────┼──────────────────────┤
-│ • Auth (Login/Reg)   │ • Zustand (Auth & Feed Store) │ • Axios API Client   │
-│ • Home Feed & Code   │ • TanStack React Query        │   (Bearer Intercept) │
-│ • Network & Connect  │ • Expo SecureStore / Keychain │ • Socket.IO Client   │
-│ • Direct Messages    │ • AsyncStorage (Cache)        │ • Background Sync    │
-│ • Profile & Portfolio│ • Optimistic UI Updaters      │ • Push Notifications │
+│ • Auth (Login/Reg)   │ • Flutter Riverpod 2.x / BLoC │ • Dio HTTP Client    │
+│ • Home Feed & Code   │ • Repository Pattern          │   (Bearer Intercept) │
+│ • Network & Connect  │ • FlutterSecureStorage        │ • socket_io_client   │
+│ • Direct Messages    │ • Hive (Offline Cache)        │ • Firebase Messaging │
+│ • Profile & Portfolio│ • Optimistic UI Updaters      │ • flutter_highlight  │
 └──────────────────────┴───────────────────────────────┴──────────────────────┘
                                     ▲
                                     │ (HTTPS REST + WSS WebSockets)
@@ -55,230 +56,291 @@ The DevHub Mobile Application is structured as an **offline-first, real-time soc
 
 ---
 
-## 2. Dual Authentication & Token Sync Engine
+## 2. Project Directory & Feature-First Structure
 
-### The Problem & Solution
-- **Web App:** Relies on `httpOnly` cookies (`res.cookie('jwt', accessToken)`).
-- **Mobile App (iOS/Android):** Cross-origin cookie management is unreliable across native network stacks. Industry standard is **Secure Key Storage + Authorization Bearer Header**.
-
-### Backend Parity Update Required (`authMiddleware.js`)
-To support both Web and Mobile simultaneously without breaking existing web functionality:
-
-```javascript
-// backend/src/middleware/authMiddleware.js
-const protect = async (req, res, next) => {
-  let token;
-
-  // 1. Check Authorization Header (Standard for Mobile Apps)
-  if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
-    token = req.headers.authorization.split(' ')[1];
-  } 
-  // 2. Fallback to Cookie (Standard for Web App)
-  else if (req.cookies && req.cookies.jwt) {
-    token = req.cookies.jwt;
-  }
-
-  if (!token) {
-    return res.status(401).json({ message: 'Not authorized, no token provided' });
-  }
-
-  try {
-    const decoded = jwt.verify(token, process.env.JWT_ACCESS_SECRET);
-    req.user = await User.findById(decoded.id).select('-passwordHash');
-
-    if (!req.user) {
-      return res.status(401).json({ message: 'Not authorized, user not found' });
-    }
-
-    if (req.user.isSuspended) {
-      return res.status(403).json({ message: 'Your account has been suspended.' });
-    }
-
-    next();
-  } catch (error) {
-    return res.status(401).json({ message: 'Not authorized, token invalid or expired' });
-  }
-};
 ```
-
-### Mobile Axios Client Interceptor Setup (`apiClient.ts`)
-```typescript
-import axios from 'axios';
-import * as SecureStore from 'expo-secure-store';
-
-const API_BASE_URL = 'https://api.devhub.net'; // or http://10.0.2.2:5000 for Android emulator
-
-export const apiClient = axios.create({
-  baseURL: API_BASE_URL,
-  timeout: 15000,
-  headers: {
-    'Content-Type': 'application/json',
-    'Accept': 'application/json',
-  },
-});
-
-// Attach JWT Token to every outgoing request
-apiClient.interceptors.request.use(async (config) => {
-  const token = await SecureStore.getItemAsync('user_token');
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
-}, (error) => Promise.reject(error));
-
-// Global Response Interceptor for 401 handling (Auto-logout / Refresh)
-apiClient.interceptors.response.use(
-  (response) => response,
-  async (error) => {
-    if (error.response?.status === 401) {
-      await SecureStore.deleteItemAsync('user_token');
-      // Trigger navigation to Login Screen via global event or store
-    }
-    return Promise.reject(error);
-  }
-);
+devhub_flutter/
+├── lib/
+│   ├── main.dart
+│   ├── app.dart
+│   ├── core/
+│   │   ├── constants/
+│   │   │   ├── app_colors.dart         # #0A0A0A, #00F0FF, #121212
+│   │   │   └── api_endpoints.dart      # Base URLs, Auth, Posts, Network paths
+│   │   ├── network/
+│   │   │   ├── dio_client.dart         # Dio instance + Bearer token interceptor
+│   │   │   ├── error_interceptor.dart  # 401 unauth redirect, 500 handlers
+│   │   │   └── socket_service.dart     # Socket.IO client gateway
+│   │   ├── storage/
+│   │   │   └── secure_storage.dart     # flutter_secure_storage wrapper
+│   │   ├── theme/
+│   │   │   ├── app_theme.dart          # Dark Obsidian ThemeData
+│   │   │   └── text_styles.dart        # Inter & JetBrains Mono typography
+│   │   └── utils/
+│   │       ├── validators.dart         # Email/password form validation
+│   │       └── date_formatter.dart     # 2h ago, Yesterday, DD/MM/YYYY
+│   └── features/
+│       ├── auth/
+│       │   ├── data/ (auth_repository.dart, auth_api.dart)
+│       │   ├── domain/ (user_model.dart, auth_state.dart)
+│       │   └── presentation/ (login_screen.dart, register_screen.dart, verify_otp_screen.dart)
+│       ├── feed/
+│       │   ├── data/ (post_repository.dart)
+│       │   ├── domain/ (post_model.dart, comment_model.dart)
+│       │   └── presentation/ (feed_screen.dart, widgets/post_card.dart, widgets/code_snippet_box.dart)
+│       ├── network/
+│       │   ├── data/ (network_repository.dart)
+│       │   ├── domain/ (connection_model.dart)
+│       │   └── presentation/ (network_screen.dart, widgets/connection_card.dart)
+│       ├── chat/
+│       │   ├── data/ (chat_repository.dart)
+│       │   ├── domain/ (message_model.dart, conversation_model.dart)
+│       │   └── presentation/ (conversations_screen.dart, chat_room_screen.dart)
+│       └── profile/
+│           ├── data/ (profile_repository.dart)
+│           ├── domain/ (profile_model.dart, experience_model.dart)
+│           └── presentation/ (profile_screen.dart, widgets/tech_stack_chip.dart)
 ```
 
 ---
 
-## 3. Step-by-Step Implementation Roadmap
+## 3. Dual Authentication & Token Sync Engine (Dio + SecureStorage)
+
+### 1. `DioClient` with Automatic Bearer Token Interceptor
+```dart
+// lib/core/network/dio_client.dart
+import 'package:dio/dio.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+
+class DioClient {
+  static const String baseUrl = 'https://api.devhub.net'; // or http://10.0.2.2:5000 for Android emulator
+  final Dio dio;
+  final FlutterSecureStorage secureStorage;
+
+  DioClient({required this.secureStorage})
+      : dio = Dio(
+          BaseOptions(
+            baseUrl: baseUrl,
+            connectTimeout: const Duration(seconds: 15),
+            receiveTimeout: const Duration(seconds: 15),
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json',
+            },
+          ),
+        ) {
+    dio.interceptors.add(
+      InterceptorsWrapper(
+        onRequest: (options, handler) async {
+          // Read token from secure storage (iOS Keychain / Android KeyStore)
+          final token = await secureStorage.read(key: 'jwt_token');
+          if (token != null && token.isNotEmpty) {
+            options.headers['Authorization'] = 'Bearer $token';
+          }
+          return handler.next(options);
+        },
+        onError: (DioException error, handler) async {
+          if (error.response?.statusCode == 401) {
+            // Auto logout / token expired
+            await secureStorage.delete(key: 'jwt_token');
+            // Navigate to LoginScreen via global event
+          }
+          return handler.next(error);
+        },
+      ),
+    );
+  }
+}
+```
+
+---
+
+## 4. Step-by-Step Implementation Roadmap
 
 ```mermaid
 graph TD
-    A[Step 1: Auth & Onboarding] --> B[Step 2: Network & Socket Layer]
-    B --> C[Step 3: Home Feed & Code Engine]
+    A[Step 1: Auth & Onboarding in Flutter] --> B[Step 2: Dio Client & Socket.IO Service]
+    B --> C[Step 3: Home Feed & Highlight Code Engine]
     C --> D[Step 4: Network & Connection Hub]
     D --> E[Step 5: Direct Messaging & Chat]
-    E --> F[Step 6: Developer Profile & Portfolio]
-    F --> G[Step 7: Production Release & CI/CD]
+    E --> F[Step 6: Profile & Tech Stack Verification]
+    F --> G[Step 7: iOS & Android Release Builds]
 ```
 
 ### Phase 1: Authentication & Onboarding
-*Target Milestone: 100% secure native authentication matching web app.*
+*Target Milestone: 100% secure native Flutter authentication matching web app.*
 
-1. **Login Screen (`LoginScreen.tsx`):**
-   - Email & Password text fields with inline validation and icons (`Mail`, `Lock`).
-   - Glowing Neon Cyan CTA button `Sign In ➔`.
-   - "Or continue with" social buttons: Native **Google Sign-In** & **GitHub OAuth WebBrowser**.
-   - Handles unverified accounts (`403 isVerified: false`) by routing automatically to `VerifyOtpScreen`.
-2. **Register Screen (`RegisterScreen.tsx`):**
-   - Full Name, Email, Password inputs.
-   - Blocks disposable / temporary email domains (aligned with backend blocklist).
-   - Triggers OTP dispatch and navigates to verification screen.
-3. **OTP Verification Screen (`VerifyOtpScreen.tsx`):**
-   - 6-digit split input box with auto-focus and paste support.
-   - 5-minute countdown timer with **Resend OTP** button.
-   - Brute-force lockout alert (locks for 30 minutes after 3 failed attempts).
-4. **Token Storage:**
-   - Stores `user_token` in `expo-secure-store` (iOS Keychain / Android EncryptedSharedPreferences).
+1. **Login Screen (`lib/features/auth/presentation/login_screen.dart`):**
+   - Clean dark `#0A0A0A` background with ambient glowing cyan gradient.
+   - TextFormFields with `prefixIcon: Icon(LucideIcons.mail)`, `LucideIcons.lock`.
+   - Glowing Neon Cyan CTA button: `ElevatedButton` with `#00F0FF` background and black bold text.
+   - Social OAuth buttons: Google Sign-In (`google_sign_in`) & GitHub OAuth Webview (`flutter_custom_tabs`).
+   - If response status is `403` with `isVerified: false`, navigate to `VerifyOtpScreen(email)`.
 
----
+2. **Register Screen (`lib/features/auth/presentation/register_screen.dart`):**
+   - Full Name, Email, Password form fields with real-time validation.
+   - Blocks disposable emails (matching backend blacklist).
+   - On success, displays `SnackBar` ("OTP sent to email") and pushes to `VerifyOtpScreen`.
 
-### Phase 2: Global State, Network Client & Socket Layer
-*Target Milestone: Real-time event streaming and synchronized local cache.*
-
-1. **Auth Store (`useAuthStore.ts`):**
-   - Stores `currentUser`, `isAuthenticated`, `isProfileComplete`.
-   - Methods: `login(email, password)`, `register(data)`, `verifyOtp(email, otp)`, `logout()`.
-2. **Socket Gateway Connection (`SocketProvider.tsx`):**
-   - Automatically connects to Socket.IO backend upon successful login:
-     ```typescript
-     const socket = io(API_BASE_URL, {
-       auth: { token: userToken },
-       transports: ['websocket'],
-     });
-     ```
-   - Emits `join` with user ID.
-   - Listens for:
-     - `newNotification`: Displays in-app banner toast + increments badge.
-     - `newMessage`: Plays audio chirp + updates chat thread.
-     - `user_online` / `user_offline`: Updates connection presence dots.
+3. **Verify OTP Screen (`lib/features/auth/presentation/verify_otp_screen.dart`):**
+   - 6-box OTP input with auto-focus (`pinput` package).
+   - 5-minute countdown timer + Resend OTP button.
+   - Saves `token` into `FlutterSecureStorage` and sets `AuthState.authenticated`.
 
 ---
 
-### Phase 3: Core Social Feed & Code Engine
+### Phase 2: Global State, Network Client & Socket.IO Service
+*Target Milestone: Real-time event streaming in Dart.*
+
+1. **Socket.IO Client Setup (`lib/core/network/socket_service.dart`):**
+```dart
+import 'package:socket_io_client/socket_io_client.dart' as IO;
+
+class SocketService {
+  late IO.Socket socket;
+
+  void initSocket(String token, String userId) {
+    socket = IO.io(
+      'https://api.devhub.net',
+      IO.OptionBuilder()
+          .setTransports(['websocket'])
+          .enableAutoConnect()
+          .setAuth({'token': token})
+          .build(),
+    );
+
+    socket.onConnect((_) {
+      print('🟢 Connected to DevHub Socket Gateway');
+      socket.emit('join', userId);
+    });
+
+    socket.on('newNotification', (data) {
+      // Trigger local in-app banner toast
+    });
+
+    socket.on('newMessage', (data) {
+      // Append message to active chat room
+    });
+  }
+
+  void dispose() {
+    socket.disconnect();
+    socket.dispose();
+  }
+}
+```
+
+---
+
+### Phase 3: Core Social Feed & Syntax-Highlighted Code Engine
 *Target Milestone: 60 FPS scrolling feed with native code syntax highlighting.*
 
-1. **Home Feed Screen (`FeedScreen.tsx`):**
-   - Top Header with Hamburger menu, DevHub logo, search, notification bell (with unread badge counter), and messages icon.
-   - Pull-to-Refresh (`RefreshControl`) + Infinite Scroll pagination (`page`, `limit=20`).
-2. **Code Snippet Block Component (`CodeBlock.tsx`):**
-   - Native high-performance syntax highlighting (VS2015 theme).
-   - Top header bar with language label (e.g. `rust`, `typescript`, `python`), copy code button, and macOS traffic control dots.
-3. **Post Interaction Actions:**
-   - Optimistic Likes (`❤️` instant counter increment before server response).
-   - Repost modal (`🔁` repost with thoughts or instant share).
-   - Bookmarks toggle (`🔖` saved to offline collection).
-   - Share link generator (`🔗` native OS share sheet).
-4. **Create Post Modal (`CreatePostModal.tsx`):**
-   - Rich text input with `@mention` developer autocomplete dropdown.
-   - Multi-media picker: Image / Video / Code Snippet mode with syntax selector.
+1. **Feed Screen (`lib/features/feed/presentation/feed_screen.dart`):**
+   - Custom `SliverAppBar` with DevHub logo, Search bar, and Bell icon (with unread badge).
+   - `RefreshIndicator` (Pull-to-Refresh) + `ListView.builder` with pagination controller.
+
+2. **Code Snippet Box (`lib/features/feed/presentation/widgets/code_snippet_box.dart`):**
+   - Uses `flutter_highlight` with `vs2015Theme` or `atomOneDarkTheme`.
+   - Top bar with language tag (e.g. `rust`, `typescript`, `python`), copy code button (`Clipboard.setData`), and macOS traffic dots (🔴 🟡 🟢).
+
+3. **Post Interaction Bar:**
+   - Optimistic Likes (`❤️` with instant counter increment).
+   - Repost modal (`🔁`).
+   - Bookmarks toggle (`🔖`).
+   - Share sheet (`share_plus` package).
 
 ---
 
 ### Phase 4: Developer Network & Connections Engine
-*Target Milestone: LinkedIn-style network growth and connection invitations.*
+*Target Milestone: LinkedIn-style network growth and connection management.*
 
-1. **Network Screen (`NetworkScreen.tsx`):**
-   - Segmented Tabs: `Grow Network` | `Invitations` | `My Connections`.
-2. **Invitations Sub-view:**
-   - `Received`: Accept (`✓`) or Ignore (`✕`) requests.
-   - `Sent`: View pending outgoing invitations with withdraw action.
-3. **Developer Discovery Cards:**
-   - Avatar with online presence badge (`🟢`), verified checkmark.
-   - Headline/Title, Company, Mutual Connections counter.
-   - Quick `Connect` / `Follow` CTA buttons with loading spinners.
+1. **Network Screen (`lib/features/network/presentation/network_screen.dart`):**
+   - Segmented TabBar: `Grow Network` | `Invitations` | `Connections`.
+2. **Developer Card Widget (`connection_card.dart`):**
+   - Cached avatar (`cached_network_image`) with online status green dot (`#10B981`).
+   - Name, Verified badge, Developer Title, Mutual connections counter.
+   - Connect CTA: `#00F0FF` filled button with loading state.
 
 ---
 
 ### Phase 5: Real-Time Direct Messaging & Chat Engine
 *Target Milestone: Low-latency 1-to-1 conversation with code sharing.*
 
-1. **Messages List Screen (`MessagesListScreen.tsx`):**
-   - List of active conversations with last message preview, timestamp, unread badge, and active status indicator.
-2. **Active Chat Screen (`ChatRoomScreen.tsx`):**
-   - Header with user avatar, name, verified checkmark, active status (`🟢 Active Now`), and audio/video call placeholders.
-   - Chat bubble rendering:
-     - Outgoing messages (Neon Cyan `#00F0FF` bubble, black text).
-     - Incoming messages (Obsidian Card `#141414` bubble, white text).
-     - Code block attachments with syntax highlighting and copy button.
-3. **Real-Time Features:**
-   - Real-time typing indicators (`Sarah is typing...`).
-   - Read receipts (`✓✓` delivered / read marks).
-   - Instant message dispatch via Socket.IO + REST fallback.
+1. **Conversations Screen (`conversations_screen.dart`):**
+   - List of active chats with last message preview, timestamp, unread counter, and active status.
+2. **Chat Room Screen (`chat_room_screen.dart`):**
+   - Header with peer avatar, name, verified badge, and `🟢 Active Now` status.
+   - Message bubbles:
+     - Sent: Neon Cyan `#00F0FF` container with black text.
+     - Received: Surface Card `#121212` container with white text.
+     - Code attachment blocks with copy button.
+   - Live typing indicator (`typing` and `stop_typing` socket emitters).
 
 ---
 
 ### Phase 6: Developer Profile, Portfolio & Verification
 *Target Milestone: Showcase developer skills, repositories, and experience.*
 
-1. **Profile Screen (`ProfileScreen.tsx`):**
-   - Cover Banner + Circular Avatar with glowing neon cyan border.
-   - Name, Verified Badge, Developer Title, Location, and Mutuals.
-   - Primary Actions: `➕ Connect` and `💬 Message`.
-   - Statistics Strip: `Connections`, `Posts`, `Repositories`.
+1. **Profile Screen (`profile_screen.dart`):**
+   - Header banner + Circular avatar with glowing neon cyan border.
+   - Verified check badge, full name, headline, location, and mutual count.
+   - Stats row: `Connections`, `Posts`, `Repositories`.
 2. **Verified Tech Stack Chips:**
-   - Pill badges: `React Native`, `TypeScript`, `Node.js`, `Rust`, `Docker`, `GraphQL`.
-3. **Pinned Repositories & Portfolio:**
-   - GitHub-style repository cards with language indicators, description, and star counters (`★ 3.4k`).
-4. **Experience & Education Timeline:**
-   - Role title, company name, dates, location, and description.
+   - Pill chips: `React Native`, `Flutter`, `TypeScript`, `Node.js`, `Rust`, `Docker`.
+3. **Pinned Repositories:**
+   - GitHub-style cards with star counter (★ 3.4k) and language indicator.
 
 ---
 
-## 4. Comprehensive Backend API Reference Dictionary
+## 5. Production Flutter Package Ecosystem (`pubspec.yaml`)
+
+```yaml
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # State Management
+  flutter_riverpod: ^2.5.1
+  
+  # Networking & Real-Time
+  dio: ^5.4.3+1
+  socket_io_client: ^2.0.3+1
+  
+  # Security & Storage
+  flutter_secure_storage: ^9.2.2
+  shared_preferences: ^2.2.3
+  
+  # Code Syntax Highlighting
+  flutter_highlight: ^0.7.0
+  
+  # UI, Icons & Typography
+  google_fonts: ^6.2.1
+  lucide_icons: ^0.257.0
+  cached_network_image: ^3.3.1
+  pinput: ^4.0.0            # 6-Digit OTP Box
+  shimmer: ^3.0.0           # Skeleton Loading
+  flutter_svg: ^2.0.10+1
+  
+  # Utilities & Helpers
+  intl: ^0.19.0             # Date formatting
+  share_plus: ^9.0.0        # Native Share Sheet
+  url_launcher: ^6.2.6      # External links
+```
+
+---
+
+## 6. Comprehensive Backend API Reference Dictionary
 
 ### 🔐 Authentication Endpoints (`/api/auth`)
 
 | Method | Endpoint | Auth Required | Request Body | Success Response (200/201) | Error Codes |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| `POST` | `/api/auth/register` | No | `{ name, email, password }` | `{ message: "Verification OTP sent", email }` | `400` (Validation / Disposable Email), `500` |
-| `POST` | `/api/auth/verify-otp` | No | `{ email, otp }` | `{ _id, name, email, role, token }` | `400` (Invalid OTP), `403` (Locked), `404` |
-| `POST` | `/api/auth/resend-otp` | No | `{ email }` | `{ message: "New OTP sent to email" }` | `400`, `403` (Locked), `404` |
-| `POST` | `/api/auth/login` | No | `{ email, password }` | `{ _id, name, email, role, token }` | `401` (Invalid creds), `403` (Unverified/Locked) |
-| `POST` | `/api/auth/logout` | Yes | — | `{ message: "Signed out successfully" }` | `401` |
-| `GET` | `/api/auth/me` | Yes | — | `{ _id, name, email, role, avatar, statusPreference }` | `401`, `403` (Suspended) |
-| `PUT` | `/api/auth/status` | Yes | `{ statusPreference: "online" \| "invisible" }` | `{ message: "Status updated", statusPreference }` | `401` |
+| `POST` | `/api/auth/register` | No | `{ "name": "...", "email": "...", "password": "..." }` | `{ "message": "Verification OTP sent", "email": "..." }` | `400` (Validation / Disposable Email), `500` |
+| `POST` | `/api/auth/verify-otp` | No | `{ "email": "...", "otp": "123456" }` | `{ "_id": "...", "name": "...", "email": "...", "role": "...", "token": "eyJ..." }` | `400` (Invalid OTP), `403` (Locked), `404` |
+| `POST` | `/api/auth/resend-otp` | No | `{ "email": "..." }` | `{ "message": "New OTP sent to email" }` | `400`, `403` (Locked), `404` |
+| `POST` | `/api/auth/login` | No | `{ "email": "...", "password": "..." }` | `{ "_id": "...", "name": "...", "email": "...", "role": "...", "token": "eyJ..." }` | `401` (Invalid creds), `403` (Unverified/Locked) |
+| `POST` | `/api/auth/logout` | Yes | — | `{ "message": "Signed out successfully" }` | `401` |
+| `GET` | `/api/auth/me` | Yes | — | `{ "_id": "...", "name": "...", "email": "...", "avatar": { "url": "..." }, "statusPreference": "online" }` | `401`, `403` (Suspended) |
 
 ---
 
@@ -286,13 +348,11 @@ graph TD
 
 | Method | Endpoint | Auth Required | Query / Body | Success Response | Description |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| `GET` | `/api/posts` | Yes | `?page=1&limit=20` | `[ PostObject, ... ]` | Paginated social feed |
-| `POST` | `/api/posts` | Yes | `{ content, codeSnippet: { code, language }, media: { url, type } }` | `PostObject` | Create a new developer post |
-| `GET` | `/api/posts/:id` | Yes | — | `PostObject` | Fetch single post with full comments |
-| `PUT` | `/api/posts/:id/like` | Yes | — | `{ likes: string[], likesCount: number }` | Toggle like on a post |
-| `POST` | `/api/posts/:id/repost` | Yes | `{ thoughts: string }` | `PostObject` | Repost to user's feed |
-| `POST` | `/api/posts/:id/comments` | Yes | `{ content: string }` | `CommentObject` | Add comment to post |
-| `DELETE` | `/api/posts/:id` | Yes | — | `{ message: "Post deleted" }` | Delete author's post |
+| `GET` | `/api/posts` | Yes | `?page=1&limit=20` | `[ PostObject, ... ]` | Paginated feed |
+| `POST` | `/api/posts` | Yes | `{ "content": "...", "codeSnippet": { "code": "...", "language": "rust" } }` | `PostObject` | Create new post |
+| `PUT` | `/api/posts/:id/like` | Yes | — | `{ "likes": ["id1", "id2"], "likesCount": 2 }` | Toggle like |
+| `POST` | `/api/posts/:id/repost` | Yes | `{ "thoughts": "..." }` | `PostObject` | Repost to feed |
+| `POST` | `/api/posts/:id/comments` | Yes | `{ "content": "..." }` | `CommentObject` | Add comment |
 
 ---
 
@@ -300,164 +360,254 @@ graph TD
 
 | Method | Endpoint | Auth Required | Body | Success Response | Description |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| `GET` | `/api/network/connections` | Yes | — | `[ UserSummary, ... ]` | List of confirmed connections |
-| `GET` | `/api/network/pending` | Yes | — | `{ received: [...], sent: [...] }` | Pending connection requests |
-| `GET` | `/api/network/suggestions`| Yes | — | `[ UserSummary, ... ]` | Recommended developers to connect |
-| `POST` | `/api/network/connect/:id`| Yes | — | `{ message: "Connection request sent" }` | Send connection invitation |
-| `PUT` | `/api/network/accept/:id` | Yes | — | `{ message: "Connection accepted" }` | Accept received request |
-| `PUT` | `/api/network/reject/:id` | Yes | — | `{ message: "Connection rejected" }` | Decline received request |
-| `DELETE`| `/api/network/remove/:id` | Yes | — | `{ message: "Connection removed" }` | Remove from connections list |
+| `GET` | `/api/network/connections` | Yes | — | `[ UserSummary, ... ]` | Confirmed connections |
+| `GET` | `/api/network/pending` | Yes | — | `{ "received": [...], "sent": [...] }` | Pending requests |
+| `GET` | `/api/network/suggestions`| Yes | — | `[ UserSummary, ... ]` | Recommended developers |
+| `POST` | `/api/network/connect/:id`| Yes | — | `{ "message": "Connection request sent" }` | Send connection request |
+| `PUT` | `/api/network/accept/:id` | Yes | — | `{ "message": "Connection accepted" }` | Accept connection request |
 
 ---
 
-### 💬 Messaging & Real-Time Chat Endpoints (`/api/messages`)
+### 💬 Messaging Endpoints (`/api/messages`)
 
 | Method | Endpoint | Auth Required | Body | Success Response | Description |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| `GET` | `/api/messages/conversations` | Yes | — | `[ ConversationSummary, ... ]` | List all active chat threads |
-| `GET` | `/api/messages/:convoId` | Yes | `?page=1&limit=50` | `[ MessageObject, ... ]` | Message history for chat thread |
-| `POST` | `/api/messages/send` | Yes | `{ receiverId, text, codeSnippet }` | `MessageObject` | Send message via REST API |
-| `PUT` | `/api/messages/:convoId/read` | Yes | — | `{ message: "Messages marked read" }` | Mark all unread as read |
+| `GET` | `/api/messages/conversations` | Yes | — | `[ ConversationSummary, ... ]` | All active chat threads |
+| `GET` | `/api/messages/:convoId` | Yes | `?page=1&limit=50` | `[ MessageObject, ... ]` | Message history |
+| `POST` | `/api/messages/send` | Yes | `{ "receiverId": "...", "text": "...", "codeSnippet": { ... } }` | `MessageObject` | Send message |
 
 ---
 
-### 👤 Profile & Portfolio Endpoints (`/api/profile`)
+## 7. Real-Time WebSocket (Socket.IO) Protocol in Dart
 
-| Method | Endpoint | Auth Required | Body | Success Response | Description |
-| :--- | :--- | :--- | :--- | :--- | :--- |
-| `GET` | `/api/profile/me` | Yes | — | `FullProfileObject` | Fetch logged-in user's profile |
-| `GET` | `/api/profile/:id` | Yes | — | `FullProfileObject` | Fetch public developer profile |
-| `PUT` | `/api/profile/update` | Yes | `{ headline, bio, location, website, github }` | `FullProfileObject` | Update profile bio & info |
-| `PUT` | `/api/profile/skills` | Yes | `{ skills: string[] }` | `{ skills: string[] }` | Update verified skills |
-| `POST` | `/api/profile/experience`| Yes | `{ title, company, location, startDate, endDate, isCurrent, description }` | `ExperienceObject` | Add experience entry |
-| `DELETE`| `/api/profile/experience/:id` | Yes | — | `{ message: "Experience removed" }` | Delete experience entry |
+### 📡 Client Emitters (Flutter App ➔ Server)
+
+```dart
+// Register User Room
+socket.emit('join', currentUserId);
+
+// Send Instant Message
+socket.emit('sendMessage', {
+  'receiverId': targetUserId,
+  'text': 'Hey, check out this Flutter widget architecture!',
+  'codeSnippet': {
+    'code': 'class MyWidget extends StatelessWidget { ... }',
+    'language': 'dart',
+  },
+});
+
+// Typing Indicators
+socket.emit('typing', { 'conversationId': convoId, 'receiverId': peerId });
+socket.emit('stop_typing', { 'conversationId': convoId, 'receiverId': peerId });
+```
+
+### 📥 Server Listeners (Server ➔ Flutter App)
+
+```dart
+socket.on('newMessage', (data) {
+  final message = MessageModel.fromJson(data);
+  // Add to active chat stream and scroll to bottom
+});
+
+socket.on('newNotification', (data) {
+  // Show in-app banner toast notification + increment unread badge
+});
+
+socket.on('user_online', (data) {
+  final userId = data['userId'];
+  // Set online presence dot to green
+});
+```
 
 ---
 
-## 5. Real-Time WebSocket Protocol Dictionary
+## 8. Dart Models & JSON Serialization
 
-The DevHub Mobile App connects to the backend Socket.IO instance via standard WSS protocol.
+```dart
+// lib/features/auth/domain/user_model.dart
+class UserModel {
+  final String id;
+  final String name;
+  final String email;
+  final String role;
+  final String? avatarUrl;
+  final bool isVerified;
+  final String statusPreference;
 
-### 📡 Client Emitters (Mobile App ➔ Server)
+  UserModel({
+    required this.id,
+    required this.name,
+    required this.email,
+    required this.role,
+    this.avatarUrl,
+    required this.isVerified,
+    required this.statusPreference,
+  });
 
-| Event Name | Payload Schema | Description |
-| :--- | :--- | :--- |
-| `join` | `userId: string` | Registers client socket with user session room |
-| `sendMessage` | `{ receiverId: string, text: string, codeSnippet?: { code: string, language: string } }` | Sends instant message to peer |
-| `typing` | `{ conversationId: string, receiverId: string }` | Notifies peer that user is typing |
-| `stop_typing` | `{ conversationId: string, receiverId: string }` | Notifies peer that user stopped typing |
-| `mark_read` | `{ conversationId: string, senderId: string }` | Emits message read acknowledgment |
+  factory UserModel.fromJson(Map<String, dynamic> json) {
+    return UserModel(
+      id: json['_id'] ?? '',
+      name: json['name'] ?? '',
+      email: json['email'] ?? '',
+      role: json['role'] ?? 'user',
+      avatarUrl: json['avatar']?['url'],
+      isVerified: json['isVerified'] ?? false,
+      statusPreference: json['statusPreference'] ?? 'online',
+    );
+  }
 
-### 📥 Server Listeners (Server ➔ Mobile App)
-
-| Event Name | Payload Schema | Mobile Action Triggered |
-| :--- | :--- | :--- |
-| `newMessage` | `MessageObject` | Appends message to chat stream + plays sound / vibration |
-| `newNotification` | `{ type: string, sender: UserSummary, message: string, post?: string }` | Displays in-app banner toast + updates notification badge |
-| `user_typing` | `{ conversationId: string, senderId: string }` | Shows animated 3-dot typing indicator |
-| `user_stop_typing` | `{ conversationId: string, senderId: string }` | Hides typing indicator |
-| `user_online` | `{ userId: string }` | Sets green presence dot `🟢` to active |
-| `user_offline` | `{ userId: string }` | Sets presence dot to inactive |
-
----
-
-## 6. TypeScript Interfaces & Schema Synchronization
-
-```typescript
-// types/auth.ts
-export interface User {
-  _id: string;
-  name: string;
-  email: string;
-  role: 'user' | 'admin' | 'moderator';
-  avatar?: {
-    url: string;
-    publicId?: string;
+  Map<String, dynamic> toJson() => {
+    '_id': id,
+    'name': name,
+    'email': email,
+    'role': role,
+    'statusPreference': statusPreference,
   };
-  isVerified: boolean;
-  statusPreference: 'online' | 'invisible';
-  createdAt: string;
 }
 
-export interface AuthResponse {
-  _id: string;
-  name: string;
-  email: string;
-  role: string;
-  token: string;
+// lib/features/feed/domain/post_model.dart
+class CodeSnippetModel {
+  final String code;
+  final String language;
+
+  CodeSnippetModel({required this.code, required this.language});
+
+  factory CodeSnippetModel.fromJson(Map<String, dynamic> json) {
+    return CodeSnippetModel(
+      code: json['code'] ?? '',
+      language: json['language'] ?? 'javascript',
+    );
+  }
 }
 
-// types/post.ts
-export interface CodeSnippet {
-  code: string;
-  language: string;
-}
+class PostModel {
+  final String id;
+  final UserModel author;
+  final String content;
+  final CodeSnippetModel? codeSnippet;
+  final List<String> likes;
+  final int likesCount;
+  final int commentsCount;
+  final int repostsCount;
+  final DateTime createdAt;
 
-export interface Post {
-  _id: string;
-  author: {
-    _id: string;
-    name: string;
-    avatar?: { url: string };
-    headline?: string;
-  };
-  content: string;
-  codeSnippet?: CodeSnippet;
-  media?: {
-    url: string;
-    type: 'image' | 'video';
-  };
-  likes: string[]; // user IDs
-  likesCount: number;
-  commentsCount: number;
-  reposts: string[];
-  isRepost?: boolean;
-  originalPost?: Post;
-  createdAt: string;
-}
+  PostModel({
+    required this.id,
+    required this.author,
+    required this.content,
+    this.codeSnippet,
+    required this.likes,
+    required this.likesCount,
+    required this.commentsCount,
+    required this.repostsCount,
+    required this.createdAt,
+  });
 
-// types/network.ts
-export interface ConnectionRequest {
-  _id: string;
-  sender: User;
-  recipient: User;
-  status: 'pending' | 'accepted' | 'rejected';
-  createdAt: string;
-}
-
-// types/message.ts
-export interface Message {
-  _id: string;
-  conversationId: string;
-  sender: string; // User ID
-  receiver: string; // User ID
-  text: string;
-  codeSnippet?: CodeSnippet;
-  read: boolean;
-  createdAt: string;
+  factory PostModel.fromJson(Map<String, dynamic> json) {
+    return PostModel(
+      id: json['_id'] ?? '',
+      author: UserModel.fromJson(json['author'] ?? {}),
+      content: json['content'] ?? '',
+      codeSnippet: json['codeSnippet'] != null
+          ? CodeSnippetModel.fromJson(json['codeSnippet'])
+          : null,
+      likes: List<String>.from(json['likes'] ?? []),
+      likesCount: json['likesCount'] ?? 0,
+      commentsCount: json['commentsCount'] ?? 0,
+      repostsCount: json['reposts']?.length ?? 0,
+      createdAt: DateTime.tryParse(json['createdAt'] ?? '') ?? DateTime.now(),
+    );
+  }
 }
 ```
 
 ---
 
-## 7. Mobile Design System & Component Library Tokens
+## 9. Flutter Theme & Design System Tokens (`AppColors` & `AppTheme`)
 
-| Token | Hex Value | React Native Styling (`StyleSheet`) | Web App Equivalence |
-| :--- | :--- | :--- | :--- |
-| `Background Dark` | `#0A0A0A` | `backgroundColor: '#0A0A0A'` | `bg-[#0A0A0A]` |
-| `Surface Card` | `#121212` | `backgroundColor: '#121212', borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)'` | `bg-white/[0.02] border-white/10` |
-| `Code Terminal Box`| `#050505` | `backgroundColor: '#050505', borderRadius: 12, borderWidth: 1, borderColor: 'rgba(0,240,255,0.3)'` | `bg-[#050505] border-[#00F0FF]/30` |
-| `Primary Cyan` | `#00F0FF` | `color: '#00F0FF'`, `backgroundColor: '#00F0FF'` | `text-[#00F0FF] bg-[#00F0FF]` |
-| `Cyan Glow Shadow`| `#00F0FF` | `shadowColor: '#00F0FF', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.4, shadowRadius: 10, elevation: 8` | `drop-shadow-[0_0_10px_rgba(0,240,255,0.5)]` |
-| `Destructive Red` | `#EF4444` | `color: '#EF4444'`, `backgroundColor: 'rgba(239,68,68,0.1)'` | `text-red-400 bg-red-500/10` |
-| `Online Emerald` | `#10B981` | `backgroundColor: '#10B981'` | `text-emerald-400 bg-emerald-500` |
+```dart
+// lib/core/theme/app_colors.dart
+import 'package:flutter/material.dart';
+
+class AppColors {
+  static const Color background = Color(0xFF0A0A0A);
+  static const Color surfaceCard = Color(0xFF121212);
+  static const Color codeBackground = Color(0xFF050505);
+  
+  // Neon Accents
+  static const Color cyanNeon = Color(0xFF00F0FF);
+  static const Color cyanNeonGlow = Color(0x6600F0FF);
+  
+  // Status Colors
+  static const Color onlineGreen = Color(0xFF10B981);
+  static const Color destructiveRed = Color(0xFFEF4444);
+  static const Color amberStars = Color(0xFFF59E0B);
+  
+  // Typography Colors
+  static const Color textPrimary = Color(0xFFFFFFFF);
+  static const Color textSecondary = Color(0xFF94A3B8);
+  static const Color textMuted = Color(0xFF64748B);
+  
+  // Borders
+  static const Color borderSubtle = Color(0x14FFFFFF); // white/8%
+}
+
+// lib/core/theme/app_theme.dart
+import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'app_colors.dart';
+
+class AppTheme {
+  static ThemeData get darkTheme {
+    return ThemeData(
+      brightness: Brightness.dark,
+      scaffoldBackgroundColor: AppColors.background,
+      primaryColor: AppColors.cyanNeon,
+      textTheme: GoogleFonts.interTextTheme(
+        ThemeData.dark().textTheme.apply(
+          bodyColor: AppColors.textPrimary,
+          displayColor: AppColors.textPrimary,
+        ),
+      ),
+      appBarTheme: const AppBarTheme(
+        backgroundColor: AppColors.background,
+        elevation: 0,
+        centerTitle: false,
+        iconTheme: IconThemeData(color: AppColors.textPrimary),
+      ),
+      inputDecorationTheme: InputDecorationTheme(
+        filled: true,
+        fillColor: AppColors.surfaceCard,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: AppColors.borderSubtle),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: AppColors.cyanNeon, width: 1.5),
+        ),
+        hintStyle: const TextStyle(color: AppColors.textMuted, fontSize: 14),
+      ),
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: AppColors.cyanNeon,
+          foregroundColor: Colors.black,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
+          textStyle: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+        ),
+      ),
+    );
+  }
+}
+```
 
 ---
 
-## 8. Next Step Execution Checklist (Starting with Auth)
+## 10. Next Step Execution Checklist (Starting with Auth)
 
-- [ ] **Step 1:** Verify/Patch backend `authMiddleware.js` for dual `Bearer` + `Cookie` token support.
-- [ ] **Step 2:** Ensure `authController.js` includes `token` string in response JSON for `loginUser` and `verifyOtp`.
-- [ ] **Step 3:** Initialize mobile project structure (`/src/screens/auth/LoginScreen.tsx`, `RegisterScreen.tsx`, `VerifyOtpScreen.tsx`).
-- [ ] **Step 4:** Build SecureStore-backed `apiClient` with automatic Bearer token injection.
-- [ ] **Step 5:** Connect Socket.IO provider on mobile client and test live handshake.
+- [x] **Backend Ready:** Dual `Bearer` header + `Cookie` token support verified in `authMiddleware.js` and `authController.js`.
+- [ ] **Step 1 (Flutter Setup):** Create Flutter project (`flutter create devhub_mobile`) & install `pubspec.yaml` dependencies.
+- [ ] **Step 2 (Core Setup):** Add `AppColors`, `AppTheme`, `DioClient`, and `FlutterSecureStorage`.
+- [ ] **Step 3 (Auth Implementation):** Implement `LoginScreen`, `RegisterScreen`, and `VerifyOtpScreen`.
+- [ ] **Step 4 (Handshake Verification):** Test login with real backend (`/api/auth/login`) and verify token save in SecureStorage.
