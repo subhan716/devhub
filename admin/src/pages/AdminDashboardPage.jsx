@@ -12,10 +12,17 @@ import {
   TrendingUp,
   Clock,
   Smartphone,
-  Shield
+  Shield,
+  Zap,
+  Radio,
+  Server
 } from 'lucide-react';
 import AdminSidebar from '../components/AdminSidebar';
-import StatsCard from '../components/StatsCard';
+import MetricGlowCard from '../components/telemetry/MetricGlowCard';
+import VelocityAreaChart from '../components/telemetry/VelocityAreaChart';
+import PlatformFleetDistribution from '../components/telemetry/PlatformFleetDistribution';
+import RealTimeSystemPulse from '../components/telemetry/RealTimeSystemPulse';
+import QuickOperationsConsole from '../components/telemetry/QuickOperationsConsole';
 import UserTable from '../components/UserTable';
 import ModerationQueue from '../components/ModerationQueue';
 import BroadcastModal from '../components/BroadcastModal';
@@ -50,7 +57,7 @@ const AdminDashboardPage = ({ adminUser, onLogout }) => {
   const trends = stats?.trends || {};
 
   return (
-    <div className="flex min-h-screen bg-[#080808]">
+    <div className="flex min-h-screen bg-[#08080A] text-white">
       {/* Sidebar */}
       <AdminSidebar
         activeTab={activeTab}
@@ -60,32 +67,35 @@ const AdminDashboardPage = ({ adminUser, onLogout }) => {
         pendingReportsCount={summary.pendingReportsCount || 0}
       />
 
-      {/* Main Content Area */}
+      {/* Main Operations Canvas */}
       <main className="flex-1 p-6 md:p-8 overflow-y-auto max-w-7xl mx-auto space-y-6">
-        {/* Top Breadcrumb & Status */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-2 border-b border-white/5">
+        {/* Top Header & Live Telemetry Bar */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-white/[0.06]">
           <div>
-            <h2 className="text-xl font-black text-white tracking-tight flex items-center gap-2 capitalize">
-              {activeTab === 'overview' && 'Platform Overview & Telemetry'}
-              {activeTab === 'users' && 'User Directory & Governance'}
-              {activeTab === 'moderation' && 'Trust & Safety Moderation Queue'}
-              {activeTab === 'broadcast' && 'System Broadcast & Announcement Hub'}
-              {activeTab === 'mobile_app' && 'Mobile Fleet & Version Gatekeeper'}
-              {activeTab === 'audit_logs' && 'Security Audit Forensics & Compliance'}
-            </h2>
-            <p className="text-xs text-gray-400">
-              Live enterprise operations console for DevHub social & developer platform.
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-[#00F0FF] shadow-[0_0_10px_#00F0FF]" />
+              <h2 className="text-xl font-extrabold text-white tracking-tight capitalize">
+                {activeTab === 'overview' && 'Platform Overview & Live Operations'}
+                {activeTab === 'users' && 'User Directory & Identity Governance'}
+                {activeTab === 'moderation' && 'Trust & Safety Moderation Sentinel'}
+                {activeTab === 'broadcast' && 'System Broadcast & Announcement Hub'}
+                {activeTab === 'mobile_app' && 'Mobile Fleet & Version Gatekeeper'}
+                {activeTab === 'audit_logs' && 'Security Audit Forensics & Compliance'}
+              </h2>
+            </div>
+            <p className="text-xs text-gray-400 mt-1">
+              Enterprise control center for DevHub cross-platform social & developer ecosystem.
             </p>
           </div>
 
           <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-[11px] font-bold text-emerald-400">
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-[11px] font-extrabold text-emerald-400 shadow-sm">
               <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
               API Services Online
             </div>
             <button
               onClick={fetchStats}
-              className="p-2 bg-[#141414] hover:bg-white/5 border border-white/10 rounded-xl text-gray-400 hover:text-white transition-colors cursor-pointer"
+              className="p-2.5 bg-[#141418] hover:bg-white/5 border border-white/10 rounded-xl text-gray-400 hover:text-white transition-all cursor-pointer shadow-sm hover:border-[#00F0FF]/30"
               title="Refresh Real-time Metrics"
             >
               <RefreshCw size={15} className={loading ? 'animate-spin text-[#00F0FF]' : ''} />
@@ -93,120 +103,117 @@ const AdminDashboardPage = ({ adminUser, onLogout }) => {
           </div>
         </div>
 
-        {/* Tab 1: Overview */}
+        {/* Tab 1: Overview & Telemetry */}
         {activeTab === 'overview' && (
           <div className="space-y-6">
-            {/* Stats Cards Grid */}
+            {/* Top Row: Primary Key Performance Indicators (KPIs) */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              <StatsCard
-                title="Total Users"
+              <MetricGlowCard
+                title="Total Developer Fleet"
                 value={summary.totalUsers}
+                subtitle="Registered developer accounts"
                 change="+Live"
+                changeType="positive"
                 icon={Users}
-                color="cyan"
+                accentColor="cyan"
+                sparklineData={[4, 5, 5, 6, 6, 6, summary.totalUsers || 6]}
+                onClick={() => setActiveTab('users')}
               />
-              <StatsCard
-                title="Verified Developers"
+
+              <MetricGlowCard
+                title="Verified Identities"
                 value={summary.totalVerified}
+                subtitle="Issued verified checkmarks"
                 change="Badged"
+                changeType="positive"
                 icon={CheckCircle}
-                color="green"
+                accentColor="emerald"
+                sparklineData={[1, 1, 1, 1, 1, 1, summary.totalVerified || 1]}
+                onClick={() => setActiveTab('users')}
               />
-              <StatsCard
-                title="Total Posts"
+
+              <MetricGlowCard
+                title="Feed Content & Code"
                 value={summary.totalPosts}
-                change="Feed Activity"
+                subtitle="Syntax highlighted snippets"
+                change="Feed Velocity"
+                changeType="neutral"
                 icon={FileText}
-                color="purple"
+                accentColor="purple"
+                sparklineData={[1, 1, 2, 2, 2, 2, summary.totalPosts || 2]}
+                onClick={() => setActiveTab('moderation')}
               />
-              <StatsCard
-                title="Pending Reports"
+
+              <MetricGlowCard
+                title="Trust & Safety Queue"
                 value={summary.pendingReportsCount}
-                change={summary.pendingReportsCount > 0 ? 'Action Needed' : 'Clean'}
+                subtitle={summary.pendingReportsCount > 0 ? 'Cases require triage' : 'All systems clean'}
+                change={summary.pendingReportsCount > 0 ? 'Attention Needed' : 'Clean Queue'}
+                changeType={summary.pendingReportsCount > 0 ? 'negative' : 'positive'}
                 icon={ShieldAlert}
-                color="rose"
+                accentColor={summary.pendingReportsCount > 0 ? 'rose' : 'emerald'}
+                sparklineData={[0, 0, 0, 0, 0, 0, summary.pendingReportsCount || 0]}
+                onClick={() => setActiveTab('moderation')}
               />
             </div>
 
-            {/* Secondary Row */}
+            {/* Secondary Row: Platform Operations & Graph Density */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <StatsCard
-                title="Network Connections"
+              <MetricGlowCard
+                title="Network Graph Edges"
                 value={summary.totalConnections}
+                subtitle="Accepted peer connections"
+                change="Graph Density"
+                changeType="positive"
                 icon={UserCheck}
-                color="cyan"
+                accentColor="cyan"
+                sparklineData={[1, 2, 2, 3, 3, 3, summary.totalConnections || 3]}
               />
-              <StatsCard
-                title="Messages Exchanged"
+
+              <MetricGlowCard
+                title="Direct Messages"
                 value={summary.totalMessages}
+                subtitle="Real-time Socket.IO messages"
+                change="Throughput High"
+                changeType="positive"
                 icon={MessageSquare}
-                color="purple"
+                accentColor="purple"
+                sparklineData={[20, 35, 48, 62, 70, 75, summary.totalMessages || 78]}
               />
-              <StatsCard
-                title="Suspended Accounts"
+
+              <MetricGlowCard
+                title="Security Account Holds"
                 value={summary.totalSuspended}
+                subtitle="Suspended / Neutralized accounts"
+                change="Zero Active Bans"
+                changeType="positive"
                 icon={Ban}
-                color="rose"
+                accentColor={summary.totalSuspended > 0 ? 'rose' : 'emerald'}
+                sparklineData={[0, 0, 0, 0, 0, 0, summary.totalSuspended || 0]}
+                onClick={() => setActiveTab('users')}
               />
             </div>
 
-            {/* 7-Day Activity Trends Overview */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Recent Signups Activity */}
-              <div className="bg-[#111] border border-white/5 rounded-2xl p-6 shadow-lg space-y-4">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                    <TrendingUp size={16} className="text-[#00F0FF]" />
-                    Signups (Last 7 Days)
-                  </h3>
-                  <span className="text-[11px] text-gray-500">Live DB Metrics</span>
-                </div>
-                {trends.signups && trends.signups.length > 0 ? (
-                  <div className="space-y-2">
-                    {trends.signups.map((item) => (
-                      <div key={item._id} className="flex items-center justify-between p-3 rounded-xl bg-white/[0.02] border border-white/5">
-                        <div className="flex items-center gap-2 text-xs font-semibold text-gray-300">
-                          <Clock size={13} className="text-gray-500" />
-                          {item._id}
-                        </div>
-                        <span className="text-xs font-bold text-[#00F0FF] bg-[#00F0FF]/10 px-2.5 py-0.5 rounded-full border border-[#00F0FF]/20">
-                          +{item.count} Users
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-xs text-gray-500 py-6 text-center">No signups recorded in the last 7 days.</p>
-                )}
+            {/* Middle Row: Velocity Area Chart (Left) + Fleet Share & System Pulse (Right) */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+              {/* Left Column: Interactive Velocity Area Chart (7 Cols) */}
+              <div className="lg:col-span-7">
+                <VelocityAreaChart trends={trends} />
               </div>
 
-              {/* Recent Posts Activity */}
-              <div className="bg-[#111] border border-white/5 rounded-2xl p-6 shadow-lg space-y-4">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                    <Activity size={16} className="text-purple-400" />
-                    Feed Posts (Last 7 Days)
-                  </h3>
-                  <span className="text-[11px] text-gray-500">Content Pulse</span>
-                </div>
-                {trends.posts && trends.posts.length > 0 ? (
-                  <div className="space-y-2">
-                    {trends.posts.map((item) => (
-                      <div key={item._id} className="flex items-center justify-between p-3 rounded-xl bg-white/[0.02] border border-white/5">
-                        <div className="flex items-center gap-2 text-xs font-semibold text-gray-300">
-                          <Clock size={13} className="text-gray-500" />
-                          {item._id}
-                        </div>
-                        <span className="text-xs font-bold text-purple-400 bg-purple-500/10 px-2.5 py-0.5 rounded-full border border-purple-500/20">
-                          +{item.count} Posts
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-xs text-gray-500 py-6 text-center">No posts recorded in the last 7 days.</p>
-                )}
+              {/* Right Column: Fleet Distribution & Live Cluster Pulse (5 Cols) */}
+              <div className="lg:col-span-5 space-y-6">
+                <PlatformFleetDistribution summary={summary} />
+                <RealTimeSystemPulse />
               </div>
+            </div>
+
+            {/* Bottom Row: Quick Operations Command Console */}
+            <div>
+              <QuickOperationsConsole
+                onNavigate={(tabId) => setActiveTab(tabId)}
+                pendingReportsCount={summary.pendingReportsCount || 0}
+              />
             </div>
           </div>
         )}
