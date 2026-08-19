@@ -4,6 +4,8 @@ import {
   Users, 
   ShieldAlert, 
   Megaphone, 
+  Smartphone,
+  Shield,
   LogOut, 
   ShieldCheck, 
   ExternalLink 
@@ -11,7 +13,7 @@ import {
 
 const AdminSidebar = ({ activeTab, setActiveTab, adminUser, onLogout, pendingReportsCount = 0 }) => {
   const navItems = [
-    { id: 'overview', label: 'Overview & Stats', icon: LayoutDashboard },
+    { id: 'overview', label: 'Overview & Telemetry', icon: LayoutDashboard },
     { id: 'users', label: 'User Governance', icon: Users },
     { 
       id: 'moderation', 
@@ -19,11 +21,13 @@ const AdminSidebar = ({ activeTab, setActiveTab, adminUser, onLogout, pendingRep
       icon: ShieldAlert, 
       badge: pendingReportsCount > 0 ? pendingReportsCount : null 
     },
-    { id: 'broadcast', label: 'Global Broadcast', icon: Megaphone },
+    { id: 'broadcast', label: 'Global Push Broadcast', icon: Megaphone },
+    { id: 'mobile_app', label: 'Mobile Fleet & Versioning', icon: Smartphone },
+    { id: 'audit_logs', label: 'Security Audit Forensics', icon: Shield },
   ];
 
   return (
-    <aside className="w-64 bg-[#0d0d0d] border-r border-white/5 flex flex-col justify-between h-screen sticky top-0 select-none z-30">
+    <aside className="w-64 bg-[#0d0d0d] border-r border-white/5 flex flex-col justify-between h-screen sticky top-0 select-none z-30 flex-shrink-0">
       {/* Top Brand */}
       <div>
         <div className="p-6 border-b border-white/5 flex items-center justify-between">
@@ -35,7 +39,7 @@ const AdminSidebar = ({ activeTab, setActiveTab, adminUser, onLogout, pendingRep
               <h1 className="font-extrabold text-white text-base tracking-tight flex items-center gap-1.5">
                 DevHub <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-[#00F0FF]/10 text-[#00F0FF] border border-[#00F0FF]/20">HQ</span>
               </h1>
-              <p className="text-[11px] text-gray-500 font-medium">Control Center</p>
+              <p className="text-[11px] text-gray-500 font-medium">Operations Center</p>
             </div>
           </div>
         </div>
@@ -92,15 +96,13 @@ const AdminSidebar = ({ activeTab, setActiveTab, adminUser, onLogout, pendingRep
         {/* User Card */}
         <div className="bg-white/[0.03] border border-white/5 rounded-xl p-3 flex items-center justify-between">
           <div className="flex items-center gap-2.5 overflow-hidden">
-            <img
-              src={adminUser?.avatar?.url || 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png'}
-              alt={adminUser?.name || 'Admin'}
-              className="w-8 h-8 rounded-full border border-white/10 object-cover flex-shrink-0"
-            />
+            <div className="w-8 h-8 rounded-full bg-[#00F0FF]/20 border border-[#00F0FF]/30 text-[#00F0FF] flex items-center justify-center font-bold text-xs flex-shrink-0">
+              {adminUser?.name?.charAt(0) || 'A'}
+            </div>
             <div className="overflow-hidden">
               <p className="text-xs font-bold text-white truncate">{adminUser?.name || 'Super Admin'}</p>
               <span className="text-[10px] font-semibold text-[#00F0FF] capitalize">
-                {adminUser?.role || 'admin'}
+                {adminUser?.role?.replace('_', ' ') || 'Super Admin'}
               </span>
             </div>
           </div>

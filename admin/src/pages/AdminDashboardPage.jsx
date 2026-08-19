@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Users, 
   CheckCircle, 
@@ -10,13 +10,17 @@ import {
   Activity,
   RefreshCw,
   TrendingUp,
-  Clock
+  Clock,
+  Smartphone,
+  Shield
 } from 'lucide-react';
 import AdminSidebar from '../components/AdminSidebar';
 import StatsCard from '../components/StatsCard';
 import UserTable from '../components/UserTable';
 import ModerationQueue from '../components/ModerationQueue';
 import BroadcastModal from '../components/BroadcastModal';
+import MobileAppConfig from '../components/MobileAppConfig';
+import AuditLogsExplorer from '../components/AuditLogsExplorer';
 import { getAdminStats } from '../api/adminApi';
 import toast from 'react-hot-toast';
 
@@ -30,7 +34,7 @@ const AdminDashboardPage = ({ adminUser, onLogout }) => {
       const data = await getAdminStats();
       setStats(data);
     } catch (err) {
-      toast.error('Failed to fetch real-time stats');
+      toast.error('Failed to fetch real-time telemetry');
     } finally {
       setLoading(false);
     }
@@ -62,13 +66,15 @@ const AdminDashboardPage = ({ adminUser, onLogout }) => {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-2 border-b border-white/5">
           <div>
             <h2 className="text-xl font-black text-white tracking-tight flex items-center gap-2 capitalize">
-              {activeTab === 'overview' && 'Platform Overview & Pulse'}
+              {activeTab === 'overview' && 'Platform Overview & Telemetry'}
               {activeTab === 'users' && 'User Directory & Governance'}
               {activeTab === 'moderation' && 'Trust & Safety Moderation Queue'}
               {activeTab === 'broadcast' && 'System Broadcast & Announcement Hub'}
+              {activeTab === 'mobile_app' && 'Mobile Fleet & Version Gatekeeper'}
+              {activeTab === 'audit_logs' && 'Security Audit Forensics & Compliance'}
             </h2>
             <p className="text-xs text-gray-400">
-              Live operations console for DevHub social platform management.
+              Live enterprise operations console for DevHub social & developer platform.
             </p>
           </div>
 
@@ -213,6 +219,12 @@ const AdminDashboardPage = ({ adminUser, onLogout }) => {
 
         {/* Tab 4: Broadcast */}
         {activeTab === 'broadcast' && <BroadcastModal />}
+
+        {/* Tab 5: Mobile App Fleet */}
+        {activeTab === 'mobile_app' && <MobileAppConfig />}
+
+        {/* Tab 6: Security Audit Logs */}
+        {activeTab === 'audit_logs' && <AuditLogsExplorer />}
       </main>
     </div>
   );
