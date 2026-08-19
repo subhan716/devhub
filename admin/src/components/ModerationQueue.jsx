@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   ShieldAlert, 
   Trash2, 
@@ -6,26 +6,23 @@ import {
   UserX, 
   RefreshCw,
   Clock,
-  FileCode2
+  FileCode2,
+  AlertTriangle
 } from 'lucide-react';
 import { getReportedContent, moderateReport } from '../api/adminApi';
 import toast from 'react-hot-toast';
 
 const ModerationQueue = () => {
-  const [reports, setReports] = useState([]);
+  const [reportedPosts, setReportedPosts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('pending');
-  const [page, setPage] = useState(1);
-  const [pagination, setPagination] = useState({ totalPages: 1, total: 0 });
 
   const fetchReports = async () => {
     setLoading(true);
     try {
-      const data = await getReportedContent({ status: activeTab, page, limit: 10 });
-      setReports(data.reports || []);
-      setPagination(data.pagination || { totalPages: 1, total: 0 });
+      const data = await getReportedContent();
+      setReportedPosts(data.reportedPosts || []);
     } catch (err) {
-      toast.error('Failed to load reported content');
+      toast.error('Failed to load reported content queue');
     } finally {
       setLoading(false);
     }
@@ -33,12 +30,12 @@ const ModerationQueue = () => {
 
   useEffect(() => {
     fetchReports();
-  }, [activeTab, page]);
+  }, []);
 
-  const handleAction = async (reportId, action) => {
+  const handleAction = async (postId, action, reason = '') => {
     try {
-      const res = await moderateReport(reportId, { action });
-      toast.success(res.message || 'Report action completed');
+      const res = await moderateReport(postId, { action, reason });
+      toast.success(res.message || 'Action executed successfully');
       fetchReports();
     } catch (err) {
       toast.error(err.response?.data?.message || 'Failed to execute moderation action');
@@ -46,163 +43,101 @@ const ModerationQueue = () => {
   };
 
   return (
-    <div className="space-y-4">
-      {/* Top Header & Status Filter */}
-      <div className="flex items-center justify-between bg-[#111] p-4 rounded-2xl border border-white/5 shadow-lg">
+    <div className="space-y-4 font-sans">
+      {/* Top Bar */}
+      <div className="flex items-center justify-between bg-[#0D0D10] p-4 rounded-xl border border-zinc-800/80">
         <div className="flex items-center gap-2">
-          <button
-            onClick={() => {
-              setActiveTab('pending');
-              setPage(1);
-            }}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-              activeTab === 'pending'
-                ? 'bg-red-500/10 text-red-400 border border-red-500/20 shadow-[0_0_15px_rgba(239,68,68,0.1)]'
-                : 'text-gray-400 hover:text-white hover:bg-white/5'
-            }`}
-          >
-            Pending Triage Queue
-          </button>
-          <button
-            onClick={() => {
-              setActiveTab('resolved');
-              setPage(1);
-            }}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-              activeTab === 'resolved'
-                ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 shadow-[0_0_15px_rgba(16,185,129,0.1)]'
-                : 'text-gray-400 hover:text-white hover:bg-white/5'
-            }`}
-          >
-            Resolved Cases
-          </button>
+          <ShieldAlert size={16} className="text-zinc-400" />
+          <h3 className="text-sm font-semibold text-zinc-100">
+            Trust & Safety Moderation Queue
+          </h3>
+          <span className="text-[11px] font-mono text-zinc-500">
+            ({reportedPosts.length} cases flagged)
+          </span>
         </div>
 
         <button
           onClick={fetchReports}
-          className="p-2 bg-[#1a1a1a] hover:bg-white/5 border border-white/10 rounded-xl text-gray-400 hover:text-white transition-colors cursor-pointer"
+          className="p-1.5 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 rounded-lg text-zinc-400 hover:text-zinc-200 transition-colors cursor-pointer"
           title="Refresh Queue"
         >
-          <RefreshCw size={15} className={loading ? 'animate-spin text-[#00F0FF]' : ''} />
+          <RefreshCw size={14} className={loading ? 'animate-spin text-[#00F0FF]' : ''} />
         </button>
       </div>
 
       {/* Reports List */}
       {loading ? (
-        <div className="bg-[#111] border border-white/5 rounded-2xl p-12 text-center text-gray-500">
-          <RefreshCw size={24} className="animate-spin text-[#00F0FF] mx-auto mb-3" />
-          Loading reported content...
+        <div className="bg-[#0D0D10] border border-zinc-800/80 rounded-xl p-12 text-center text-zinc-500">
+          <RefreshCw size={18} className="animate-spin text-[#00F0FF] mx-auto mb-2" />
+          Loading moderation queue...
         </div>
-      ) : reports.length === 0 ? (
-        <div className="bg-[#111] border border-white/5 rounded-2xl p-12 text-center text-gray-500 space-y-2">
-          <CheckCircle2 size={32} className="text-emerald-400 mx-auto" />
-          <h3 className="font-bold text-white text-sm">All Clear!</h3>
-          <p className="text-xs text-gray-500">No reported posts in the {activeTab} queue.</p>
+      ) : reportedPosts.length === 0 ? (
+        <div className="bg-[#0D0D10] border border-zinc-800/80 rounded-xl p-12 text-center text-zinc-500 space-y-2">
+          <CheckCircle2 size={28} className="text-emerald-400 mx-auto" />
+          <h4 className="font-semibold text-zinc-200 text-sm">All Clear</h4>
+          <p className="text-xs text-zinc-500">No reported content pending review.</p>
         </div>
       ) : (
         <div className="space-y-3">
-          {reports.map((report) => (
-            <div
-              key={report._id}
-              className="bg-[#111] border border-white/5 rounded-2xl p-5 shadow-lg space-y-4 hover:border-white/10 transition-colors"
-            >
-              {/* Header */}
-              <div className="flex items-center justify-between flex-wrap gap-2">
-                <div className="flex items-center gap-3">
+          {reportedPosts.map((post) => (
+            <div key={post._id} className="bg-[#0D0D10] border border-zinc-800/80 rounded-xl p-4 space-y-3 shadow-sm">
+              {/* Post Author & Flag Info */}
+              <div className="flex items-center justify-between border-b border-zinc-800/60 pb-3">
+                <div className="flex items-center gap-2.5">
                   <img
-                    src={report.author?.avatar?.url || 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png'}
-                    alt={report.author?.name || 'Author'}
-                    className="w-9 h-9 rounded-full border border-white/10 object-cover"
+                    src={post.author?.avatar?.url || 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png'}
+                    alt={post.author?.name || 'Author'}
+                    className="w-7 h-7 rounded-full border border-zinc-700 object-cover"
                   />
                   <div>
-                    <h4 className="font-bold text-white text-xs">{report.author?.name || 'Deleted User'}</h4>
-                    <span className="text-[11px] text-gray-500">{report.author?.email}</span>
+                    <p className="text-xs font-semibold text-zinc-200">{post.author?.name || 'Anonymous'}</p>
+                    <p className="text-[10px] text-zinc-500 font-mono">{post.author?.email}</p>
                   </div>
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-red-500/10 text-red-400 border border-red-500/20 flex items-center gap-1">
-                    <ShieldAlert size={12} />
-                    {report.reportsCount || 1} Reports
+                  <span className="px-2 py-0.5 rounded text-[10px] font-mono font-medium bg-red-500/10 text-red-400 border border-red-500/20">
+                    {post.reportsCount || 1} Reports
                   </span>
-                  <span className="text-[10px] text-gray-500 flex items-center gap-1">
-                    <Clock size={11} />
-                    {new Date(report.createdAt).toLocaleDateString()}
+                  <span className="text-zinc-500 text-[11px] font-mono">
+                    {new Date(post.createdAt).toLocaleDateString()}
                   </span>
                 </div>
               </div>
 
-              {/* Content Body */}
-              <div className="bg-[#181818] border border-white/5 rounded-xl p-4 space-y-2.5">
-                {report.content && (
-                  <p className="text-xs text-gray-300 whitespace-pre-wrap leading-relaxed">
-                    {report.content}
-                  </p>
-                )}
-                {report.image?.url && (
-                  <img
-                    src={report.image.url}
-                    alt="Attachment"
-                    className="max-h-48 rounded-lg object-contain bg-black/40 border border-white/5"
-                  />
-                )}
-                {report.codeSnippet?.code && (
-                  <div className="p-3 bg-black/60 rounded-lg border border-white/5 font-mono text-[11px] text-cyan-300">
-                    <div className="flex items-center gap-1.5 text-gray-500 text-[10px] mb-1">
-                      <FileCode2 size={12} />
-                      {report.codeSnippet.language || 'Code'}
-                    </div>
-                    <pre className="overflow-x-auto">{report.codeSnippet.code}</pre>
-                  </div>
+              {/* Content Snippet */}
+              <div className="text-xs text-zinc-300 bg-zinc-900/60 border border-zinc-800/60 p-3 rounded-lg space-y-2">
+                <p className="leading-relaxed whitespace-pre-wrap">{post.content || 'No text content.'}</p>
+                {post.codeSnippet?.code && (
+                  <pre className="p-2.5 rounded bg-black/50 border border-zinc-800 text-[11px] font-mono text-[#00F0FF] overflow-x-auto">
+                    {post.codeSnippet.code}
+                  </pre>
                 )}
               </div>
 
-              {/* Report Reasons */}
-              {report.reports && report.reports.length > 0 && (
-                <div className="bg-red-500/[0.03] border border-red-500/10 rounded-xl p-3 space-y-1.5">
-                  <div className="text-[10px] font-bold text-red-400 uppercase tracking-wider">
-                    Report Reasons:
-                  </div>
-                  <div className="space-y-1">
-                    {report.reports.map((r, idx) => (
-                      <div key={idx} className="text-[11px] text-gray-400 flex items-center gap-2">
-                        <span className="w-1.5 h-1.5 rounded-full bg-red-400" />
-                        <span className="font-semibold text-gray-300 capitalize">{r.reason || 'Spam'}</span>
-                        {r.comment && <span className="text-gray-500 italic">— "{r.comment}"</span>}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Actions (Only pending) */}
-              {activeTab === 'pending' && (
-                <div className="flex items-center justify-end gap-2 pt-2 border-t border-white/5">
-                  <button
-                    onClick={() => handleAction(report._id, 'dismiss')}
-                    className="px-3.5 py-1.5 bg-white/5 hover:bg-white/10 text-gray-300 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
-                  >
-                    <CheckCircle2 size={14} className="text-emerald-400" />
-                    Dismiss Report
-                  </button>
-
-                  <button
-                    onClick={() => handleAction(report._id, 'delete_post')}
-                    className="px-3.5 py-1.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
-                  >
-                    <Trash2 size={14} />
-                    Delete Post
-                  </button>
-
-                  <button
-                    onClick={() => handleAction(report._id, 'ban_user')}
-                    className="px-3.5 py-1.5 bg-rose-600 hover:bg-rose-500 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-[0_0_15px_rgba(225,29,72,0.3)] transition-all cursor-pointer"
-                  >
-                    <UserX size={14} />
-                    Delete & Ban Author
-                  </button>
-                </div>
-              )}
+              {/* Triage Actions Row */}
+              <div className="flex items-center justify-end gap-2 pt-1">
+                <button
+                  onClick={() => handleAction(post._id, 'dismiss')}
+                  className="px-3 py-1.5 rounded-lg text-xs font-medium bg-zinc-900 hover:bg-zinc-800 text-zinc-300 border border-zinc-700/80 transition-colors cursor-pointer"
+                >
+                  Dismiss Reports
+                </button>
+                <button
+                  onClick={() => handleAction(post._id, 'delete', 'Violation of guidelines')}
+                  className="px-3 py-1.5 rounded-lg text-xs font-medium bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 transition-colors cursor-pointer flex items-center gap-1.5"
+                >
+                  <Trash2 size={13} />
+                  Delete Post
+                </button>
+                <button
+                  onClick={() => handleAction(post._id, 'delete_and_ban', 'Severe content violation')}
+                  className="px-3 py-1.5 rounded-lg text-xs font-bold bg-rose-600 hover:bg-rose-700 text-white transition-colors cursor-pointer flex items-center gap-1.5"
+                >
+                  <UserX size={13} />
+                  Delete & Suspend Author
+                </button>
+              </div>
             </div>
           ))}
         </div>

@@ -1,94 +1,60 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  Server, 
-  Database, 
-  Cpu, 
-  Zap, 
-  Radio, 
-  ShieldCheck, 
-  Clock, 
-  CheckCircle 
-} from 'lucide-react';
+import { Server, Database, Radio, ShieldCheck } from 'lucide-react';
 
 const RealTimeSystemPulse = () => {
-  const [latency, setLatency] = useState(16);
-  const [memoryUsage, setMemoryUsage] = useState(42);
+  const [latency, setLatency] = useState(14);
 
   useEffect(() => {
     const interval = setInterval(() => {
-      // Subtle pulse simulation for live feel
-      setLatency(Math.floor(14 + Math.random() * 8));
-      setMemoryUsage(Math.floor(38 + Math.random() * 6));
-    }, 4000);
+      setLatency(Math.floor(12 + Math.random() * 6));
+    }, 5000);
     return () => clearInterval(interval);
   }, []);
 
   return (
-    <div className="bg-[#111114] border border-white/10 rounded-2xl p-6 shadow-xl space-y-5">
+    <div className="bg-[#0D0D10] border border-zinc-800/80 rounded-xl p-5 space-y-4">
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
-            <Zap size={16} />
-          </div>
-          <div>
-            <h3 className="text-sm font-extrabold text-white">Live Cluster Pulse & Telemetry</h3>
-            <p className="text-[11px] text-gray-400">Infrastructure Health & Real-time Services</p>
-          </div>
+        <div>
+          <h3 className="text-sm font-semibold text-zinc-100">Infrastructure Health</h3>
+          <p className="text-xs text-zinc-500">Core backend services & database status</p>
         </div>
-        <span className="flex items-center gap-1.5 text-[10px] font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-1 rounded-full">
-          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
-          99.99% SLA
+        <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20 font-mono">
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+          Healthy
         </span>
       </div>
 
-      {/* Grid of Micro Telemetry Chips */}
-      <div className="grid grid-cols-2 gap-3 text-xs">
-        {/* API Gateway */}
-        <div className="p-3 rounded-xl bg-white/[0.02] border border-white/5 space-y-1">
-          <div className="flex items-center justify-between text-gray-400 text-[11px]">
-            <span className="flex items-center gap-1.5 text-white font-bold">
-              <Server size={13} className="text-[#00F0FF]" />
-              API Gateway
-            </span>
-            <span className="text-emerald-400 font-mono font-bold">{latency}ms</span>
+      <div className="grid grid-cols-2 gap-2.5">
+        <div className="p-2.5 rounded-lg bg-zinc-900/60 border border-zinc-800/60 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Server size={13} className="text-zinc-400" />
+            <span className="text-xs text-zinc-300 font-medium">API Gateway</span>
           </div>
-          <p className="text-[10px] text-gray-500">Express 5.x / Port 5000</p>
+          <span className="text-[11px] font-mono text-emerald-400">{latency}ms</span>
         </div>
 
-        {/* MongoDB Atlas */}
-        <div className="p-3 rounded-xl bg-white/[0.02] border border-white/5 space-y-1">
-          <div className="flex items-center justify-between text-gray-400 text-[11px]">
-            <span className="flex items-center gap-1.5 text-white font-bold">
-              <Database size={13} className="text-emerald-400" />
-              MongoDB Atlas
-            </span>
-            <span className="text-emerald-400 font-mono font-bold">Optimal</span>
+        <div className="p-2.5 rounded-lg bg-zinc-900/60 border border-zinc-800/60 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Database size={13} className="text-zinc-400" />
+            <span className="text-xs text-zinc-300 font-medium">MongoDB</span>
           </div>
-          <p className="text-[10px] text-gray-500">Replica Set M0 / IXSCAN</p>
+          <span className="text-[11px] font-mono text-zinc-400">Atlas M0</span>
         </div>
 
-        {/* Socket.IO Engine */}
-        <div className="p-3 rounded-xl bg-white/[0.02] border border-white/5 space-y-1">
-          <div className="flex items-center justify-between text-gray-400 text-[11px]">
-            <span className="flex items-center gap-1.5 text-white font-bold">
-              <Radio size={13} className="text-purple-400" />
-              Socket.IO WebSockets
-            </span>
-            <span className="text-purple-400 font-mono font-bold">Connected</span>
+        <div className="p-2.5 rounded-lg bg-zinc-900/60 border border-zinc-800/60 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Radio size={13} className="text-zinc-400" />
+            <span className="text-xs text-zinc-300 font-medium">WebSockets</span>
           </div>
-          <p className="text-[10px] text-gray-500">Broadcast Channels Active</p>
+          <span className="text-[11px] font-mono text-emerald-400">Live</span>
         </div>
 
-        {/* Cloud Storage */}
-        <div className="p-3 rounded-xl bg-white/[0.02] border border-white/5 space-y-1">
-          <div className="flex items-center justify-between text-gray-400 text-[11px]">
-            <span className="flex items-center gap-1.5 text-white font-bold">
-              <ShieldCheck size={13} className="text-amber-400" />
-              Cloudinary Media
-            </span>
-            <span className="text-amber-400 font-mono font-bold">Active</span>
+        <div className="p-2.5 rounded-lg bg-zinc-900/60 border border-zinc-800/60 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <ShieldCheck size={13} className="text-zinc-400" />
+            <span className="text-xs text-zinc-300 font-medium">Media CDN</span>
           </div>
-          <p className="text-[10px] text-gray-500">CDN Edge Delivery</p>
+          <span className="text-[11px] font-mono text-zinc-400">Active</span>
         </div>
       </div>
     </div>

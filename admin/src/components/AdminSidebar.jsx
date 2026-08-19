@@ -21,33 +21,33 @@ const AdminSidebar = ({ activeTab, setActiveTab, adminUser, onLogout, pendingRep
       icon: ShieldAlert, 
       badge: pendingReportsCount > 0 ? pendingReportsCount : null 
     },
-    { id: 'broadcast', label: 'Global Push Broadcast', icon: Megaphone },
-    { id: 'mobile_app', label: 'Mobile Fleet & Versioning', icon: Smartphone },
-    { id: 'audit_logs', label: 'Security Audit Forensics', icon: Shield },
+    { id: 'broadcast', label: 'Push Broadcast', icon: Megaphone },
+    { id: 'mobile_app', label: 'Mobile Fleet & Version', icon: Smartphone },
+    { id: 'audit_logs', label: 'Audit Forensics', icon: Shield },
   ];
 
   return (
-    <aside className="w-64 bg-[#0d0d0d] border-r border-white/5 flex flex-col justify-between h-screen sticky top-0 select-none z-30 flex-shrink-0">
-      {/* Top Brand */}
+    <aside className="w-60 bg-[#0D0D10] border-r border-zinc-800/80 flex flex-col justify-between h-screen sticky top-0 select-none z-30 flex-shrink-0 font-sans">
+      {/* Top Brand Header */}
       <div>
-        <div className="p-6 border-b border-white/5 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-[#00F0FF]/20 to-[#00F0FF]/5 border border-[#00F0FF]/30 flex items-center justify-center shadow-[0_0_15px_rgba(0,240,255,0.2)]">
-              <ShieldCheck className="w-5 h-5 text-[#00F0FF]" />
+        <div className="px-5 py-4.5 border-b border-zinc-800/80 flex items-center justify-between">
+          <div className="flex items-center gap-2.5">
+            <div className="w-7 h-7 rounded-lg bg-[#00F0FF]/10 border border-[#00F0FF]/30 flex items-center justify-center text-[#00F0FF]">
+              <ShieldCheck size={16} />
             </div>
             <div>
-              <h1 className="font-extrabold text-white text-base tracking-tight flex items-center gap-1.5">
-                DevHub <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-[#00F0FF]/10 text-[#00F0FF] border border-[#00F0FF]/20">HQ</span>
+              <h1 className="font-bold text-zinc-100 text-sm tracking-tight flex items-center gap-1.5">
+                DevHub <span className="text-[9px] font-mono font-semibold px-1 py-0.5 rounded bg-zinc-800 text-zinc-400 border border-zinc-700">HQ</span>
               </h1>
-              <p className="text-[11px] text-gray-500 font-medium">Operations Center</p>
+              <p className="text-[10px] text-zinc-500">Operations Control</p>
             </div>
           </div>
         </div>
 
         {/* Navigation Links */}
-        <nav className="p-4 space-y-1.5">
-          <div className="px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-gray-500">
-            Operations Menu
+        <nav className="p-3 space-y-1">
+          <div className="px-2.5 py-1.5 text-[10px] font-mono uppercase tracking-wider text-zinc-500">
+            Operations
           </div>
           {navItems.map((item) => {
             const Icon = item.icon;
@@ -56,18 +56,18 @@ const AdminSidebar = ({ activeTab, setActiveTab, adminUser, onLogout, pendingRep
               <button
                 key={item.id}
                 onClick={() => setActiveTab(item.id)}
-                className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+                className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium transition-all cursor-pointer ${
                   isActive
-                    ? 'bg-[#00F0FF]/10 text-[#00F0FF] border border-[#00F0FF]/20 shadow-[0_0_15px_rgba(0,240,255,0.1)]'
-                    : 'text-gray-400 hover:text-white hover:bg-white/5'
+                    ? 'bg-zinc-800 text-zinc-100 border border-zinc-700/80 shadow-sm'
+                    : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/40'
                 }`}
               >
-                <div className="flex items-center gap-3">
-                  <Icon size={17} className={isActive ? 'text-[#00F0FF]' : 'text-gray-400'} />
+                <div className="flex items-center gap-2.5">
+                  <Icon size={15} className={isActive ? 'text-[#00F0FF]' : 'text-zinc-400'} />
                   <span>{item.label}</span>
                 </div>
                 {item.badge && (
-                  <span className="px-2 py-0.5 text-[10px] font-bold rounded-full bg-red-500/20 text-red-400 border border-red-500/30 animate-pulse">
+                  <span className="px-1.5 py-0.5 text-[10px] font-mono font-medium rounded bg-red-500/20 text-red-400 border border-red-500/30">
                     {item.badge}
                   </span>
                 )}
@@ -77,41 +77,41 @@ const AdminSidebar = ({ activeTab, setActiveTab, adminUser, onLogout, pendingRep
         </nav>
       </div>
 
-      {/* Bottom User Info & Actions */}
-      <div className="p-4 border-t border-white/5 space-y-3">
+      {/* Bottom Profile & Actions */}
+      <div className="p-3 border-t border-zinc-800/80 space-y-2">
         {/* Public site link */}
         <a
           href={import.meta.env.VITE_MAIN_SITE_URL || 'http://localhost:5173'}
           target="_blank"
           rel="noreferrer"
-          className="flex items-center justify-between px-3 py-2 rounded-xl text-xs text-gray-400 hover:text-white hover:bg-white/5 transition-all"
+          className="flex items-center justify-between px-2.5 py-1.5 rounded-md text-xs text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/40 transition-colors"
         >
-          <span className="flex items-center gap-2">
-            <ExternalLink size={14} />
+          <span className="flex items-center gap-2 text-[11px]">
+            <ExternalLink size={13} />
             Public Website
           </span>
-          <span className="text-[10px] text-gray-500">Live</span>
+          <span className="text-[10px] font-mono text-zinc-500">5173</span>
         </a>
 
         {/* User Card */}
-        <div className="bg-white/[0.03] border border-white/5 rounded-xl p-3 flex items-center justify-between">
-          <div className="flex items-center gap-2.5 overflow-hidden">
-            <div className="w-8 h-8 rounded-full bg-[#00F0FF]/20 border border-[#00F0FF]/30 text-[#00F0FF] flex items-center justify-center font-bold text-xs flex-shrink-0">
+        <div className="bg-zinc-900/60 border border-zinc-800 rounded-lg p-2.5 flex items-center justify-between">
+          <div className="flex items-center gap-2 overflow-hidden">
+            <div className="w-7 h-7 rounded-md bg-zinc-800 border border-zinc-700 text-[#00F0FF] flex items-center justify-center font-bold text-[11px] flex-shrink-0">
               {adminUser?.name?.charAt(0) || 'A'}
             </div>
             <div className="overflow-hidden">
-              <p className="text-xs font-bold text-white truncate">{adminUser?.name || 'Super Admin'}</p>
-              <span className="text-[10px] font-semibold text-[#00F0FF] capitalize">
-                {adminUser?.role?.replace('_', ' ') || 'Super Admin'}
-              </span>
+              <p className="text-xs font-semibold text-zinc-200 truncate">{adminUser?.name || 'Super Admin'}</p>
+              <p className="text-[10px] text-zinc-500 font-mono capitalize truncate">
+                {adminUser?.role?.replace('_', ' ') || 'super admin'}
+              </p>
             </div>
           </div>
           <button
             onClick={onLogout}
             title="Log Out"
-            className="p-1.5 text-gray-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors cursor-pointer"
+            className="p-1 text-zinc-500 hover:text-red-400 hover:bg-red-500/10 rounded transition-colors cursor-pointer"
           >
-            <LogOut size={16} />
+            <LogOut size={14} />
           </button>
         </div>
       </div>

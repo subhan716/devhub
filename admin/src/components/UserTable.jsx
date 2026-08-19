@@ -1,14 +1,19 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Search, 
-  CheckCircle, 
+  CheckCircle2, 
   Ban, 
   EyeOff, 
   Crown, 
   AlertTriangle,
-  RefreshCw
+  RefreshCw,
+  MoreVertical,
+  Shield,
+  LogOut,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
-import { getAllUsers, updateUserStatus } from '../api/adminApi';
+import { getAllUsers, updateUserStatus, toggleUserBadge, updateUserRole, revokeUserSessions } from '../api/adminApi';
 import toast from 'react-hot-toast';
 
 const UserTable = () => {
@@ -29,7 +34,7 @@ const UserTable = () => {
     try {
       const data = await getAllUsers({
         page,
-        limit: 10,
+        limit: 15,
         search,
         role: roleFilter,
         status: statusFilter,
@@ -37,7 +42,7 @@ const UserTable = () => {
       setUsers(data.users || []);
       setPagination(data.pagination || { totalPages: 1, total: 0 });
     } catch (err) {
-      toast.error('Failed to load users');
+      toast.error('Failed to load user directory');
     } finally {
       setLoading(false);
     }
@@ -52,67 +57,74 @@ const UserTable = () => {
 
   const handleToggleVerified = async (user) => {
     try {
-      const updated = await updateUserStatus(user._id, {
-        action: 'toggle_verified',
-      });
-      toast.success(updated.message || 'Verification updated');
+      const res = await toggleUserBadge(user._id);
+      toast.success(res.message || 'Badge updated');
       fetchUsers();
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Action failed');
+      toast.error(err.response?.data?.message || 'Failed to toggle badge');
     }
   };
 
   const handleToggleShadowban = async (user) => {
     try {
-      const updated = await updateUserStatus(user._id, {
-        action: 'toggle_shadowban',
+      const res = await updateUserStatus(user._id, {
+        action: 'toggleShadowban',
       });
-      toast.success(updated.message || 'Shadowban updated');
+      toast.success(res.message || 'Shadowban updated');
       fetchUsers();
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Action failed');
+      toast.error(err.response?.data?.message || 'Failed to toggle shadowban');
     }
   };
 
   const handleExecuteSuspension = async () => {
     if (!selectedUser) return;
     try {
-      const updated = await updateUserStatus(selectedUser._id, {
-        action: 'toggle_suspend',
+      const res = await updateUserStatus(selectedUser._id, {
+        action: 'toggleSuspend',
         reason: suspendReason,
       });
-      toast.success(updated.message || 'Suspension updated');
+      toast.success(res.message || 'Suspension state updated');
       setActionModal(null);
       setSuspendReason('');
       setSelectedUser(null);
       fetchUsers();
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Action failed');
+      toast.error(err.response?.data?.message || 'Failed to update suspension');
     }
   };
 
   const handleExecuteRoleChange = async () => {
     if (!selectedUser) return;
     try {
-      const updated = await updateUserStatus(selectedUser._id, {
-        action: 'change_role',
-        role: newRole,
-      });
-      toast.success(updated.message || 'Role updated');
+      const res = await updateUserRole(selectedUser._id, newRole);
+      toast.success(res.message || 'Role updated');
       setActionModal(null);
       setSelectedUser(null);
       fetchUsers();
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Action failed');
+      toast.error(err.response?.data?.message || 'Failed to update role');
+    }
+  };
+
+  const handleRevokeSessions = async (user) => {
+    if (!window.confirm(`Are you sure you want to terminate all active mobile & web sessions for ${user.email}?`)) {
+      return;
+    }
+    try {
+      const res = await revokeUserSessions(user._id, 'Security token invalidation by Super Admin');
+      toast.success(res.message || 'Sessions terminated successfully');
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to revoke sessions');
     }
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 font-sans">
       {/* Search & Filter Bar */}
-      <div className="flex flex-col md:flex-row gap-3 items-center justify-between bg-[#111] p-4 rounded-2xl border border-white/5 shadow-lg">
-        <div className="relative w-full md:w-80">
-          <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500" />
+      <div className="flex flex-col sm:flex-row gap-3 items-center justify-between bg-[#0D0D10] p-4 rounded-xl border border-zinc-800/80">
+        <div className="relative w-full sm:w-80">
+          <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-500" />
           <input
             type="text"
             value={search}
@@ -120,19 +132,19 @@ const UserTable = () => {
               setSearch(e.target.value);
               setPage(1);
             }}
-            placeholder="Search by name or email..."
-            className="w-full bg-[#1a1a1a] border border-white/10 rounded-xl pl-10 pr-4 py-2 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-[#00F0FF]/50 transition-colors"
+            placeholder="Search developers by name or email..."
+            className="w-full bg-zinc-900 border border-zinc-800 rounded-lg pl-9 pr-3 py-1.5 text-xs text-zinc-200 placeholder-zinc-500 focus:outline-none focus:border-zinc-600 transition-colors"
           />
         </div>
 
-        <div className="flex items-center gap-2.5 w-full md:w-auto">
+        <div className="flex items-center gap-2 w-full sm:w-auto">
           <select
             value={roleFilter}
             onChange={(e) => {
               setRoleFilter(e.target.value);
               setPage(1);
             }}
-            className="bg-[#1a1a1a] border border-white/10 rounded-xl px-3 py-2 text-xs text-gray-300 focus:outline-none focus:border-[#00F0FF]/50 cursor-pointer"
+            className="bg-zinc-900 border border-zinc-800 rounded-lg px-2.5 py-1.5 text-xs text-zinc-300 focus:outline-none focus:border-zinc-600 cursor-pointer"
           >
             <option value="all">All Roles</option>
             <option value="user">User</option>
@@ -147,108 +159,111 @@ const UserTable = () => {
               setStatusFilter(e.target.value);
               setPage(1);
             }}
-            className="bg-[#1a1a1a] border border-white/10 rounded-xl px-3 py-2 text-xs text-gray-300 focus:outline-none focus:border-[#00F0FF]/50 cursor-pointer"
+            className="bg-zinc-900 border border-zinc-800 rounded-lg px-2.5 py-1.5 text-xs text-zinc-300 focus:outline-none focus:border-zinc-600 cursor-pointer"
           >
             <option value="all">All Statuses</option>
             <option value="active">Active</option>
             <option value="suspended">Suspended</option>
             <option value="verified">Verified Badge</option>
-            <option value="shadowbanned">Shadowbanned</option>
           </select>
 
           <button
             onClick={fetchUsers}
-            className="p-2 bg-[#1a1a1a] hover:bg-white/5 border border-white/10 rounded-xl text-gray-400 hover:text-white transition-colors cursor-pointer"
-            title="Refresh Users"
+            className="p-1.5 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 rounded-lg text-zinc-400 hover:text-zinc-200 transition-colors cursor-pointer"
+            title="Refresh Directory"
           >
-            <RefreshCw size={15} className={loading ? 'animate-spin text-[#00F0FF]' : ''} />
+            <RefreshCw size={14} className={loading ? 'animate-spin text-[#00F0FF]' : ''} />
           </button>
         </div>
       </div>
 
-      {/* Users Table */}
-      <div className="bg-[#111] border border-white/5 rounded-2xl overflow-hidden shadow-lg">
+      {/* Directory Table */}
+      <div className="bg-[#0D0D10] border border-zinc-800/80 rounded-xl overflow-hidden shadow-sm">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
-            <thead className="bg-white/[0.02] border-b border-white/5 text-gray-400 font-semibold uppercase tracking-wider text-[10px]">
+            <thead className="bg-zinc-900/60 border-b border-zinc-800/80 text-zinc-400 font-medium uppercase tracking-wider text-[10px]">
               <tr>
-                <th className="px-5 py-3.5">User</th>
-                <th className="px-5 py-3.5">Role</th>
-                <th className="px-5 py-3.5">Status</th>
-                <th className="px-5 py-3.5">Joined</th>
-                <th className="px-5 py-3.5 text-right">Actions</th>
+                <th className="px-4 py-3">Developer Account</th>
+                <th className="px-4 py-3">Role</th>
+                <th className="px-4 py-3">Account State</th>
+                <th className="px-4 py-3">Registration</th>
+                <th className="px-4 py-3 text-right">Governance Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-white/5">
+            <tbody className="divide-y divide-zinc-800/60">
               {loading ? (
                 <tr>
-                  <td colSpan="5" className="px-5 py-12 text-center text-gray-500">
-                    <RefreshCw size={20} className="animate-spin text-[#00F0FF] mx-auto mb-2" />
-                    Loading user directory...
+                  <td colSpan="5" className="px-4 py-12 text-center text-zinc-500">
+                    <RefreshCw size={18} className="animate-spin text-[#00F0FF] mx-auto mb-2" />
+                    Loading developer directory...
                   </td>
                 </tr>
               ) : users.length === 0 ? (
                 <tr>
-                  <td colSpan="5" className="px-5 py-12 text-center text-gray-500">
-                    No users found matching your filters.
+                  <td colSpan="5" className="px-4 py-12 text-center text-zinc-500">
+                    No users matching criteria.
                   </td>
                 </tr>
               ) : (
                 users.map((user) => (
-                  <tr key={user._id} className="hover:bg-white/[0.02] transition-colors group">
-                    <td className="px-5 py-3.5">
-                      <div className="flex items-center gap-3">
+                  <tr key={user._id} className="hover:bg-zinc-900/30 transition-colors">
+                    {/* Developer Info */}
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-2.5">
                         <img
                           src={user.avatar?.url || 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png'}
                           alt={user.name}
-                          className="w-8 h-8 rounded-full border border-white/10 object-cover"
+                          className="w-7 h-7 rounded-full border border-zinc-700/80 object-cover"
                         />
                         <div>
-                          <div className="flex items-center gap-1.5 font-bold text-white">
+                          <div className="flex items-center gap-1.5 font-semibold text-zinc-100">
                             {user.name}
                             {user.isVerifiedBadge && (
-                              <CheckCircle size={13} className="text-[#00F0FF]" title="Verified Developer Badge" />
+                              <CheckCircle2 size={13} className="text-[#00F0FF]" title="Verified Blue Checkmark" />
                             )}
                           </div>
-                          <span className="text-gray-500 text-[11px]">{user.email}</span>
+                          <span className="text-zinc-500 text-[11px] font-mono">{user.email}</span>
                         </div>
                       </div>
                     </td>
 
-                    <td className="px-5 py-3.5">
-                      <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+                    {/* Role */}
+                    <td className="px-4 py-3">
+                      <span className={`inline-block px-2 py-0.5 rounded text-[10px] font-mono font-medium ${
                         user.role === 'super_admin'
                           ? 'bg-purple-500/10 text-purple-400 border border-purple-500/20'
                           : user.role === 'admin'
                           ? 'bg-[#00F0FF]/10 text-[#00F0FF] border border-[#00F0FF]/20'
                           : user.role === 'moderator'
                           ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
-                          : 'bg-white/5 text-gray-400 border border-white/10'
+                          : 'bg-zinc-800 text-zinc-400 border border-zinc-700'
                       }`}>
                         {user.role || 'user'}
                       </span>
                     </td>
 
-                    <td className="px-5 py-3.5">
+                    {/* State */}
+                    <td className="px-4 py-3">
                       <div className="flex items-center gap-1.5 flex-wrap">
                         {user.isSuspended ? (
-                          <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-500/10 text-rose-400 border border-rose-500/20">
+                          <span className="px-1.5 py-0.5 rounded text-[10px] font-mono font-medium bg-rose-500/10 text-rose-400 border border-rose-500/20">
                             Suspended
                           </span>
                         ) : (
-                          <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                          <span className="px-1.5 py-0.5 rounded text-[10px] font-mono font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
                             Active
                           </span>
                         )}
                         {user.isShadowBanned && (
-                          <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                          <span className="px-1.5 py-0.5 rounded text-[10px] font-mono font-medium bg-amber-500/10 text-amber-400 border border-amber-500/20">
                             Shadowbanned
                           </span>
                         )}
                       </div>
                     </td>
 
-                    <td className="px-5 py-3.5 text-gray-400 text-[11px]">
+                    {/* Joined */}
+                    <td className="px-4 py-3 text-zinc-500 text-[11px] font-mono whitespace-nowrap">
                       {new Date(user.createdAt).toLocaleDateString('en-US', {
                         month: 'short',
                         day: 'numeric',
@@ -256,57 +271,71 @@ const UserTable = () => {
                       })}
                     </td>
 
-                    <td className="px-5 py-3.5 text-right">
-                      <div className="flex items-center justify-end gap-1.5">
+                    {/* Actions */}
+                    <td className="px-4 py-3 text-right">
+                      <div className="flex items-center justify-end gap-1">
+                        {/* 1-Click Badge */}
                         <button
                           onClick={() => handleToggleVerified(user)}
-                          title={user.isVerifiedBadge ? 'Remove Verified Badge' : 'Give Verified Badge'}
-                          className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
+                          title={user.isVerifiedBadge ? 'Revoke Verified Badge' : 'Grant Verified Checkmark'}
+                          className={`p-1.5 rounded-md transition-colors cursor-pointer ${
                             user.isVerifiedBadge
                               ? 'text-[#00F0FF] hover:bg-[#00F0FF]/10'
-                              : 'text-gray-500 hover:text-[#00F0FF] hover:bg-white/5'
+                              : 'text-zinc-500 hover:text-[#00F0FF] hover:bg-zinc-800'
                           }`}
                         >
-                          <CheckCircle size={15} />
+                          <CheckCircle2 size={14} />
                         </button>
 
+                        {/* Shadowban */}
                         <button
                           onClick={() => handleToggleShadowban(user)}
-                          title={user.isShadowBanned ? 'Remove Shadowban' : 'Shadowban User'}
-                          className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
+                          title={user.isShadowBanned ? 'Remove Shadowban' : 'Stealth Shadowban'}
+                          className={`p-1.5 rounded-md transition-colors cursor-pointer ${
                             user.isShadowBanned
                               ? 'text-amber-400 hover:bg-amber-500/10'
-                              : 'text-gray-500 hover:text-amber-400 hover:bg-white/5'
+                              : 'text-zinc-500 hover:text-amber-400 hover:bg-zinc-800'
                           }`}
                         >
-                          <EyeOff size={15} />
+                          <EyeOff size={14} />
                         </button>
 
+                        {/* Suspend */}
                         <button
                           onClick={() => {
                             setSelectedUser(user);
                             setActionModal('suspend');
                           }}
-                          title={user.isSuspended ? 'Unsuspend User' : 'Suspend / Ban User'}
-                          className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
+                          title={user.isSuspended ? 'Unsuspend Account' : 'Suspend / Block Account'}
+                          className={`p-1.5 rounded-md transition-colors cursor-pointer ${
                             user.isSuspended
                               ? 'text-rose-400 hover:bg-rose-500/10'
-                              : 'text-gray-500 hover:text-rose-400 hover:bg-white/5'
+                              : 'text-zinc-500 hover:text-rose-400 hover:bg-zinc-800'
                           }`}
                         >
-                          <Ban size={15} />
+                          <Ban size={14} />
                         </button>
 
+                        {/* Change Role */}
                         <button
                           onClick={() => {
                             setSelectedUser(user);
                             setNewRole(user.role || 'user');
                             setActionModal('role');
                           }}
-                          title="Change User Role"
-                          className="p-1.5 text-gray-500 hover:text-purple-400 hover:bg-white/5 rounded-lg transition-colors cursor-pointer"
+                          title="Change RBAC Permission Role"
+                          className="p-1.5 text-zinc-500 hover:text-purple-400 hover:bg-zinc-800 rounded-md transition-colors cursor-pointer"
                         >
-                          <Crown size={15} />
+                          <Crown size={14} />
+                        </button>
+
+                        {/* Revoke Sessions */}
+                        <button
+                          onClick={() => handleRevokeSessions(user)}
+                          title="Revoke all mobile & web sessions"
+                          className="p-1.5 text-zinc-500 hover:text-red-400 hover:bg-zinc-800 rounded-md transition-colors cursor-pointer"
+                        >
+                          <LogOut size={14} />
                         </button>
                       </div>
                     </td>
@@ -318,138 +347,127 @@ const UserTable = () => {
         </div>
 
         {/* Pagination Footer */}
-        <div className="p-4 border-t border-white/5 flex items-center justify-between text-xs text-gray-500">
-          <span>Total {pagination.total || 0} Registered Users</span>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setPage((p) => Math.max(1, p - 1))}
-              disabled={page === 1}
-              className="px-3 py-1 bg-white/5 hover:bg-white/10 rounded-lg text-gray-300 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
-            >
-              Previous
-            </button>
-            <span className="text-gray-400 font-semibold">
-              Page {page} of {pagination.totalPages || 1}
+        {pagination.totalPages > 1 && (
+          <div className="p-3 border-t border-zinc-800/80 flex items-center justify-between text-xs text-zinc-500">
+            <span>
+              Page <strong className="text-zinc-300 font-mono">{page}</strong> of <strong className="text-zinc-300 font-mono">{pagination.totalPages}</strong> ({pagination.total} accounts)
             </span>
-            <button
-              onClick={() => setPage((p) => Math.min(pagination.totalPages || 1, p + 1))}
-              disabled={page >= (pagination.totalPages || 1)}
-              className="px-3 py-1 bg-white/5 hover:bg-white/10 rounded-lg text-gray-300 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
-            >
-              Next
-            </button>
+            <div className="flex items-center gap-1.5">
+              <button
+                onClick={() => setPage(page - 1)}
+                disabled={page <= 1}
+                className="p-1.5 rounded-md bg-zinc-900 border border-zinc-800 hover:bg-zinc-800 disabled:opacity-30 cursor-pointer disabled:cursor-not-allowed text-zinc-400"
+              >
+                <ChevronLeft size={14} />
+              </button>
+              <button
+                onClick={() => setPage(page + 1)}
+                disabled={page >= pagination.totalPages}
+                className="p-1.5 rounded-md bg-zinc-900 border border-zinc-800 hover:bg-zinc-800 disabled:opacity-30 cursor-pointer disabled:cursor-not-allowed text-zinc-400"
+              >
+                <ChevronRight size={14} />
+              </button>
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
-      {/* Suspend Confirmation Modal */}
+      {/* Suspension Modal */}
       {actionModal === 'suspend' && selectedUser && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-[#141414] border border-white/10 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
-            <div className="flex items-center gap-3 text-rose-400 font-bold text-base">
-              <AlertTriangle size={22} />
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <div className="bg-[#121215] border border-zinc-800 rounded-xl p-5 max-w-md w-full space-y-4 shadow-2xl">
+            <h4 className="text-sm font-bold text-zinc-100 flex items-center gap-2">
+              <Ban size={16} className="text-rose-400" />
               {selectedUser.isSuspended ? 'Unsuspend Account' : 'Suspend Account'}
-            </div>
-            <p className="text-xs text-gray-400">
-              Are you sure you want to {selectedUser.isSuspended ? 'unsuspend' : 'suspend'}{' '}
-              <strong className="text-white">{selectedUser.name}</strong> ({selectedUser.email})?
+            </h4>
+            <p className="text-xs text-zinc-400">
+              {selectedUser.isSuspended
+                ? `Restore platform access for ${selectedUser.name} (${selectedUser.email}).`
+                : `Block all access for ${selectedUser.name} (${selectedUser.email}). Active sockets will be disconnected.`}
             </p>
 
             {!selectedUser.isSuspended && (
               <div>
-                <label className="block text-[11px] font-semibold text-gray-400 mb-1">
-                  Reason for Suspension (Optional)
+                <label className="block text-[11px] font-semibold text-zinc-400 mb-1">
+                  Reason for Suspension (Logged in Audit Trail):
                 </label>
-                <textarea
+                <input
+                  type="text"
                   value={suspendReason}
                   onChange={(e) => setSuspendReason(e.target.value)}
-                  placeholder="e.g. Terms violation, spam activities..."
-                  rows={3}
-                  className="w-full bg-[#1e1e1e] border border-white/10 rounded-xl p-3 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-rose-500/50"
+                  placeholder="e.g. Violation of community guidelines (spam)"
+                  className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2 text-xs text-zinc-200 focus:outline-none focus:border-zinc-600"
                 />
               </div>
             )}
 
-            <div className="flex justify-end gap-2.5 pt-2">
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-zinc-800/80">
               <button
                 onClick={() => {
                   setActionModal(null);
                   setSelectedUser(null);
                 }}
-                className="px-4 py-2 rounded-xl text-xs font-semibold text-gray-400 hover:text-white hover:bg-white/5"
+                className="px-3 py-1.5 rounded-lg text-xs font-medium text-zinc-400 hover:text-zinc-200 cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 onClick={handleExecuteSuspension}
-                className={`px-4 py-2 rounded-xl text-xs font-bold text-white transition-all cursor-pointer ${
+                className={`px-4 py-1.5 rounded-lg text-xs font-bold cursor-pointer ${
                   selectedUser.isSuspended
-                    ? 'bg-emerald-600 hover:bg-emerald-500'
-                    : 'bg-rose-600 hover:bg-rose-500 shadow-[0_0_15px_rgba(225,29,72,0.3)]'
+                    ? 'bg-emerald-500 hover:bg-emerald-600 text-black'
+                    : 'bg-rose-500 hover:bg-rose-600 text-white'
                 }`}
               >
-                {selectedUser.isSuspended ? 'Confirm Unsuspend' : 'Confirm Suspend'}
+                Confirm {selectedUser.isSuspended ? 'Reactivation' : 'Suspension'}
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Change Role Modal */}
+      {/* Role Change Modal */}
       {actionModal === 'role' && selectedUser && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-[#141414] border border-white/10 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
-            <div className="flex items-center gap-3 text-purple-400 font-bold text-base">
-              <Crown size={22} />
-              Change User Role
-            </div>
-            <p className="text-xs text-gray-400">
-              Assign a new administrative role to <strong className="text-white">{selectedUser.name}</strong>:
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <div className="bg-[#121215] border border-zinc-800 rounded-xl p-5 max-w-md w-full space-y-4 shadow-2xl">
+            <h4 className="text-sm font-bold text-zinc-100 flex items-center gap-2">
+              <Crown size={16} className="text-purple-400" />
+              Update RBAC Permission Role
+            </h4>
+            <p className="text-xs text-zinc-400">
+              Assign administrative permissions to {selectedUser.name} ({selectedUser.email}).
             </p>
 
-            <div className="space-y-2">
-              {[
-                { id: 'user', label: 'User (Standard Community Member)' },
-                { id: 'moderator', label: 'Moderator (Can review reported content)' },
-                { id: 'admin', label: 'Admin (Full User & Content Management)' },
-                { id: 'super_admin', label: 'Super Admin (Complete System Ownership)' },
-              ].map((r) => (
-                <label
-                  key={r.id}
-                  className={`flex items-center gap-3 p-3 rounded-xl border transition-all cursor-pointer ${
-                    newRole === r.id
-                      ? 'bg-purple-500/10 border-purple-500/40 text-white'
-                      : 'bg-[#1e1e1e] border-white/5 text-gray-400 hover:text-white'
-                  }`}
-                >
-                  <input
-                    type="radio"
-                    name="roleOption"
-                    value={r.id}
-                    checked={newRole === r.id}
-                    onChange={(e) => setNewRole(e.target.value)}
-                    className="accent-purple-500"
-                  />
-                  <span className="text-xs font-semibold">{r.label}</span>
-                </label>
-              ))}
+            <div>
+              <label className="block text-[11px] font-semibold text-zinc-400 mb-1">
+                Select New Role:
+              </label>
+              <select
+                value={newRole}
+                onChange={(e) => setNewRole(e.target.value)}
+                className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2 text-xs text-zinc-200 focus:outline-none focus:border-zinc-600"
+              >
+                <option value="user">User (Standard Platform Developer)</option>
+                <option value="moderator">Moderator (Content Triage Queue Access)</option>
+                <option value="admin">Admin (User Governance & Full Moderation)</option>
+              </select>
             </div>
 
-            <div className="flex justify-end gap-2.5 pt-2">
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-zinc-800/80">
               <button
                 onClick={() => {
                   setActionModal(null);
                   setSelectedUser(null);
                 }}
-                className="px-4 py-2 rounded-xl text-xs font-semibold text-gray-400 hover:text-white hover:bg-white/5"
+                className="px-3 py-1.5 rounded-lg text-xs font-medium text-zinc-400 hover:text-zinc-200 cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 onClick={handleExecuteRoleChange}
-                className="px-4 py-2 rounded-xl text-xs font-bold bg-purple-600 hover:bg-purple-500 text-white shadow-[0_0_15px_rgba(168,85,247,0.3)] transition-all cursor-pointer"
+                className="px-4 py-1.5 rounded-lg text-xs font-bold bg-[#00F0FF] hover:bg-[#00D8E6] text-black cursor-pointer"
               >
-                Save Role
+                Apply Role
               </button>
             </div>
           </div>

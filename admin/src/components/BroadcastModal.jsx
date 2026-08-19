@@ -1,33 +1,34 @@
-﻿import React, { useState } from 'react';
-import { Megaphone, Send } from 'lucide-react';
+import React, { useState } from 'react';
+import { Megaphone, Send, Radio } from 'lucide-react';
 import { broadcastAnnouncement } from '../api/adminApi';
 import toast from 'react-hot-toast';
 
 const BroadcastModal = () => {
   const [title, setTitle] = useState('');
   const [message, setMessage] = useState('');
-  const [type, setType] = useState('info');
-  const [isBanner, setIsBanner] = useState(true);
+  const [type, setType] = useState('system_alert');
+  const [link, setLink] = useState('');
   const [sending, setSending] = useState(false);
 
   const handleSend = async (e) => {
     e.preventDefault();
-    if (!title.trim() || !message.trim()) {
-      toast.error('Title and message are required');
+    if (!message.trim()) {
+      toast.error('Broadcast message is required');
       return;
     }
 
     setSending(true);
     try {
       const res = await broadcastAnnouncement({
-        title,
-        message,
+        title: title.trim() || 'DevHub System Alert',
+        message: message.trim(),
         type,
-        isBanner,
+        link: link.trim() || null,
       });
-      toast.success(res.message || 'Announcement broadcasted successfully!');
+      toast.success(res.message || 'Announcement broadcasted live to all users!');
       setTitle('');
       setMessage('');
+      setLink('');
     } catch (err) {
       toast.error(err.response?.data?.message || 'Failed to send broadcast');
     } finally {
@@ -36,79 +37,79 @@ const BroadcastModal = () => {
   };
 
   return (
-    <div className="max-w-2xl bg-[#111] border border-white/5 rounded-2xl p-6 shadow-lg space-y-6">
-      <div className="flex items-center gap-3">
-        <div className="w-10 h-10 rounded-xl bg-[#00F0FF]/10 border border-[#00F0FF]/20 flex items-center justify-center text-[#00F0FF] shadow-[0_0_15px_rgba(0,240,255,0.15)]">
-          <Megaphone size={20} />
+    <div className="max-w-2xl bg-[#0D0D10] border border-zinc-800/80 rounded-xl p-6 shadow-sm space-y-5 font-sans">
+      <div className="flex items-center gap-3 pb-4 border-b border-zinc-800/60">
+        <div className="w-8 h-8 rounded-lg bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-300">
+          <Megaphone size={16} />
         </div>
         <div>
-          <h3 className="text-white font-bold text-base">Global Announcement Engine</h3>
-          <p className="text-xs text-gray-400">
-            Transmit real-time system notifications and top banners across all active users.
+          <h3 className="text-sm font-semibold text-zinc-100">Global Notification Broadcast</h3>
+          <p className="text-xs text-zinc-400">
+            Dispatch real-time WebSocket events and in-app alerts to all connected Web & Mobile devices.
           </p>
         </div>
       </div>
 
-      <form onSubmit={handleSend} className="space-y-4">
+      <form onSubmit={handleSend} className="space-y-4 text-xs">
         <div>
-          <label className="block text-xs font-semibold text-gray-300 mb-1.5">Announcement Title</label>
+          <label className="block text-zinc-400 font-medium mb-1">
+            Announcement Title (Optional):
+          </label>
           <input
             type="text"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            placeholder="e.g. Scheduled System Maintenance / Platform Update"
-            className="w-full bg-[#1a1a1a] border border-white/10 rounded-xl px-4 py-2.5 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-[#00F0FF]/50 transition-colors"
+            placeholder="e.g. Scheduled Maintenance / Platform Version Update"
+            className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2 text-xs text-zinc-200 placeholder-zinc-500 focus:outline-none focus:border-zinc-600"
           />
         </div>
 
         <div>
-          <label className="block text-xs font-semibold text-gray-300 mb-1.5">Message Content</label>
+          <label className="block text-zinc-400 font-medium mb-1">
+            Message Body:
+          </label>
           <textarea
+            rows={4}
             value={message}
             onChange={(e) => setMessage(e.target.value)}
-            placeholder="Write your announcement details here..."
-            rows={4}
-            className="w-full bg-[#1a1a1a] border border-white/10 rounded-xl p-3.5 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-[#00F0FF]/50 transition-colors"
+            placeholder="Write the broadcast message that will appear on user screens..."
+            className="w-full bg-zinc-900 border border-zinc-800 rounded-lg p-3 text-xs text-zinc-200 placeholder-zinc-500 focus:outline-none focus:border-zinc-600"
           />
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
-            <label className="block text-xs font-semibold text-gray-300 mb-1.5">Severity Type</label>
+            <label className="block text-zinc-400 font-medium mb-1">Alert Severity:</label>
             <select
               value={type}
               onChange={(e) => setType(e.target.value)}
-              className="w-full bg-[#1a1a1a] border border-white/10 rounded-xl px-3 py-2.5 text-xs text-gray-300 focus:outline-none focus:border-[#00F0FF]/50 cursor-pointer"
+              className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-2.5 py-2 text-xs text-zinc-300 focus:outline-none focus:border-zinc-600 cursor-pointer"
             >
-              <option value="info">Info (Blue)</option>
-              <option value="warning">Warning (Amber)</option>
-              <option value="alert">Critical Alert (Red)</option>
+              <option value="system_alert">System Notice (Standard)</option>
+              <option value="maintenance">Maintenance Alert (Amber)</option>
+              <option value="critical">Critical Security Notice (Red)</option>
             </select>
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-gray-300 mb-1.5">Delivery Scope</label>
-            <div className="flex items-center gap-4 pt-2">
-              <label className="flex items-center gap-2 text-xs text-gray-300 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={isBanner}
-                  onChange={(e) => setIsBanner(e.target.checked)}
-                  className="accent-[#00F0FF]"
-                />
-                Top Site Banner
-              </label>
-            </div>
+            <label className="block text-zinc-400 font-medium mb-1">Action Deep Link (Optional):</label>
+            <input
+              type="text"
+              value={link}
+              onChange={(e) => setLink(e.target.value)}
+              placeholder="e.g. /settings or /feed"
+              className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2 text-xs text-zinc-200 placeholder-zinc-500 focus:outline-none focus:border-zinc-600"
+            />
           </div>
         </div>
 
         <button
           type="submit"
           disabled={sending}
-          className="w-full bg-[#00F0FF] hover:bg-[#00d8e6] text-black font-extrabold text-xs py-3 rounded-xl shadow-[0_0_20px_rgba(0,240,255,0.3)] transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+          className="w-full bg-[#00F0FF] hover:bg-[#00D8E6] text-black font-semibold text-xs py-2.5 rounded-lg transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 mt-2 shadow-sm"
         >
-          <Send size={15} />
-          {sending ? 'Broadcasting to Network...' : 'Send Global Broadcast'}
+          <Send size={13} />
+          <span>{sending ? 'Transmitting Broadcast...' : 'Dispatch Live Broadcast'}</span>
         </button>
       </form>
     </div>
