@@ -190,7 +190,7 @@ const getUserForensics = async (req, res) => {
       postsCount,
       commentsCount,
       connectionsCount,
-      reportsCount,
+      postReportsCount,
       recentPosts,
       auditLogs,
     ] = await Promise.all([
@@ -218,6 +218,8 @@ const getUserForensics = async (req, res) => {
       return res.status(404).json({ message: 'Target user not found' });
     }
 
+    const totalReports = (targetUser.reportsCount || 0) + (postReportsCount || 0);
+
     res.json({
       user: targetUser,
       profile: profile || null,
@@ -225,10 +227,13 @@ const getUserForensics = async (req, res) => {
         postsCount,
         commentsCount,
         connectionsCount,
-        reportsCount,
+        reportsCount: totalReports,
+        userReportsCount: targetUser.reportsCount || 0,
+        postReportsCount: postReportsCount || 0,
         strikesCount: targetUser.strikesCount || 0,
         tokenVersion: targetUser.tokenVersion || 0,
       },
+      userReports: targetUser.reports || [],
       warnings: targetUser.warnings || [],
       recentPosts: recentPosts || [],
       auditLogs: auditLogs || [],
@@ -974,6 +979,67 @@ const reportPostByUser = async (req, res) => {
   }
 };
 
+// @desc    Report a User Account / Developer Profile
+// @route   POST /api/admin/report-user/:id
+// @access  Private
+const reportUserByUser = async (req, res) => {
+  try {
+    const { category, reason, comment } = req.body;
+    const targetUserId = req.params.id;
+    const currentUserId = req.user._id ? req.user._id.toString() : req.user.id;
+
+    if (targetUserId === currentUserId) {
+      return res.status(400).json({ message: 'You cannot report your own account' });
+    }
+
+    const targetUser = await User.findById(targetUserId);
+    if (!targetUser) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    targetUser.reports = targetUser.reports || [];
+    const alreadyReported = targetUser.reports.some(
+      (r) => r.reporter && r.reporter.toString() === currentUserId
+    );
+
+    if (alreadyReported) {
+      return res.status(400).json({ message: 'You have already reported this user account' });
+    }
+
+    const selectedCategory = category || 'spam';
+    targetUser.reports.push({
+      reporter: currentUserId,
+      category: selectedCategory,
+      reason: reason || selectedCategory,
+      comment: comment || '',
+      reportedAt: new Date(),
+    });
+    targetUser.reportsCount = (targetUser.reportsCount || 0) + 1;
+
+    await targetUser.save();
+
+    // Alert Admin Operations Sentinel via Socket
+    try {
+      getIo().emit('new_user_reported', {
+        userId: targetUser._id,
+        userName: targetUser.name,
+        category: selectedCategory,
+        reportsCount: targetUser.reportsCount,
+      });
+    } catch (sockErr) {
+      console.warn('Socket report notification emit skipped:', sockErr.message);
+    }
+
+    res.json({
+      message: 'Thank you. The developer account has been reported to the Trust & Safety team for review.',
+      reportsCount: targetUser.reportsCount,
+    });
+  } catch (error) {
+    console.error('Error in reportUserByUser:', error);
+    res.status(500).json({ message: 'Failed to submit user report' });
+  }
+};
+
 module.exports = {
   getAdminStats,
   getAllUsers,
@@ -993,4 +1059,5 @@ module.exports = {
   getPublicAppConfig,
   getAuditLogs,
   reportPostByUser,
+  reportUserByUser,
 };

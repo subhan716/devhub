@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, cloneElement } from 'react';
 import { createPortal } from 'react-dom';
-import { MapPin, Briefcase, Calendar, Link as LinkIcon, Heart, MessageCircle, Repeat2, GraduationCap, FolderGit2, FileText, Trash2, Plus, Edit3, Image, Copy, MoreHorizontal, Users, Eye, Activity, Award, X, ChevronDown, ChevronLeft, ChevronRight, Share2 } from 'lucide-react';
+import { Flag, MapPin, Briefcase, Calendar, Link as LinkIcon, Heart, MessageCircle, Repeat2, GraduationCap, FolderGit2, FileText, Trash2, Plus, Edit3, Image, Copy, MoreHorizontal, Users, Eye, Activity, Award, X, ChevronDown, ChevronLeft, ChevronRight, Share2 } from 'lucide-react';
 import { useNavigate, useParams, useSearchParams, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
@@ -16,6 +16,7 @@ import ProvidingServicesModal from '../components/profile/ProvidingServicesModal
 import ResumeTemplate from '../components/profile/ResumeTemplate';
 import { PostSkeleton, ProfileHeaderSkeleton } from '../components/common/Skeletons';
 import ConfirmModal from '../components/common/ConfirmModal';
+import ReportUserModal from '../components/common/ReportUserModal';
 import PostCard from '../components/common/PostCard';
 import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas';
@@ -111,6 +112,7 @@ const ProfilePage = () => {
   const [showAllCert, setShowAllCert] = useState(false);
 
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
+  const [isReportUserModalOpen, setIsReportUserModalOpen] = useState(false);
   const resumePdfRef = useRef(null);
 
   const [confirmModal, setConfirmModal] = useState({

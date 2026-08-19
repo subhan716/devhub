@@ -82,6 +82,29 @@ const userSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+    reportsCount: {
+      type: Number,
+      default: 0,
+    },
+    reports: [
+      {
+        reporter: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: 'User',
+        },
+        category: {
+          type: String,
+          enum: ['impersonation', 'harassment', 'spam', 'malicious', 'scam', 'other'],
+          default: 'spam',
+        },
+        reason: String,
+        comment: String,
+        reportedAt: {
+          type: Date,
+          default: Date.now,
+        },
+      },
+    ],
     warnings: [
       {
         reason: { type: String, required: true },

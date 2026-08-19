@@ -19,14 +19,16 @@ const {
   getPublicAppConfig,
   getAuditLogs,
   reportPostByUser,
+  reportUserByUser,
 } = require('../controllers/adminController');
 const { protect, protectAdmin } = require('../middleware/authMiddleware');
 
 // Public Mobile App Handshake Endpoint (Flutter App queries on startup)
 router.get('/public/app-config', getPublicAppConfig);
 
-// Public User Action: Report any post
+// Public User Actions: Report post or user profile
 router.post('/report-post/:id', protect, reportPostByUser);
+router.post('/report-user/:id', protect, reportUserByUser);
 
 // Protected Admin Routes (Requires role: 'admin', 'super_admin', or 'moderator')
 router.get('/stats', protect, protectAdmin, getAdminStats);
