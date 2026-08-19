@@ -197,8 +197,10 @@
   navBar.strokes = [{ type: "SOLID", color: COLORS.cyan, opacity: 0.2 }];
   navBar.strokeWeight = 1;
   navBar.layoutMode = "HORIZONTAL";
-  navBar.primaryAxisAlignItems = "SPACE_AROUND";
+  navBar.primaryAxisAlignItems = "SPACE_BETWEEN";
   navBar.counterAxisAlignItems = "CENTER";
+  navBar.paddingLeft = 24;
+  navBar.paddingRight = 24;
 
   navBar.appendChild(createText("🏠 Feed", 12, "Bold", COLORS.cyan));
   navBar.appendChild(createText("🌐 Network", 12, "Regular", COLORS.gray500));
@@ -284,8 +286,10 @@
   statsBox.strokes = [{ type: "SOLID", color: COLORS.white, opacity: 0.08 }];
   statsBox.strokeWeight = 1;
   statsBox.layoutMode = "HORIZONTAL";
-  statsBox.primaryAxisAlignItems = "SPACE_AROUND";
+  statsBox.primaryAxisAlignItems = "SPACE_BETWEEN";
   statsBox.counterAxisAlignItems = "CENTER";
+  statsBox.paddingLeft = 20;
+  statsBox.paddingRight = 20;
 
   const statItems = [
     { label: "Connections", val: "1.4k" },
@@ -437,7 +441,137 @@
 
   chatScreen.appendChild(chatInput);
 
-  // Zoom to fit generated screens
-  figma.viewport.scrollAndZoomIntoView([feedScreen, profileScreen, chatScreen]);
-  console.log("🎉 SUCCESS: DevHub Mobile Screens generated on Figma Canvas!");
+  // --------------------------------------------------------------------------
+  // SCREEN 4: NETWORK & SUGGESTIONS (iPhone 16 Pro: 393 x 852)
+  // --------------------------------------------------------------------------
+  const networkScreen = figma.createFrame();
+  networkScreen.name = "📱 04 - Network & Developers";
+  networkScreen.resize(393, 852);
+  networkScreen.x = 1320;
+  networkScreen.y = 0;
+  networkScreen.fills = [{ type: "SOLID", color: COLORS.bgDark }];
+  networkScreen.cornerRadius = 48;
+  networkScreen.clipsContent = true;
+
+  // Header
+  const netHeader = figma.createFrame();
+  netHeader.resize(393, 60);
+  netHeader.y = 44;
+  netHeader.fills = [];
+  netHeader.layoutMode = "HORIZONTAL";
+  netHeader.primaryAxisAlignItems = "SPACE_BETWEEN";
+  netHeader.counterAxisAlignItems = "CENTER";
+  netHeader.paddingLeft = 20;
+  netHeader.paddingRight = 20;
+  netHeader.appendChild(createText("Developer Network", 18, "Bold", COLORS.white));
+  networkScreen.appendChild(netHeader);
+
+  // Filter Tabs
+  const tabsRow = figma.createFrame();
+  tabsRow.resize(353, 40);
+  tabsRow.x = 20;
+  tabsRow.y = 110;
+  tabsRow.fills = [];
+  tabsRow.layoutMode = "HORIZONTAL";
+  tabsRow.itemSpacing = 8;
+
+  ["All Developers", "Frontend", "Backend", "AI / ML", "Mobile"].forEach((tab, i) => {
+    const tabPill = figma.createFrame();
+    tabPill.cornerRadius = 10;
+    tabPill.fills = [{ type: "SOLID", color: i === 0 ? COLORS.cyan : COLORS.cardBg }];
+    tabPill.strokes = [{ type: "SOLID", color: i === 0 ? COLORS.cyan : COLORS.white, opacity: 0.1 }];
+    tabPill.strokeWeight = 1;
+    tabPill.paddingLeft = 12;
+    tabPill.paddingRight = 12;
+    tabPill.paddingTop = 8;
+    tabPill.paddingBottom = 8;
+    tabPill.appendChild(createText(tab, 11, "Bold", i === 0 ? COLORS.bgDark : COLORS.gray300));
+    tabsRow.appendChild(tabPill);
+  });
+  networkScreen.appendChild(tabsRow);
+
+  // Recommendation Cards
+  const devCards = [
+    { name: "Elena Rostova", title: "Staff Rust Engineer @Web3Labs", mutual: "18 mutuals" },
+    { name: "Devon Vance", title: "Lead DevOps & Cloud Architect", mutual: "34 mutuals" },
+    { name: "Aria Takahashi", title: "Full-Stack AI Researcher", mutual: "9 mutuals" }
+  ];
+
+  devCards.forEach((dev, idx) => {
+    const dCard = figma.createFrame();
+    dCard.resize(353, 90);
+    dCard.x = 20;
+    dCard.y = 165 + (idx * 105);
+    dCard.cornerRadius = 16;
+    dCard.fills = [{ type: "SOLID", color: COLORS.cardBg }];
+    dCard.strokes = [{ type: "SOLID", color: COLORS.white, opacity: 0.08 }];
+    dCard.strokeWeight = 1;
+    dCard.layoutMode = "HORIZONTAL";
+    dCard.primaryAxisAlignItems = "SPACE_BETWEEN";
+    dCard.counterAxisAlignItems = "CENTER";
+    dCard.paddingLeft = 16;
+    dCard.paddingRight = 16;
+
+    const leftCol = figma.createFrame();
+    leftCol.fills = [];
+    leftCol.layoutMode = "HORIZONTAL";
+    leftCol.counterAxisAlignItems = "CENTER";
+    leftCol.itemSpacing = 12;
+
+    const dAvatar = figma.createFrame();
+    dAvatar.resize(48, 48);
+    dAvatar.cornerRadius = 24;
+    dAvatar.fills = [{ type: "SOLID", color: idx % 2 === 0 ? COLORS.cyan : COLORS.purple }];
+
+    const dInfo = figma.createFrame();
+    dInfo.fills = [];
+    dInfo.layoutMode = "VERTICAL";
+    dInfo.itemSpacing = 2;
+    dInfo.appendChild(createText(dev.name + " ✓", 13, "Bold", COLORS.white));
+    dInfo.appendChild(createText(dev.title, 11, "Regular", COLORS.gray500));
+    dInfo.appendChild(createText("👥 " + dev.mutual, 10, "Medium", COLORS.cyan));
+
+    leftCol.appendChild(dAvatar);
+    leftCol.appendChild(dInfo);
+    dCard.appendChild(leftCol);
+
+    const cBtn = figma.createFrame();
+    cBtn.resize(80, 34);
+    cBtn.cornerRadius = 10;
+    cBtn.fills = [{ type: "SOLID", color: COLORS.cyan }];
+    cBtn.layoutMode = "HORIZONTAL";
+    cBtn.primaryAxisAlignItems = "CENTER";
+    cBtn.counterAxisAlignItems = "CENTER";
+    cBtn.appendChild(createText("Connect", 11, "Bold", COLORS.bgDark));
+    dCard.appendChild(cBtn);
+
+    networkScreen.appendChild(dCard);
+  });
+
+  // Floating Nav Bar for Screen 4
+  const navBar4 = figma.createFrame();
+  navBar4.name = "Floating Bottom Nav Bar";
+  navBar4.resize(353, 64);
+  navBar4.x = 20;
+  navBar4.y = 750;
+  navBar4.cornerRadius = 32;
+  navBar4.fills = [{ type: "SOLID", color: COLORS.cardBg, opacity: 0.95 }];
+  navBar4.strokes = [{ type: "SOLID", color: COLORS.cyan, opacity: 0.2 }];
+  navBar4.strokeWeight = 1;
+  navBar4.layoutMode = "HORIZONTAL";
+  navBar4.primaryAxisAlignItems = "SPACE_BETWEEN";
+  navBar4.counterAxisAlignItems = "CENTER";
+  navBar4.paddingLeft = 24;
+  navBar4.paddingRight = 24;
+
+  navBar4.appendChild(createText("🏠 Feed", 12, "Regular", COLORS.gray500));
+  navBar4.appendChild(createText("🌐 Network", 12, "Bold", COLORS.cyan));
+  navBar4.appendChild(createText("➕", 18, "Bold", COLORS.cyan));
+  navBar4.appendChild(createText("💬 Chat", 12, "Regular", COLORS.gray500));
+  navBar4.appendChild(createText("👤 Profile", 12, "Regular", COLORS.gray500));
+  networkScreen.appendChild(navBar4);
+
+  // Zoom to fit all 4 screens
+  figma.viewport.scrollAndZoomIntoView([feedScreen, profileScreen, chatScreen, networkScreen]);
+  console.log("🎉 SUCCESS: All 4 DevHub Mobile Screens Generated on Figma Canvas!");
 })();
