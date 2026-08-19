@@ -4,13 +4,17 @@
 > **Document Classification:** Master Operations Blueprint & Technical Implementation Standard  
 > **Industry Reference:** LinkedIn Operations Hub, Meta Trust & Safety Sentinel, Stripe Dashboard  
 > **Platform Scope:** Web Application (`localhost:5173`), Mobile Application (iOS & Android Flutter App), Operations Console (`localhost:5174`)  
-> **Backend Stack:** Node.js, Express.js 5.x, MongoDB Atlas, Redis (Mutex/Queues), Socket.IO, Firebase Cloud Messaging (FCM), Apple Push Notification service (APNs)
+> **Backend Stack:** Node.js, Express.js 5.x, MongoDB Atlas, Redis (Mutex/Queues), Socket.IO, Firebase Cloud Messaging (FCM), Apple Push Notification service (APNs)  
+> **Database Architecture Decision:** **Strict Decoupling of Internal Admin Operators (`admin_users`) from Platform End-Users (`users`)** for zero-trust compliance, strict PII isolation, and clean micro-domain boundaries.
 
 ---
 
 ## 📑 Table of Contents
 1. [Executive Ecosystem & High-Concurrency Architecture](#1-executive-ecosystem--high-concurrency-architecture)
 2. [Multi-Tier Role-Based Access Control (RBAC) & Zero-Trust Security](#2-multi-tier-role-based-access-control-rbac--zero-trust-security)
+   - [2.1 Domain Isolation (`admin_users` vs `users`)](#21-domain-isolation-admin_users-vs-users)
+   - [2.2 Role Hierarchy Matrix (L0 to L5)](#22-role-hierarchy-matrix)
+   - [2.3 Cryptographic Scope Array in JWT](#23-cryptographic-scope-array-in-jwt)
 3. [LinkedIn-Grade Trust & Safety Engine (T&S Sentinel)](#3-linkedin-grade-trust--safety-engine-ts-sentinel)
    - [3.1 Distributed Ticket Queue with Mutex Locking (Redis)](#31-distributed-ticket-queue-with-mutex-locking-redis)
    - [3.2 4-Eyes Principle (Dual-Authorization / Maker-Checker)](#32-4-eyes-principle-dual-authorization--maker-checker)
@@ -27,6 +31,10 @@
 6. [Real-Time Telemetry, Network Graph & Business Analytics](#6-real-time-telemetry-network-graph--business-analytics)
 7. [Immutable Security Audit Stream & GDPR Compliance](#7-immutable-security-audit-stream--gdpr-compliance)
 8. [Database Schema Specifications (MongoDB Mongoose)](#8-database-schema-specifications-mongodb-mongoose)
+   - [8.1 Admin User Schema (`backend/src/models/AdminUser.js`)](#81-admin-user-schema)
+   - [8.2 Moderation Ticket Schema (`backend/src/models/ModerationTicket.js`)](#82-moderation-ticket-schema)
+   - [8.3 App Configuration Schema (`backend/src/models/AppConfig.js`)](#83-app-configuration-schema)
+   - [8.4 Audit Log Schema (`backend/src/models/AuditLog.js`)](#84-audit-log-schema)
 9. [Complete Backend Admin API Reference Dictionary](#9-complete-backend-admin-api-reference-dictionary)
 10. [Admin Portal Frontend UI Component Architecture](#10-admin-portal-frontend-ui-component-architecture)
 11. [Step-by-Step Implementation Roadmap](#11-step-by-step-implementation-roadmap)
@@ -50,6 +58,7 @@ DevHub operations are built as a **distributed, event-driven operations control 
 │                 ENTERPRISE ADMIN GATEWAY LAYER (PORT 5000)                  │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │  • RBAC & Scope Interceptor (Zero-Trust L0 to L5 Verification)              │
+│  • Dedicated `admin_users` Authentication & Auth Guard                      │
 │  • Redis Mutex Lock Manager (Distributed Concurrency Protection)            │
 │  • Push Notification Worker (Firebase Cloud Messaging + APNs)               │
 │  • Write-Once-Read-Many (WORM) Immutable Audit Logger                       │
@@ -70,24 +79,27 @@ DevHub operations are built as a **distributed, event-driven operations control 
 
 ## 2. Multi-Tier Role-Based Access Control (RBAC) & Zero-Trust Security
 
-In an enterprise organization, internal personnel operate strictly under the **Principle of Least Privilege (PoLP)**. Moderation staff must not have direct access to database records, user passwords, or billing data.
+### 2.1 Domain Isolation (`admin_users` vs `users`)
+To adhere to enterprise security and regulatory requirements (SOC2, GDPR):
+- **Internal Operators (`admin_users`)**: Stored in a separate, isolated database collection with dedicated password hashing, session expiration, and rate limiting.
+- **Platform End-Users (`users`)**: Purely customer data (developers, designers, recruiters) with no internal administrative fields.
 
-### 2.1 Role Hierarchy Matrix
+### 2.2 Role Hierarchy Matrix
 
 | Tier | Role Key | Target Personnel | Core Scope & Responsibilities |
 | :--- | :--- | :--- | :--- |
-| **L5: Super Admin** | `super_admin` | CTO, Founders, Execs | Full platform control, RBAC role granting, database disaster recovery, global app killswitch, raw API keys, brand settings. |
+| **L5: Super Admin** | `super_admin` | CTO, Founders (`devhubapp.support@gmail.com`) | Full platform control, RBAC role granting, database disaster recovery, global app killswitch, raw API keys, brand settings. |
 | **L4: Operations Manager** | `ops_manager` | T&S Leads, Operations Heads | 4-Eyes approval review, moderator shift management, spam filter threshold tuning, broadcast announcements. |
 | **L3: Safety & Compliance Officer**| `safety_officer` | Senior Compliance Staff | Account suspension, legal/DMCA takedowns, child safety/harassment triage, GDPR data erasures. |
 | **L2: Content Moderator** | `moderator` | Content Moderation Team | Review reported posts/comments, dismiss false flags, delete spam, apply user warnings. *(User PII masked)*. |
 | **L1: Support Specialist** | `support_agent` | Customer Service Staff | OTP assistance, profile recovery, ticket handling. Read-only profile view with masked emails. |
 | **L0: Growth & BI Analyst** | `analyst` | Data & Marketing Teams | Read-only access to anonymized analytics, retention cohorts, DAU/MAU metrics, conversion funnels. |
 
-### 2.2 Cryptographic Scope Array in JWT
+### 2.3 Cryptographic Scope Array in JWT
 Every administrative action verifies granular scopes embedded in the session:
 ```json
 {
-  "adminId": "6a4b768c2b2666032d989e81",
+  "adminId": "6a8584640d6872a2ba3e7bb9",
   "role": "super_admin",
   "scopes": [
     "users:read", "users:write", "users:suspend", "users:badge", "users:role",
@@ -171,7 +183,7 @@ Controls minimum supported mobile versions dynamically from the admin panel with
 }
 ```
 
-- **Flutter Client Handshake (`/api/app/config`):**
+- **Flutter Client Handshake (`/api/admin/public/app-config`):**
   - If `installed_version < minVersion` AND `forceUpdate == true` ➔ App displays a non-dismissible modal directing user to App Store / Play Store.
 
 ### 4.2 Over-The-Air (OTA) Feature Flags & Dynamic Killswitches
@@ -183,7 +195,7 @@ Admins can toggle mobile features instantly across all active apps:
 
 ### 4.3 Remote Session Invalidation & Device Killswitch
 - **1-Click Remote Invalidation:** When an account is suspended or reported for fraud, the admin triggers `POST /api/admin/users/:id/revoke-sessions`.
-- Backend increments `user.tokenVersion`. On the next API request from the Flutter app, the `DioClient` interceptor receives `401 Unauthorized` and clears local `FlutterSecureStorage`, returning the app to the login screen.
+- Backend clears `user.refreshToken`. On the next API request from the Flutter app, the `DioClient` interceptor receives `401 Unauthorized` and clears local `FlutterSecureStorage`, returning the app to the login screen.
 
 ### 4.4 Enterprise Push Notification Broadcast Engine (FCM / APNs)
 - Multi-Channel Broadcast Manager:
@@ -202,7 +214,7 @@ Admins can toggle mobile features instantly across all active apps:
 
 ### 5.1 Multi-Category Verification Authority (Badges & Tiers)
 1-Click verification badge assignment across developer and creator categories:
-- 🔵 **Verified Developer / Architect:** Industry professional badge.
+- 🔵 **Verified Developer / Architect:** Industry professional badge (`isVerifiedBadge: true`).
 - 🌟 **Top Open-Source Creator:** Star contributor badge.
 - 🏢 **Official Organization / Enterprise:** Corporate recruitment badge.
 
@@ -242,9 +254,9 @@ Every mutation made by any admin is recorded in an **immutable, append-only data
   "_id": "6a4b768c...",
   "timestamp": "2026-08-19T14:45:00.000Z",
   "actor": {
-    "adminId": "6a4b768c2b2666032d989e81",
-    "name": "Subhan Shahid",
-    "email": "subhanshahid839@gmail.com",
+    "adminId": "6a8584640d6872a2ba3e7bb9",
+    "name": "DevHub Root Administrator",
+    "email": "devhubapp.support@gmail.com",
     "role": "super_admin"
   },
   "action": "USER_SUSPENDED",
@@ -258,22 +270,48 @@ Every mutation made by any admin is recorded in an **immutable, append-only data
     "previousState": { "isSuspended": false },
     "newState": { "isSuspended": true }
   },
-  "metadata": {
-    "ipAddress": "192.168.1.15",
-    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/128.0"
-  }
+  "ipAddress": "192.168.1.15",
+  "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/128.0"
 }
 ```
-
-- **GDPR 1-Click Compliance:**
-  - Export User Data Package (JSON archive of posts, comments, messages, profile).
-  - Cryptographic Hard Erasure ("Right to be Forgotten").
 
 ---
 
 ## 8. Database Schema Specifications (MongoDB Mongoose)
 
-### 8.1 Moderation Ticket Schema (`backend/src/models/ModerationTicket.js`)
+### 8.1 Admin User Schema (`backend/src/models/AdminUser.js`)
+```javascript
+const mongoose = require('mongoose');
+
+const adminUserSchema = new mongoose.Schema({
+  name: { type: String, required: true, trim: true },
+  email: { type: String, required: true, unique: true, lowercase: true },
+  passwordHash: { type: String, required: true, select: false },
+  role: { 
+    type: String, 
+    enum: ['super_admin', 'ops_manager', 'safety_officer', 'moderator', 'support_agent', 'analyst'], 
+    default: 'super_admin' 
+  },
+  scopes: [{ type: String }],
+  isActive: { type: Boolean, default: true },
+  twoFactorEnabled: { type: Boolean, default: false },
+  twoFactorSecret: { type: String, select: false },
+  lastLoginAt: { type: Date },
+  lastLoginIp: { type: String },
+  failedLoginAttempts: { type: Number, default: 0 },
+  lockUntil: { type: Date },
+  maxDailyActions: { type: Number, default: 2000 },
+  dailyActionsCount: { type: Number, default: 0 },
+  refreshToken: { type: String, select: false }
+}, { timestamps: true });
+
+adminUserSchema.index({ email: 1 }, { unique: true });
+adminUserSchema.index({ role: 1, isActive: 1 });
+
+module.exports = mongoose.model('AdminUser', adminUserSchema);
+```
+
+### 8.2 Moderation Ticket Schema (`backend/src/models/ModerationTicket.js`)
 ```javascript
 const mongoose = require('mongoose');
 
@@ -297,17 +335,19 @@ const moderationTicketSchema = new mongoose.Schema({
     enum: ['pending', 'locked', 'resolved', 'dismissed', 'escalated'], 
     default: 'pending' 
   },
-  lockedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  lockedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'AdminUser' },
   lockedUntil: { type: Date },
-  resolvedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  resolvedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'AdminUser' },
   resolutionAction: { type: String, enum: ['deleted', 'warned', 'shadowbanned', 'dismissed'] },
   resolutionNotes: { type: String },
 }, { timestamps: true });
 
+moderationTicketSchema.index({ status: 1, priority: 1, createdAt: 1 });
+
 module.exports = mongoose.model('ModerationTicket', moderationTicketSchema);
 ```
 
-### 8.2 App Configuration Schema (`backend/src/models/AppConfig.js`)
+### 8.3 App Configuration Schema (`backend/src/models/AppConfig.js`)
 ```javascript
 const mongoose = require('mongoose');
 
@@ -334,34 +374,39 @@ const appConfigSchema = new mongoose.Schema({
   featureFlags: {
     codeSharing: { type: Boolean, default: true },
     videoUploads: { type: Boolean, default: true },
-    aiAssistant: { type: Boolean, default: true },
+    directMessaging: { type: Boolean, default: true },
   }
 }, { timestamps: true });
+
+appConfigSchema.index({ key: 1 }, { unique: true });
 
 module.exports = mongoose.model('AppConfig', appConfigSchema);
 ```
 
-### 8.3 Audit Log Schema (`backend/src/models/AuditLog.js`)
+### 8.4 Audit Log Schema (`backend/src/models/AuditLog.js`)
 ```javascript
 const mongoose = require('mongoose');
 
 const auditLogSchema = new mongoose.Schema({
   actor: {
-    adminId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    adminId: { type: mongoose.Schema.Types.ObjectId, ref: 'AdminUser', required: true },
     name: { type: String, required: true },
     email: { type: String, required: true },
     role: { type: String, required: true },
   },
-  action: { type: String, required: true },
+  action: { type: String, required: true, index: true },
   target: {
     entityType: { type: String, required: true },
     entityId: { type: mongoose.Schema.Types.ObjectId },
     targetEmail: { type: String },
+    targetName: { type: String },
   },
   details: { type: mongoose.Schema.Types.Mixed },
   ipAddress: { type: String },
   userAgent: { type: String },
 }, { timestamps: true });
+
+auditLogSchema.index({ createdAt: -1 });
 
 module.exports = mongoose.model('AuditLog', auditLogSchema);
 ```
@@ -374,19 +419,19 @@ All routes are mounted under `/api/admin` and protected by `protect` and `protec
 
 | Method | Endpoint | Allowed Roles | Request Body Schema | Description |
 | :--- | :--- | :--- | :--- | :--- |
-| `GET` | `/api/admin/stats` | All Roles | — | Platform telemetry: users, active sockets, posts, pending tickets. |
-| `GET` | `/api/admin/users` | All Roles | `?page=1&limit=20&search=...&role=...&status=...` | Paginated user management table. |
-| `PUT` | `/api/admin/users/:id/status` | `admin`, `super_admin` | `{ "isSuspended": boolean, "reason": string }` | Suspend or reactivate user account. |
-| `PUT` | `/api/admin/users/:id/badge` | `admin`, `super_admin` | `{ "isVerifiedBadge": boolean }` | Toggle official verified checkmark. |
+| `GET` | `/api/admin/stats` | All Admin Roles | — | Platform telemetry: users, active sockets, posts, pending tickets. |
+| `GET` | `/api/admin/users` | All Admin Roles | `?page=1&limit=20&search=...&role=...&status=...` | Paginated user management table. |
+| `PUT` | `/api/admin/users/:id/status` | `admin`, `super_admin` | `{ "action": "toggleSuspend" \| "toggleShadowban", "reason": string }` | Suspend or shadowban user account. |
+| `PUT` | `/api/admin/users/:id/badge` | `admin`, `super_admin` | — | 1-Click Toggle verified checkmark badge (`isVerifiedBadge`). |
 | `PUT` | `/api/admin/users/:id/role` | `super_admin` | `{ "role": "user" \| "moderator" \| "admin" }` | Change user RBAC permission role. |
-| `POST`| `/api/admin/users/:id/revoke-sessions` | `super_admin` | — | Invalidates all active mobile & web sessions. |
-| `GET` | `/api/admin/reports` | All Roles | `?status=pending&priority=high&page=1` | Content moderation triage queue. |
-| `POST`| `/api/admin/reports/:id/lock` | `moderator`, `admin` | — | Locks report ticket for 5 minutes (Mutex). |
-| `POST`| `/api/admin/reports/:id/action` | All Roles | `{ "action": "delete" \| "dismiss" \| "shadowban", "reason": string }` | Resolve reported content. |
-| `POST`| `/api/admin/broadcast` | `admin`, `super_admin` | `{ "title": string, "message": string, "sendPush": boolean, "target": string }` | Dispatch multi-channel broadcast alert. |
-| `GET` | `/api/admin/app-config` | All Roles | — | Fetch mobile app versioning and feature flags. |
+| `POST`| `/api/admin/users/:id/revoke-sessions` | `super_admin` | `{ "reason": string }` | Invalidate all active mobile & web refresh tokens. |
+| `GET` | `/api/admin/reports` | All Admin Roles | `?status=pending&priority=high&page=1` | Content moderation triage queue. |
+| `POST`| `/api/admin/reports/:id/action` | All Admin Roles | `{ "action": "delete" \| "dismiss" \| "delete_and_ban", "reason": string }` | Resolve reported content. |
+| `POST`| `/api/admin/broadcast` | `admin`, `super_admin` | `{ "title": string, "message": string, "type": string, "link": string }` | Dispatch multi-channel broadcast alert. |
+| `GET` | `/api/admin/app-config` | All Admin Roles | — | Fetch mobile app versioning and feature flags. |
 | `PUT` | `/api/admin/app-config` | `super_admin` | `{ "android": { ... }, "ios": { ... }, "maintenanceMode": { ... } }` | Update mobile app version rules. |
-| `GET` | `/api/admin/audit-logs` | `super_admin` | `?page=1&limit=50&adminId=...&action=...` | Query immutable audit forensics trail. |
+| `GET` | `/api/admin/public/app-config`| Public | — | Flutter Mobile app handshake on startup. |
+| `GET` | `/api/admin/audit-logs` | `super_admin` | `?page=1&limit=50` | Query immutable audit forensics trail. |
 
 ---
 
@@ -433,17 +478,15 @@ admin/src/
 
 ```mermaid
 graph TD
-    A[Phase 1: Backend Admin API Extension & Mongoose Schemas] --> B[Phase 2: Admin Dashboard & Telemetry UI]
-    B --> C[Phase 3: User Management & Verified Badge Engine]
-    C --> D[Phase 4: Trust & Safety Moderation Console]
-    D --> E[Phase 5: Mobile App Fleet Controls & Push Broadcast]
+    A[Phase 1: Decoupled AdminUser Schema & Backend APIs] --> B[Phase 2: Admin Dashboard & Telemetry UI]
+    B --> C[Phase 3: User Governance & 1-Click Badge Engine]
+    C --> D[Phase 4: Content Moderation & Triage Console]
+    D --> E[Phase 5: Mobile App Version Gate & Push Dispatch UI]
     E --> F[Phase 6: Immutable Audit Forensics & Security Hardening]
 ```
 
-- [x] **Milestone 0:** Super Admin account created (`subhanshahid839@gmail.com` / `drox12345`) and verified.
-- [ ] **Phase 1 (Backend APIs):** Create `AuditLog`, `AppConfig`, and `ModerationTicket` schemas; implement controllers for `/api/admin/*`.
-- [ ] **Phase 2 (Dashboard UI):** Build live metrics cards on `AdminDashboardPage.jsx` connected to live backend data.
-- [ ] **Phase 3 (User Management):** Build `UsersManagementPage.jsx` with live search, role dropdown, suspension modal, and 1-click verified badge toggle.
-- [ ] **Phase 4 (Content Moderation):** Build `ContentModerationPage.jsx` with 1-click Delete, Dismiss, and Shadowban actions.
-- [ ] **Phase 5 (Mobile Fleet & Broadcast):** Build `MobileAppConfigPage.jsx` and `BroadcastPage.jsx` for push notification dispatch.
-- [ ] **Phase 6 (Audit Logs):** Build `AuditLogsPage.jsx` for full security forensics.
+- [x] **Milestone 1:** Decoupled `admin_users` collection & Super Admin `devhubapp.support@gmail.com` active.
+- [x] **Milestone 2:** Reverted `subhanshahid839@gmail.com` to regular user.
+- [x] **Milestone 3:** Enterprise Database indexes synced in MongoDB Atlas.
+- [x] **Milestone 4:** Complete `/api/admin/*` REST API suite active.
+- [ ] **Milestone 5:** Admin Frontend UI tabs (Mobile Versioning, Audit Logs, 1-Click Badge) completed.
