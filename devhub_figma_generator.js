@@ -7,7 +7,7 @@
 // ============================================================================
 
 (async function generateDevHubProductionSystem() {
-  console.log("🚀 Initializing Master DevHub Production Mobile Design System...");
+  console.log("🚀 Initializing Master DevHub Production Mobile Design System with Auth Screens...");
 
   // Load essential fonts with fallback
   try {
@@ -32,9 +32,9 @@
 
   // World-Class Obsidian & Neon Palette (sRGB 0-1)
   const C = {
-    bg: { r: 9/255, g: 10/255, b: 15/255 },             // #090A0F (Obsidian Dark)
+    bg: { r: 10/255, g: 10/255, b: 10/255 },            // #0A0A0A (Exact Web App Background)
     card: { r: 18/255, g: 20/255, b: 28/255 },         // #12141C (Surface Card)
-    cardBorder: { r: 30/255, g: 34/255, b: 48/255 },   // #1E2230
+    cardBorder: { r: 35/255, g: 38/255, b: 50/255 },   // #232632
     codeBg: { r: 7/255, g: 8/255, b: 11/255 },         // #07080B
     cyan: { r: 0/255, g: 240/255, b: 255/255 },         // #00F0FF (Primary Neon)
     indigo: { r: 99/255, g: 102/255, b: 241/255 },     // #6366F1
@@ -854,12 +854,339 @@
   netScreen.appendChild(buildDock("network"));
 
   // ==========================================================================
-  // 🎨 BOARD 5: DESIGN TOKENS & SPECS
+  // 📱 SCREEN 5: LOGIN & AUTHENTICATION (EXACT WEB APP MATCH)
+  // ==========================================================================
+  const loginScreen = figma.createFrame();
+  loginScreen.name = "📱 05 - Login & Workspace Auth";
+  loginScreen.resize(393, 852);
+  loginScreen.x = 1720; loginScreen.y = 0;
+  loginScreen.fills = [{ type: "SOLID", color: C.bg }];
+  loginScreen.cornerRadius = 50;
+  loginScreen.clipsContent = true;
+  loginScreen.appendChild(buildStatusBar());
+
+  const loginContent = figma.createFrame();
+  loginContent.resize(361, 740);
+  loginContent.x = 16; loginContent.y = 56;
+  loginContent.fills = [];
+  loginContent.layoutMode = "VERTICAL";
+  loginContent.counterAxisAlignItems = "CENTER";
+  loginContent.itemSpacing = 16;
+
+  // Header Logo
+  const logoBox = figma.createFrame();
+  logoBox.resize(48, 48);
+  logoBox.cornerRadius = 14;
+  logoBox.fills = [{ type: "SOLID", color: C.card }];
+  logoBox.strokes = [{ type: "SOLID", color: C.cyan, opacity: 0.5 }];
+  logoBox.layoutMode = "HORIZONTAL";
+  logoBox.primaryAxisAlignItems = "CENTER";
+  logoBox.counterAxisAlignItems = "CENTER";
+  addGlow(logoBox, C.cyan, 16, 0.4);
+  logoBox.appendChild(txt("⬡", 24, "Bold", C.cyan));
+  loginContent.appendChild(logoBox);
+
+  const lTitleRow = figma.createFrame();
+  lTitleRow.fills = [];
+  lTitleRow.layoutMode = "HORIZONTAL";
+  lTitleRow.itemSpacing = 2;
+  lTitleRow.appendChild(txt("Dev", 22, "Bold", C.white));
+  lTitleRow.appendChild(txt("Hub", 22, "Bold", C.cyan));
+  loginContent.appendChild(lTitleRow);
+
+  loginContent.appendChild(txt("Access Your Workspace", 20, "Bold", C.white));
+  
+  const subRow = figma.createFrame();
+  subRow.fills = [];
+  subRow.layoutMode = "HORIZONTAL";
+  subRow.itemSpacing = 4;
+  subRow.appendChild(txt("New to DevHub?", 12.5, "Regular", C.tMuted));
+  subRow.appendChild(txt("Initialize an identity", 12.5, "Bold", C.cyan));
+  loginContent.appendChild(subRow);
+
+  // Form Card
+  const loginForm = figma.createFrame();
+  loginForm.layoutAlign = "STRETCH";
+  loginForm.cornerRadius = 24;
+  loginForm.fills = [{ type: "SOLID", color: C.card }];
+  loginForm.strokes = [{ type: "SOLID", color: C.cardBorder }];
+  loginForm.layoutMode = "VERTICAL";
+  loginForm.paddingLeft = 20; loginForm.paddingRight = 20; loginForm.paddingTop = 24; loginForm.paddingBottom = 24;
+  loginForm.itemSpacing = 14;
+
+  // Email Field
+  loginForm.appendChild(txt("Email Address", 12, "Medium", C.tSecondary));
+  const emailInp = figma.createFrame();
+  emailInp.layoutAlign = "STRETCH";
+  emailInp.resize(321, 46);
+  emailInp.cornerRadius = 12;
+  emailInp.fills = [{ type: "SOLID", color: C.bg }];
+  emailInp.strokes = [{ type: "SOLID", color: C.white, opacity: 0.1 }];
+  emailInp.layoutMode = "HORIZONTAL";
+  emailInp.counterAxisAlignItems = "CENTER";
+  emailInp.paddingLeft = 14; emailInp.itemSpacing = 10;
+  emailInp.appendChild(txt("✉", 14, "Regular", C.tMuted));
+  emailInp.appendChild(txt("subhan@gmail.com", 13, "Regular", C.white));
+  loginForm.appendChild(emailInp);
+
+  // Password Field
+  loginForm.appendChild(txt("Password", 12, "Medium", C.tSecondary));
+  const passInp = figma.createFrame();
+  passInp.layoutAlign = "STRETCH";
+  passInp.resize(321, 46);
+  passInp.cornerRadius = 12;
+  passInp.fills = [{ type: "SOLID", color: C.bg }];
+  passInp.strokes = [{ type: "SOLID", color: C.white, opacity: 0.1 }];
+  passInp.layoutMode = "HORIZONTAL";
+  passInp.counterAxisAlignItems = "CENTER";
+  passInp.paddingLeft = 14; passInp.itemSpacing = 10;
+  passInp.appendChild(txt("🔒", 14, "Regular", C.tMuted));
+  passInp.appendChild(txt("••••••••••••", 13, "Regular", C.white));
+  loginForm.appendChild(passInp);
+
+  const forgotRow = figma.createFrame();
+  forgotRow.layoutAlign = "STRETCH";
+  forgotRow.fills = [];
+  forgotRow.layoutMode = "HORIZONTAL";
+  forgotRow.primaryAxisAlignItems = "MAX";
+  forgotRow.appendChild(txt("Forgot your password?", 11.5, "Medium", C.cyan));
+  loginForm.appendChild(forgotRow);
+
+  // Submit Button
+  const btnSubmit = figma.createFrame();
+  btnSubmit.layoutAlign = "STRETCH";
+  btnSubmit.resize(321, 48);
+  btnSubmit.cornerRadius = 14;
+  btnSubmit.fills = [{ type: "SOLID", color: C.cyan }];
+  addGlow(btnSubmit, C.cyan, 18, 0.35);
+  btnSubmit.layoutMode = "HORIZONTAL";
+  btnSubmit.primaryAxisAlignItems = "CENTER";
+  btnSubmit.counterAxisAlignItems = "CENTER";
+  btnSubmit.itemSpacing = 8;
+  btnSubmit.appendChild(txt("Sign in", 14, "Bold", C.bg));
+  btnSubmit.appendChild(txt("➔", 14, "Bold", C.bg));
+  loginForm.appendChild(btnSubmit);
+
+  // Social Auth
+  const orRow = figma.createFrame();
+  orRow.layoutAlign = "STRETCH";
+  orRow.fills = [];
+  orRow.layoutMode = "HORIZONTAL";
+  orRow.primaryAxisAlignItems = "CENTER";
+  orRow.paddingTop = 6;
+  orRow.appendChild(txt("Or continue with", 11.5, "Medium", C.tMuted));
+  loginForm.appendChild(orRow);
+
+  const socialGrid = figma.createFrame();
+  socialGrid.layoutAlign = "STRETCH";
+  socialGrid.fills = [];
+  socialGrid.layoutMode = "HORIZONTAL";
+  socialGrid.primaryAxisAlignItems = "SPACE_BETWEEN";
+  socialGrid.itemSpacing = 10;
+
+  const btnGoogle = figma.createFrame();
+  btnGoogle.resize(155, 42);
+  btnGoogle.cornerRadius = 12;
+  btnGoogle.fills = [{ type: "SOLID", color: C.bg }];
+  btnGoogle.strokes = [{ type: "SOLID", color: C.white, opacity: 0.1 }];
+  btnGoogle.layoutMode = "HORIZONTAL";
+  btnGoogle.primaryAxisAlignItems = "CENTER";
+  btnGoogle.counterAxisAlignItems = "CENTER";
+  btnGoogle.itemSpacing = 8;
+  btnGoogle.appendChild(txt("G", 14, "Bold", C.white));
+  btnGoogle.appendChild(txt("Google", 12.5, "Medium", C.white));
+  socialGrid.appendChild(btnGoogle);
+
+  const btnGithub = figma.createFrame();
+  btnGithub.resize(155, 42);
+  btnGithub.cornerRadius = 12;
+  btnGithub.fills = [{ type: "SOLID", color: C.bg }];
+  btnGithub.strokes = [{ type: "SOLID", color: C.white, opacity: 0.1 }];
+  btnGithub.layoutMode = "HORIZONTAL";
+  btnGithub.primaryAxisAlignItems = "CENTER";
+  btnGithub.counterAxisAlignItems = "CENTER";
+  btnGithub.itemSpacing = 8;
+  btnGithub.appendChild(txt("⌥", 14, "Bold", C.white));
+  btnGithub.appendChild(txt("GitHub", 12.5, "Medium", C.white));
+  socialGrid.appendChild(btnGithub);
+
+  loginForm.appendChild(socialGrid);
+  loginContent.appendChild(loginForm);
+  loginScreen.appendChild(loginContent);
+
+  // ==========================================================================
+  // 📱 SCREEN 6: REGISTER & JOIN NETWORK (EXACT WEB APP MATCH)
+  // ==========================================================================
+  const regScreen = figma.createFrame();
+  regScreen.name = "📱 06 - Register & Identity Init";
+  regScreen.resize(393, 852);
+  regScreen.x = 2150; regScreen.y = 0;
+  regScreen.fills = [{ type: "SOLID", color: C.bg }];
+  regScreen.cornerRadius = 50;
+  regScreen.clipsContent = true;
+  regScreen.appendChild(buildStatusBar());
+
+  const regContent = figma.createFrame();
+  regContent.resize(361, 740);
+  regContent.x = 16; regContent.y = 56;
+  regContent.fills = [];
+  regContent.layoutMode = "VERTICAL";
+  regContent.counterAxisAlignItems = "CENTER";
+  regContent.itemSpacing = 14;
+
+  const regLogoBox = figma.createFrame();
+  regLogoBox.resize(48, 48);
+  regLogoBox.cornerRadius = 14;
+  regLogoBox.fills = [{ type: "SOLID", color: C.card }];
+  regLogoBox.strokes = [{ type: "SOLID", color: C.cyan, opacity: 0.5 }];
+  regLogoBox.layoutMode = "HORIZONTAL";
+  regLogoBox.primaryAxisAlignItems = "CENTER";
+  regLogoBox.counterAxisAlignItems = "CENTER";
+  addGlow(regLogoBox, C.cyan, 16, 0.4);
+  regLogoBox.appendChild(txt("⬡", 24, "Bold", C.cyan));
+  regContent.appendChild(regLogoBox);
+
+  const regTitleRow = figma.createFrame();
+  regTitleRow.fills = [];
+  regTitleRow.layoutMode = "HORIZONTAL";
+  regTitleRow.itemSpacing = 2;
+  regTitleRow.appendChild(txt("Dev", 22, "Bold", C.white));
+  regTitleRow.appendChild(txt("Hub", 22, "Bold", C.cyan));
+  regContent.appendChild(regTitleRow);
+
+  regContent.appendChild(txt("Join the Developer Network", 20, "Bold", C.white));
+
+  const regSubRow = figma.createFrame();
+  regSubRow.fills = [];
+  regSubRow.layoutMode = "HORIZONTAL";
+  regSubRow.itemSpacing = 4;
+  regSubRow.appendChild(txt("Already have an account?", 12.5, "Regular", C.tMuted));
+  regSubRow.appendChild(txt("Sign in here", 12.5, "Bold", C.cyan));
+  regContent.appendChild(regSubRow);
+
+  const regForm = figma.createFrame();
+  regForm.layoutAlign = "STRETCH";
+  regForm.cornerRadius = 24;
+  regForm.fills = [{ type: "SOLID", color: C.card }];
+  regForm.strokes = [{ type: "SOLID", color: C.cardBorder }];
+  regForm.layoutMode = "VERTICAL";
+  regForm.paddingLeft = 20; regForm.paddingRight = 20; regForm.paddingTop = 20; regForm.paddingBottom = 20;
+  regForm.itemSpacing = 12;
+
+  // Name Field
+  regForm.appendChild(txt("Developer Name", 12, "Medium", C.tSecondary));
+  const nameInp = figma.createFrame();
+  nameInp.layoutAlign = "STRETCH";
+  nameInp.resize(321, 44);
+  nameInp.cornerRadius = 12;
+  nameInp.fills = [{ type: "SOLID", color: C.bg }];
+  nameInp.strokes = [{ type: "SOLID", color: C.white, opacity: 0.1 }];
+  nameInp.layoutMode = "HORIZONTAL";
+  nameInp.counterAxisAlignItems = "CENTER";
+  nameInp.paddingLeft = 14; nameInp.itemSpacing = 10;
+  nameInp.appendChild(txt("👤", 14, "Regular", C.tMuted));
+  nameInp.appendChild(txt("Subhan Chaudhry", 13, "Regular", C.white));
+  regForm.appendChild(nameInp);
+
+  // Email Field
+  regForm.appendChild(txt("Email Address", 12, "Medium", C.tSecondary));
+  const regEmailInp = figma.createFrame();
+  regEmailInp.layoutAlign = "STRETCH";
+  regEmailInp.resize(321, 44);
+  regEmailInp.cornerRadius = 12;
+  regEmailInp.fills = [{ type: "SOLID", color: C.bg }];
+  regEmailInp.strokes = [{ type: "SOLID", color: C.white, opacity: 0.1 }];
+  regEmailInp.layoutMode = "HORIZONTAL";
+  regEmailInp.counterAxisAlignItems = "CENTER";
+  regEmailInp.paddingLeft = 14; regEmailInp.itemSpacing = 10;
+  regEmailInp.appendChild(txt("✉", 14, "Regular", C.tMuted));
+  regEmailInp.appendChild(txt("subhan@gmail.com", 13, "Regular", C.white));
+  regForm.appendChild(regEmailInp);
+
+  // Password Field
+  regForm.appendChild(txt("Password", 12, "Medium", C.tSecondary));
+  const regPassInp = figma.createFrame();
+  regPassInp.layoutAlign = "STRETCH";
+  regPassInp.resize(321, 44);
+  regPassInp.cornerRadius = 12;
+  regPassInp.fills = [{ type: "SOLID", color: C.bg }];
+  regPassInp.strokes = [{ type: "SOLID", color: C.white, opacity: 0.1 }];
+  regPassInp.layoutMode = "HORIZONTAL";
+  regPassInp.counterAxisAlignItems = "CENTER";
+  regPassInp.paddingLeft = 14; regPassInp.itemSpacing = 10;
+  regPassInp.appendChild(txt("🔒", 14, "Regular", C.tMuted));
+  regPassInp.appendChild(txt("••••••••••••", 13, "Regular", C.white));
+  regForm.appendChild(regPassInp);
+
+  // Submit Button
+  const btnInit = figma.createFrame();
+  btnInit.layoutAlign = "STRETCH";
+  btnInit.resize(321, 48);
+  btnInit.cornerRadius = 14;
+  btnInit.fills = [{ type: "SOLID", color: C.cyan }];
+  addGlow(btnInit, C.cyan, 18, 0.35);
+  btnInit.layoutMode = "HORIZONTAL";
+  btnInit.primaryAxisAlignItems = "CENTER";
+  btnInit.counterAxisAlignItems = "CENTER";
+  btnInit.itemSpacing = 8;
+  btnInit.appendChild(txt("Initialize Profile", 14, "Bold", C.bg));
+  btnInit.appendChild(txt("➔", 14, "Bold", C.bg));
+  regForm.appendChild(btnInit);
+
+  // Social Auth
+  const regOrRow = figma.createFrame();
+  regOrRow.layoutAlign = "STRETCH";
+  regOrRow.fills = [];
+  regOrRow.layoutMode = "HORIZONTAL";
+  regOrRow.primaryAxisAlignItems = "CENTER";
+  regOrRow.paddingTop = 4;
+  regOrRow.appendChild(txt("Or continue with", 11.5, "Medium", C.tMuted));
+  regForm.appendChild(regOrRow);
+
+  const regSocialGrid = figma.createFrame();
+  regSocialGrid.layoutAlign = "STRETCH";
+  regSocialGrid.fills = [];
+  regSocialGrid.layoutMode = "HORIZONTAL";
+  regSocialGrid.primaryAxisAlignItems = "SPACE_BETWEEN";
+  regSocialGrid.itemSpacing = 10;
+
+  const regGoogle = figma.createFrame();
+  regGoogle.resize(155, 40);
+  regGoogle.cornerRadius = 12;
+  regGoogle.fills = [{ type: "SOLID", color: C.bg }];
+  regGoogle.strokes = [{ type: "SOLID", color: C.white, opacity: 0.1 }];
+  regGoogle.layoutMode = "HORIZONTAL";
+  regGoogle.primaryAxisAlignItems = "CENTER";
+  regGoogle.counterAxisAlignItems = "CENTER";
+  regGoogle.itemSpacing = 8;
+  regGoogle.appendChild(txt("G", 14, "Bold", C.white));
+  regGoogle.appendChild(txt("Google", 12.5, "Medium", C.white));
+  regSocialGrid.appendChild(regGoogle);
+
+  const regGithub = figma.createFrame();
+  regGithub.resize(155, 40);
+  regGithub.cornerRadius = 12;
+  regGithub.fills = [{ type: "SOLID", color: C.bg }];
+  regGithub.strokes = [{ type: "SOLID", color: C.white, opacity: 0.1 }];
+  regGithub.layoutMode = "HORIZONTAL";
+  regGithub.primaryAxisAlignItems = "CENTER";
+  regGithub.counterAxisAlignItems = "CENTER";
+  regGithub.itemSpacing = 8;
+  regGithub.appendChild(txt("⌥", 14, "Bold", C.white));
+  regGithub.appendChild(txt("GitHub", 12.5, "Medium", C.white));
+  regSocialGrid.appendChild(regGithub);
+
+  regForm.appendChild(regSocialGrid);
+  regContent.appendChild(regForm);
+  regScreen.appendChild(regContent);
+
+  // ==========================================================================
+  // 🎨 BOARD 7: DESIGN TOKENS & SPECS
   // ==========================================================================
   const dsBoard = figma.createFrame();
-  dsBoard.name = "🎨 05 - Design Tokens & Styles";
+  dsBoard.name = "🎨 07 - Design Tokens & Styles";
   dsBoard.resize(393, 852);
-  dsBoard.x = 1720; dsBoard.y = 0;
+  dsBoard.x = 2580; dsBoard.y = 0;
   dsBoard.fills = [{ type: "SOLID", color: C.card }];
   dsBoard.cornerRadius = 50;
   dsBoard.paddingLeft = 24; dsBoard.paddingRight = 24; dsBoard.paddingTop = 44;
@@ -870,7 +1197,7 @@
 
   [
     { name: "Cyan Neon (Primary Brand)", hex: "#00F0FF", color: C.cyan },
-    { name: "Deep Obsidian (App Background)", hex: "#090A0F", color: C.bg },
+    { name: "Deep Obsidian (App Background)", hex: "#0A0A0A", color: C.bg },
     { name: "Surface Card Canvas", hex: "#12141C", color: C.card },
     { name: "Code Syntax Canvas", hex: "#07080B", color: C.codeBg },
     { name: "Indigo Secondary Accent", hex: "#6366F1", color: C.indigo },
@@ -902,6 +1229,6 @@
     dsBoard.appendChild(row);
   });
 
-  figma.viewport.scrollAndZoomIntoView([feedScreen, profScreen, chatScreen, netScreen, dsBoard]);
-  console.log("🎉 SUCCESS: DevHub Production Mobile Design System Generated Flawlessly!");
+  figma.viewport.scrollAndZoomIntoView([feedScreen, profScreen, chatScreen, netScreen, loginScreen, regScreen, dsBoard]);
+  console.log("🎉 SUCCESS: DevHub Complete Production Mobile Suite Generated (Including Auth Screens)!");
 })();
