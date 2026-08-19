@@ -1,4 +1,5 @@
 const User = require('../models/User');
+const AdminUser = require('../models/AdminUser');
 const PendingUser = require('../models/PendingUser');
 const { generateAccessToken, generateRefreshToken } = require('../utils/generateToken');
 const axios = require('axios');
@@ -94,15 +95,69 @@ const registerUser = async (req, res) => {
   }
 };
 
-// @desc    Authenticate a user
+// @desc    Authenticate a user (Checks dedicated AdminUser first, then User)
 // @route   POST /api/auth/login
 // @access  Public
 const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // Find user and select passwordHash explicitly because we set select: false in schema
-    const user = await User.findOne({ email }).select('+passwordHash');
+    if (!email || !password) {
+      return res.status(400).json({ message: 'Please provide email and password' });
+    }
+
+    // 1. Check dedicated AdminUser collection first
+    const adminUser = await AdminUser.findOne({ email: email.toLowerCase() }).select('+passwordHash');
+    if (adminUser) {
+      if (adminUser.lockUntil && adminUser.lockUntil > new Date()) {
+        const minutesLeft = Math.ceil((adminUser.lockUntil - new Date()) / (60 * 1000));
+        return res.status(403).json({ 
+          message: `Admin account is locked due to security attempts. Please try again in ${minutesLeft} minutes.` 
+        });
+      }
+
+      if (adminUser.isActive === false) {
+        return res.status(403).json({ message: 'Admin account has been deactivated.' });
+      }
+
+      if (await adminUser.matchPassword(password)) {
+        const accessToken = generateAccessToken(adminUser._id);
+        const refreshToken = generateRefreshToken(adminUser._id);
+
+        adminUser.refreshToken = refreshToken;
+        adminUser.lastLoginAt = new Date();
+        adminUser.lastLoginIp = req.ip || req.connection?.remoteAddress || '';
+        adminUser.failedLoginAttempts = 0;
+        adminUser.lockUntil = undefined;
+        await adminUser.save();
+
+        res.cookie('jwt', accessToken, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV !== 'development',
+          sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+          maxAge: 30 * 24 * 60 * 60 * 1000,
+        });
+
+        return res.status(200).json({
+          _id: adminUser.id,
+          name: adminUser.name,
+          email: adminUser.email,
+          role: adminUser.role,
+          isAdmin: true,
+          token: accessToken,
+        });
+      } else {
+        adminUser.failedLoginAttempts = (adminUser.failedLoginAttempts || 0) + 1;
+        if (adminUser.failedLoginAttempts >= 5) {
+          adminUser.lockUntil = new Date(Date.now() + 30 * 60 * 1000);
+        }
+        await adminUser.save();
+        return res.status(401).json({ message: 'Invalid credentials' });
+      }
+    }
+
+    // 2. Otherwise, check regular User collection
+    const user = await User.findOne({ email: email.toLowerCase() }).select('+passwordHash');
 
     if (user && user.otpLockUntil && user.otpLockUntil > new Date()) {
       const minutesLeft = Math.ceil((user.otpLockUntil - new Date()) / (60 * 1000));
@@ -125,6 +180,10 @@ const loginUser = async (req, res) => {
         });
       }
 
+      if (user.isSuspended) {
+        return res.status(403).json({ message: 'Your account has been suspended by an administrator.' });
+      }
+
       const accessToken = generateAccessToken(user._id);
       const refreshToken = generateRefreshToken(user._id);
 
@@ -138,15 +197,16 @@ const loginUser = async (req, res) => {
         maxAge: 30 * 24 * 60 * 60 * 1000,
       });
 
-      res.status(200).json({
+      return res.status(200).json({
         _id: user.id,
         name: user.name,
         email: user.email,
         role: user.role,
+        isVerifiedBadge: user.isVerifiedBadge,
         token: accessToken,
       });
     } else {
-      res.status(401).json({ message: 'Invalid credentials' });
+      return res.status(401).json({ message: 'Invalid credentials' });
     }
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -299,34 +359,37 @@ const resendOtp = async (req, res) => {
         subject: 'DevHub Account Verification Code',
         html: `
           <div style="font-family: Arial, sans-serif; background-color: #0d0d12; color: #ffffff; padding: 30px; border-radius: 12px; max-width: 500px; margin: auto;">
-            <h2 style="color: #00F0FF; text-align: center; border-bottom: 1px solid #1a1a26; padding-bottom: 15px;">Welcome to DevHub!</h2>
-            <p style="font-size: 15px; line-height: 1.5; color: #b3b3b3;">Thank you for registering on DevHub. To complete your sign-up, please verify your email address using the 6-digit verification code below:</p>
+            <h2 style="color: #00F0FF; text-align: center; border-bottom: 1px solid #1a1a26; padding-bottom: 15px;">DevHub Verification Code</h2>
+            <p style="font-size: 15px; line-height: 1.5; color: #b3b3b3;">You requested a new verification code. Please use the 6-digit code below to activate your account:</p>
             <div style="background-color: #1a1a26; border: 1px solid #00F0FF/30; border-radius: 8px; padding: 15px; text-align: center; margin: 20px 0;">
               <span style="font-size: 32px; font-weight: bold; letter-spacing: 6px; color: #00F0FF;">${otp}</span>
             </div>
-            <p style="font-size: 12px; color: #666; text-align: center;">This code is valid for 5 minutes. If you did not request this, you can safely ignore this email.</p>
+            <p style="font-size: 12px; color: #666; text-align: center;">This code is valid for 5 minutes. If you did not request this, please disregard.</p>
           </div>
         `,
       });
     } catch (mailError) {
-      console.error('Failed to send verification email:', mailError.message);
+      console.error('Failed to resend verification email:', mailError.message);
     }
 
-    res.status(200).json({ message: 'Verification OTP sent to email', email: pendingUser.email });
+    res.status(200).json({
+      message: 'New verification OTP sent to your email',
+      email: pendingUser.email,
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
 
-// @desc    Logout user / clear refresh token
+// @desc    Log out user / clear cookie
 // @route   POST /api/auth/logout
 // @access  Private
 const logoutUser = async (req, res) => {
   try {
-    const user = await User.findById(req.user._id);
-    if (user) {
-      user.refreshToken = '';
-      await user.save();
+    if (req.user) {
+      // Clear refresh token in either User or AdminUser
+      await User.findByIdAndUpdate(req.user._id, { refreshToken: null });
+      await AdminUser.findByIdAndUpdate(req.user._id, { refreshToken: null });
     }
     res.cookie('jwt', '', {
       httpOnly: true,
@@ -338,18 +401,27 @@ const logoutUser = async (req, res) => {
   }
 };
 
-// @desc    Get current logged in user
+// @desc    Get current logged in user (or Admin)
 // @route   GET /api/auth/me
 // @access  Private
 const getMe = async (req, res) => {
   try {
-    const user = await User.findById(req.user.id);
+    let user = await User.findById(req.user.id);
+    let isAdmin = false;
+
+    if (!user) {
+      user = await AdminUser.findById(req.user.id);
+      isAdmin = true;
+    }
+
     if (user) {
       res.json({
         _id: user.id,
         name: user.name,
         email: user.email,
         role: user.role,
+        isAdmin: isAdmin || ['super_admin', 'admin', 'moderator'].includes(user.role),
+        isVerifiedBadge: user.isVerifiedBadge,
         avatar: user.avatar || { url: 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png' }
       });
     } else {
@@ -398,52 +470,58 @@ const googleCallback = async (req, res) => {
 
     if (!user) {
       isNewUser = true;
-      // Overwrite any existing pending registration
-      await PendingUser.deleteOne({ email: profile.email });
-
-      const pending = await PendingUser.create({
-        name: profile.name,
-        email: profile.email,
-        googleId: profile.id,
-        otp,
-        otpExpire,
-      });
+      let pendingUser = await PendingUser.findOne({ email: profile.email });
+      if (!pendingUser) {
+        pendingUser = await PendingUser.create({
+          name: profile.name,
+          email: profile.email,
+          googleId: profile.id,
+          otp,
+          otpExpire,
+        });
+      } else {
+        pendingUser.otp = otp;
+        pendingUser.otpExpire = otpExpire;
+        pendingUser.googleId = profile.id;
+        await pendingUser.save();
+      }
 
       // Send OTP Email
       try {
-        console.log(`[DEVELOPMENT OTP LOG] Verification OTP code (Google) for ${pending.email} is: ${otp}`);
+        console.log(`[DEVELOPMENT OTP LOG] Verification OTP code (Google) for ${profile.email} is: ${otp}`);
         await sendEmail({
-          to: pending.email,
-          subject: 'DevHub Account Verification Code',
+          to: profile.email,
+          subject: 'DevHub Google Sign-Up Verification Code',
           html: `
             <div style="font-family: Arial, sans-serif; background-color: #0d0d12; color: #ffffff; padding: 30px; border-radius: 12px; max-width: 500px; margin: auto;">
-              <h2 style="color: #00F0FF; text-align: center; border-bottom: 1px solid #1a1a26; padding-bottom: 15px;">Welcome to DevHub!</h2>
-              <p style="font-size: 15px; line-height: 1.5; color: #b3b3b3;">Thank you for registering on DevHub. To complete your sign-up, please verify your email address using the 6-digit verification code below:</p>
+              <h2 style="color: #00F0FF; text-align: center; border-bottom: 1px solid #1a1a26; padding-bottom: 15px;">DevHub Verification Code</h2>
+              <p style="font-size: 15px; line-height: 1.5; color: #b3b3b3;">Welcome to DevHub! To complete your Google sign-up, enter the following 6-digit code:</p>
               <div style="background-color: #1a1a26; border: 1px solid #00F0FF/30; border-radius: 8px; padding: 15px; text-align: center; margin: 20px 0;">
                 <span style="font-size: 32px; font-weight: bold; letter-spacing: 6px; color: #00F0FF;">${otp}</span>
               </div>
-              <p style="font-size: 12px; color: #666; text-align: center;">This code is valid for 5 minutes. If you did not request this, you can safely ignore this email.</p>
+              <p style="font-size: 12px; color: #666; text-align: center;">This code is valid for 5 minutes. If you did not request this, please disregard.</p>
             </div>
           `,
         });
       } catch (mailError) {
         console.error('Failed to send verification email:', mailError.message);
       }
-    } else if (!user.googleId) {
+
+      return res.redirect(`${process.env.CLIENT_URL}/verify-otp?email=${encodeURIComponent(profile.email)}&source=google`);
+    }
+
+    if (intent === 'register') {
+      return res.redirect(`${process.env.CLIENT_URL}/register?error=account_exists`);
+    }
+
+    if (!user.googleId) {
       user.googleId = profile.id;
       await user.save();
     }
 
-    if (intent === 'register' && !isNewUser) {
-      return res.redirect(`${process.env.CLIENT_URL}/register?error=account_exists`);
-    }
-
-    if (isNewUser) {
-      return res.redirect(`${process.env.CLIENT_URL}/verify-otp?email=${encodeURIComponent(profile.email)}`);
-    }
-
     const accessToken = generateAccessToken(user._id);
     const refreshToken = generateRefreshToken(user._id);
+
     user.refreshToken = refreshToken;
     await user.save();
 
@@ -454,10 +532,13 @@ const googleCallback = async (req, res) => {
       maxAge: 30 * 24 * 60 * 60 * 1000,
     });
 
-    res.redirect(`${process.env.CLIENT_URL}/feed?oauth=success`);
+    const isFirstTimeLogin = isNewUser || (!user.bio && !user.title && !user.avatar?.public_id);
+    const targetUrl = isFirstTimeLogin ? `${process.env.CLIENT_URL}/setup-profile` : `${process.env.CLIENT_URL}/feed`;
+
+    res.redirect(targetUrl);
   } catch (error) {
     console.error('Google Auth Error:', error.response?.data || error.message);
-    res.redirect(`${process.env.CLIENT_URL}/login?error=oauth_failed`);
+    res.redirect(`${process.env.CLIENT_URL}/login?error=google_auth_failed`);
   }
 };
 
@@ -478,26 +559,34 @@ const githubCallback = async (req, res) => {
     const { code, state: intent } = req.query;
     if (!code) return res.status(400).send('No code provided');
 
-    const { data } = await axios.post('https://github.com/login/oauth/access_token', {
-      client_id: process.env.GITHUB_CLIENT_ID,
-      client_secret: process.env.GITHUB_CLIENT_SECRET,
-      code,
-      redirect_uri: process.env.GITHUB_CALLBACK_URL,
-    }, {
-      headers: { Accept: 'application/json' }
-    });
+    const { data } = await axios.post(
+      'https://github.com/login/oauth/access_token',
+      {
+        client_id: process.env.GITHUB_CLIENT_ID,
+        client_secret: process.env.GITHUB_CLIENT_SECRET,
+        code,
+        redirect_uri: process.env.GITHUB_CALLBACK_URL,
+      },
+      { headers: { Accept: 'application/json' } }
+    );
 
     const { access_token } = data;
     const { data: profile } = await axios.get('https://api.github.com/user', {
       headers: { Authorization: `Bearer ${access_token}` },
     });
 
-    const { data: emails } = await axios.get('https://api.github.com/user/emails', {
-      headers: { Authorization: `Bearer ${access_token}` },
-    });
-    
-    const primaryEmail = emails.find(e => e.primary)?.email || emails[0]?.email;
-    if (!primaryEmail) throw new Error('No email found from GitHub');
+    let primaryEmail = profile.email;
+    if (!primaryEmail) {
+      const { data: emails } = await axios.get('https://api.github.com/user/emails', {
+        headers: { Authorization: `Bearer ${access_token}` },
+      });
+      const primaryEmailObj = emails.find((e) => e.primary && e.verified);
+      primaryEmail = primaryEmailObj ? primaryEmailObj.email : emails[0]?.email;
+    }
+
+    if (!primaryEmail) {
+      return res.redirect(`${process.env.CLIENT_URL}/login?error=no_github_email`);
+    }
 
     let isNewUser = false;
     let user = await User.findOne({ email: primaryEmail });
@@ -507,52 +596,58 @@ const githubCallback = async (req, res) => {
 
     if (!user) {
       isNewUser = true;
-      // Overwrite any existing pending registration
-      await PendingUser.deleteOne({ email: primaryEmail });
-
-      const pending = await PendingUser.create({
-        name: profile.name || profile.login,
-        email: primaryEmail,
-        githubId: profile.id.toString(),
-        otp,
-        otpExpire,
-      });
+      let pendingUser = await PendingUser.findOne({ email: primaryEmail });
+      if (!pendingUser) {
+        pendingUser = await PendingUser.create({
+          name: profile.name || profile.login,
+          email: primaryEmail,
+          githubId: profile.id.toString(),
+          otp,
+          otpExpire,
+        });
+      } else {
+        pendingUser.otp = otp;
+        pendingUser.otpExpire = otpExpire;
+        pendingUser.githubId = profile.id.toString();
+        await pendingUser.save();
+      }
 
       // Send OTP Email
       try {
-        console.log(`[DEVELOPMENT OTP LOG] Verification OTP code (GitHub) for ${pending.email} is: ${otp}`);
+        console.log(`[DEVELOPMENT OTP LOG] Verification OTP code (GitHub) for ${primaryEmail} is: ${otp}`);
         await sendEmail({
-          to: pending.email,
-          subject: 'DevHub Account Verification Code',
+          to: primaryEmail,
+          subject: 'DevHub GitHub Sign-Up Verification Code',
           html: `
             <div style="font-family: Arial, sans-serif; background-color: #0d0d12; color: #ffffff; padding: 30px; border-radius: 12px; max-width: 500px; margin: auto;">
-              <h2 style="color: #00F0FF; text-align: center; border-bottom: 1px solid #1a1a26; padding-bottom: 15px;">Welcome to DevHub!</h2>
-              <p style="font-size: 15px; line-height: 1.5; color: #b3b3b3;">Thank you for registering on DevHub. To complete your sign-up, please verify your email address using the 6-digit verification code below:</p>
+              <h2 style="color: #00F0FF; text-align: center; border-bottom: 1px solid #1a1a26; padding-bottom: 15px;">DevHub Verification Code</h2>
+              <p style="font-size: 15px; line-height: 1.5; color: #b3b3b3;">Welcome to DevHub! To complete your GitHub sign-up, enter the following 6-digit code:</p>
               <div style="background-color: #1a1a26; border: 1px solid #00F0FF/30; border-radius: 8px; padding: 15px; text-align: center; margin: 20px 0;">
                 <span style="font-size: 32px; font-weight: bold; letter-spacing: 6px; color: #00F0FF;">${otp}</span>
               </div>
-              <p style="font-size: 12px; color: #666; text-align: center;">This code is valid for 5 minutes. If you did not request this, you can safely ignore this email.</p>
+              <p style="font-size: 12px; color: #666; text-align: center;">This code is valid for 5 minutes. If you did not request this, please disregard.</p>
             </div>
           `,
         });
       } catch (mailError) {
         console.error('Failed to send verification email:', mailError.message);
       }
-    } else if (!user.githubId) {
+
+      return res.redirect(`${process.env.CLIENT_URL}/verify-otp?email=${encodeURIComponent(primaryEmail)}&source=github`);
+    }
+
+    if (intent === 'register') {
+      return res.redirect(`${process.env.CLIENT_URL}/register?error=account_exists`);
+    }
+
+    if (!user.githubId) {
       user.githubId = profile.id.toString();
       await user.save();
     }
 
-    if (intent === 'register' && !isNewUser) {
-      return res.redirect(`${process.env.CLIENT_URL}/register?error=account_exists`);
-    }
-
-    if (isNewUser) {
-      return res.redirect(`${process.env.CLIENT_URL}/verify-otp?email=${encodeURIComponent(primaryEmail)}`);
-    }
-
     const accessToken = generateAccessToken(user._id);
     const refreshToken = generateRefreshToken(user._id);
+
     user.refreshToken = refreshToken;
     await user.save();
 
@@ -563,25 +658,27 @@ const githubCallback = async (req, res) => {
       maxAge: 30 * 24 * 60 * 60 * 1000,
     });
 
-    res.redirect(`${process.env.CLIENT_URL}/feed?oauth=success`);
+    const isFirstTimeLogin = isNewUser || (!user.bio && !user.title && !user.avatar?.public_id);
+    const targetUrl = isFirstTimeLogin ? `${process.env.CLIENT_URL}/setup-profile` : `${process.env.CLIENT_URL}/feed`;
+
+    res.redirect(targetUrl);
   } catch (error) {
     console.error('GitHub Auth Error:', error.response?.data || error.message);
-    res.redirect(`${process.env.CLIENT_URL}/login?error=oauth_failed`);
+    res.redirect(`${process.env.CLIENT_URL}/login?error=github_auth_failed`);
   }
 };
 
-// @desc    Update user status preference
+// @desc    Update online/invisible status preference
 // @route   PUT /api/auth/status
 // @access  Private
 const updateStatusPreference = async (req, res) => {
   try {
     const { statusPreference } = req.body;
-    
     if (!['online', 'invisible'].includes(statusPreference)) {
       return res.status(400).json({ message: 'Invalid status preference' });
     }
 
-    const user = await User.findById(req.user._id);
+    const user = await User.findById(req.user.id);
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
@@ -589,7 +686,7 @@ const updateStatusPreference = async (req, res) => {
     user.statusPreference = statusPreference;
     await user.save();
 
-    res.status(200).json({ statusPreference: user.statusPreference });
+    res.status(200).json({ message: 'Status preference updated successfully', statusPreference: user.statusPreference });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -598,6 +695,8 @@ const updateStatusPreference = async (req, res) => {
 module.exports = {
   registerUser,
   loginUser,
+  verifyOtp,
+  resendOtp,
   logoutUser,
   getMe,
   googleAuth,
@@ -605,6 +704,4 @@ module.exports = {
   githubAuth,
   githubCallback,
   updateStatusPreference,
-  verifyOtp,
-  resendOtp,
 };
