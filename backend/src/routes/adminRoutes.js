@@ -3,6 +3,10 @@ const router = express.Router();
 const {
   getAdminStats,
   getAllUsers,
+  getUserForensics,
+  issueUserStrike,
+  sendAdminDirectNotice,
+  exportUserDataPackage,
   updateUserStatus,
   toggleUserVerifiedBadge,
   updateUserRole,
@@ -27,6 +31,10 @@ router.post('/report-post/:id', protect, reportPostByUser);
 // Protected Admin Routes (Requires role: 'admin', 'super_admin', or 'moderator')
 router.get('/stats', protect, protectAdmin, getAdminStats);
 router.get('/users', protect, protectAdmin, getAllUsers);
+router.get('/users/:id/forensics', protect, protectAdmin, getUserForensics);
+router.post('/users/:id/strike', protect, protectAdmin, issueUserStrike);
+router.post('/users/:id/send-notice', protect, protectAdmin, sendAdminDirectNotice);
+router.get('/users/:id/export-data', protect, protectAdmin, exportUserDataPackage);
 router.put('/users/:id/status', protect, protectAdmin, updateUserStatus);
 router.put('/users/:id/badge', protect, protectAdmin, toggleUserVerifiedBadge);
 router.put('/users/:id/role', protect, protectAdmin, updateUserRole);

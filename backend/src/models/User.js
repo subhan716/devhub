@@ -59,6 +59,11 @@ const userSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    badgeType: {
+      type: String,
+      enum: ['none', 'verified_developer', 'top_creator', 'partner_org'],
+      default: 'none',
+    },
     isSuspended: {
       type: Boolean,
       default: false,
@@ -69,6 +74,21 @@ const userSchema = new mongoose.Schema(
     },
     suspendedReason: String,
     suspendedAt: Date,
+    tokenVersion: {
+      type: Number,
+      default: 0,
+    },
+    strikesCount: {
+      type: Number,
+      default: 0,
+    },
+    warnings: [
+      {
+        reason: { type: String, required: true },
+        issuedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'AdminUser' },
+        issuedAt: { type: Date, default: Date.now },
+      }
+    ],
     otp: String,
     otpExpire: Date,
     otpResendAttempts: {

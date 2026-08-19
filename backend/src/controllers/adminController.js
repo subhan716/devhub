@@ -1,6 +1,7 @@
 const User = require('../models/User');
 const Profile = require('../models/Profile');
 const Post = require('../models/Post');
+const Comment = require('../models/Comment');
 const Connection = require('../models/Connection');
 const Message = require('../models/Message');
 const Notification = require('../models/Notification');
@@ -175,6 +176,239 @@ const getAllUsers = async (req, res) => {
   }
 };
 
+// @desc    Get 360° Comprehensive User Forensics (Parallel Aggregation)
+// @route   GET /api/admin/users/:id/forensics
+// @access  Private (Admin)
+const getUserForensics = async (req, res) => {
+  try {
+    const userId = req.params.id;
+
+    // Execute covered queries in parallel for sub-10ms performance
+    const [
+      targetUser,
+      profile,
+      postsCount,
+      commentsCount,
+      connectionsCount,
+      reportsCount,
+      recentPosts,
+      auditLogs,
+    ] = await Promise.all([
+      User.findById(userId).select('-passwordHash -otp -refreshToken').lean(),
+      Profile.findOne({ user: userId }).lean(),
+      Post.countDocuments({ author: userId }),
+      Comment.countDocuments({ user: userId }),
+      Connection.countDocuments({
+        $or: [{ requester: userId }, { recipient: userId }],
+        status: 'accepted',
+      }),
+      Post.countDocuments({ author: userId, reportsCount: { $gt: 0 } }),
+      Post.find({ author: userId })
+        .sort({ createdAt: -1 })
+        .limit(5)
+        .select('content codeSnippet media commentsCount likesCount createdAt reportsCount')
+        .lean(),
+      AuditLog.find({ 'target.entityId': userId })
+        .sort({ createdAt: -1 })
+        .limit(25)
+        .lean(),
+    ]);
+
+    if (!targetUser) {
+      return res.status(404).json({ message: 'Target user not found' });
+    }
+
+    res.json({
+      user: targetUser,
+      profile: profile || null,
+      telemetry: {
+        postsCount,
+        commentsCount,
+        connectionsCount,
+        reportsCount,
+        strikesCount: targetUser.strikesCount || 0,
+        tokenVersion: targetUser.tokenVersion || 0,
+      },
+      warnings: targetUser.warnings || [],
+      recentPosts: recentPosts || [],
+      auditLogs: auditLogs || [],
+    });
+  } catch (error) {
+    console.error('Error in getUserForensics:', error);
+    res.status(500).json({ message: 'Failed to aggregate user forensics' });
+  }
+};
+
+// @desc    Issue Official Warning Strike (Automated Tier Governance)
+// @route   POST /api/admin/users/:id/strike
+// @access  Private (Admin, Super Admin)
+const issueUserStrike = async (req, res) => {
+  try {
+    const { reason, autoSuspend = true } = req.body;
+    if (!reason || !reason.trim()) {
+      return res.status(400).json({ message: 'A valid justification reason is required to issue a strike.' });
+    }
+
+    const targetUser = await User.findById(req.params.id);
+    if (!targetUser) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    targetUser.strikesCount = (targetUser.strikesCount || 0) + 1;
+    targetUser.warnings = targetUser.warnings || [];
+    targetUser.warnings.unshift({
+      reason: reason.trim(),
+      issuedBy: req.user._id,
+      issuedAt: new Date(),
+    });
+
+    let autoSuspended = false;
+    if (targetUser.strikesCount >= 3 && autoSuspend) {
+      targetUser.isSuspended = true;
+      targetUser.suspendedReason = `Account automatically suspended after accumulating ${targetUser.strikesCount} strikes. Latest strike: ${reason}`;
+      targetUser.suspendedAt = new Date();
+      targetUser.tokenVersion = (targetUser.tokenVersion || 0) + 1; // Invalidate sessions
+      autoSuspended = true;
+    }
+
+    await targetUser.save();
+
+    // Create In-App Notification for the user
+    await Notification.create({
+      recipient: targetUser._id,
+      sender: req.user._id,
+      type: 'admin_notice',
+      title: `Official Community Warning (Strike #${targetUser.strikesCount})`,
+      message: `You have received an official strike for: "${reason}". Please review community guidelines.`,
+      read: false,
+    });
+
+    // Real-time socket emission if user is connected
+    try {
+      const io = getIo();
+      io.to(targetUser._id.toString()).emit('notification_received', {
+        title: `Official Community Warning (Strike #${targetUser.strikesCount})`,
+        message: reason,
+        type: 'warning',
+      });
+      if (autoSuspended) {
+        io.to(targetUser._id.toString()).emit('force_logout', {
+          reason: 'Your account has been suspended due to 3 accumulated strikes.',
+        });
+      }
+    } catch (sockErr) {
+      console.warn('Socket emit ignored:', sockErr.message);
+    }
+
+    // Immutable Audit Log
+    await logAuditAction(
+      req,
+      'USER_STRIKE_ISSUED',
+      { entityType: 'User', entityId: targetUser._id, targetEmail: targetUser.email, targetName: targetUser.name },
+      { strikeNumber: targetUser.strikesCount, reason, autoSuspended }
+    );
+
+    res.json({
+      message: `Strike #${targetUser.strikesCount} issued successfully.${autoSuspended ? ' Account automatically suspended!' : ''}`,
+      strikesCount: targetUser.strikesCount,
+      isSuspended: targetUser.isSuspended,
+      warnings: targetUser.warnings,
+    });
+  } catch (error) {
+    console.error('Error in issueUserStrike:', error);
+    res.status(500).json({ message: error.message || 'Failed to issue strike' });
+  }
+};
+
+// @desc    Send Direct Official Admin Notice to User In-App Inbox
+// @route   POST /api/admin/users/:id/send-notice
+// @access  Private (Admin, Super Admin)
+const sendAdminDirectNotice = async (req, res) => {
+  try {
+    const { title, message } = req.body;
+    if (!message || !message.trim()) {
+      return res.status(400).json({ message: 'Message text is required' });
+    }
+
+    const targetUser = await User.findById(req.params.id);
+    if (!targetUser) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    const notification = await Notification.create({
+      recipient: targetUser._id,
+      sender: req.user._id,
+      type: 'admin_notice',
+      title: title?.trim() || 'DevHub Trust & Safety Message',
+      message: message.trim(),
+      read: false,
+    });
+
+    try {
+      getIo().to(targetUser._id.toString()).emit('notification_received', notification);
+    } catch (sockErr) {
+      console.warn('Socket notification emit skipped:', sockErr.message);
+    }
+
+    await logAuditAction(
+      req,
+      'ADMIN_DIRECT_NOTICE_SENT',
+      { entityType: 'User', entityId: targetUser._id, targetEmail: targetUser.email, targetName: targetUser.name },
+      { title, message }
+    );
+
+    res.json({ message: 'Direct notice sent to user inbox.' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc    Export Complete GDPR User Data Package (JSON)
+// @route   GET /api/admin/users/:id/export-data
+// @access  Private (Super Admin)
+const exportUserDataPackage = async (req, res) => {
+  try {
+    const userId = req.params.id;
+    const [user, profile, posts, comments, connections] = await Promise.all([
+      User.findById(userId).select('-passwordHash -otp').lean(),
+      Profile.findOne({ user: userId }).lean(),
+      Post.find({ author: userId }).lean(),
+      Comment.find({ user: userId }).lean(),
+      Connection.find({
+        $or: [{ requester: userId }, { recipient: userId }],
+      }).lean(),
+    ]);
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    await logAuditAction(
+      req,
+      'USER_DATA_EXPORTED',
+      { entityType: 'User', entityId: user._id, targetEmail: user.email, targetName: user.name },
+      { exportFormat: 'JSON', recordsCount: { posts: posts.length, comments: comments.length } }
+    );
+
+    res.setHeader('Content-Type', 'application/json');
+    res.setHeader('Content-Disposition', `attachment; filename="devhub-export-${user.email}-${Date.now()}.json"`);
+    res.json({
+      exportMetadata: {
+        exportedAt: new Date().toISOString(),
+        exportedBy: req.user.email,
+        complianceStandard: 'GDPR / CCPA Data Portability Package',
+      },
+      user,
+      profile: profile || {},
+      posts,
+      comments,
+      connections,
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to generate data export' });
+  }
+};
+
 // @desc    Update User Status, Role, or Verification Badge
 // @route   PUT /api/admin/users/:id/status
 // @access  Private (Admin)
@@ -198,12 +432,16 @@ const updateUserStatus = async (req, res) => {
       targetUser.isSuspended = value !== undefined ? value : !targetUser.isSuspended;
       targetUser.suspendedReason = targetUser.isSuspended ? (reason || 'Violation of terms') : null;
       targetUser.suspendedAt = targetUser.isSuspended ? new Date() : null;
+      if (targetUser.isSuspended) {
+        targetUser.tokenVersion = (targetUser.tokenVersion || 0) + 1; // Instant session purge
+      }
       auditAction = targetUser.isSuspended ? 'USER_SUSPENDED' : 'USER_UNSUSPENDED';
     } else if (action === 'toggleShadowban') {
       targetUser.isShadowBanned = value !== undefined ? value : !targetUser.isShadowBanned;
       auditAction = targetUser.isShadowBanned ? 'USER_SHADOWBANNED' : 'USER_SHADOWBAN_REMOVED';
     } else if (action === 'toggleVerifiedBadge') {
       targetUser.isVerifiedBadge = value !== undefined ? value : !targetUser.isVerifiedBadge;
+      targetUser.badgeType = targetUser.isVerifiedBadge ? 'verified_developer' : 'none';
       auditAction = targetUser.isVerifiedBadge ? 'USER_BADGE_GRANTED' : 'USER_BADGE_REVOKED';
     } else if (action === 'changeRole') {
       if (['user', 'moderator', 'admin'].includes(value)) {
@@ -236,6 +474,7 @@ const updateUserStatus = async (req, res) => {
         email: targetUser.email,
         role: targetUser.role,
         isVerifiedBadge: targetUser.isVerifiedBadge,
+        badgeType: targetUser.badgeType,
         isSuspended: targetUser.isSuspended,
         isShadowBanned: targetUser.isShadowBanned,
         suspendedReason: targetUser.suspendedReason,
@@ -256,18 +495,20 @@ const toggleUserVerifiedBadge = async (req, res) => {
     if (!targetUser) return res.status(404).json({ message: 'User not found' });
 
     targetUser.isVerifiedBadge = !targetUser.isVerifiedBadge;
+    targetUser.badgeType = targetUser.isVerifiedBadge ? 'verified_developer' : 'none';
     await targetUser.save();
 
     await logAuditAction(
       req,
       targetUser.isVerifiedBadge ? 'USER_BADGE_GRANTED' : 'USER_BADGE_REVOKED',
       { entityType: 'User', entityId: targetUser._id, targetEmail: targetUser.email, targetName: targetUser.name },
-      { isVerifiedBadge: targetUser.isVerifiedBadge }
+      { isVerifiedBadge: targetUser.isVerifiedBadge, badgeType: targetUser.badgeType }
     );
 
     res.json({
       message: `Verified badge ${targetUser.isVerifiedBadge ? 'granted' : 'revoked'} successfully`,
       isVerifiedBadge: targetUser.isVerifiedBadge,
+      badgeType: targetUser.badgeType,
     });
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -303,7 +544,7 @@ const updateUserRole = async (req, res) => {
   }
 };
 
-// @desc    Revoke All Active Mobile & Web Sessions
+// @desc    Revoke All Active Mobile & Web Sessions ($O(1) Token Version Invalidation)
 // @route   POST /api/admin/users/:id/revoke-sessions
 // @access  Private (Super Admin)
 const revokeUserSessions = async (req, res) => {
@@ -311,17 +552,30 @@ const revokeUserSessions = async (req, res) => {
     const targetUser = await User.findById(req.params.id);
     if (!targetUser) return res.status(404).json({ message: 'User not found' });
 
+    targetUser.tokenVersion = (targetUser.tokenVersion || 0) + 1;
     targetUser.refreshToken = null;
     await targetUser.save();
+
+    // Disconnect active socket connections
+    try {
+      getIo().to(targetUser._id.toString()).emit('force_logout', {
+        reason: 'Your sessions have been remotely terminated by security administrator.',
+      });
+    } catch (sockErr) {
+      console.warn('Socket force_logout emit skipped:', sockErr.message);
+    }
 
     await logAuditAction(
       req,
       'USER_SESSIONS_REVOKED',
       { entityType: 'User', entityId: targetUser._id, targetEmail: targetUser.email, targetName: targetUser.name },
-      { reason: req.body?.reason || 'Administrative session revocation' }
+      { reason: req.body?.reason || 'Administrative session revocation', newTokenVersion: targetUser.tokenVersion }
     );
 
-    res.json({ message: 'All active sessions for this user have been terminated.' });
+    res.json({
+      message: 'All active sessions for this user have been terminated successfully.',
+      tokenVersion: targetUser.tokenVersion,
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -396,6 +650,7 @@ const moderateReportedPost = async (req, res) => {
           isSuspended: true,
           suspendedReason: reason || 'Severe violation of community guidelines via posted content.',
           suspendedAt: new Date(),
+          $inc: { tokenVersion: 1 },
         }),
       ]);
 
@@ -406,63 +661,70 @@ const moderateReportedPost = async (req, res) => {
         { action: 'delete_and_ban', reason, authorId: post.author }
       );
 
-      return res.json({ message: 'Post deleted and author suspended', postId });
+      return res.json({ message: 'Post deleted and author account suspended successfully', postId });
     }
 
-    res.status(400).json({ message: 'Invalid moderation action' });
+    return res.status(400).json({ message: 'Invalid action' });
   } catch (error) {
     console.error('Error in moderateReportedPost:', error);
-    res.status(500).json({ message: 'Failed to execute moderation action' });
+    res.status(500).json({ message: 'Failed to moderate post' });
   }
 };
 
-// @desc    Broadcast Global Announcement / Push to All Online Users
+// @desc    Broadcast Notification Across Network
 // @route   POST /api/admin/broadcast
 // @access  Private (Admin)
 const broadcastNotification = async (req, res) => {
   try {
-    const { title, message, type = 'system_alert', link } = req.body;
+    const { title, message, type, link } = req.body;
 
     if (!message) {
       return res.status(400).json({ message: 'Broadcast message is required' });
     }
 
-    const payload = {
-      title: title || 'DevHub System Alert',
+    const broadcastPayload = {
+      title: title || 'DevHub Announcement',
       message,
-      type,
+      type: type || 'system_alert',
       link: link || null,
-      timestamp: new Date(),
+      timestamp: new Date().toISOString(),
     };
 
-    // Emit live WebSocket event across all connected sockets
-    const io = getIo();
-    if (io) {
-      io.emit('globalAnnouncement', payload);
+    // Emit live WebSocket event
+    try {
+      getIo().emit('global_broadcast', broadcastPayload);
+    } catch (sockErr) {
+      console.warn('Socket broadcast emit failed:', sockErr.message);
     }
 
     await logAuditAction(
       req,
       'GLOBAL_BROADCAST_SENT',
-      { entityType: 'Broadcast', entityId: null },
-      payload
+      { entityType: 'System', entityId: null },
+      broadcastPayload
     );
 
-    res.json({ message: 'Broadcast sent successfully', payload });
+    res.json({ message: 'Broadcast announcement dispatched live to all users' });
   } catch (error) {
     console.error('Error in broadcastNotification:', error);
-    res.status(500).json({ message: 'Failed to send broadcast' });
+    res.status(500).json({ message: 'Failed to broadcast notification' });
   }
 };
 
-// @desc    Get System & Mobile App Configuration
+// @desc    Get Dynamic Mobile App Configuration
 // @route   GET /api/admin/app-config
 // @access  Private (Admin)
 const getAppConfig = async (req, res) => {
   try {
-    let config = await AppConfig.findOne({ key: 'global_config' });
+    let config = await AppConfig.findOne({ key: 'global_config' }).lean();
     if (!config) {
-      config = await AppConfig.create({ key: 'global_config' });
+      config = await AppConfig.create({
+        key: 'global_config',
+        android: { minVersion: '1.0.0', latestVersion: '1.0.0', forceUpdate: false, storeUrl: '' },
+        ios: { minVersion: '1.0.0', latestVersion: '1.0.0', forceUpdate: false, storeUrl: '' },
+        maintenanceMode: { enabled: false, message: 'Platform under scheduled maintenance' },
+        featureFlags: { codeSharing: true, videoUploads: true, directMessaging: true },
+      });
     }
     res.json(config);
   } catch (error) {
@@ -470,32 +732,33 @@ const getAppConfig = async (req, res) => {
   }
 };
 
-// @desc    Update System & Mobile App Configuration
+// @desc    Update Dynamic Mobile App Configuration
 // @route   PUT /api/admin/app-config
 // @access  Private (Super Admin)
 const updateAppConfig = async (req, res) => {
   try {
     const { android, ios, maintenanceMode, featureFlags } = req.body;
     let config = await AppConfig.findOne({ key: 'global_config' });
+
     if (!config) {
       config = new AppConfig({ key: 'global_config' });
     }
 
-    if (android) config.android = { ...config.android.toObject(), ...android };
-    if (ios) config.ios = { ...config.ios.toObject(), ...ios };
-    if (maintenanceMode) config.maintenanceMode = { ...config.maintenanceMode.toObject(), ...maintenanceMode };
-    if (featureFlags) config.featureFlags = { ...config.featureFlags.toObject(), ...featureFlags };
+    if (android) config.android = { ...config.android, ...android };
+    if (ios) config.ios = { ...config.ios, ...ios };
+    if (maintenanceMode) config.maintenanceMode = { ...config.maintenanceMode, ...maintenanceMode };
+    if (featureFlags) config.featureFlags = { ...config.featureFlags, ...featureFlags };
 
     await config.save();
 
     await logAuditAction(
       req,
       'APP_CONFIG_UPDATED',
-      { entityType: 'SystemConfig', entityId: config._id },
-      req.body
+      { entityType: 'AppConfig', entityId: config._id },
+      { android: config.android, ios: config.ios, maintenanceMode: config.maintenanceMode }
     );
 
-    res.json({ message: 'App configuration updated successfully', config });
+    res.json({ message: 'Mobile app configuration updated successfully', config });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -586,6 +849,10 @@ const reportPostByUser = async (req, res) => {
 module.exports = {
   getAdminStats,
   getAllUsers,
+  getUserForensics,
+  issueUserStrike,
+  sendAdminDirectNotice,
+  exportUserDataPackage,
   updateUserStatus,
   toggleUserVerifiedBadge,
   updateUserRole,

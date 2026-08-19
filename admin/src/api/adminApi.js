@@ -20,10 +20,32 @@ export const getAdminStats = async () => {
   return data;
 };
 
-// User Governance
+// User Governance & Forensics
 export const getAllUsers = async (params = {}) => {
   const { data } = await api.get('/admin/users', { params });
   return data;
+};
+
+export const getUserForensics = async (userId) => {
+  const { data } = await api.get(`/admin/users/${userId}/forensics`);
+  return data;
+};
+
+export const issueUserStrike = async (userId, payload) => {
+  const { data } = await api.post(`/admin/users/${userId}/strike`, payload);
+  return data;
+};
+
+export const sendAdminDirectNotice = async (userId, payload) => {
+  const { data } = await api.post(`/admin/users/${userId}/send-notice`, payload);
+  return data;
+};
+
+export const exportUserDataPackage = async (userId) => {
+  const response = await api.get(`/admin/users/${userId}/export-data`, {
+    responseType: 'blob',
+  });
+  return response.data;
 };
 
 export const updateUserStatus = async (userId, payload) => {

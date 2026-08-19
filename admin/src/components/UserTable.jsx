@@ -5,15 +5,23 @@ import {
   Ban, 
   EyeOff, 
   Crown, 
-  AlertTriangle,
-  RefreshCw,
-  MoreVertical,
-  Shield,
-  LogOut,
-  ChevronLeft,
-  ChevronRight
+  RefreshCw, 
+  LogOut, 
+  ChevronLeft, 
+  ChevronRight,
+  ExternalLink,
+  ShieldAlert,
+  SlidersHorizontal
 } from 'lucide-react';
-import { getAllUsers, updateUserStatus, toggleUserBadge, updateUserRole, revokeUserSessions } from '../api/adminApi';
+import { 
+  getAllUsers, 
+  updateUserStatus, 
+  toggleUserBadge, 
+  updateUserRole, 
+  revokeUserSessions 
+} from '../api/adminApi';
+import ActionConfirmModal from './common/ActionConfirmModal';
+import UserForensicsDrawer from './users/UserForensicsDrawer';
 import toast from 'react-hot-toast';
 
 const UserTable = () => {
@@ -24,10 +32,23 @@ const UserTable = () => {
   const [statusFilter, setStatusFilter] = useState('all');
   const [page, setPage] = useState(1);
   const [pagination, setPagination] = useState({ totalPages: 1, total: 0 });
-  const [selectedUser, setSelectedUser] = useState(null);
-  const [actionModal, setActionModal] = useState(null);
-  const [newRole, setNewRole] = useState('user');
-  const [suspendReason, setSuspendReason] = useState('');
+
+  // Selected User for Forensics Drawer
+  const [forensicsUserId, setForensicsUserId] = useState(null);
+
+  // Confirmation Safety Modal State
+  const [confirmModal, setConfirmModal] = useState({
+    isOpen: false,
+    type: 'suspend',
+    title: '',
+    description: '',
+    impactStatement: '',
+    targetUser: null,
+    actionHandler: null,
+    customSelect: null,
+  });
+
+  const [rolePickerValue, setRolePickerValue] = useState('user');
 
   const fetchUsers = async () => {
     setLoading(true);
@@ -55,73 +76,151 @@ const UserTable = () => {
     return () => clearTimeout(timer);
   }, [search, roleFilter, statusFilter, page]);
 
-  const handleToggleVerified = async (user) => {
-    try {
-      const res = await toggleUserBadge(user._id);
-      toast.success(res.message || 'Badge updated');
-      fetchUsers();
-    } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to toggle badge');
-    }
+  // Confirmation-Guarded Action Triggers
+  const triggerSuspendConfirmation = (user) => {
+    const isSuspending = !user.isSuspended;
+    setConfirmModal({
+      isOpen: true,
+      type: isSuspending ? 'suspend' : 'unsuspend',
+      title: isSuspending ? 'Suspend Developer Account' : 'Reactivate Developer Account',
+      description: isSuspending
+        ? `Are you sure you want to suspend ${user.name} (${user.email})?`
+        : `Restore platform access for ${user.name} (${user.email}).`,
+      impactStatement: isSuspending
+        ? 'Account access will be immediately blocked and active sessions revoked.'
+        : 'User will regain standard platform access.',
+      targetUser: user,
+      actionHandler: async ({ reason }) => {
+        try {
+          const res = await updateUserStatus(user._id, {
+            action: 'toggleSuspend',
+            reason,
+          });
+          toast.success(res.message || 'Account status updated');
+          setConfirmModal((prev) => ({ ...prev, isOpen: false }));
+          fetchUsers();
+        } catch (err) {
+          toast.error(err.response?.data?.message || 'Failed to update suspension');
+        }
+      },
+    });
   };
 
-  const handleToggleShadowban = async (user) => {
-    try {
-      const res = await updateUserStatus(user._id, {
-        action: 'toggleShadowban',
-      });
-      toast.success(res.message || 'Shadowban updated');
-      fetchUsers();
-    } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to toggle shadowban');
-    }
+  const triggerBadgeConfirmation = (user) => {
+    const isGranting = !user.isVerifiedBadge;
+    setConfirmModal({
+      isOpen: true,
+      type: 'badge',
+      title: isGranting ? 'Grant Verified Blue Badge' : 'Revoke Verified Badge',
+      description: isGranting
+        ? `Grant official blue verification badge to ${user.name} (${user.email}).`
+        : `Remove verified checkmark from ${user.name} (${user.email}).`,
+      impactStatement: isGranting
+        ? 'Blue checkmark badge will be publicly visible next to developer profile.'
+        : 'Verification indicator will be removed from all posts and profile.',
+      targetUser: user,
+      actionHandler: async () => {
+        try {
+          const res = await toggleUserBadge(user._id);
+          toast.success(res.message || 'Badge updated');
+          setConfirmModal((prev) => ({ ...prev, isOpen: false }));
+          fetchUsers();
+        } catch (err) {
+          toast.error(err.response?.data?.message || 'Failed to toggle badge');
+        }
+      },
+    });
   };
 
-  const handleExecuteSuspension = async () => {
-    if (!selectedUser) return;
-    try {
-      const res = await updateUserStatus(selectedUser._id, {
-        action: 'toggleSuspend',
-        reason: suspendReason,
-      });
-      toast.success(res.message || 'Suspension state updated');
-      setActionModal(null);
-      setSuspendReason('');
-      setSelectedUser(null);
-      fetchUsers();
-    } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to update suspension');
-    }
+  const triggerRoleConfirmation = (user) => {
+    setRolePickerValue(user.role || 'user');
+    setConfirmModal({
+      isOpen: true,
+      type: 'role',
+      title: 'Update RBAC Permission Role',
+      description: `Change permission role for ${user.name} (${user.email}).`,
+      impactStatement: 'New administrative permissions and API access will apply immediately.',
+      targetUser: user,
+      customSelect: (
+        <div>
+          <label className="block text-[11px] font-medium text-zinc-300 mb-1">Select New Role:</label>
+          <select
+            value={rolePickerValue}
+            onChange={(e) => setRolePickerValue(e.target.value)}
+            className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2 text-xs text-zinc-200 focus:outline-none focus:border-zinc-600"
+          >
+            <option value="user">User (Standard Developer)</option>
+            <option value="moderator">Moderator (Triage Queue Access)</option>
+            <option value="admin">Admin (User Governance)</option>
+          </select>
+        </div>
+      ),
+      actionHandler: async () => {
+        try {
+          const res = await updateUserRole(user._id, rolePickerValue);
+          toast.success(res.message || 'Role updated');
+          setConfirmModal((prev) => ({ ...prev, isOpen: false }));
+          fetchUsers();
+        } catch (err) {
+          toast.error(err.response?.data?.message || 'Failed to update role');
+        }
+      },
+    });
   };
 
-  const handleExecuteRoleChange = async () => {
-    if (!selectedUser) return;
-    try {
-      const res = await updateUserRole(selectedUser._id, newRole);
-      toast.success(res.message || 'Role updated');
-      setActionModal(null);
-      setSelectedUser(null);
-      fetchUsers();
-    } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to update role');
-    }
+  const triggerRevokeSessionsConfirmation = (user) => {
+    setConfirmModal({
+      isOpen: true,
+      type: 'revoke_sessions',
+      title: 'Invalidate All Active Sessions',
+      description: `Terminate all active sessions for ${user.name} (${user.email}).`,
+      impactStatement: 'Cryptographic token version will increment, forcing instant re-authentication across all devices.',
+      targetUser: user,
+      actionHandler: async ({ reason }) => {
+        try {
+          const res = await revokeUserSessions(user._id, reason);
+          toast.success(res.message || 'All sessions terminated successfully');
+          setConfirmModal((prev) => ({ ...prev, isOpen: false }));
+          fetchUsers();
+        } catch (err) {
+          toast.error(err.response?.data?.message || 'Failed to revoke sessions');
+        }
+      },
+    });
   };
 
-  const handleRevokeSessions = async (user) => {
-    if (!window.confirm(`Are you sure you want to terminate all active mobile & web sessions for ${user.email}?`)) {
-      return;
-    }
-    try {
-      const res = await revokeUserSessions(user._id, 'Security token invalidation by Super Admin');
-      toast.success(res.message || 'Sessions terminated successfully');
-    } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to revoke sessions');
-    }
+  const triggerShadowbanConfirmation = (user) => {
+    const isBanning = !user.isShadowBanned;
+    setConfirmModal({
+      isOpen: true,
+      type: 'shadowban',
+      title: isBanning ? 'Apply Stealth Shadowban' : 'Remove Stealth Shadowban',
+      description: isBanning
+        ? `Isolate ${user.name}'s posts silently without notifying them.`
+        : `Restore standard public distribution for ${user.name}.`,
+      impactStatement: isBanning
+        ? 'Developer content will be hidden from public feeds while appearing normal on their client.'
+        : 'Developer content will be visible across the entire platform.',
+      targetUser: user,
+      actionHandler: async ({ reason }) => {
+        try {
+          const res = await updateUserStatus(user._id, {
+            action: 'toggleShadowban',
+            reason,
+          });
+          toast.success(res.message || 'Shadowban updated');
+          setConfirmModal((prev) => ({ ...prev, isOpen: false }));
+          fetchUsers();
+        } catch (err) {
+          toast.error(err.response?.data?.message || 'Failed to update shadowban');
+        }
+      },
+    });
   };
 
   return (
-    <div className="space-y-4 font-sans">
-      {/* Search & Filter Bar */}
+    <div className="space-y-4 font-sans text-xs">
+      {/* Search & Filters Header */}
       <div className="flex flex-col sm:flex-row gap-3 items-center justify-between bg-[#0D0D10] p-4 rounded-xl border border-zinc-800/80">
         <div className="relative w-full sm:w-80">
           <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-500" />
@@ -186,29 +285,36 @@ const UserTable = () => {
                 <th className="px-4 py-3">Developer Account</th>
                 <th className="px-4 py-3">Role</th>
                 <th className="px-4 py-3">Account State</th>
-                <th className="px-4 py-3">Registration</th>
+                <th className="px-4 py-3">Strikes</th>
+                <th className="px-4 py-3">Registered</th>
                 <th className="px-4 py-3 text-right">Governance Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-zinc-800/60">
               {loading ? (
                 <tr>
-                  <td colSpan="5" className="px-4 py-12 text-center text-zinc-500">
+                  <td colSpan="6" className="px-4 py-12 text-center text-zinc-500">
                     <RefreshCw size={18} className="animate-spin text-[#00F0FF] mx-auto mb-2" />
                     Loading developer directory...
                   </td>
                 </tr>
               ) : users.length === 0 ? (
                 <tr>
-                  <td colSpan="5" className="px-4 py-12 text-center text-zinc-500">
+                  <td colSpan="6" className="px-4 py-12 text-center text-zinc-500">
                     No users matching criteria.
                   </td>
                 </tr>
               ) : (
                 users.map((user) => (
-                  <tr key={user._id} className="hover:bg-zinc-900/30 transition-colors">
-                    {/* Developer Info */}
-                    <td className="px-4 py-3">
+                  <tr 
+                    key={user._id} 
+                    className="hover:bg-zinc-900/40 transition-colors group cursor-pointer"
+                  >
+                    {/* Developer Info (Click opens 360° Drawer) */}
+                    <td 
+                      className="px-4 py-3"
+                      onClick={() => setForensicsUserId(user._id)}
+                    >
                       <div className="flex items-center gap-2.5">
                         <img
                           src={user.avatar?.url || 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png'}
@@ -216,10 +322,10 @@ const UserTable = () => {
                           className="w-7 h-7 rounded-full border border-zinc-700/80 object-cover"
                         />
                         <div>
-                          <div className="flex items-center gap-1.5 font-semibold text-zinc-100">
+                          <div className="flex items-center gap-1.5 font-semibold text-zinc-100 group-hover:text-[#00F0FF] transition-colors">
                             {user.name}
                             {user.isVerifiedBadge && (
-                              <CheckCircle2 size={13} className="text-[#00F0FF]" title="Verified Blue Checkmark" />
+                              <CheckCircle2 size={13} className="text-[#00F0FF]" title="Verified Blue Badge" />
                             )}
                           </div>
                           <span className="text-zinc-500 text-[11px] font-mono">{user.email}</span>
@@ -228,7 +334,7 @@ const UserTable = () => {
                     </td>
 
                     {/* Role */}
-                    <td className="px-4 py-3">
+                    <td className="px-4 py-3" onClick={() => setForensicsUserId(user._id)}>
                       <span className={`inline-block px-2 py-0.5 rounded text-[10px] font-mono font-medium ${
                         user.role === 'super_admin'
                           ? 'bg-purple-500/10 text-purple-400 border border-purple-500/20'
@@ -243,7 +349,7 @@ const UserTable = () => {
                     </td>
 
                     {/* State */}
-                    <td className="px-4 py-3">
+                    <td className="px-4 py-3" onClick={() => setForensicsUserId(user._id)}>
                       <div className="flex items-center gap-1.5 flex-wrap">
                         {user.isSuspended ? (
                           <span className="px-1.5 py-0.5 rounded text-[10px] font-mono font-medium bg-rose-500/10 text-rose-400 border border-rose-500/20">
@@ -262,8 +368,15 @@ const UserTable = () => {
                       </div>
                     </td>
 
+                    {/* Strikes */}
+                    <td className="px-4 py-3 font-mono text-[11px]" onClick={() => setForensicsUserId(user._id)}>
+                      <span className={user.strikesCount > 0 ? 'text-amber-400 font-bold' : 'text-zinc-500'}>
+                        {user.strikesCount || 0}/3
+                      </span>
+                    </td>
+
                     {/* Joined */}
-                    <td className="px-4 py-3 text-zinc-500 text-[11px] font-mono whitespace-nowrap">
+                    <td className="px-4 py-3 text-zinc-500 text-[11px] font-mono whitespace-nowrap" onClick={() => setForensicsUserId(user._id)}>
                       {new Date(user.createdAt).toLocaleDateString('en-US', {
                         month: 'short',
                         day: 'numeric',
@@ -271,13 +384,28 @@ const UserTable = () => {
                       })}
                     </td>
 
-                    {/* Actions */}
+                    {/* Actions with Safety Guard */}
                     <td className="px-4 py-3 text-right">
                       <div className="flex items-center justify-end gap-1">
-                        {/* 1-Click Badge */}
+                        {/* 360 Forensics Drawer Trigger */}
                         <button
-                          onClick={() => handleToggleVerified(user)}
-                          title={user.isVerifiedBadge ? 'Revoke Verified Badge' : 'Grant Verified Checkmark'}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setForensicsUserId(user._id);
+                          }}
+                          title="Open 360° Developer Forensics"
+                          className="p-1.5 text-zinc-500 hover:text-white hover:bg-zinc-800 rounded-md transition-colors cursor-pointer"
+                        >
+                          <SlidersHorizontal size={14} />
+                        </button>
+
+                        {/* Verified Badge Toggle */}
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            triggerBadgeConfirmation(user);
+                          }}
+                          title={user.isVerifiedBadge ? 'Revoke Verified Badge' : 'Grant Verified Blue Checkmark'}
                           className={`p-1.5 rounded-md transition-colors cursor-pointer ${
                             user.isVerifiedBadge
                               ? 'text-[#00F0FF] hover:bg-[#00F0FF]/10'
@@ -287,10 +415,13 @@ const UserTable = () => {
                           <CheckCircle2 size={14} />
                         </button>
 
-                        {/* Shadowban */}
+                        {/* Shadowban Toggle */}
                         <button
-                          onClick={() => handleToggleShadowban(user)}
-                          title={user.isShadowBanned ? 'Remove Shadowban' : 'Stealth Shadowban'}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            triggerShadowbanConfirmation(user);
+                          }}
+                          title={user.isShadowBanned ? 'Remove Stealth Shadowban' : 'Apply Stealth Shadowban'}
                           className={`p-1.5 rounded-md transition-colors cursor-pointer ${
                             user.isShadowBanned
                               ? 'text-amber-400 hover:bg-amber-500/10'
@@ -300,13 +431,13 @@ const UserTable = () => {
                           <EyeOff size={14} />
                         </button>
 
-                        {/* Suspend */}
+                        {/* Suspend / Unsuspend */}
                         <button
-                          onClick={() => {
-                            setSelectedUser(user);
-                            setActionModal('suspend');
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            triggerSuspendConfirmation(user);
                           }}
-                          title={user.isSuspended ? 'Unsuspend Account' : 'Suspend / Block Account'}
+                          title={user.isSuspended ? 'Reactivate Account' : 'Suspend / Ban Account'}
                           className={`p-1.5 rounded-md transition-colors cursor-pointer ${
                             user.isSuspended
                               ? 'text-rose-400 hover:bg-rose-500/10'
@@ -318,12 +449,11 @@ const UserTable = () => {
 
                         {/* Change Role */}
                         <button
-                          onClick={() => {
-                            setSelectedUser(user);
-                            setNewRole(user.role || 'user');
-                            setActionModal('role');
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            triggerRoleConfirmation(user);
                           }}
-                          title="Change RBAC Permission Role"
+                          title="Change RBAC Role"
                           className="p-1.5 text-zinc-500 hover:text-purple-400 hover:bg-zinc-800 rounded-md transition-colors cursor-pointer"
                         >
                           <Crown size={14} />
@@ -331,8 +461,11 @@ const UserTable = () => {
 
                         {/* Revoke Sessions */}
                         <button
-                          onClick={() => handleRevokeSessions(user)}
-                          title="Revoke all mobile & web sessions"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            triggerRevokeSessionsConfirmation(user);
+                          }}
+                          title="Invalidate all active sessions across devices"
                           className="p-1.5 text-zinc-500 hover:text-red-400 hover:bg-zinc-800 rounded-md transition-colors cursor-pointer"
                         >
                           <LogOut size={14} />
@@ -372,107 +505,26 @@ const UserTable = () => {
         )}
       </div>
 
-      {/* Suspension Modal */}
-      {actionModal === 'suspend' && selectedUser && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="bg-[#121215] border border-zinc-800 rounded-xl p-5 max-w-md w-full space-y-4 shadow-2xl">
-            <h4 className="text-sm font-bold text-zinc-100 flex items-center gap-2">
-              <Ban size={16} className="text-rose-400" />
-              {selectedUser.isSuspended ? 'Unsuspend Account' : 'Suspend Account'}
-            </h4>
-            <p className="text-xs text-zinc-400">
-              {selectedUser.isSuspended
-                ? `Restore platform access for ${selectedUser.name} (${selectedUser.email}).`
-                : `Block all access for ${selectedUser.name} (${selectedUser.email}). Active sockets will be disconnected.`}
-            </p>
+      {/* 360° User Forensics Slide-Out Drawer */}
+      <UserForensicsDrawer
+        userId={forensicsUserId}
+        isOpen={Boolean(forensicsUserId)}
+        onClose={() => setForensicsUserId(null)}
+        onUserUpdated={fetchUsers}
+      />
 
-            {!selectedUser.isSuspended && (
-              <div>
-                <label className="block text-[11px] font-semibold text-zinc-400 mb-1">
-                  Reason for Suspension (Logged in Audit Trail):
-                </label>
-                <input
-                  type="text"
-                  value={suspendReason}
-                  onChange={(e) => setSuspendReason(e.target.value)}
-                  placeholder="e.g. Violation of community guidelines (spam)"
-                  className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2 text-xs text-zinc-200 focus:outline-none focus:border-zinc-600"
-                />
-              </div>
-            )}
-
-            <div className="flex items-center justify-end gap-2 pt-2 border-t border-zinc-800/80">
-              <button
-                onClick={() => {
-                  setActionModal(null);
-                  setSelectedUser(null);
-                }}
-                className="px-3 py-1.5 rounded-lg text-xs font-medium text-zinc-400 hover:text-zinc-200 cursor-pointer"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleExecuteSuspension}
-                className={`px-4 py-1.5 rounded-lg text-xs font-bold cursor-pointer ${
-                  selectedUser.isSuspended
-                    ? 'bg-emerald-500 hover:bg-emerald-600 text-black'
-                    : 'bg-rose-500 hover:bg-rose-600 text-white'
-                }`}
-              >
-                Confirm {selectedUser.isSuspended ? 'Reactivation' : 'Suspension'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Role Change Modal */}
-      {actionModal === 'role' && selectedUser && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="bg-[#121215] border border-zinc-800 rounded-xl p-5 max-w-md w-full space-y-4 shadow-2xl">
-            <h4 className="text-sm font-bold text-zinc-100 flex items-center gap-2">
-              <Crown size={16} className="text-purple-400" />
-              Update RBAC Permission Role
-            </h4>
-            <p className="text-xs text-zinc-400">
-              Assign administrative permissions to {selectedUser.name} ({selectedUser.email}).
-            </p>
-
-            <div>
-              <label className="block text-[11px] font-semibold text-zinc-400 mb-1">
-                Select New Role:
-              </label>
-              <select
-                value={newRole}
-                onChange={(e) => setNewRole(e.target.value)}
-                className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2 text-xs text-zinc-200 focus:outline-none focus:border-zinc-600"
-              >
-                <option value="user">User (Standard Platform Developer)</option>
-                <option value="moderator">Moderator (Content Triage Queue Access)</option>
-                <option value="admin">Admin (User Governance & Full Moderation)</option>
-              </select>
-            </div>
-
-            <div className="flex items-center justify-end gap-2 pt-2 border-t border-zinc-800/80">
-              <button
-                onClick={() => {
-                  setActionModal(null);
-                  setSelectedUser(null);
-                }}
-                className="px-3 py-1.5 rounded-lg text-xs font-medium text-zinc-400 hover:text-zinc-200 cursor-pointer"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleExecuteRoleChange}
-                className="px-4 py-1.5 rounded-lg text-xs font-bold bg-[#00F0FF] hover:bg-[#00D8E6] text-black cursor-pointer"
-              >
-                Apply Role
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Reusable Action Confirmation Guard Dialog */}
+      <ActionConfirmModal
+        isOpen={confirmModal.isOpen}
+        onClose={() => setConfirmModal((prev) => ({ ...prev, isOpen: false }))}
+        onConfirm={confirmModal.actionHandler}
+        title={confirmModal.title}
+        description={confirmModal.description}
+        impactStatement={confirmModal.impactStatement}
+        targetUser={confirmModal.targetUser}
+        actionType={confirmModal.type}
+        customSelect={confirmModal.customSelect}
+      />
     </div>
   );
 };
