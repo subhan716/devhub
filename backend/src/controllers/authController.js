@@ -143,6 +143,7 @@ const loginUser = async (req, res) => {
         name: user.name,
         email: user.email,
         role: user.role,
+        token: accessToken,
       });
     } else {
       res.status(401).json({ message: 'Invalid credentials' });
@@ -235,6 +236,7 @@ const verifyOtp = async (req, res) => {
       name: user.name,
       email: user.email,
       role: user.role,
+      token: accessToken,
     });
   } catch (error) {
     res.status(500).json({ message: error.message });

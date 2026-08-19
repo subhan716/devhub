@@ -4,11 +4,17 @@ const User = require('../models/User');
 const protect = async (req, res, next) => {
   let token;
 
-  if (req.cookies.jwt) {
-    try {
-      // Get token from cookie
-      token = req.cookies.jwt;
+  // 1. Check Authorization header (Standard for Mobile Apps)
+  if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+    token = req.headers.authorization.split(' ')[1];
+  } 
+  // 2. Fallback to Cookie (Standard for Web App)
+  else if (req.cookies && req.cookies.jwt) {
+    token = req.cookies.jwt;
+  }
 
+  if (token) {
+    try {
       // Verify token
       const decoded = jwt.verify(token, process.env.JWT_ACCESS_SECRET);
 
@@ -51,9 +57,16 @@ const admin = (req, res, next) => {
 };
 
 const protectOptional = async (req, res, next) => {
-  if (req.cookies.jwt) {
+  let token;
+  if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+    token = req.headers.authorization.split(' ')[1];
+  } else if (req.cookies && req.cookies.jwt) {
+    token = req.cookies.jwt;
+  }
+
+  if (token) {
     try {
-      const decoded = jwt.verify(req.cookies.jwt, process.env.JWT_ACCESS_SECRET);
+      const decoded = jwt.verify(token, process.env.JWT_ACCESS_SECRET);
       req.user = await User.findById(decoded.id).select('-passwordHash');
     } catch (error) {
       // Ignore token errors for optional protection
