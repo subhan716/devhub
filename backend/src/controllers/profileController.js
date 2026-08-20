@@ -3,6 +3,8 @@ const Follow = require('../models/Follow');
 const User = require('../models/User');
 const Notification = require('../models/Notification');
 const Connection = require('../models/Connection');
+const Post = require('../models/Post');
+const Comment = require('../models/Comment');
 const { getIo, getReceiverSocketId } = require('../socket');
 
 // @desc    Create or update user profile
@@ -464,7 +466,8 @@ const getFollowers = async (req, res) => {
 // @desc    Get following
 // @route   GET /api/profile/following
 // @access  Private
-const getFollowing = async (req, res) => {
+const getFollowing,
+  exportSelfData = async (req, res) => {
   try {
     const profile = await Profile.findOne({ user: req.user.id });
     if (!profile) return res.status(404).json({ msg: 'Profile not found' });
@@ -475,6 +478,43 @@ const getFollowing = async (req, res) => {
   } catch (err) {
     console.error(err.message);
     res.status(500).send('Server Error');
+  }
+};
+
+// @desc    Export authenticated user's complete GDPR data archive (.json)
+// @route   GET /api/profile/export-data
+// @access  Private
+const exportSelfData = async (req, res) => {
+  try {
+    const userId = req.user.id || req.user._id;
+    const user = await User.findById(userId).select('-passwordHash -refreshToken -tokens');
+    const profile = await Profile.findOne({ user: userId });
+    const posts = await Post.find({ user: userId }).lean();
+    const comments = await Comment.find({ user: userId }).lean();
+
+    const dataPackage = {
+      exportMetadata: {
+        platform: 'DevHub Developer Network',
+        standard: 'GDPR Article 20 & CCPA Machine-Readable Data Portability Archive',
+        generatedAt: new Date().toISOString(),
+        userId: userId.toString(),
+      },
+      account: user,
+      profile: profile || {},
+      activity: {
+        totalPosts: posts.length,
+        posts,
+        totalComments: comments.length,
+        comments,
+      },
+    };
+
+    res.setHeader('Content-Type', 'application/json');
+    res.setHeader('Content-Disposition', `attachment; filename=devhub-data-export-${userId}.json`);
+    res.status(200).json(dataPackage);
+  } catch (error) {
+    console.error('Error exporting GDPR user data:', error);
+    res.status(500).json({ message: 'Failed to generate data export archive: ' + error.message });
   }
 };
 

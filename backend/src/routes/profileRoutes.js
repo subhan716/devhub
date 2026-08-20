@@ -22,6 +22,7 @@ const { protect, protectOptional } = require('../middleware/authMiddleware');
 
 router.post('/', protect, createOrUpdateProfile);
 router.get('/me', protect, getCurrentProfile);
+router.get('/export-data', protect, exportSelfData);
 router.get('/analytics', protect, getProfileAnalytics);
 router.get('/search', protect, searchProfiles);
 router.get('/suggestions', protect, getNetworkSuggestions);

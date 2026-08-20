@@ -25,6 +25,11 @@ const {
   reportPostByUser,
   reportUserByUser,
 } = require('../controllers/adminController');
+const {
+  getPolicyBySlug,
+  getAllPolicies,
+  updatePolicy,
+} = require('../controllers/policyController');
 const { protect, protectAdmin } = require('../middleware/authMiddleware');
 
 // Public Mobile & Web App Handshake & Active Alert Banners
@@ -43,10 +48,11 @@ router.post('/users/:id/strike', protect, protectAdmin, issueUserStrike);
 router.post('/users/:id/send-notice', protect, protectAdmin, sendAdminDirectNotice);
 router.get('/users/:id/export-data', protect, protectAdmin, exportUserDataPackage);
 router.put('/users/:id/status', protect, protectAdmin, updateUserStatus);
-router.put('/users/:id/badge', protect, protectAdmin, toggleUserVerifiedBadge);
+router.put('/users/:id/verified-badge', protect, protectAdmin, toggleUserVerifiedBadge);
 router.put('/users/:id/role', protect, protectAdmin, updateUserRole);
 router.post('/users/:id/revoke-sessions', protect, protectAdmin, revokeUserSessions);
 
+// Trust & Safety Content Moderation Queue
 router.get('/reports', protect, protectAdmin, getReportedContent);
 router.post('/reports/:id/action', protect, protectAdmin, moderateReportedPost);
 
@@ -56,8 +62,16 @@ router.post('/broadcast', protect, protectAdmin, broadcastNotification);
 router.put('/broadcasts/:id/status', protect, protectAdmin, toggleBroadcastStatus);
 router.delete('/broadcasts/:id', protect, protectAdmin, deleteBroadcast);
 
+// Mobile App Fleet Governance & OTA Config
 router.get('/app-config', protect, protectAdmin, getAppConfig);
 router.put('/app-config', protect, protectAdmin, updateAppConfig);
+
+// Dynamic Legal & Policy CMS Console
+router.get('/policies', protect, protectAdmin, getAllPolicies);
+router.get('/policies/:slug', protect, protectAdmin, getPolicyBySlug);
+router.put('/policies/:slug', protect, protectAdmin, updatePolicy);
+
+// Immutable Forensic Audit Logs
 router.get('/audit-logs', protect, protectAdmin, getAuditLogs);
 
 module.exports = router;
