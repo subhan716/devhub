@@ -35,7 +35,6 @@ const Sidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
     { name: 'My Networks', path: '/network', icon: <Users size={20} /> },
     { name: 'Jobs', path: '/jobs', icon: <Briefcase size={20} /> },
     { name: 'Messaging', path: '/messages', icon: <MessageSquare size={20} /> },
-    { name: 'Settings', path: '/settings', icon: <SettingsIcon size={20} /> },
   ];
 
   return (
