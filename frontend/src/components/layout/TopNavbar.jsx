@@ -1,4 +1,4 @@
-import { Bell, Mail, LogOut, User as UserIcon, Search, Menu, Heart, MessageSquare, UserPlus, Eye, EyeOff } from 'lucide-react';
+import { Bell, Mail, LogOut, User as UserIcon, Search, Menu, Heart, MessageSquare, UserPlus, Eye, EyeOff, Settings, ShieldCheck } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -273,9 +273,28 @@ const TopNavbar = ({ setIsMobileMenuOpen, currentUser, isMessagesPage }) => {
                 <Link 
                   to="/profile" 
                   onClick={() => setIsDropdownOpen(false)}
-                  className="flex items-center gap-2 px-4 py-3 text-sm text-gray-300 hover:bg-white/5 hover:text-white transition-colors"
+                  className="flex items-center gap-2.5 px-4 py-2.5 text-xs text-gray-300 hover:bg-white/5 hover:text-white transition-colors"
                 >
-                  <UserIcon size={16} /> My Profile
+                  <UserIcon size={15} className="text-gray-400" />
+                  <span>My Profile</span>
+                </Link>
+
+                <Link 
+                  to="/settings" 
+                  onClick={() => setIsDropdownOpen(false)}
+                  className="flex items-center gap-2.5 px-4 py-2.5 text-xs text-gray-300 hover:bg-white/5 hover:text-white transition-colors group cursor-pointer"
+                >
+                  <Settings size={15} className="text-[#00F0FF]" />
+                  <span className="font-semibold text-white group-hover:text-[#00F0FF]">Account Settings</span>
+                </Link>
+
+                <Link 
+                  to="/guidelines" 
+                  onClick={() => setIsDropdownOpen(false)}
+                  className="flex items-center gap-2.5 px-4 py-2.5 text-xs text-gray-300 hover:bg-white/5 hover:text-white transition-colors group cursor-pointer"
+                >
+                  <ShieldCheck size={15} className="text-amber-400" />
+                  <span>Trust & Legal Center</span>
                 </Link>
                 
                 {toggleStatusPref && (
