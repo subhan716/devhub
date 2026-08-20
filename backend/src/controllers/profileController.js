@@ -11,57 +11,89 @@ const { getIo, getReceiverSocketId } = require('../socket');
 // @route   POST /api/profile
 // @access  Private
 const createOrUpdateProfile = async (req, res) => {
-  const { company, website, location, bio, about, status, githubusername, skills, youtube, facebook, twitter, instagram, linkedin, openToWork, providingServices } = req.body;
-
-  // Build profile object
-  const profileFields = {};
-  profileFields.user = req.user.id;
-  if (company) profileFields.company = company;
-  if (location) profileFields.location = location;
-  if (bio !== undefined) profileFields.bio = bio;
-  if (about !== undefined) profileFields.about = about;
-  if (status) profileFields.status = status;
-  if (githubusername) profileFields.githubusername = githubusername;
-  
-  if (openToWork) profileFields.openToWork = openToWork;
-  if (providingServices) profileFields.providingServices = providingServices;
-  
-  // Skills - Spilt into array if it's a comma separated string
-  if (skills) {
-    profileFields.skills = Array.isArray(skills) ? skills : skills.split(',').map((skill) => skill.trim());
-  }
-
-  // Build socialLinks object
-  profileFields.socialLinks = {};
-  if (website) profileFields.socialLinks.website = website;
-  if (youtube) profileFields.socialLinks.youtube = youtube;
-  if (twitter) profileFields.socialLinks.twitter = twitter;
-  if (facebook) profileFields.socialLinks.facebook = facebook;
-  if (linkedin) profileFields.socialLinks.linkedin = linkedin;
-  if (instagram) profileFields.socialLinks.instagram = instagram;
+  const { 
+    name, 
+    company, 
+    website, 
+    location, 
+    bio, 
+    about, 
+    status, 
+    githubusername, 
+    skills, 
+    youtube, 
+    facebook, 
+    twitter, 
+    instagram, 
+    linkedin, 
+    openToWork, 
+    providingServices,
+    avatar,
+    coverImage 
+  } = req.body;
 
   try {
-    let profile = await Profile.findOne({ user: req.user.id });
+    const userId = req.user.id || req.user._id;
+
+    // 1. Sync Name and Avatar on User model if provided
+    const userUpdateFields = {};
+    if (name && name.trim()) {
+      userUpdateFields.name = name.trim();
+    }
+    if (avatar && avatar.url) {
+      userUpdateFields.avatar = avatar;
+    }
+    if (Object.keys(userUpdateFields).length > 0) {
+      await User.findByIdAndUpdate(userId, { $set: userUpdateFields });
+    }
+
+    // 2. Build profileFields object
+    const profileFields = { user: userId };
+    if (company !== undefined) profileFields.company = company;
+    if (location !== undefined) profileFields.location = location;
+    if (bio !== undefined) profileFields.bio = bio;
+    if (about !== undefined) profileFields.about = about;
+    if (status !== undefined) profileFields.status = status;
+    if (githubusername !== undefined) profileFields.githubusername = githubusername;
+    if (avatar) profileFields.avatar = avatar;
+    if (coverImage) profileFields.coverImage = coverImage;
+    if (openToWork !== undefined) profileFields.openToWork = openToWork;
+    if (providingServices !== undefined) profileFields.providingServices = providingServices;
+
+    // Skills - Clean array with deduplication
+    if (skills) {
+      const rawSkills = Array.isArray(skills) ? skills : skills.split(',');
+      profileFields.skills = [...new Set(rawSkills.map((s) => (typeof s === 'string' ? s.trim() : '')).filter(Boolean))];
+    }
+
+    // Build socialLinks object
+    profileFields.socialLinks = {};
+    if (website !== undefined) profileFields.socialLinks.website = website;
+    if (youtube !== undefined) profileFields.socialLinks.youtube = youtube;
+    if (twitter !== undefined) profileFields.socialLinks.twitter = twitter;
+    if (facebook !== undefined) profileFields.socialLinks.facebook = facebook;
+    if (linkedin !== undefined) profileFields.socialLinks.linkedin = linkedin;
+    if (instagram !== undefined) profileFields.socialLinks.instagram = instagram;
+
+    let profile = await Profile.findOne({ user: userId });
 
     if (profile) {
-      // Update existing profile
       profile = await Profile.findOneAndUpdate(
-        { user: req.user.id },
+        { user: userId },
         { $set: profileFields },
         { new: true }
-      ).populate('user', ['name', 'email', 'avatar']);
+      ).populate('user', ['name', 'email', 'avatar', 'role', 'isVerifiedBadge']);
       return res.json(profile);
     }
 
-    // Create new profile
     profile = new Profile(profileFields);
     await profile.save();
-    profile = await profile.populate('user', ['name', 'email', 'avatar']);
+    profile = await profile.populate('user', ['name', 'email', 'avatar', 'role', 'isVerifiedBadge']);
     res.json(profile);
 
   } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server Error');
+    console.error('Error in createOrUpdateProfile:', err.message);
+    res.status(500).json({ message: 'Server Error: ' + err.message });
   }
 };
 
