@@ -692,6 +692,133 @@ const updateStatusPreference = async (req, res) => {
   }
 };
 
+
+// @desc    Update user password (or set initial password for OAuth users)
+// @route   PUT /api/auth/update-password
+// @access  Private
+const updatePassword = async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+    const userId = req.user.id || req.user._id;
+
+    if (!newPassword || newPassword.length < 6) {
+      return res.status(400).json({ message: 'New password must be at least 6 characters long.' });
+    }
+
+    const user = await User.findById(userId).select('+passwordHash');
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // If user already has a password set, verify currentPassword
+    if (user.passwordHash) {
+      if (!currentPassword) {
+        return res.status(400).json({ message: 'Current password is required to update credentials.' });
+      }
+      const isMatch = await user.matchPassword(currentPassword);
+      if (!isMatch) {
+        return res.status(400).json({ message: 'Incorrect current password. Please try again.' });
+      }
+    }
+
+    // Set new password (pre-save hook will hash it with bcrypt 10 rounds)
+    user.passwordHash = newPassword;
+    user.tokenVersion = (user.tokenVersion || 0) + 1; // Invalidate other stale sessions
+    await user.save();
+
+    res.status(200).json({ 
+      message: 'Password updated successfully! Other active sessions have been cryptographically rotated.' 
+    });
+  } catch (error) {
+    console.error('Error in updatePassword:', error);
+    res.status(500).json({ message: 'Failed to update password: ' + error.message });
+  }
+};
+
+// @desc    Get user security telemetry & active session forensics
+// @route   GET /api/auth/security-forensics
+// @access  Private
+const getSecurityForensics = async (req, res) => {
+  try {
+    const userId = req.user.id || req.user._id;
+    const user = await User.findById(userId).select('+passwordHash');
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    const userAgent = req.headers['user-agent'] || 'Unknown Browser';
+    let browser = 'Unknown Browser';
+    let os = 'Unknown OS';
+
+    // Fast User-Agent Parser
+    if (userAgent.includes('Chrome')) browser = 'Google Chrome';
+    else if (userAgent.includes('Firefox')) browser = 'Mozilla Firefox';
+    else if (userAgent.includes('Safari') && !userAgent.includes('Chrome')) browser = 'Apple Safari';
+    else if (userAgent.includes('Edg')) browser = 'Microsoft Edge';
+
+    if (userAgent.includes('Windows')) os = 'Windows OS';
+    else if (userAgent.includes('Macintosh') || userAgent.includes('Mac OS')) os = 'macOS';
+    else if (userAgent.includes('Linux')) os = 'Linux';
+    else if (userAgent.includes('Android')) os = 'Android Device';
+    else if (userAgent.includes('iPhone') || userAgent.includes('iPad')) os = 'iOS Device';
+
+    const clientIp = req.ip || req.connection?.remoteAddress || req.headers['x-forwarded-for'] || '127.0.0.1';
+
+    res.status(200).json({
+      hasPasswordSet: Boolean(user.passwordHash),
+      isOAuthUser: Boolean(user.googleId || user.githubId),
+      tokenVersion: user.tokenVersion || 0,
+      lastUpdated: user.updatedAt,
+      currentSession: {
+        browser,
+        os,
+        ip: clientIp.replace('::ffff:', ''),
+        lastActive: new Date().toISOString(),
+        isCurrent: true,
+      },
+    });
+  } catch (error) {
+    console.error('Error in getSecurityForensics:', error);
+    res.status(500).json({ message: 'Failed to retrieve security forensics: ' + error.message });
+  }
+};
+
+// @desc    Revoke all other active device sessions (Zero-Trust $O(1)$ Token Invalidation)
+// @route   POST /api/auth/revoke-all-sessions
+// @access  Private
+const revokeAllSessions = async (req, res) => {
+  try {
+    const userId = req.user.id || req.user._id;
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // $O(1) Token Version Bump
+    user.tokenVersion = (user.tokenVersion || 0) + 1;
+    await user.save();
+
+    // Generate fresh access token for current device so current user stays logged in if desired
+    const accessToken = generateAccessToken(user);
+    res.cookie('jwt', accessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+
+    res.status(200).json({
+      message: 'All other active device sessions have been revoked successfully.',
+      tokenVersion: user.tokenVersion,
+      newToken: accessToken,
+    });
+  } catch (error) {
+    console.error('Error in revokeAllSessions:', error);
+    res.status(500).json({ message: 'Failed to revoke sessions: ' + error.message });
+  }
+};
+
+
 module.exports = {
   registerUser,
   loginUser,
@@ -704,4 +831,7 @@ module.exports = {
   githubAuth,
   githubCallback,
   updateStatusPreference,
+  updatePassword,
+  getSecurityForensics,
+  revokeAllSessions,
 };

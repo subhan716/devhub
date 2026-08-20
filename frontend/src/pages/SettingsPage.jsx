@@ -5,41 +5,22 @@ import {
   ShieldCheck, 
   Lock, 
   Download, 
-  Save, 
-  Building2, 
-  MapPin, 
-  Globe, 
-  Briefcase, 
-  FolderGit2, 
   KeyRound, 
-  LogOut, 
-  FileText, 
   Scale, 
   Trash2, 
   ExternalLink,
-  CheckCircle2,
-  AlertTriangle,
-  Eye,
-  EyeOff,
   RefreshCw,
-  Bell,
   Sliders
 } from 'lucide-react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import ConfirmModal from '../components/common/ConfirmModal';
 import ProfileSettingsTab from '../components/settings/ProfileSettingsTab';
+import SecuritySettingsTab from '../components/settings/SecuritySettingsTab';
 
 const SettingsPage = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('profile'); // 'profile' | 'security' | 'legal' | 'data'
-
-  // Tab 2: Security State
-  const [currentPassword, setCurrentPassword] = useState('');
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [isPasswordChanging, setIsPasswordChanging] = useState(false);
-  const [isRevokeModalOpen, setIsRevokeModalOpen] = useState(false);
 
   // Tab 3: Legal Policy State
   const [selectedPolicySlug, setSelectedPolicySlug] = useState('guidelines');
@@ -67,47 +48,6 @@ const SettingsPage = () => {
       fetchInAppPolicy();
     }
   }, [activeTab, selectedPolicySlug]);
-
-  // Tab 2: Change Password
-  const handlePasswordChange = async (e) => {
-    e.preventDefault();
-    if (newPassword !== confirmPassword) {
-      toast.error('New passwords do not match');
-      return;
-    }
-    if (newPassword.length < 6) {
-      toast.error('Password must be at least 6 characters long');
-      return;
-    }
-    setIsPasswordChanging(true);
-    try {
-      await axios.put(
-        `${import.meta.env.VITE_API_URL}/api/auth/update-password`,
-        { currentPassword, newPassword },
-        { withCredentials: true }
-      );
-      toast.success('Password updated successfully!');
-      setCurrentPassword('');
-      setNewPassword('');
-      setConfirmPassword('');
-    } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to update password');
-    } finally {
-      setIsPasswordChanging(false);
-    }
-  };
-
-  // Tab 2: Revoke All Sessions
-  const handleRevokeAllSessions = async () => {
-    try {
-      await axios.post(`${import.meta.env.VITE_API_URL}/api/auth/logout`, {}, { withCredentials: true });
-      localStorage.removeItem('isAuthenticated');
-      toast.success('All active sessions invalidated.');
-      navigate('/login');
-    } catch (err) {
-      toast.error('Failed to revoke sessions');
-    }
-  };
 
   // Tab 4: 1-Click GDPR Data Export
   const handleExportData = async () => {
@@ -199,100 +139,13 @@ const SettingsPage = () => {
 
         {/* Right Active Content Panel (8 cols) */}
         <div className="lg:col-span-8">
-          {/* ========================================================================= */}
-          {/* TAB 1: PROFILE & DEVELOPER IDENTITY                                       */}
-          {/* ========================================================================= */}
+          {/* TAB 1: PROFILE & DEVELOPER IDENTITY */}
           {activeTab === 'profile' && <ProfileSettingsTab />}
 
-          {/* ========================================================================= */}
-          {/* TAB 2: SECURITY & SESSIONS                                                */}
-          {/* ========================================================================= */}
-          {activeTab === 'security' && (
-            <div className="space-y-6">
-              {/* Change Password Card */}
-              <div className="bg-[#111] border border-white/5 rounded-2xl p-6 sm:p-8 shadow-xl space-y-6">
-                <div className="flex items-center gap-2 text-white font-bold text-sm border-b border-white/5 pb-3">
-                  <KeyRound size={16} className="text-[#00F0FF]" />
-                  <span>Cryptographic Authentication & Password</span>
-                </div>
+          {/* TAB 2: SECURITY & SESSIONS */}
+          {activeTab === 'security' && <SecuritySettingsTab />}
 
-                <form onSubmit={handlePasswordChange} className="space-y-4 max-w-lg">
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-medium text-gray-300">Current Password</label>
-                    <input
-                      type="password"
-                      value={currentPassword}
-                      onChange={(e) => setCurrentPassword(e.target.value)}
-                      className="w-full bg-[#050508] border border-white/10 rounded-xl py-2.5 px-4 text-xs text-white focus:border-[#00F0FF]/50 outline-none"
-                      placeholder="Enter current password"
-                      required
-                    />
-                  </div>
-
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-medium text-gray-300">New Password</label>
-                    <input
-                      type="password"
-                      value={newPassword}
-                      onChange={(e) => setNewPassword(e.target.value)}
-                      className="w-full bg-[#050508] border border-white/10 rounded-xl py-2.5 px-4 text-xs text-white focus:border-[#00F0FF]/50 outline-none"
-                      placeholder="Minimum 6 characters"
-                      required
-                    />
-                  </div>
-
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-medium text-gray-300">Confirm New Password</label>
-                    <input
-                      type="password"
-                      value={confirmPassword}
-                      onChange={(e) => setConfirmPassword(e.target.value)}
-                      className="w-full bg-[#050508] border border-white/10 rounded-xl py-2.5 px-4 text-xs text-white focus:border-[#00F0FF]/50 outline-none"
-                      placeholder="Repeat new password"
-                      required
-                    />
-                  </div>
-
-                  <button
-                    type="submit"
-                    disabled={isPasswordChanging}
-                    className="px-6 py-2.5 bg-[#00F0FF] hover:bg-[#00F0FF]/90 text-black text-xs font-bold rounded-xl transition-all shadow-[0_0_15px_rgba(0,240,255,0.3)] cursor-pointer disabled:opacity-50"
-                  >
-                    {isPasswordChanging ? 'Updating...' : 'Update Password'}
-                  </button>
-                </form>
-              </div>
-
-              {/* Active Sessions Killswitch Card */}
-              <div className="bg-[#111] border border-white/5 rounded-2xl p-6 sm:p-8 shadow-xl space-y-4">
-                <div className="flex items-center justify-between border-b border-white/5 pb-3">
-                  <div className="flex items-center gap-2 text-white font-bold text-sm">
-                    <ShieldCheck size={16} className="text-emerald-400" />
-                    <span>Active Session Governance & Remote Revocation</span>
-                  </div>
-                  <span className="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[10px] font-mono">
-                    $O(1)$ Token Invalidation Active
-                  </span>
-                </div>
-
-                <p className="text-xs text-gray-400 leading-relaxed">
-                  If you suspect unrecognized access or have lost a device, you can immediately invalidate all active JWT tokens across all browsers and mobile devices.
-                </p>
-
-                <button
-                  onClick={() => setIsRevokeModalOpen(true)}
-                  className="px-5 py-2.5 bg-red-600/20 hover:bg-red-600/30 text-red-400 border border-red-500/30 text-xs font-bold rounded-xl transition-all cursor-pointer flex items-center gap-2"
-                >
-                  <LogOut size={14} />
-                  <span>Revoke All Other Sessions & Log Out</span>
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* ========================================================================= */}
-          {/* TAB 3: IN-APP PRIVACY & LEGAL POLICY READER                               */}
-          {/* ========================================================================= */}
+          {/* TAB 3: IN-APP PRIVACY & LEGAL POLICY READER */}
           {activeTab === 'legal' && (
             <div className="bg-[#111] border border-white/5 rounded-2xl p-6 sm:p-8 shadow-xl space-y-6">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/5 pb-4">
@@ -351,9 +204,7 @@ const SettingsPage = () => {
             </div>
           )}
 
-          {/* ========================================================================= */}
-          {/* TAB 4: GDPR DATA PORTABILITY & RIGHTS                                     */}
-          {/* ========================================================================= */}
+          {/* TAB 4: GDPR DATA PORTABILITY & RIGHTS */}
           {activeTab === 'data' && (
             <div className="space-y-6">
               {/* GDPR 1-Click Data Archive Export */}
@@ -380,7 +231,7 @@ const SettingsPage = () => {
               {/* Danger Zone: Account Deletion */}
               <div className="bg-red-950/10 border border-red-500/20 rounded-2xl p-6 sm:p-8 shadow-xl space-y-4">
                 <div className="flex items-center gap-2 text-red-400 font-bold text-sm border-b border-red-500/20 pb-3">
-                  <AlertTriangle size={16} />
+                  <Trash2 size={16} />
                   <span>Danger Zone: Account Deletion (GDPR Article 17)</span>
                 </div>
 
@@ -401,17 +252,7 @@ const SettingsPage = () => {
         </div>
       </div>
 
-      {/* Confirmation Modals */}
-      <ConfirmModal
-        isOpen={isRevokeModalOpen}
-        onClose={() => setIsRevokeModalOpen(false)}
-        onConfirm={handleRevokeAllSessions}
-        title="Revoke All Active Sessions"
-        message="Are you sure you want to invalidate all active session tokens and sign out?"
-        confirmText="Revoke Sessions"
-        isDestructive={true}
-      />
-
+      {/* Confirmation Modal */}
       <ConfirmModal
         isOpen={isDeleteModalOpen}
         onClose={() => setIsDeleteModalOpen(false)}
