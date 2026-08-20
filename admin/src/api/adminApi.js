@@ -119,6 +119,22 @@ export const getAuditLogs = async (params = {}) => {
   return data;
 };
 
+// Dynamic Legal & Policy CMS
+export const getAllPolicies = async () => {
+  const { data } = await api.get('/admin/policies');
+  return data;
+};
+
+export const getPolicyBySlug = async (slug) => {
+  const { data } = await api.get(`/admin/policies/${slug}`);
+  return data;
+};
+
+export const updatePolicy = async (slug, payload) => {
+  const { data } = await api.put(`/admin/policies/${slug}`, payload);
+  return data;
+};
+
 // Authentication
 export const loginAdmin = async (email, password) => {
   const { data } = await api.post('/auth/login', { email, password });
