@@ -11,7 +11,9 @@ import {
   Lock, 
   RefreshCw,
   Info,
-  Trash2
+  Trash2,
+  MailCheck,
+  RotateCw
 } from 'lucide-react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
@@ -25,14 +27,22 @@ const SecuritySettingsTab = () => {
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
+  const [isRequestingOtp, setIsRequestingOtp] = useState(false);
 
   // Show/Hide Password Visibility Toggles
   const [showCurrent, setShowCurrent] = useState(false);
   const [showNew, setShowNew] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
 
-  // Modals
+  // OTP Modal State
+  const [isOtpModalOpen, setIsOtpModalOpen] = useState(false);
+  const [otp, setOtp] = useState('');
+  const [maskedEmail, setMaskedEmail] = useState('');
+  const [isVerifyingOtp, setIsVerifyingOtp] = useState(false);
+  const [resendCountdown, setResendCountdown] = useState(60);
+  const [isResending, setIsResending] = useState(false);
+
+  // Session & Account Modals
   const [isRevokeModalOpen, setIsRevokeModalOpen] = useState(false);
   const [isRevoking, setIsRevoking] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -53,6 +63,17 @@ const SecuritySettingsTab = () => {
   useEffect(() => {
     fetchSecurityForensics();
   }, []);
+
+  // Resend Timer Countdown
+  useEffect(() => {
+    let timer;
+    if (isOtpModalOpen && resendCountdown > 0) {
+      timer = setInterval(() => {
+        setResendCountdown((prev) => prev - 1);
+      }, 1000);
+    }
+    return () => clearInterval(timer);
+  }, [isOtpModalOpen, resendCountdown]);
 
   // Real-Time Password Strength Computation (1 to 4)
   const computePasswordStrength = (pass) => {
@@ -85,7 +106,8 @@ const SecuritySettingsTab = () => {
   const hasNumber = /[0-9]/.test(newPassword);
   const hasSymbol = /[^A-Za-z0-9]/.test(newPassword);
 
-  const handlePasswordSubmit = async (e) => {
+  // STEP 1: Request Password Change OTP
+  const handlePasswordFormSubmit = async (e) => {
     e.preventDefault();
 
     if (forensics?.hasPasswordSet && !currentPassword) {
@@ -103,22 +125,71 @@ const SecuritySettingsTab = () => {
       return;
     }
 
-    setIsUpdatingPassword(true);
+    setIsRequestingOtp(true);
     try {
-      const { data } = await axios.put(
-        `${import.meta.env.VITE_API_URL}/api/auth/update-password`,
+      const { data } = await axios.post(
+        `${import.meta.env.VITE_API_URL}/api/auth/request-password-otp`,
         { currentPassword, newPassword },
         { withCredentials: true }
       );
+      setMaskedEmail(data.emailMasked || 'your email');
+      setIsOtpModalOpen(true);
+      setResendCountdown(60);
+      setOtp('');
+      toast.success(data.message || 'Security code sent to your email!');
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to request security verification code');
+    } finally {
+      setIsRequestingOtp(false);
+    }
+  };
+
+  // STEP 2: Verify OTP and Finalize Password Change
+  const handleVerifyOtpSubmit = async (e) => {
+    e.preventDefault();
+    if (!otp || otp.trim().length !== 6) {
+      toast.error('Please enter the full 6-digit code');
+      return;
+    }
+
+    setIsVerifyingOtp(true);
+    try {
+      const { data } = await axios.post(
+        `${import.meta.env.VITE_API_URL}/api/auth/verify-password-otp`,
+        { otp: otp.trim() },
+        { withCredentials: true }
+      );
       toast.success(data.message || 'Password updated successfully!');
+      setIsOtpModalOpen(false);
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
+      setOtp('');
       fetchSecurityForensics();
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to update password');
+      toast.error(err.response?.data?.message || 'Invalid or expired security code');
     } finally {
-      setIsUpdatingPassword(false);
+      setIsVerifyingOtp(false);
+    }
+  };
+
+  // Resend OTP Handler
+  const handleResendOtp = async () => {
+    if (resendCountdown > 0 || isResending) return;
+    setIsResending(true);
+    try {
+      const { data } = await axios.post(
+        `${import.meta.env.VITE_API_URL}/api/auth/resend-password-otp`,
+        {},
+        { withCredentials: true }
+      );
+      toast.success(data.message || 'New verification code sent!');
+      setResendCountdown(60);
+      setOtp('');
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to resend code');
+    } finally {
+      setIsResending(false);
     }
   };
 
@@ -152,11 +223,16 @@ const SecuritySettingsTab = () => {
 
   return (
     <div className="space-y-6 font-sans">
-      {/* 1. Password Management */}
+      {/* 1. Password Management Form */}
       <div className="bg-[#111] border border-white/5 rounded-2xl p-6 sm:p-7 space-y-5">
-        <div className="flex items-center gap-2 text-white font-bold text-sm border-b border-white/5 pb-3">
-          <KeyRound size={16} className="text-[#00F0FF]" />
-          <span>Change Password</span>
+        <div className="flex items-center justify-between border-b border-white/5 pb-3">
+          <div className="flex items-center gap-2 text-white font-bold text-sm">
+            <KeyRound size={16} className="text-[#00F0FF]" />
+            <span>Change Password</span>
+          </div>
+          <span className="text-[10px] text-gray-500 font-mono">
+            Requires Email OTP Verification
+          </span>
         </div>
 
         {forensics && !forensics.hasPasswordSet && (
@@ -164,12 +240,12 @@ const SecuritySettingsTab = () => {
             <Info size={16} className="text-[#00F0FF] flex-shrink-0 mt-0.5" />
             <div>
               <span className="font-bold text-white block mb-0.5">Google / GitHub Account</span>
-              You signed up using social login. You can set a password below if you'd like to log in with an email and password directly.
+              You signed up using social login. You can set a password below to log in directly with your email and password.
             </div>
           </div>
         )}
 
-        <form onSubmit={handlePasswordSubmit} className="space-y-4 max-w-lg">
+        <form onSubmit={handlePasswordFormSubmit} className="space-y-4 max-w-lg">
           {forensics?.hasPasswordSet && (
             <div className="space-y-1.5">
               <label className="text-xs font-medium text-gray-300">Current Password</label>
@@ -280,11 +356,11 @@ const SecuritySettingsTab = () => {
           <div className="pt-2">
             <button
               type="submit"
-              disabled={isUpdatingPassword || (newPassword.length > 0 && newPassword !== confirmPassword)}
+              disabled={isRequestingOtp || (newPassword.length > 0 && newPassword !== confirmPassword)}
               className="px-5 py-2.5 bg-[#00F0FF] hover:bg-[#00F0FF]/90 text-black text-xs font-semibold rounded-xl transition-colors cursor-pointer disabled:opacity-50 flex items-center gap-2"
             >
               <Lock size={14} />
-              <span>{isUpdatingPassword ? 'Updating...' : 'Save New Password'}</span>
+              <span>{isRequestingOtp ? 'Sending Security Code...' : 'Update Password'}</span>
             </button>
           </div>
         </form>
@@ -336,6 +412,91 @@ const SecuritySettingsTab = () => {
           </button>
         </div>
       </div>
+
+      {/* ========================================================================= */}
+      {/* 4. LINKEDIN-GRADE EMAIL OTP VERIFICATION MODAL                            */}
+      {/* ========================================================================= */}
+      {isOtpModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-[#111] border border-white/10 rounded-2xl max-w-md w-full p-6 sm:p-7 space-y-6 shadow-2xl relative">
+            {/* Close Button */}
+            <button
+              onClick={() => setIsOtpModalOpen(false)}
+              className="absolute top-4 right-4 text-gray-500 hover:text-white transition-colors cursor-pointer"
+            >
+              <X size={18} />
+            </button>
+
+            {/* Modal Header */}
+            <div className="text-center space-y-2">
+              <div className="w-12 h-12 rounded-2xl bg-[#00F0FF]/10 text-[#00F0FF] border border-[#00F0FF]/20 flex items-center justify-center mx-auto">
+                <MailCheck size={24} />
+              </div>
+              <h3 className="text-base font-bold text-white tracking-tight">Security Verification</h3>
+              <p className="text-xs text-gray-400 leading-relaxed">
+                We sent a 6-digit verification code to <strong className="text-white">{maskedEmail}</strong>. Enter it below to authorize this password change.
+              </p>
+            </div>
+
+            {/* OTP Input Form */}
+            <form onSubmit={handleVerifyOtpSubmit} className="space-y-5">
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-gray-300 block text-center">
+                  6-Digit Security Code
+                </label>
+                <input
+                  type="text"
+                  maxLength={6}
+                  value={otp}
+                  onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
+                  placeholder="• • • • • •"
+                  autoFocus
+                  className="w-full bg-[#050508] border border-white/10 rounded-xl py-3 text-center text-xl tracking-[8px] text-white font-mono focus:border-[#00F0FF]/50 outline-none transition-colors"
+                  required
+                />
+              </div>
+
+              {/* Resend Code Section */}
+              <div className="text-center">
+                {resendCountdown > 0 ? (
+                  <span className="text-xs text-gray-500 font-mono">
+                    Resend code in <strong className="text-gray-400">{resendCountdown}s</strong>
+                  </span>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={handleResendOtp}
+                    disabled={isResending}
+                    className="text-xs text-[#00F0FF] hover:underline cursor-pointer inline-flex items-center gap-1 font-medium"
+                  >
+                    <RotateCw size={12} className={isResending ? 'animate-spin' : ''} />
+                    <span>{isResending ? 'Sending...' : 'Resend Code'}</span>
+                  </button>
+                )}
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex items-center justify-end gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setIsOtpModalOpen(false)}
+                  className="px-4 py-2 bg-white/5 hover:bg-white/10 text-gray-300 rounded-xl border border-white/10 text-xs font-medium transition-colors cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isVerifyingOtp || otp.length !== 6}
+                  className="px-5 py-2 bg-[#00F0FF] hover:bg-[#00F0FF]/90 text-black text-xs font-semibold rounded-xl transition-colors cursor-pointer disabled:opacity-50 flex items-center gap-2"
+                >
+                  <Check size={14} />
+                  <span>{isVerifyingOtp ? 'Verifying...' : 'Confirm & Update'}</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* Confirmation Modals */}
       <ConfirmModal

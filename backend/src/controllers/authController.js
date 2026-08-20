@@ -819,6 +819,222 @@ const revokeAllSessions = async (req, res) => {
 };
 
 
+
+// Helper to mask email (e.g. s***@gmail.com)
+const maskEmail = (email) => {
+  if (!email) return 'your email';
+  const parts = email.split('@');
+  const name = parts[0];
+  const domain = parts[1];
+  const maskedName = name.length > 2 ? name[0] + '***' + name[name.length - 1] : name[0] + '***';
+  return `${maskedName}@${domain}`;
+};
+
+// @desc    Request Email OTP for Password Change (LinkedIn Step-Up Security)
+// @route   POST /api/auth/request-password-otp
+// @access  Private
+const requestPasswordOtp = async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+    const userId = req.user.id || req.user._id;
+
+    if (!newPassword || newPassword.length < 6) {
+      return res.status(400).json({ message: 'New password must be at least 6 characters long.' });
+    }
+
+    const user = await User.findById(userId).select('+passwordHash');
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Verify current password if user already has one
+    if (user.passwordHash) {
+      if (!currentPassword) {
+        return res.status(400).json({ message: 'Current password is required.' });
+      }
+      const isMatch = await user.matchPassword(currentPassword);
+      if (!isMatch) {
+        return res.status(400).json({ message: 'Incorrect current password. Please try again.' });
+      }
+    }
+
+    // Generate 6-digit numeric OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const otpExpire = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+
+    user.passwordChangeOtp = otp;
+    user.passwordChangeOtpExpire = otpExpire;
+    user.pendingNewPassword = newPassword;
+    await user.save();
+
+    console.log(`[DEVELOPMENT OTP LOG] Password change verification OTP for ${user.email} is: ${otp}`);
+
+    // Send Security Verification Email
+    try {
+      const emailHtml = `
+        <div style="font-family: Arial, sans-serif; background-color: #0A0A0A; color: #FFFFFF; padding: 30px; border-radius: 12px; max-width: 520px; margin: auto; border: 1px solid #222;">
+          <div style="text-align: center; margin-bottom: 24px;">
+            <h1 style="color: #00F0FF; font-size: 24px; margin: 0; letter-spacing: -0.5px;">DevHub Security</h1>
+            <p style="color: #888; font-size: 12px; margin-top: 4px;">Account Security & Step-Up Verification</p>
+          </div>
+          <p style="font-size: 14px; color: #CCC; line-height: 1.6;">Hello <strong>${user.name}</strong>,</p>
+          <p style="font-size: 14px; color: #CCC; line-height: 1.6;">
+            We received a request to update the password on your DevHub developer account. Use the 6-digit verification code below to authorize this change:
+          </p>
+          <div style="background-color: #111116; border: 1px solid #00F0FF; border-radius: 8px; text-align: center; padding: 18px; margin: 24px 0;">
+            <span style="font-size: 32px; font-weight: bold; letter-spacing: 6px; color: #00F0FF; font-family: monospace;">${otp}</span>
+          </div>
+          <p style="font-size: 12px; color: #888; line-height: 1.5;">
+            This security code is valid for <strong>10 minutes</strong>. If you did not initiate this request, someone may be attempting to access your account. Please check your active sessions immediately.
+          </p>
+          <hr style="border: 0; border-top: 1px solid #222; margin: 24px 0;" />
+          <p style="font-size: 11px; color: #555; text-align: center; margin: 0;">
+            DevHub Global Trust & Safety • Zero-Trust Security Infrastructure
+          </p>
+        </div>
+      `;
+
+      await sendEmail({
+        to: user.email,
+        subject: `DevHub Security Code: ${otp} (Confirm Password Change)`,
+        html: emailHtml,
+      });
+    } catch (emailErr) {
+      console.warn('Could not dispatch password OTP email via network, relying on console log:', emailErr.message);
+    }
+
+    res.status(200).json({
+      success: true,
+      message: `Verification code sent to ${maskEmail(user.email)}`,
+      emailMasked: maskEmail(user.email),
+    });
+  } catch (error) {
+    console.error('Error in requestPasswordOtp:', error);
+    res.status(500).json({ message: 'Failed to request password verification code: ' + error.message });
+  }
+};
+
+// @desc    Verify OTP and Finalize Password Change
+// @route   POST /api/auth/verify-password-otp
+// @access  Private
+const verifyPasswordOtp = async (req, res) => {
+  try {
+    const { otp } = req.body;
+    const userId = req.user.id || req.user._id;
+
+    if (!otp) {
+      return res.status(400).json({ message: 'Please enter the 6-digit verification code.' });
+    }
+
+    const user = await User.findById(userId).select('+passwordChangeOtp +passwordChangeOtpExpire +pendingNewPassword');
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    if (!user.passwordChangeOtp || !user.passwordChangeOtpExpire) {
+      return res.status(400).json({ message: 'No active password change request found. Please request a new code.' });
+    }
+
+    if (new Date() > new Date(user.passwordChangeOtpExpire)) {
+      return res.status(400).json({ message: 'Verification code has expired. Please request a new one.' });
+    }
+
+    if (user.passwordChangeOtp.trim() !== otp.trim()) {
+      return res.status(400).json({ message: 'Invalid verification code. Please check your email and try again.' });
+    }
+
+    if (!user.pendingNewPassword) {
+      return res.status(400).json({ message: 'Pending password expired. Please restart the password change flow.' });
+    }
+
+    // Apply new password (pre-save hook hashes with bcrypt)
+    user.passwordHash = user.pendingNewPassword;
+    user.passwordChangeOtp = undefined;
+    user.passwordChangeOtpExpire = undefined;
+    user.pendingNewPassword = undefined;
+    user.tokenVersion = (user.tokenVersion || 0) + 1; // Invalidate all other sessions
+    await user.save();
+
+    // Generate fresh JWT token for current session cookie
+    const accessToken = generateAccessToken(user);
+    res.cookie('jwt', accessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+
+    // Send confirmation security alert email
+    try {
+      await sendEmail({
+        to: user.email,
+        subject: 'Security Alert: Your DevHub Password Was Changed',
+        html: `
+          <div style="font-family: Arial, sans-serif; background-color: #0A0A0A; color: #FFFFFF; padding: 30px; border-radius: 12px; max-width: 520px; margin: auto; border: 1px solid #222;">
+            <h2 style="color: #00F0FF; margin-top: 0;">Password Successfully Updated</h2>
+            <p style="color: #CCC; font-size: 14px; line-height: 1.6;">Hello ${user.name},</p>
+            <p style="color: #CCC; font-size: 14px; line-height: 1.6;">
+              The password for your DevHub account (${user.email}) was successfully changed on ${new Date().toUTCString()}.
+            </p>
+            <p style="color: #888; font-size: 12px; line-height: 1.5;">
+              All other active sessions on other browsers and devices have been automatically signed out for your protection.
+            </p>
+          </div>
+        `,
+      });
+    } catch (e) {
+      // ignore
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'Password updated successfully! All other active sessions have been signed out.',
+      newToken: accessToken,
+    });
+  } catch (error) {
+    console.error('Error in verifyPasswordOtp:', error);
+    res.status(500).json({ message: 'Failed to verify code: ' + error.message });
+  }
+};
+
+// @desc    Resend Password Change OTP
+// @route   POST /api/auth/resend-password-otp
+// @access  Private
+const resendPasswordOtp = async (req, res) => {
+  try {
+    const userId = req.user.id || req.user._id;
+    const user = await User.findById(userId).select('+pendingNewPassword');
+    if (!user || !user.pendingNewPassword) {
+      return res.status(400).json({ message: 'No pending password change found. Please start over.' });
+    }
+
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    user.passwordChangeOtp = otp;
+    user.passwordChangeOtpExpire = new Date(Date.now() + 10 * 60 * 1000);
+    await user.save();
+
+    console.log(`[DEVELOPMENT OTP LOG] Resent password change OTP for ${user.email} is: ${otp}`);
+
+    try {
+      await sendEmail({
+        to: user.email,
+        subject: `DevHub Security Code: ${otp} (Resend)`,
+        html: `<p>Your new DevHub security code is: <strong>${otp}</strong> (valid for 10 minutes).</p>`,
+      });
+    } catch (e) {
+      // ignore
+    }
+
+    res.status(200).json({
+      success: true,
+      message: `New verification code sent to ${maskEmail(user.email)}`,
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to resend code: ' + error.message });
+  }
+};
+
+
 module.exports = {
   registerUser,
   loginUser,
@@ -832,6 +1048,9 @@ module.exports = {
   githubCallback,
   updateStatusPreference,
   updatePassword,
+  requestPasswordOtp,
+  verifyPasswordOtp,
+  resendPasswordOtp,
   getSecurityForensics,
   revokeAllSessions,
 };

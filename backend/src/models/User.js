@@ -127,6 +127,18 @@ const userSchema = new mongoose.Schema(
     refreshToken: String,
     passwordResetToken: String,
     passwordResetExpires: Date,
+    passwordChangeOtp: {
+      type: String,
+      select: false,
+    },
+    passwordChangeOtpExpire: {
+      type: Date,
+      select: false,
+    },
+    pendingNewPassword: {
+      type: String,
+      select: false,
+    },
   },
   {
     timestamps: true,
