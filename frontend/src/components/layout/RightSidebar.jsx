@@ -2,6 +2,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
+import { ShieldCheck, Scale, Lock, ExternalLink, HelpCircle } from 'lucide-react';
 
 const RightSidebar = ({ currentUser }) => {
   const [suggestedUsers, setSuggestedUsers] = useState([]);
@@ -53,6 +54,7 @@ const RightSidebar = ({ currentUser }) => {
 
   return (
     <div className="w-80 h-screen fixed right-0 top-0 border-l border-white/5 bg-[#0a0a0a] pt-24 pb-6 px-6 hidden xl:block overflow-y-auto scrollbar-none z-10">
+      {/* Suggested Connections Box */}
       <div className="bg-[#111] border border-white/5 rounded-2xl p-5 shadow-lg">
         <h3 className="text-white font-semibold mb-6">Suggested Connections</h3>
         
@@ -85,14 +87,61 @@ const RightSidebar = ({ currentUser }) => {
         </div>
       </div>
       
-      {/* Footer Links */}
-      <div className="mt-8 flex flex-wrap gap-x-4 gap-y-2 px-2 text-[11px] text-gray-600">
-        <Link to="#" className="hover:text-gray-400 transition-colors">About</Link>
-        <Link to="#" className="hover:text-gray-400 transition-colors">Accessibility</Link>
-        <Link to="#" className="hover:text-gray-400 transition-colors">Help Center</Link>
-        <Link to="#" className="hover:text-gray-400 transition-colors">Privacy & Terms</Link>
-        <Link to="#" className="hover:text-gray-400 transition-colors">Advertising</Link>
-        <div className="w-full mt-2">© 2026 DevHub Corporation</div>
+      {/* Active Working Footer Legal & Governance Links */}
+      <div className="mt-8 bg-[#111]/40 border border-white/5 rounded-2xl p-4 space-y-3 text-[11px] text-gray-400">
+        <span className="text-[10px] font-mono uppercase tracking-wider text-gray-500 block">
+          Trust & Legal Center
+        </span>
+
+        <div className="flex flex-col gap-2">
+          <Link 
+            to="/guidelines" 
+            className="flex items-center justify-between hover:text-[#00F0FF] transition-colors group cursor-pointer"
+          >
+            <div className="flex items-center gap-2">
+              <ShieldCheck size={13} className="text-amber-400" />
+              <span>Community Guidelines</span>
+            </div>
+            <span className="text-[10px] text-gray-600 group-hover:text-[#00F0FF]">→</span>
+          </Link>
+
+          <Link 
+            to="/terms" 
+            className="flex items-center justify-between hover:text-[#00F0FF] transition-colors group cursor-pointer"
+          >
+            <div className="flex items-center gap-2">
+              <Scale size={13} className="text-cyan-400" />
+              <span>Terms of Service</span>
+            </div>
+            <span className="text-[10px] text-gray-600 group-hover:text-[#00F0FF]">→</span>
+          </Link>
+
+          <Link 
+            to="/privacy" 
+            className="flex items-center justify-between hover:text-[#00F0FF] transition-colors group cursor-pointer"
+          >
+            <div className="flex items-center gap-2">
+              <Lock size={13} className="text-emerald-400" />
+              <span>Privacy Policy (GDPR)</span>
+            </div>
+            <span className="text-[10px] text-gray-600 group-hover:text-[#00F0FF]">→</span>
+          </Link>
+
+          <a 
+            href="mailto:devhubapp.support@gmail.com" 
+            className="flex items-center justify-between hover:text-white transition-colors group cursor-pointer pt-1 border-t border-white/5"
+          >
+            <div className="flex items-center gap-2 text-gray-500">
+              <HelpCircle size={13} />
+              <span>Trust Desk & Support</span>
+            </div>
+            <ExternalLink size={11} className="text-gray-600" />
+          </a>
+        </div>
+
+        <div className="text-[10px] text-gray-600 font-mono pt-1">
+          DevHub Corporation © 2026
+        </div>
       </div>
     </div>
   );
