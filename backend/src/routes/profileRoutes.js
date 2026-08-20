@@ -16,7 +16,8 @@ const {
   searchProfiles,
   getNetworkSuggestions,
   getFollowers,
-  getFollowing
+  getFollowing,
+  exportSelfData
 } = require('../controllers/profileController');
 const { protect, protectOptional } = require('../middleware/authMiddleware');
 
@@ -41,7 +42,6 @@ router.delete('/education/:edu_id', protect, deleteEducation);
 // Certifications routes
 router.put('/certifications', protect, addCertification);
 router.delete('/certifications/:cert_id', protect, deleteCertification);
-
 
 // Follow / Unfollow routes
 router.post('/follow/:user_id', protect, followUser);
