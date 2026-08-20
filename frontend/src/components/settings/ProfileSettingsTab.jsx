@@ -284,7 +284,7 @@ const ProfileSettingsTab = () => {
             <div className="relative group">
               <div
                 className={`w-24 h-24 rounded-full p-1 bg-[#111] ${
-                  isOpenToWork ? 'ring-2 ring-emerald-400 shadow-[0_0_15px_rgba(52,211,153,0.3)]' : 'ring-2 ring-white/10'
+                  isOpenToWork ? 'ring-2 ring-emerald-400 ' : 'ring-2 ring-white/10'
                 }`}
               >
                 <img
@@ -334,7 +334,7 @@ const ProfileSettingsTab = () => {
             <button
               type="submit"
               disabled={saving}
-              className="w-full sm:w-auto px-6 py-2.5 bg-[#00F0FF] hover:bg-[#00F0FF]/90 text-black font-bold text-xs rounded-xl transition-all shadow-[0_0_15px_rgba(0,240,255,0.3)] flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+              className="w-full sm:w-auto px-6 py-2.5 bg-[#00F0FF] hover:bg-[#00F0FF]/90 text-black font-bold text-xs rounded-xl transition-all  flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
             >
               <Save size={14} />
               <span>{saving ? 'Saving Changes...' : 'Save Profile'}</span>
@@ -725,7 +725,7 @@ const ProfileSettingsTab = () => {
         <button
           type="submit"
           disabled={saving}
-          className="flex items-center gap-2 px-8 py-3 bg-[#00F0FF] hover:bg-[#00F0FF]/90 text-black rounded-xl text-xs font-bold transition-all disabled:opacity-50 shadow-[0_0_20px_rgba(0,240,255,0.4)] cursor-pointer"
+          className="flex items-center gap-2 px-8 py-3 bg-[#00F0FF] hover:bg-[#00F0FF]/90 text-black rounded-xl text-xs font-bold transition-all disabled:opacity-50  cursor-pointer"
         >
           <Save size={16} />
           <span>{saving ? 'Saving Profile Changes...' : 'Save Profile Changes'}</span>

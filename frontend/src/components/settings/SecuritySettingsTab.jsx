@@ -5,15 +5,11 @@ import {
   LogOut, 
   Eye, 
   EyeOff, 
-  Smartphone, 
-  Laptop, 
-  Globe, 
   Check, 
   X, 
   AlertTriangle, 
   Lock, 
   RefreshCw,
-  Sparkles,
   Info
 } from 'lucide-react';
 import axios from 'axios';
@@ -153,24 +149,24 @@ const SecuritySettingsTab = () => {
   }
 
   return (
-    <div className="space-y-8 font-sans">
+    <div className="space-y-6 font-sans">
       {/* ========================================================================= */}
       {/* 1. CRYPTOGRAPHIC PASSWORD MANAGEMENT                                      */}
       {/* ========================================================================= */}
-      <div className="bg-[#111] border border-white/5 rounded-2xl p-6 sm:p-8 shadow-xl space-y-6">
+      <div className="bg-[#111] border border-white/5 rounded-2xl p-6 sm:p-8 space-y-6">
         <div className="flex items-center justify-between border-b border-white/5 pb-3">
           <div className="flex items-center gap-2 text-white font-bold text-sm">
             <KeyRound size={16} className="text-[#00F0FF]" />
             <span>Cryptographic Password & Credentials</span>
           </div>
           <span className="text-[10px] font-mono text-gray-500">
-            Standard: Bcrypt 10 Rounds & JWT Rotation
+            Bcrypt 10 Rounds
           </span>
         </div>
 
         {/* OAuth Warning / Notification Banner if OAuth user without password */}
         {forensics && !forensics.hasPasswordSet && (
-          <div className="p-4 rounded-xl bg-cyan-950/20 border border-cyan-500/30 flex items-start gap-3 text-xs text-gray-300 leading-relaxed">
+          <div className="p-4 rounded-xl bg-cyan-950/20 border border-cyan-500/20 flex items-start gap-3 text-xs text-gray-300 leading-relaxed">
             <Info size={16} className="text-[#00F0FF] flex-shrink-0 mt-0.5" />
             <div>
               <span className="font-bold text-white block mb-0.5">OAuth-Linked Developer Account</span>
@@ -229,17 +225,17 @@ const SecuritySettingsTab = () => {
 
             {/* Interactive Strength Meter */}
             {newPassword.length > 0 && (
-              <div className="space-y-2 pt-1 animate-in fade-in duration-200">
+              <div className="space-y-2 pt-1">
                 <div className="flex items-center justify-between text-[11px] font-mono">
                   <span className="text-gray-400">Security Strength:</span>
-                  <span className={`font-bold ${
+                  <span className={`font-semibold ${
                     strength.score === 4 ? 'text-emerald-400' : strength.score === 3 ? 'text-[#00F0FF]' : strength.score === 2 ? 'text-amber-400' : 'text-red-400'
                   }`}>
                     {strength.label}
                   </span>
                 </div>
                 <div className="w-full h-1.5 bg-zinc-900 rounded-full overflow-hidden">
-                  <div className={`h-full ${strength.color} ${strength.width} transition-all duration-300`} />
+                  <div className={`h-full ${strength.color} ${strength.width} transition-all duration-200`} />
                 </div>
 
                 {/* Criteria Chips Checklist */}
@@ -296,7 +292,7 @@ const SecuritySettingsTab = () => {
             <button
               type="submit"
               disabled={isUpdatingPassword || (newPassword.length > 0 && newPassword !== confirmPassword)}
-              className="px-6 py-2.5 bg-[#00F0FF] hover:bg-[#00F0FF]/90 text-black text-xs font-bold rounded-xl transition-all shadow-[0_0_15px_rgba(0,240,255,0.3)] cursor-pointer disabled:opacity-50 flex items-center gap-2"
+              className="px-5 py-2.5 bg-[#00F0FF] hover:bg-[#00F0FF]/90 text-black text-xs font-semibold rounded-xl transition-colors cursor-pointer disabled:opacity-50 flex items-center gap-2"
             >
               <Lock size={14} />
               <span>{isUpdatingPassword ? 'Updating Password...' : 'Save New Password'}</span>
@@ -306,56 +302,13 @@ const SecuritySettingsTab = () => {
       </div>
 
       {/* ========================================================================= */}
-      {/* 2. ACTIVE SESSION FORENSICS & TELEMETRY (GITHUB / DISCORD GRADE)           */}
+      {/* 2. ZERO-TRUST REMOTE SESSION REVOCATION KILLSWITCH                         */}
       {/* ========================================================================= */}
-      <div className="bg-[#111] border border-white/5 rounded-2xl p-6 sm:p-8 shadow-xl space-y-5">
+      <div className="bg-[#111] border border-white/5 rounded-2xl p-6 sm:p-8 space-y-4">
         <div className="flex items-center justify-between border-b border-white/5 pb-3">
           <div className="flex items-center gap-2 text-white font-bold text-sm">
-            <Laptop size={16} className="text-emerald-400" />
-            <span>Active Session Telemetry & Device Forensics</span>
-          </div>
-          <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[10px] font-mono flex items-center gap-1.5 font-bold">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-            Active Session Verified
-          </span>
-        </div>
-
-        {/* Device Telemetry Card */}
-        <div className="p-4 rounded-xl bg-[#050508] border border-white/10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 flex-shrink-0">
-              <Laptop size={20} />
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-bold text-white">
-                  {forensics?.currentSession?.browser || 'Web Browser'} on {forensics?.currentSession?.os || 'Computer'}
-                </span>
-                <span className="text-[10px] font-mono bg-emerald-500/10 text-emerald-400 px-1.5 py-0.5 rounded border border-emerald-500/20">
-                  Current Device
-                </span>
-              </div>
-              <p className="text-[11px] text-gray-400 font-mono mt-0.5">
-                IP: {forensics?.currentSession?.ip || '127.0.0.1'} • Standard HttpOnly Session
-              </p>
-            </div>
-          </div>
-
-          <div className="text-left sm:text-right text-[11px] font-mono text-gray-500">
-            <div>Session Version: v{forensics?.tokenVersion || 0}</div>
-            <div className="text-emerald-400 text-[10px]">Active Now</div>
-          </div>
-        </div>
-      </div>
-
-      {/* ========================================================================= */}
-      {/* 3. ZERO-TRUST REMOTE SESSION REVOCATION KILLSWITCH ($O(1))                 */}
-      {/* ========================================================================= */}
-      <div className="bg-[#111] border border-red-500/20 rounded-2xl p-6 sm:p-8 shadow-xl space-y-4">
-        <div className="flex items-center justify-between border-b border-red-500/20 pb-3">
-          <div className="flex items-center gap-2 text-red-400 font-bold text-sm">
-            <ShieldCheck size={16} />
-            <span>Zero-Trust Remote Device Revocation Killswitch</span>
+            <ShieldCheck size={16} className="text-red-400" />
+            <span>Active Session Revocation</span>
           </div>
           <span className="text-[10px] font-mono text-gray-500">
             $O(1)$ Token Invalidation
@@ -363,18 +316,18 @@ const SecuritySettingsTab = () => {
         </div>
 
         <p className="text-xs text-gray-400 leading-relaxed max-w-2xl">
-          Lost a laptop, changed phones, or accessed DevHub from a public terminal? This killswitch rotates your cryptographic token version, instantly terminating all other active JWT sessions worldwide without affecting your current device.
+          Lost a device or accessed DevHub on a public computer? This action invalidates all other active login tokens across all devices without logging you out of this browser.
         </p>
 
-        <div className="pt-2">
+        <div className="pt-1">
           <button
             type="button"
             onClick={() => setIsRevokeModalOpen(true)}
             disabled={isRevoking}
-            className="px-6 py-2.5 bg-red-600/20 hover:bg-red-600/30 text-red-400 border border-red-500/30 text-xs font-bold rounded-xl transition-all cursor-pointer flex items-center gap-2 disabled:opacity-50"
+            className="px-5 py-2.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 text-xs font-semibold rounded-xl transition-colors cursor-pointer flex items-center gap-2 disabled:opacity-50"
           >
             <LogOut size={14} />
-            <span>{isRevoking ? 'Rotating Cryptographic Tokens...' : 'Revoke All Other Device Sessions'}</span>
+            <span>{isRevoking ? 'Revoking Sessions...' : 'Revoke All Other Sessions'}</span>
           </button>
         </div>
       </div>
@@ -385,7 +338,7 @@ const SecuritySettingsTab = () => {
         onClose={() => setIsRevokeModalOpen(false)}
         onConfirm={handleRevokeAllSessions}
         title="Revoke All Other Sessions"
-        message="Are you sure you want to invalidate all active JWT tokens across all other devices and browsers? They will be immediately logged out."
+        message="Are you sure you want to invalidate all active JWT tokens across all other devices? They will be immediately signed out."
         confirmText="Revoke Remote Sessions"
         isDestructive={true}
       />

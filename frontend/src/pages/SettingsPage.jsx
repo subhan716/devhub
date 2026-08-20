@@ -106,7 +106,7 @@ const SettingsPage = () => {
                   onClick={() => setActiveTab(item.id)}
                   className={`w-full flex items-center justify-between p-3 rounded-xl text-left transition-all cursor-pointer ${
                     isActive
-                      ? 'bg-[#00F0FF]/10 text-[#00F0FF] border border-[#00F0FF]/30 shadow-lg shadow-[#00F0FF]/5'
+                      ? 'bg-[#00F0FF]/10 text-[#00F0FF] border border-[#00F0FF]/30 '
                       : 'text-gray-400 hover:text-white hover:bg-white/5 border border-transparent'
                   }`}
                 >
@@ -221,7 +221,7 @@ const SettingsPage = () => {
                 <button
                   onClick={handleExportData}
                   disabled={isExporting}
-                  className="px-6 py-2.5 bg-[#00F0FF] hover:bg-[#00F0FF]/90 text-black text-xs font-bold rounded-xl transition-all shadow-[0_0_15px_rgba(0,240,255,0.3)] cursor-pointer flex items-center gap-2 disabled:opacity-50"
+                  className="px-6 py-2.5 bg-[#00F0FF] hover:bg-[#00F0FF]/90 text-black text-xs font-bold rounded-xl transition-all  cursor-pointer flex items-center gap-2 disabled:opacity-50"
                 >
                   <Download size={14} />
                   <span>{isExporting ? 'Generating Archive...' : 'Download My Personal Data (.json)'}</span>
