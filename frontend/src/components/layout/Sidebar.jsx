@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Briefcase, MessageSquare, LogOut, X, Users } from 'lucide-react';
+import { LayoutDashboard, Briefcase, MessageSquare, LogOut, X, Users, Settings as SettingsIcon, ShieldCheck } from 'lucide-react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import ConfirmModal from '../common/ConfirmModal';
@@ -26,6 +26,7 @@ const Sidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
     { name: 'My Networks', path: '/network', icon: <Users size={20} /> },
     { name: 'Jobs', path: '/jobs', icon: <Briefcase size={20} /> },
     { name: 'Messaging', path: '/messages', icon: <MessageSquare size={20} /> },
+    { name: 'Settings', path: '/settings', icon: <SettingsIcon size={20} /> },
   ];
 
   return (

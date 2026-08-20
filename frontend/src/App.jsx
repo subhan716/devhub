@@ -25,6 +25,7 @@ const NetworkPage = lazy(() => import('./pages/NetworkPage'));
 const MessagesPage = lazy(() => import('./pages/MessagesPage'));
 const UserPostsPage = lazy(() => import('./pages/UserPostsPage'));
 const PostPage = lazy(() => import('./pages/PostPage'));
+const LegalCenterPage = lazy(() => import('./pages/LegalCenterPage'));
 import { PageSkeleton } from './components/common/Skeletons';
 
 // Protected Route Component
@@ -152,6 +153,12 @@ function App() {
             <Route path="/register" element={<GuestRoute><RegisterPage /></GuestRoute>} />
             <Route path="/verify-otp" element={<GuestRoute><VerifyOtpPage /></GuestRoute>} />
             <Route path="/setup-profile" element={<SetupProfilePage />} />
+
+            {/* Public Legal & Governance Portal */}
+            <Route path="/terms" element={<LegalCenterPage initialTab="terms" />} />
+            <Route path="/privacy" element={<LegalCenterPage initialTab="privacy" />} />
+            <Route path="/guidelines" element={<LegalCenterPage initialTab="guidelines" />} />
+            <Route path="/legal" element={<LegalCenterPage initialTab="guidelines" />} />
 
             {/* Protected Routes inside MainLayout */}
             <Route
