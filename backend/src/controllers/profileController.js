@@ -498,8 +498,7 @@ const getFollowers = async (req, res) => {
 // @desc    Get following
 // @route   GET /api/profile/following
 // @access  Private
-const getFollowing,
-  exportSelfData = async (req, res) => {
+const getFollowing = async (req, res) => {
   try {
     const profile = await Profile.findOne({ user: req.user.id });
     if (!profile) return res.status(404).json({ msg: 'Profile not found' });
@@ -567,5 +566,6 @@ module.exports = {
   searchProfiles,
   getNetworkSuggestions,
   getFollowers,
-  getFollowing
+  getFollowing,
+  exportSelfData
 };
