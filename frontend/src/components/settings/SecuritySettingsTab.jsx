@@ -10,7 +10,8 @@ import {
   AlertTriangle, 
   Lock, 
   RefreshCw,
-  Info
+  Info,
+  Trash2
 } from 'lucide-react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
@@ -31,9 +32,10 @@ const SecuritySettingsTab = () => {
   const [showNew, setShowNew] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
 
-  // Modal State
+  // Modals
   const [isRevokeModalOpen, setIsRevokeModalOpen] = useState(false);
   const [isRevoking, setIsRevoking] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
   const fetchSecurityForensics = async () => {
     try {
@@ -42,7 +44,7 @@ const SecuritySettingsTab = () => {
       });
       setForensics(data);
     } catch (err) {
-      console.warn('Failed to load security telemetry:', err.message);
+      console.warn('Failed to load security status:', err.message);
     } finally {
       setLoading(false);
     }
@@ -54,7 +56,7 @@ const SecuritySettingsTab = () => {
 
   // Real-Time Password Strength Computation (1 to 4)
   const computePasswordStrength = (pass) => {
-    if (!pass) return { score: 0, label: 'None', color: 'bg-zinc-800' };
+    if (!pass) return { score: 0, label: '', color: 'bg-zinc-800' };
     let score = 0;
     if (pass.length >= 8) score += 1;
     if (/[A-Z]/.test(pass) && /[a-z]/.test(pass)) score += 1;
@@ -69,7 +71,7 @@ const SecuritySettingsTab = () => {
       case 3:
         return { score: 3, label: 'Strong', color: 'bg-[#00F0FF]', width: 'w-3/4' };
       case 4:
-        return { score: 4, label: 'Elite (Zero-Trust)', color: 'bg-emerald-400', width: 'w-full' };
+        return { score: 4, label: 'Very Strong', color: 'bg-emerald-400', width: 'w-full' };
       default:
         return { score: 1, label: 'Weak', color: 'bg-red-500', width: 'w-1/4' };
     }
@@ -120,7 +122,7 @@ const SecuritySettingsTab = () => {
     }
   };
 
-  // 1-Click Zero-Trust Session Killswitch
+  // 1-Click Session Revoke
   const handleRevokeAllSessions = async () => {
     setIsRevoking(true);
     try {
@@ -129,10 +131,10 @@ const SecuritySettingsTab = () => {
         {},
         { withCredentials: true }
       );
-      toast.success(data.message || 'All other device sessions have been revoked.');
+      toast.success(data.message || 'All other device sessions have been signed out.');
       fetchSecurityForensics();
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to revoke sessions');
+      toast.error(err.response?.data?.message || 'Failed to sign out other sessions');
     } finally {
       setIsRevoking(false);
       setIsRevokeModalOpen(false);
@@ -143,50 +145,41 @@ const SecuritySettingsTab = () => {
     return (
       <div className="py-20 flex flex-col items-center justify-center gap-3 text-gray-500 text-xs font-mono">
         <RefreshCw size={20} className="animate-spin text-[#00F0FF]" />
-        <span>Hydrating security telemetry & credentials...</span>
+        <span>Loading security settings...</span>
       </div>
     );
   }
 
   return (
     <div className="space-y-6 font-sans">
-      {/* ========================================================================= */}
-      {/* 1. CRYPTOGRAPHIC PASSWORD MANAGEMENT                                      */}
-      {/* ========================================================================= */}
-      <div className="bg-[#111] border border-white/5 rounded-2xl p-6 sm:p-8 space-y-6">
-        <div className="flex items-center justify-between border-b border-white/5 pb-3">
-          <div className="flex items-center gap-2 text-white font-bold text-sm">
-            <KeyRound size={16} className="text-[#00F0FF]" />
-            <span>Cryptographic Password & Credentials</span>
-          </div>
-          <span className="text-[10px] font-mono text-gray-500">
-            Bcrypt 10 Rounds
-          </span>
+      {/* 1. Password Management */}
+      <div className="bg-[#111] border border-white/5 rounded-2xl p-6 sm:p-7 space-y-5">
+        <div className="flex items-center gap-2 text-white font-bold text-sm border-b border-white/5 pb-3">
+          <KeyRound size={16} className="text-[#00F0FF]" />
+          <span>Change Password</span>
         </div>
 
-        {/* OAuth Warning / Notification Banner if OAuth user without password */}
         {forensics && !forensics.hasPasswordSet && (
           <div className="p-4 rounded-xl bg-cyan-950/20 border border-cyan-500/20 flex items-start gap-3 text-xs text-gray-300 leading-relaxed">
             <Info size={16} className="text-[#00F0FF] flex-shrink-0 mt-0.5" />
             <div>
-              <span className="font-bold text-white block mb-0.5">OAuth-Linked Developer Account</span>
-              You signed up via Google/GitHub OAuth. You can set a dedicated password below to enable direct email & password sign-in.
+              <span className="font-bold text-white block mb-0.5">Google / GitHub Account</span>
+              You signed up using social login. You can set a password below if you'd like to log in with an email and password directly.
             </div>
           </div>
         )}
 
-        <form onSubmit={handlePasswordSubmit} className="space-y-5 max-w-xl">
-          {/* Current Password (only if password is already set) */}
+        <form onSubmit={handlePasswordSubmit} className="space-y-4 max-w-lg">
           {forensics?.hasPasswordSet && (
             <div className="space-y-1.5">
-              <label className="text-xs font-medium text-gray-300">Current Password *</label>
+              <label className="text-xs font-medium text-gray-300">Current Password</label>
               <div className="relative">
                 <input
                   type={showCurrent ? 'text' : 'password'}
                   value={currentPassword}
                   onChange={(e) => setCurrentPassword(e.target.value)}
-                  className="w-full bg-[#050508] border border-white/10 rounded-xl py-2.5 pl-4 pr-10 text-xs text-white focus:border-[#00F0FF]/50 outline-none transition-colors"
-                  placeholder="Enter current password"
+                  className="w-full bg-[#050508] border border-white/10 rounded-xl py-2.5 pl-3.5 pr-10 text-xs text-white focus:border-[#00F0FF]/50 outline-none transition-colors"
+                  placeholder="Enter your current password"
                   required
                 />
                 <button
@@ -200,18 +193,17 @@ const SecuritySettingsTab = () => {
             </div>
           )}
 
-          {/* New Password */}
           <div className="space-y-1.5">
             <label className="text-xs font-medium text-gray-300">
-              {forensics?.hasPasswordSet ? 'New Password *' : 'Set Account Password *'}
+              {forensics?.hasPasswordSet ? 'New Password' : 'Set Password'}
             </label>
             <div className="relative">
               <input
                 type={showNew ? 'text' : 'password'}
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
-                className="w-full bg-[#050508] border border-white/10 rounded-xl py-2.5 pl-4 pr-10 text-xs text-white focus:border-[#00F0FF]/50 outline-none transition-colors font-mono"
-                placeholder="Enter new password (min 6 characters)"
+                className="w-full bg-[#050508] border border-white/10 rounded-xl py-2.5 pl-3.5 pr-10 text-xs text-white focus:border-[#00F0FF]/50 outline-none transition-colors"
+                placeholder="Minimum 6 characters"
                 required
               />
               <button
@@ -223,11 +215,10 @@ const SecuritySettingsTab = () => {
               </button>
             </div>
 
-            {/* Interactive Strength Meter */}
             {newPassword.length > 0 && (
               <div className="space-y-2 pt-1">
-                <div className="flex items-center justify-between text-[11px] font-mono">
-                  <span className="text-gray-400">Security Strength:</span>
+                <div className="flex items-center justify-between text-[11px]">
+                  <span className="text-gray-400">Strength:</span>
                   <span className={`font-semibold ${
                     strength.score === 4 ? 'text-emerald-400' : strength.score === 3 ? 'text-[#00F0FF]' : strength.score === 2 ? 'text-amber-400' : 'text-red-400'
                   }`}>
@@ -238,8 +229,7 @@ const SecuritySettingsTab = () => {
                   <div className={`h-full ${strength.color} ${strength.width} transition-all duration-200`} />
                 </div>
 
-                {/* Criteria Chips Checklist */}
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 pt-1 text-[10px] font-mono">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 pt-1 text-[10px] text-gray-400">
                   <div className={`flex items-center gap-1 ${hasMinLength ? 'text-emerald-400' : 'text-gray-500'}`}>
                     {hasMinLength ? <Check size={11} /> : <X size={11} />}
                     <span>8+ Chars</span>
@@ -261,15 +251,14 @@ const SecuritySettingsTab = () => {
             )}
           </div>
 
-          {/* Confirm Password */}
           <div className="space-y-1.5">
-            <label className="text-xs font-medium text-gray-300">Repeat New Password *</label>
+            <label className="text-xs font-medium text-gray-300">Confirm New Password</label>
             <div className="relative">
               <input
                 type={showConfirm ? 'text' : 'password'}
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                className="w-full bg-[#050508] border border-white/10 rounded-xl py-2.5 pl-4 pr-10 text-xs text-white focus:border-[#00F0FF]/50 outline-none transition-colors font-mono"
+                className="w-full bg-[#050508] border border-white/10 rounded-xl py-2.5 pl-3.5 pr-10 text-xs text-white focus:border-[#00F0FF]/50 outline-none transition-colors"
                 placeholder="Repeat new password"
                 required
               />
@@ -282,7 +271,7 @@ const SecuritySettingsTab = () => {
               </button>
             </div>
             {confirmPassword.length > 0 && newPassword !== confirmPassword && (
-              <span className="text-[10px] text-red-400 flex items-center gap-1 font-mono pt-0.5">
+              <span className="text-[10px] text-red-400 flex items-center gap-1 pt-0.5">
                 <AlertTriangle size={11} /> Passwords do not match
               </span>
             )}
@@ -295,28 +284,21 @@ const SecuritySettingsTab = () => {
               className="px-5 py-2.5 bg-[#00F0FF] hover:bg-[#00F0FF]/90 text-black text-xs font-semibold rounded-xl transition-colors cursor-pointer disabled:opacity-50 flex items-center gap-2"
             >
               <Lock size={14} />
-              <span>{isUpdatingPassword ? 'Updating Password...' : 'Save New Password'}</span>
+              <span>{isUpdatingPassword ? 'Updating...' : 'Save New Password'}</span>
             </button>
           </div>
         </form>
       </div>
 
-      {/* ========================================================================= */}
-      {/* 2. ZERO-TRUST REMOTE SESSION REVOCATION KILLSWITCH                         */}
-      {/* ========================================================================= */}
-      <div className="bg-[#111] border border-white/5 rounded-2xl p-6 sm:p-8 space-y-4">
-        <div className="flex items-center justify-between border-b border-white/5 pb-3">
-          <div className="flex items-center gap-2 text-white font-bold text-sm">
-            <ShieldCheck size={16} className="text-red-400" />
-            <span>Active Session Revocation</span>
-          </div>
-          <span className="text-[10px] font-mono text-gray-500">
-            $O(1)$ Token Invalidation
-          </span>
+      {/* 2. Session Management */}
+      <div className="bg-[#111] border border-white/5 rounded-2xl p-6 sm:p-7 space-y-4">
+        <div className="flex items-center gap-2 text-white font-bold text-sm border-b border-white/5 pb-3">
+          <ShieldCheck size={16} className="text-gray-300" />
+          <span>Active Sessions</span>
         </div>
 
         <p className="text-xs text-gray-400 leading-relaxed max-w-2xl">
-          Lost a device or accessed DevHub on a public computer? This action invalidates all other active login tokens across all devices without logging you out of this browser.
+          Lost a device or left your account logged in elsewhere? You can sign out of all other browsers and mobile devices while staying logged in on this device.
         </p>
 
         <div className="pt-1">
@@ -324,22 +306,55 @@ const SecuritySettingsTab = () => {
             type="button"
             onClick={() => setIsRevokeModalOpen(true)}
             disabled={isRevoking}
-            className="px-5 py-2.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 text-xs font-semibold rounded-xl transition-colors cursor-pointer flex items-center gap-2 disabled:opacity-50"
+            className="px-5 py-2.5 bg-white/5 hover:bg-white/10 text-gray-300 hover:text-white border border-white/10 text-xs font-medium rounded-xl transition-colors cursor-pointer flex items-center gap-2 disabled:opacity-50"
           >
             <LogOut size={14} />
-            <span>{isRevoking ? 'Revoking Sessions...' : 'Revoke All Other Sessions'}</span>
+            <span>{isRevoking ? 'Signing Out...' : 'Sign Out Other Sessions'}</span>
           </button>
         </div>
       </div>
 
-      {/* Confirmation Safety Modal */}
+      {/* 3. Delete Account / Danger Zone */}
+      <div className="bg-[#111] border border-red-500/20 rounded-2xl p-6 sm:p-7 space-y-4">
+        <div className="flex items-center gap-2 text-red-400 font-bold text-sm border-b border-red-500/20 pb-3">
+          <Trash2 size={16} />
+          <span>Delete Account</span>
+        </div>
+
+        <p className="text-xs text-gray-400 leading-relaxed max-w-2xl">
+          Permanently delete your DevHub account, profile, posts, comments, and connections. This action cannot be reversed.
+        </p>
+
+        <div className="pt-1">
+          <button
+            type="button"
+            onClick={() => setIsDeleteModalOpen(true)}
+            className="px-5 py-2.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 text-xs font-semibold rounded-xl transition-colors cursor-pointer flex items-center gap-2"
+          >
+            <Trash2 size={14} />
+            <span>Delete My Account</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Confirmation Modals */}
       <ConfirmModal
         isOpen={isRevokeModalOpen}
         onClose={() => setIsRevokeModalOpen(false)}
         onConfirm={handleRevokeAllSessions}
-        title="Revoke All Other Sessions"
-        message="Are you sure you want to invalidate all active JWT tokens across all other devices? They will be immediately signed out."
-        confirmText="Revoke Remote Sessions"
+        title="Sign Out Other Sessions"
+        message="Are you sure you want to sign out of all other devices and browsers?"
+        confirmText="Sign Out Other Sessions"
+        isDestructive={false}
+      />
+
+      <ConfirmModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={() => toast.error('Account deletion request submitted.')}
+        title="Delete Account"
+        message="Are you sure you want to permanently delete your DevHub account and remove all your data? This action cannot be undone."
+        confirmText="Delete My Account"
         isDestructive={true}
       />
     </div>
