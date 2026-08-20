@@ -81,9 +81,24 @@ export const moderateReport = async (reportId, payload) => {
   return data;
 };
 
-// Broadcast Announcements
+// Broadcast Announcements & Emergency Sentinel
+export const getAllBroadcasts = async () => {
+  const { data } = await api.get('/admin/broadcasts');
+  return data;
+};
+
 export const broadcastAnnouncement = async (payload) => {
   const { data } = await api.post('/admin/broadcast', payload);
+  return data;
+};
+
+export const toggleBroadcastStatus = async (broadcastId) => {
+  const { data } = await api.put(`/admin/broadcasts/${broadcastId}/status`);
+  return data;
+};
+
+export const deleteBroadcast = async (broadcastId) => {
+  const { data } = await api.delete(`/admin/broadcasts/${broadcastId}`);
   return data;
 };
 

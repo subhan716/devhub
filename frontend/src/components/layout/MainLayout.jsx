@@ -6,6 +6,7 @@ import RightSidebar from './RightSidebar';
 import TopNavbar from './TopNavbar';
 import BottomNavbar from './BottomNavbar';
 import FloatingChat from '../chat/FloatingChat';
+import GlobalAlertBanner from '../common/GlobalAlertBanner';
 import { SocketProvider } from '../../context/SocketContext';
 
 const MainLayout = () => {
@@ -35,6 +36,9 @@ const MainLayout = () => {
         
         {/* Main Content Area */}
         <main className={`lg:ml-64 ${!isMessagesPage ? 'xl:mr-80 min-h-[100dvh]' : 'h-[100dvh] overflow-hidden'} flex flex-col relative transition-all duration-300 pb-[70px] lg:pb-0`}>
+          {/* Top Real-Time Alert & Emergency Banner */}
+          <GlobalAlertBanner />
+
           <TopNavbar setIsMobileMenuOpen={setIsMobileMenuOpen} currentUser={currentUser} isMessagesPage={isMessagesPage} />
           <div className={`flex-1 w-full min-h-0 ${!isMessagesPage ? 'max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-6' : 'max-w-full p-0 flex flex-col'}`}>
             <Outlet context={{ currentUser }} />

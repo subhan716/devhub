@@ -14,6 +14,10 @@ const {
   getReportedContent,
   moderateReportedPost,
   broadcastNotification,
+  getActiveBroadcasts,
+  getAllBroadcasts,
+  toggleBroadcastStatus,
+  deleteBroadcast,
   getAppConfig,
   updateAppConfig,
   getPublicAppConfig,
@@ -23,8 +27,9 @@ const {
 } = require('../controllers/adminController');
 const { protect, protectAdmin } = require('../middleware/authMiddleware');
 
-// Public Mobile App Handshake Endpoint (Flutter App queries on startup)
+// Public Mobile & Web App Handshake & Active Alert Banners
 router.get('/public/app-config', getPublicAppConfig);
+router.get('/public/broadcasts/active', getActiveBroadcasts);
 
 // Public User Actions: Report post or user profile
 router.post('/report-post/:id', protect, reportPostByUser);
@@ -44,7 +49,12 @@ router.post('/users/:id/revoke-sessions', protect, protectAdmin, revokeUserSessi
 
 router.get('/reports', protect, protectAdmin, getReportedContent);
 router.post('/reports/:id/action', protect, protectAdmin, moderateReportedPost);
+
+// Network Broadcast & Emergency Alerts Console
+router.get('/broadcasts', protect, protectAdmin, getAllBroadcasts);
 router.post('/broadcast', protect, protectAdmin, broadcastNotification);
+router.put('/broadcasts/:id/status', protect, protectAdmin, toggleBroadcastStatus);
+router.delete('/broadcasts/:id', protect, protectAdmin, deleteBroadcast);
 
 router.get('/app-config', protect, protectAdmin, getAppConfig);
 router.put('/app-config', protect, protectAdmin, updateAppConfig);

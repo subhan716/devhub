@@ -7,6 +7,7 @@ const Message = require('../models/Message');
 const Notification = require('../models/Notification');
 const AppConfig = require('../models/AppConfig');
 const AuditLog = require('../models/AuditLog');
+const Broadcast = require('../models/Broadcast');
 const { getIo } = require('../socket');
 
 // Helper to log administrative actions
@@ -783,43 +784,215 @@ const moderateReportedPost = async (req, res) => {
   }
 };
 
-// @desc    Broadcast Notification Across Network
+// @desc    Broadcast Notification & System Alerts Across Network
 // @route   POST /api/admin/broadcast
 // @access  Private (Admin)
 const broadcastNotification = async (req, res) => {
   try {
-    const { title, message, type, link } = req.body;
+    const { 
+      title, 
+      message, 
+      type = 'announcement', 
+      priority = 'medium',
+      targetAudience = 'all',
+      link = null, 
+      linkText = 'Learn More',
+      isPersistentBanner = true,
+      expiresAt = null,
+      sendInboxNotification = true,
+    } = req.body;
 
-    if (!message) {
-      return res.status(400).json({ message: 'Broadcast message is required' });
+    if (!message || !title) {
+      return res.status(400).json({ message: 'Title and message are required for broadcast.' });
     }
 
-    const broadcastPayload = {
-      title: title || 'DevHub Announcement',
-      message,
-      type: type || 'system_alert',
-      link: link || null,
-      timestamp: new Date().toISOString(),
-    };
+    // 1. Create persistent Broadcast document
+    const broadcast = await Broadcast.create({
+      title: title.trim(),
+      message: message.trim(),
+      type,
+      priority,
+      targetAudience,
+      link: link?.trim() || null,
+      linkText: linkText?.trim() || 'Learn More',
+      isPersistentBanner: Boolean(isPersistentBanner),
+      isActive: true,
+      expiresAt: expiresAt ? new Date(expiresAt) : null,
+      author: req.user._id,
+      authorName: req.user.name || 'Security Operations',
+      authorEmail: req.user.email || '',
+    });
 
-    // Emit live WebSocket event
+    // 2. Ingest into user inboxes if requested
+    let deliveredCount = 0;
+    if (sendInboxNotification) {
+      const userQuery = { isSuspended: { $ne: true } };
+      if (targetAudience === 'verified_only') {
+        userQuery.isVerifiedBadge = true;
+      } else if (targetAudience === 'moderators_only') {
+        userQuery.role = { $in: ['moderator', 'admin', 'super_admin'] };
+      }
+
+      const targetedUsers = await User.find(userQuery).select('_id').lean();
+      if (targetedUsers.length > 0) {
+        const notifications = targetedUsers.map((u) => ({
+          recipient: u._id,
+          sender: req.user._id,
+          type: 'system',
+          title: title.trim(),
+          message: message.trim(),
+          read: false,
+        }));
+
+        // Bulk insert in chunks of 500
+        for (let i = 0; i < notifications.length; i += 500) {
+          await Notification.insertMany(notifications.slice(i, i + 500), { ordered: false });
+        }
+        deliveredCount = targetedUsers.length;
+      }
+    }
+
+    broadcast.stats.sentCount = deliveredCount;
+    await broadcast.save();
+
+    // 3. Emit real-time WebSocket event
     try {
-      getIo().emit('global_broadcast', broadcastPayload);
+      getIo().emit('global_broadcast', {
+        _id: broadcast._id,
+        title: broadcast.title,
+        message: broadcast.message,
+        type: broadcast.type,
+        priority: broadcast.priority,
+        link: broadcast.link,
+        linkText: broadcast.linkText,
+        isPersistentBanner: broadcast.isPersistentBanner,
+        createdAt: broadcast.createdAt,
+      });
     } catch (sockErr) {
       console.warn('Socket broadcast emit failed:', sockErr.message);
     }
 
+    // 4. Record Immutable Audit Log
     await logAuditAction(
       req,
       'GLOBAL_BROADCAST_SENT',
-      { entityType: 'System', entityId: null },
-      broadcastPayload
+      { entityType: 'Broadcast', entityId: broadcast._id },
+      { 
+        title: broadcast.title, 
+        type: broadcast.type, 
+        targetAudience: broadcast.targetAudience, 
+        deliveredCount, 
+        isPersistentBanner: broadcast.isPersistentBanner 
+      }
     );
 
-    res.json({ message: 'Broadcast announcement dispatched live to all users' });
+    res.json({
+      message: 'System announcement dispatched live across all platforms.',
+      broadcast,
+      deliveredCount,
+    });
   } catch (error) {
     console.error('Error in broadcastNotification:', error);
-    res.status(500).json({ message: 'Failed to broadcast notification' });
+    res.status(500).json({ message: error.message || 'Failed to dispatch broadcast' });
+  }
+};
+
+// @desc    Get Active Broadcast Banners (Public Endpoint for Web & Mobile Clients)
+// @route   GET /api/admin/public/broadcasts/active
+// @access  Public
+const getActiveBroadcasts = async (req, res) => {
+  try {
+    const now = new Date();
+    const broadcasts = await Broadcast.find({
+      isActive: true,
+      isPersistentBanner: true,
+      $or: [{ expiresAt: null }, { expiresAt: { $gt: now } }],
+    })
+      .sort({ createdAt: -1 })
+      .limit(3)
+      .lean();
+
+    res.json({ broadcasts });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc    Get All Past Broadcasts & Active State
+// @route   GET /api/admin/broadcasts
+// @access  Private (Admin)
+const getAllBroadcasts = async (req, res) => {
+  try {
+    const broadcasts = await Broadcast.find().sort({ createdAt: -1 }).limit(50).lean();
+    res.json({ broadcasts });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc    Toggle Broadcast Active State (1-Click Killswitch)
+// @route   PUT /api/admin/broadcasts/:id/status
+// @access  Private (Admin)
+const toggleBroadcastStatus = async (req, res) => {
+  try {
+    const broadcast = await Broadcast.findById(req.params.id);
+    if (!broadcast) return res.status(404).json({ message: 'Broadcast not found' });
+
+    broadcast.isActive = !broadcast.isActive;
+    await broadcast.save();
+
+    // If deactivated, emit live killswitch event to remove banner from all clients
+    if (!broadcast.isActive) {
+      try {
+        getIo().emit('broadcast_deactivated', { broadcastId: broadcast._id });
+      } catch (sockErr) {
+        console.warn('Socket broadcast_deactivated emit skipped:', sockErr.message);
+      }
+    }
+
+    await logAuditAction(
+      req,
+      broadcast.isActive ? 'BROADCAST_REACTIVATED' : 'BROADCAST_DEACTIVATED',
+      { entityType: 'Broadcast', entityId: broadcast._id },
+      { isActive: broadcast.isActive, title: broadcast.title }
+    );
+
+    res.json({
+      message: `Broadcast banner ${broadcast.isActive ? 'reactivated' : 'deactivated'} successfully`,
+      broadcast,
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc    Delete Broadcast
+// @route   DELETE /api/admin/broadcasts/:id
+// @access  Private (Super Admin)
+const deleteBroadcast = async (req, res) => {
+  try {
+    const broadcast = await Broadcast.findById(req.params.id);
+    if (!broadcast) return res.status(404).json({ message: 'Broadcast not found' });
+
+    const broadcastId = broadcast._id;
+    await Broadcast.findByIdAndDelete(broadcastId);
+
+    try {
+      getIo().emit('broadcast_deactivated', { broadcastId });
+    } catch (sockErr) {
+      console.warn('Socket broadcast_deactivated emit skipped:', sockErr.message);
+    }
+
+    await logAuditAction(
+      req,
+      'BROADCAST_DELETED',
+      { entityType: 'Broadcast', entityId: broadcastId },
+      { title: broadcast.title }
+    );
+
+    res.json({ message: 'Broadcast permanently deleted', broadcastId });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
   }
 };
 
@@ -1054,6 +1227,10 @@ module.exports = {
   getReportedContent,
   moderateReportedPost,
   broadcastNotification,
+  getActiveBroadcasts,
+  getAllBroadcasts,
+  toggleBroadcastStatus,
+  deleteBroadcast,
   getAppConfig,
   updateAppConfig,
   getPublicAppConfig,
