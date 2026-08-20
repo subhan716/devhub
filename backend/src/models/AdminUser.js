@@ -71,7 +71,6 @@ const adminUserSchema = new mongoose.Schema(
 );
 
 // Indexes
-adminUserSchema.index({ email: 1 }, { unique: true });
 adminUserSchema.index({ role: 1, isActive: 1 });
 
 // Password hashing pre-save hook
