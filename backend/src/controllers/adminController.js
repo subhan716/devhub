@@ -1005,10 +1005,10 @@ const getAppConfig = async (req, res) => {
     if (!config) {
       config = await AppConfig.create({
         key: 'global_config',
-        android: { minVersion: '1.0.0', latestVersion: '1.0.0', forceUpdate: false, storeUrl: '' },
-        ios: { minVersion: '1.0.0', latestVersion: '1.0.0', forceUpdate: false, storeUrl: '' },
-        maintenanceMode: { enabled: false, message: 'Platform under scheduled maintenance' },
-        featureFlags: { codeSharing: true, videoUploads: true, directMessaging: true },
+        android: { minVersion: '1.0.0', latestVersion: '1.0.0', forceUpdate: false, storeUrl: 'https://play.google.com' },
+        ios: { minVersion: '1.0.0', latestVersion: '1.0.0', forceUpdate: false, storeUrl: 'https://apps.apple.com' },
+        maintenanceMode: { enabled: false, title: 'Scheduled Maintenance', message: 'Platform under scheduled maintenance' },
+        featureFlags: { codeSharing: true, videoUploads: true, directMessaging: true, jobBoard: true, threeDNetwork: true, userRegistration: true, aiAssistant: false },
       });
     }
     res.json(config);
@@ -1017,7 +1017,7 @@ const getAppConfig = async (req, res) => {
   }
 };
 
-// @desc    Update Dynamic Mobile App Configuration
+// @desc    Update Dynamic Mobile App Configuration (OTA Engine)
 // @route   PUT /api/admin/app-config
 // @access  Private (Super Admin)
 const updateAppConfig = async (req, res) => {
@@ -1034,23 +1034,39 @@ const updateAppConfig = async (req, res) => {
     if (maintenanceMode) config.maintenanceMode = { ...config.maintenanceMode, ...maintenanceMode };
     if (featureFlags) config.featureFlags = { ...config.featureFlags, ...featureFlags };
 
+    config.lastUpdatedBy = req.user._id;
+    config.lastUpdatedEmail = req.user.email;
+
     await config.save();
+
+    // Push real-time WebSocket update to web & mobile fleets
+    try {
+      getIo().emit('app_config_updated', config);
+    } catch (sockErr) {
+      console.warn('Socket app_config_updated emit skipped:', sockErr.message);
+    }
 
     await logAuditAction(
       req,
       'APP_CONFIG_UPDATED',
       { entityType: 'AppConfig', entityId: config._id },
-      { android: config.android, ios: config.ios, maintenanceMode: config.maintenanceMode }
+      { 
+        android: config.android, 
+        ios: config.ios, 
+        maintenanceMode: config.maintenanceMode,
+        featureFlags: config.featureFlags,
+      }
     );
 
-    res.json({ message: 'Mobile app configuration updated successfully', config });
+    res.json({ message: 'Mobile app fleet configuration updated and broadcasted live', config });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error('Error in updateAppConfig:', error);
+    res.status(500).json({ message: error.message || 'Failed to update app config' });
   }
 };
 
 // @desc    Get Public Mobile App Configuration (Client Handshake)
-// @route   GET /api/app/config
+// @route   GET /api/app/config & /api/admin/public/app-config
 // @access  Public
 const getPublicAppConfig = async (req, res) => {
   try {
@@ -1060,6 +1076,7 @@ const getPublicAppConfig = async (req, res) => {
         android: { minVersion: '1.0.0', latestVersion: '1.0.0', forceUpdate: false },
         ios: { minVersion: '1.0.0', latestVersion: '1.0.0', forceUpdate: false },
         maintenanceMode: { enabled: false },
+        featureFlags: { codeSharing: true, videoUploads: true, directMessaging: true, jobBoard: true, threeDNetwork: true, userRegistration: true, aiAssistant: false },
       };
     }
     res.json(config);

@@ -4,7 +4,9 @@ import { Toaster } from 'react-hot-toast';
 import Lenis from 'lenis';
 import 'lenis/dist/lenis.css';
 import { lazy, Suspense } from 'react';
+import axios from 'axios';
 import MainLayout from './components/layout/MainLayout';
+import MaintenanceScreen from './components/common/MaintenanceScreen';
 
 // Lazy loading all pages for Code Splitting (Performance Optimization)
 const LandingPage = lazy(() => import('./pages/LandingPage'));
@@ -44,11 +46,26 @@ const GuestRoute = ({ children }) => {
 };
 
 function App() {
+  const [appConfig, setAppConfig] = useState(null);
+
   if (typeof window !== 'undefined' && window.location.search.includes('oauth=success')) {
     localStorage.setItem('isAuthenticated', 'true');
     // Clean up the URL
     window.history.replaceState({}, document.title, window.location.pathname);
   }
+
+  const fetchAppConfig = async () => {
+    try {
+      const { data } = await axios.get(`${import.meta.env.VITE_API_URL}/api/admin/public/app-config`);
+      setAppConfig(data);
+    } catch (e) {
+      // Ignore if offline
+    }
+  };
+
+  useEffect(() => {
+    fetchAppConfig();
+  }, []);
 
   useEffect(() => {
     const lenis = new Lenis({
@@ -77,6 +94,17 @@ function App() {
       window.lenis = null;
     };
   }, []);
+
+  // Full-Screen Platform Maintenance Lockout Guard
+  if (appConfig?.maintenanceMode?.enabled) {
+    return (
+      <MaintenanceScreen
+        title={appConfig.maintenanceMode?.title}
+        message={appConfig.maintenanceMode?.message}
+        onRetry={fetchAppConfig}
+      />
+    );
+  }
 
   return (
     <>
