@@ -1898,7 +1898,7 @@ const MessagesPage = () => {
                       src={selectedChat.avatar?.url || 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y'}
                       alt={selectedChat.name}
                       className="w-32 h-32 rounded-full object-cover border-4 border-[#111] shadow-2xl mb-4 cursor-zoom-in"
-                      onClick={() => selectedChat.avatar?.url && setPreviewFile({ url: selectedChat.avatar.url, name: `${selectedChat.name}'s Profile Picture.jpg`, type: 'image' })}
+                      onClick={() => selectedChat.avatar?.url && setPreviewFile({ url: selectedChat.avatar.url, name: `${selectedChat.name}'s Profile Picture`, type: 'image', isProfilePicture: true })}
                     />
                     <h3 className={`text-xl font-bold ${isDark ? "text-white" : "text-slate-900"} text-center`}>{selectedChat.name}</h3>
                     {selectedChat.email && (
@@ -1987,6 +1987,7 @@ const MessagesPage = () => {
         >
           {/* Top Bar (Discord Style Close + Title) */}
           <div className="absolute top-4 right-4 z-20 flex items-center gap-3" onClick={(e) => e.stopPropagation()}>
+            {!previewFile.isProfilePicture && (
             <button
               type="button"
               onClick={() => handleDownloadFile(previewFile.url, previewFile.name)}
@@ -1995,6 +1996,7 @@ const MessagesPage = () => {
             >
               <Download size={18} />
             </button>
+          )}
             <button 
               type="button"
               onClick={() => setPreviewFile(null)}
@@ -2029,15 +2031,19 @@ const MessagesPage = () => {
                     {/* Discord Floating Info Pill */}
                     <div className="flex items-center gap-3 px-4 py-2 bg-black/60 backdrop-blur-md rounded-full border border-white/10 text-xs text-gray-300 shadow-xl">
                       <span className="font-medium truncate max-w-[200px] sm:max-w-xs">{previewFile.name}</span>
-                      <span className="text-gray-500">•</span>
-                      <a 
-                        href={previewFile.url} 
-                        target="_blank" 
-                        rel="noopener noreferrer" 
-                        className="text-[#00F0FF] hover:underline font-semibold flex items-center gap-1"
-                      >
-                        Open original <Link2 size={12} />
-                      </a>
+                      {!previewFile.isProfilePicture && (
+                        <>
+                          <span className="text-gray-500">•</span>
+                          <a 
+                            href={previewFile.url} 
+                            target="_blank" 
+                            rel="noopener noreferrer" 
+                            className="text-[#00F0FF] hover:underline font-semibold flex items-center gap-1"
+                          >
+                            Open original <Link2 size={12} />
+                          </a>
+                        </>
+                      )}
                     </div>
                   </div>
                 );
