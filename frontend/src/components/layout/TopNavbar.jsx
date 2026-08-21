@@ -163,14 +163,14 @@ const TopNavbar = ({ setIsMobileMenuOpen, currentUser, isMessagesPage }) => {
       <div className="flex-1 max-w-lg mx-6 lg:mx-8 hidden lg:block">
         <form onSubmit={handleSearch} className="relative group">
           <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-            <Search className="text-gray-400 dark:text-gray-500 group-focus-within:text-[#0A66C2] dark:group-focus-within:text-[#00F0FF] transition-colors" size={17} />
+            <Search className="text-gray-400 dark:text-gray-500 group-focus-within:text-[#0A66C2] dark:group-focus-within:text-[#0A66C2] dark:text-[#00F0FF] transition-colors" size={17} />
           </div>
           <input 
             type="text" 
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search developers, posts, or tags..." 
-            className="w-full bg-slate-100 dark:bg-[#111] border border-slate-200 dark:border-white/10 rounded-full py-2.5 pl-11 pr-4 text-xs sm:text-sm text-slate-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-[#0A66C2] dark:focus:border-[#00F0FF]/50 focus:ring-1 focus:ring-[#0A66C2] dark:focus:ring-[#00F0FF]/50 transition-all"
+            className="w-full bg-slate-100 dark:bg-[#111] border border-slate-200 dark:border-white/10 rounded-full py-2.5 pl-11 pr-4 text-xs sm:text-sm text-slate-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-[#0A66C2] dark:focus:border-[#0A66C2] dark:border-[#00F0FF]/50 focus:ring-1 focus:ring-[#0A66C2] dark:focus:ring-[#00F0FF]/50 transition-all"
           />
         </form>
       </div>
@@ -185,7 +185,7 @@ const TopNavbar = ({ setIsMobileMenuOpen, currentUser, isMessagesPage }) => {
             className="flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white transition-colors group focus:outline-none cursor-pointer"
           >
             <div className="relative">
-              <Bell size={20} className="group-hover:text-[#0A66C2] dark:group-hover:text-[#00F0FF] transition-colors" />
+              <Bell size={20} className="group-hover:text-[#0A66C2] dark:group-hover:text-[#0A66C2] dark:text-[#00F0FF] transition-colors" />
               {unreadCount > 0 && (
                 <span className="absolute -top-1.5 -right-1.5 flex items-center justify-center min-w-[18px] h-[18px] px-1 bg-[#FF0055] rounded-full border-2 border-white dark:border-[#0a0a0a] text-[9px] font-bold text-white">
                   {unreadCount > 99 ? '99+' : unreadCount}
@@ -271,7 +271,7 @@ const TopNavbar = ({ setIsMobileMenuOpen, currentUser, isMessagesPage }) => {
               <img 
                 src={currentUser?.avatar?.url || 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y'} 
                 alt="Profile" 
-                className="w-8 h-8 sm:w-9 sm:h-9 rounded-full object-cover border border-slate-200 dark:border-white/10 group-hover:border-[#0A66C2] dark:group-hover:border-[#00F0FF]/50 transition-colors bg-slate-100 dark:bg-[#111]"
+                className="w-8 h-8 sm:w-9 sm:h-9 rounded-full object-cover border border-slate-200 dark:border-white/10 group-hover:border-[#0A66C2] dark:group-hover:border-[#0A66C2] dark:border-[#00F0FF]/50 transition-colors bg-slate-100 dark:bg-[#111]"
               />
               <div className={`absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full border-2 border-white dark:border-[#0a0a0a] ${statusPref === 'online' ? 'bg-emerald-500 dark:bg-[#00F0FF]' : 'bg-gray-400'}`}></div>
             </div>
@@ -310,7 +310,7 @@ const TopNavbar = ({ setIsMobileMenuOpen, currentUser, isMessagesPage }) => {
                   <Link
                     to="/profile"
                     onClick={() => setIsDropdownOpen(false)}
-                    className="block w-full py-1.5 px-3 rounded-full text-center text-xs font-bold text-[#0A66C2] dark:text-[#00F0FF] border border-[#0A66C2] dark:border-[#00F0FF]/50 hover:bg-[#0A66C2]/10 dark:hover:bg-[#00F0FF]/10 transition-all cursor-pointer shadow-xs"
+                    className="block w-full py-1.5 px-3 rounded-full text-center text-xs font-bold text-[#0A66C2] dark:text-[#00F0FF] border border-[#0A66C2] dark:border-[#00F0FF]/50 hover:bg-[#0A66C2]/10 dark:hover:bg-[#0A66C2] dark:bg-[#00F0FF]/10 transition-all cursor-pointer shadow-xs"
                   >
                     View Profile
                   </Link>
@@ -352,7 +352,7 @@ const TopNavbar = ({ setIsMobileMenuOpen, currentUser, isMessagesPage }) => {
                   {/* Theme Switcher Segmented Control */}
                   <div className="flex items-center justify-between px-3 py-2">
                     <span className="text-xs font-medium text-slate-700 dark:text-gray-300 flex items-center gap-2">
-                      {isDark ? <Moon size={15} className="text-[#00F0FF]" /> : <Sun size={15} className="text-amber-500" />}
+                      {isDark ? <Moon size={15} className="text-[#0A66C2] dark:text-[#00F0FF]" /> : <Sun size={15} className="text-amber-500" />}
                       Theme
                     </span>
                     <div className="flex items-center bg-slate-100 dark:bg-white/5 p-0.5 rounded-lg border border-slate-200 dark:border-white/10">
@@ -368,7 +368,7 @@ const TopNavbar = ({ setIsMobileMenuOpen, currentUser, isMessagesPage }) => {
                         onClick={() => { if (!isDark) toggleTheme(); }}
                         className={`flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-semibold transition-all cursor-pointer ${isDark ? 'bg-white/10 text-white shadow-xs' : 'text-slate-500 hover:text-slate-900'}`}
                       >
-                        <Moon size={12} className={isDark ? 'text-[#00F0FF]' : ''} /> Dark
+                        <Moon size={12} className={isDark ? 'text-[#0A66C2] dark:text-[#00F0FF]' : ''} /> Dark
                       </button>
                     </div>
                   </div>

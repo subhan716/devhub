@@ -460,9 +460,9 @@ const ProfilePage = () => {
                       <img
                         src={profile.user?.avatar?.url || 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y'}
                         alt="Profile"
-                        className="w-24 h-24 rounded-full object-cover border-4 border-slate-200 dark:border-white/10"
+                        className="w-24 h-24 rounded-full object-cover border-4 border-white dark:border-[#1a1a1a] shadow-md"
                       />
-                      <label className="absolute bottom-0 right-0 p-2 bg-[#00F0FF] text-black rounded-full hover:bg-white transition-colors cursor-pointer shadow-lg" title="Change profile picture">
+                      <label className="absolute bottom-0 right-0 p-2 bg-[#0A66C2] hover:bg-[#004182] text-white dark:bg-[#00F0FF] dark:hover:bg-white dark:text-black rounded-full transition-colors cursor-pointer shadow-lg" title="Change profile picture">
                         <Image size={14} />
                         <input
                           type="file"
@@ -684,7 +684,7 @@ const ProfilePage = () => {
                       setIsAddSectionDropdownOpen(false);
                       setIsMoreDropdownOpen(false);
                     }}
-                    className="bg-[#0A66C2] hover:bg-[#004182] text-white dark:bg-[#00F0FF] dark:hover:bg-[#00F0FF]/90 dark:text-black shadow-sm px-4 py-1.5 rounded-full font-bold transition-all text-sm cursor-pointer"
+                    className="bg-[#0A66C2] hover:bg-[#004182] text-white dark:bg-[#00F0FF] dark:hover:bg-[#0A66C2] dark:bg-[#00F0FF]/90 dark:text-black shadow-sm px-4 py-1.5 rounded-full font-bold transition-all text-sm cursor-pointer"
                   >
                     Open to
                   </button>
@@ -779,7 +779,7 @@ const ProfilePage = () => {
               <div className="flex flex-wrap gap-2">
                 <button 
                   onClick={handleConnectionToggle}
-                  className={`${connectionState.status === 'accepted' ? 'bg-transparent border border-gray-400 hover:bg-white/10 hover:border-gray-200 text-slate-800 dark:text-gray-200' : connectionState.status === 'pending' ? 'bg-transparent border border-yellow-500 hover:bg-yellow-500/10 hover:border-yellow-400 text-yellow-500' : 'bg-[#0A66C2] hover:bg-[#004182] text-white dark:bg-[#00F0FF] dark:hover:bg-[#00F0FF]/90 dark:text-black shadow-sm'} px-4 py-1.5 rounded-full font-bold transition-all text-sm cursor-pointer`}
+                  className={`${connectionState.status === 'accepted' ? 'bg-transparent border border-gray-400 hover:bg-white/10 hover:border-gray-200 text-slate-800 dark:text-gray-200' : connectionState.status === 'pending' ? 'bg-transparent border border-yellow-500 hover:bg-yellow-500/10 hover:border-yellow-400 text-yellow-500' : 'bg-[#0A66C2] hover:bg-[#004182] text-white dark:bg-[#00F0FF] dark:hover:bg-[#0A66C2] dark:bg-[#00F0FF]/90 dark:text-black shadow-sm'} px-4 py-1.5 rounded-full font-bold transition-all text-sm cursor-pointer`}
                 >
                   {connectionState.status === 'accepted' ? 'Remove Connection' : connectionState.status === 'pending' ? 'Pending' : 'Connect'}
                 </button>
@@ -789,13 +789,13 @@ const ProfilePage = () => {
                       navigate(`/messages?userId=${profile.user._id}`);
                     }
                   }}
-                  className={`px-4 py-1.5 rounded-full font-bold transition-all text-sm border ${connectionState.status === 'accepted' ? 'bg-transparent border-[#00F0FF] text-[#00F0FF] hover:bg-[#00F0FF]/10 hover:border-[#00F0FF]/80 cursor-pointer' : 'bg-transparent border-gray-600 text-gray-500 cursor-not-allowed'}`}
+                  className={`px-4 py-1.5 rounded-full font-bold transition-all text-sm border ${connectionState.status === 'accepted' ? 'bg-transparent border-[#0A66C2] dark:border-[#00F0FF] text-[#0A66C2] dark:text-[#00F0FF] hover:bg-[#0A66C2] dark:bg-[#00F0FF]/10 hover:border-[#0A66C2] dark:border-[#00F0FF]/80 cursor-pointer' : 'bg-transparent border-gray-600 text-gray-500 cursor-not-allowed'}`}
                 >
                   Message
                 </button>
                 <button 
                   onClick={handleFollowToggle}
-                  className={`px-4 py-1.5 rounded-full font-bold transition-all text-sm border ${isFollowing ? 'bg-transparent border-gray-400 hover:bg-white/10 hover:border-gray-200 text-slate-800 dark:text-gray-200' : 'bg-transparent border-[#00F0FF]/40 text-[#00F0FF] hover:bg-[#00F0FF]/10 hover:border-[#00F0FF]/60'} cursor-pointer`}
+                  className={`px-4 py-1.5 rounded-full font-bold transition-all text-sm border ${isFollowing ? 'bg-transparent border-gray-400 hover:bg-white/10 hover:border-gray-200 text-slate-800 dark:text-gray-200' : 'bg-transparent border-[#0A66C2] dark:border-[#00F0FF]/40 text-[#0A66C2] dark:text-[#00F0FF] hover:bg-[#0A66C2] dark:bg-[#00F0FF]/10 hover:border-[#0A66C2] dark:border-[#00F0FF]/60'} cursor-pointer`}
                 >
                   {isFollowing ? 'Following' : 'Follow'}
                 </button>
@@ -937,8 +937,8 @@ const ProfilePage = () => {
                     disabled={!isCurrentYearSelected}
                     className={`p-1.5 rounded-lg transition-all flex items-center justify-center cursor-pointer ${
                       !isCurrentYearSelected
-                        ? 'opacity-30 cursor-not-allowed text-gray-600'
-                        : 'text-gray-400 hover:text-[#00F0FF] hover:bg-white/10 active:scale-95'
+                        ? 'opacity-30 cursor-not-allowed text-gray-400'
+                        : 'text-slate-500 dark:text-gray-400 hover:text-[#0A66C2] dark:hover:text-[#00F0FF] hover:bg-slate-200 dark:hover:bg-white/10 active:scale-95'
                     }`}
                     title="Previous Year"
                     aria-label="Previous Year"
@@ -956,8 +956,8 @@ const ProfilePage = () => {
                     disabled={isCurrentYearSelected}
                     className={`p-1.5 rounded-lg transition-all flex items-center justify-center cursor-pointer ${
                       isCurrentYearSelected
-                        ? 'opacity-30 cursor-not-allowed text-gray-600'
-                        : 'text-gray-400 hover:text-[#00F0FF] hover:bg-white/10 active:scale-95'
+                        ? 'opacity-30 cursor-not-allowed text-gray-400'
+                        : 'text-slate-500 dark:text-gray-400 hover:text-[#0A66C2] dark:hover:text-[#00F0FF] hover:bg-slate-200 dark:hover:bg-white/10 active:scale-95'
                     }`}
                     title="Current Year"
                     aria-label="Current Year"
@@ -1024,7 +1024,7 @@ const ProfilePage = () => {
                     </a>
                   )}
                   {profile.socialLinks?.website && (
-                    <a href={profile.socialLinks.website} target="_blank" rel="noreferrer" className="flex items-center gap-3 text-gray-400 hover:text-[#00F0FF] transition-colors cursor-pointer text-sm">
+                    <a href={profile.socialLinks.website} target="_blank" rel="noreferrer" className="flex items-center gap-3 text-gray-400 hover:text-[#0A66C2] dark:text-[#00F0FF] transition-colors cursor-pointer text-sm">
                       <LinkIcon size={18} /> Personal Website
                     </a>
                   )}
@@ -1260,7 +1260,7 @@ const ProfilePage = () => {
       {activeTab === 'activity' && (
         <div className="mt-2">
           <h3 className="text-slate-900 dark:text-white font-bold text-xl mb-6 flex items-center gap-2">
-            <MessageCircle className="text-[#00F0FF]" /> Recent Activity
+            <MessageCircle className="text-[#0A66C2] dark:text-[#00F0FF]" /> Recent Activity
           </h3>
 
           <div className="flex flex-col gap-6">
@@ -1292,7 +1292,7 @@ const ProfilePage = () => {
                   <div className="flex justify-center mt-4">
                     <Link
                       to={`/profile/${id || profile?.user?._id}/posts`}
-                      className="flex items-center gap-2 px-8 py-2.5 bg-white/5 hover:bg-[#00F0FF]/10 text-white hover:text-[#00F0FF] font-medium rounded-full border border-slate-200 dark:border-white/10 hover:border-[#00F0FF]/30 transition-all text-sm shadow-lg"
+                      className="flex items-center gap-2 px-8 py-2.5 bg-white/5 hover:bg-[#0A66C2] dark:bg-[#00F0FF]/10 text-white hover:text-[#0A66C2] dark:text-[#00F0FF] font-medium rounded-full border border-slate-200 dark:border-white/10 hover:border-[#0A66C2] dark:border-[#00F0FF]/30 transition-all text-sm shadow-lg"
                     >
                       Show All {userPosts.length} Posts
                     </Link>

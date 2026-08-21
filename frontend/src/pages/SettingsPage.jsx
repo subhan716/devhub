@@ -111,17 +111,17 @@ const SettingsPage = () => {
                 onClick={() => setTheme('dark')}
                 className={`p-5 rounded-2xl border-2 cursor-pointer transition-all flex flex-col gap-3 relative ${
                   isDark
-                    ? 'border-[#00F0FF] bg-[#00F0FF]/5 shadow-[0_0_20px_rgba(0,240,255,0.1)]'
+                    ? 'border-[#0A66C2] dark:border-[#00F0FF] bg-[#0A66C2] dark:bg-[#00F0FF]/5 shadow-[0_0_20px_rgba(0,240,255,0.1)]'
                     : 'border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-[#050508] hover:border-slate-300 dark:hover:border-white/20'
                 }`}
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2.5 font-bold text-sm text-slate-900 dark:text-white">
-                    <Moon size={18} className="text-[#00F0FF]" />
+                    <Moon size={18} className="text-[#0A66C2] dark:text-[#00F0FF]" />
                     <span>Dark Obsidian</span>
                   </div>
                   {isDark && (
-                    <div className="w-5 h-5 rounded-full bg-[#00F0FF] text-black flex items-center justify-center">
+                    <div className="w-5 h-5 rounded-full bg-[#0A66C2] dark:bg-[#00F0FF] text-black flex items-center justify-center">
                       <Check size={13} strokeWidth={3} />
                     </div>
                   )}
@@ -131,7 +131,7 @@ const SettingsPage = () => {
                 </p>
                 {/* Mini Preview Bar */}
                 <div className="h-4 w-full bg-[#0A0A0A] rounded-lg border border-white/10 flex items-center px-2 gap-1 mt-1">
-                  <div className="w-1.5 h-1.5 rounded-full bg-[#00F0FF]"></div>
+                  <div className="w-1.5 h-1.5 rounded-full bg-[#0A66C2] dark:bg-[#00F0FF]"></div>
                   <div className="w-8 h-1 bg-white/20 rounded"></div>
                   <div className="w-4 h-1 bg-white/10 rounded"></div>
                 </div>

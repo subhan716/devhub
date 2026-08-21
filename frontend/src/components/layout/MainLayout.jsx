@@ -31,7 +31,7 @@ const MainLayout = () => {
 
   return (
     <SocketProvider currentUser={currentUser}>
-      <div className={`${isDark ? 'bg-[#050505] text-white selection:bg-[#00F0FF]/30' : 'bg-slate-50 text-slate-900 selection:bg-[#0A66C2]/20'} ${isMessagesPage ? 'h-[100dvh] overflow-hidden fixed inset-0 w-full' : 'min-h-[100dvh]'} transition-colors duration-200 font-sans`}>
+      <div className={`${isDark ? 'bg-[#050505] text-white selection:bg-[#0A66C2] dark:bg-[#00F0FF]/30' : 'bg-slate-50 text-slate-900 selection:bg-[#0A66C2]/20'} ${isMessagesPage ? 'h-[100dvh] overflow-hidden fixed inset-0 w-full' : 'min-h-[100dvh]'} transition-colors duration-200 font-sans`}>
         {/* 3-Column Layout structure */}
         <Sidebar isMobileMenuOpen={isMobileMenuOpen} setIsMobileMenuOpen={setIsMobileMenuOpen} />
         {!isMessagesPage && <RightSidebar currentUser={currentUser} />}

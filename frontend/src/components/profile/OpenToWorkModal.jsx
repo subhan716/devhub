@@ -68,7 +68,7 @@ const OpenToWorkModal = ({ isOpen, onClose, profile, setProfile }) => {
           {/* Header */}
           <div className="flex items-center justify-between p-6 border-b border-slate-200 dark:border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5">
             <h2 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
-              <Briefcase className="text-[#00F0FF]" /> Edit job preferences
+              <Briefcase className="text-[#0A66C2] dark:text-[#00F0FF]" /> Edit job preferences
             </h2>
             <button onClick={onClose} className="p-2 text-slate-500 hover:text-slate-900 dark:text-slate-600 dark:text-gray-400 dark:hover:text-white rounded-full hover:bg-slate-100 dark:hover:bg-white/10 transition-colors">
               <X size={20} />
@@ -84,7 +84,7 @@ const OpenToWorkModal = ({ isOpen, onClose, profile, setProfile }) => {
               <button 
                 type="button" 
                 onClick={handleToggle}
-                className={`w-12 h-6 rounded-full transition-colors relative ${formData.isLooking ? 'bg-[#00F0FF]' : 'bg-gray-600'}`}
+                className={`w-12 h-6 rounded-full transition-colors relative ${formData.isLooking ? 'bg-[#0A66C2] dark:bg-[#00F0FF]' : 'bg-gray-600'}`}
               >
                 <div className={`absolute top-1 left-1 w-4 h-4 rounded-full bg-white transition-transform ${formData.isLooking ? 'translate-x-6' : 'translate-x-0'}`} />
               </button>
@@ -100,7 +100,7 @@ const OpenToWorkModal = ({ isOpen, onClose, profile, setProfile }) => {
                     value={formData.jobTitles}
                     onChange={handleChange}
                     placeholder="e.g. Graphic Designer, Frontend Developer (comma separated)"
-                    className="w-full bg-slate-50 dark:bg-[#0a0a0a] border border-slate-200 dark:border-white/10 rounded-xl py-3 px-4 text-white focus:border-[#00F0FF]/50 outline-none transition-colors"
+                    className="w-full bg-slate-50 dark:bg-[#0a0a0a] border border-slate-200 dark:border-white/10 rounded-xl py-3 px-4 text-white focus:border-[#0A66C2] dark:border-[#00F0FF]/50 outline-none transition-colors"
                   />
                 </div>
 
@@ -112,7 +112,7 @@ const OpenToWorkModal = ({ isOpen, onClose, profile, setProfile }) => {
                     value={formData.workplaces}
                     onChange={handleChange}
                     placeholder="e.g. Remote, On-site, Hybrid (comma separated)"
-                    className="w-full bg-slate-50 dark:bg-[#0a0a0a] border border-slate-200 dark:border-white/10 rounded-xl py-3 px-4 text-white focus:border-[#00F0FF]/50 outline-none transition-colors"
+                    className="w-full bg-slate-50 dark:bg-[#0a0a0a] border border-slate-200 dark:border-white/10 rounded-xl py-3 px-4 text-white focus:border-[#0A66C2] dark:border-[#00F0FF]/50 outline-none transition-colors"
                   />
                 </div>
 
@@ -126,7 +126,7 @@ const OpenToWorkModal = ({ isOpen, onClose, profile, setProfile }) => {
                       value={formData.locations}
                       onChange={handleChange}
                       placeholder="e.g. New York, London (comma separated)"
-                      className="w-full bg-slate-50 dark:bg-[#0a0a0a] border border-slate-200 dark:border-white/10 rounded-xl py-3 pl-10 pr-4 text-white focus:border-[#00F0FF]/50 outline-none transition-colors"
+                      className="w-full bg-slate-50 dark:bg-[#0a0a0a] border border-slate-200 dark:border-white/10 rounded-xl py-3 pl-10 pr-4 text-white focus:border-[#0A66C2] dark:border-[#00F0FF]/50 outline-none transition-colors"
                     />
                   </div>
                 </div>
@@ -137,7 +137,7 @@ const OpenToWorkModal = ({ isOpen, onClose, profile, setProfile }) => {
               <button type="button" onClick={onClose} className="px-6 py-2 rounded-xl text-white font-medium hover:bg-white/10 transition-colors">
                 Cancel
               </button>
-              <button type="submit" disabled={isSubmitting} className="px-6 py-2 rounded-xl bg-[#00F0FF] hover:bg-[#00F0FF]/90 text-black font-bold transition-colors disabled:opacity-50">
+              <button type="submit" disabled={isSubmitting} className="px-6 py-2 rounded-xl bg-[#0A66C2] dark:bg-[#00F0FF] hover:bg-[#0A66C2] dark:bg-[#00F0FF]/90 text-black font-bold transition-colors disabled:opacity-50">
                 {isSubmitting ? 'Saving...' : 'Save Preferences'}
               </button>
             </div>

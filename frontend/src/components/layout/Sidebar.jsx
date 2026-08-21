@@ -77,14 +77,14 @@ const Sidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
                 className={`flex items-center gap-4 px-4 py-3 rounded-xl font-medium transition-all group cursor-pointer ${
                   isActive 
                     ? isDark
-                      ? 'bg-gradient-to-r from-[#00F0FF]/10 to-transparent text-white border-l-2 border-[#00F0FF]' 
+                      ? 'bg-gradient-to-r from-[#00F0FF]/10 to-transparent text-white border-l-2 border-[#0A66C2] dark:border-[#00F0FF]' 
                       : 'bg-blue-50 text-[#0A66C2] border-l-2 border-[#0A66C2] font-semibold'
                     : isDark
                       ? 'text-gray-400 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white border-l-2 border-transparent'
                       : 'text-gray-600 hover:bg-slate-100 hover:text-black border-l-2 border-transparent'
                 }`}
               >
-                <div className={`${isActive ? (isDark ? 'text-[#00F0FF]' : 'text-[#0A66C2]') : (isDark ? 'text-gray-500 group-hover:text-gray-300' : 'text-gray-400 group-hover:text-gray-700')} transition-colors`}>
+                <div className={`${isActive ? (isDark ? 'text-[#0A66C2] dark:text-[#00F0FF]' : 'text-[#0A66C2]') : (isDark ? 'text-gray-500 group-hover:text-gray-300' : 'text-gray-400 group-hover:text-gray-700')} transition-colors`}>
                   {link.icon}
                 </div>
                 <span className="text-sm font-semibold">{link.name}</span>
@@ -100,7 +100,7 @@ const Sidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
             onClick={() => setIsMobileMenuOpen(false)}
             className={`w-full flex items-center gap-3 px-4 py-2.5 text-xs font-medium rounded-xl transition-all group cursor-pointer ${
               isDark
-                ? 'text-gray-400 hover:text-[#00F0FF] hover:bg-white/5'
+                ? 'text-gray-400 hover:text-[#0A66C2] dark:text-[#00F0FF] hover:bg-white/5'
                 : 'text-gray-600 hover:text-[#0A66C2] hover:bg-slate-100'
             }`}
           >

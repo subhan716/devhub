@@ -197,7 +197,7 @@ const ProfileSettingsTab = () => {
   if (loading) {
     return (
       <div className="py-20 flex flex-col items-center justify-center gap-3 text-gray-500 text-xs font-mono">
-        <RefreshCw size={20} className="animate-spin text-[#00F0FF]" />
+        <RefreshCw size={20} className="animate-spin text-[#0A66C2] dark:text-[#00F0FF]" />
         <span>Loading profile settings...</span>
       </div>
     );
@@ -227,7 +227,7 @@ const ProfileSettingsTab = () => {
           <div>
             <div className="flex items-center gap-2">
               <h3 className="text-sm font-bold text-white">{name || 'Your Name'}</h3>
-              {isVerified && <CheckCircle2 size={14} className="text-[#00F0FF]" />}
+              {isVerified && <CheckCircle2 size={14} className="text-[#0A66C2] dark:text-[#00F0FF]" />}
             </div>
             <p className="text-xs text-gray-400 font-mono mt-0.5">{status || 'Developer'}</p>
           </div>
@@ -256,7 +256,7 @@ const ProfileSettingsTab = () => {
       {/* 2. Core Professional Identity */}
       <div className="bg-white dark:bg-[#111] border border-slate-200 dark:border-white/5 rounded-2xl p-6 sm:p-7 space-y-5">
         <div className="flex items-center gap-2 text-slate-900 dark:text-white font-bold text-sm border-b border-slate-200 dark:border-white/5 pb-3">
-          <UserIcon size={16} className="text-[#00F0FF]" />
+          <UserIcon size={16} className="text-[#0A66C2] dark:text-[#00F0FF]" />
           <span>Professional Identity</span>
         </div>
 
@@ -267,7 +267,7 @@ const ProfileSettingsTab = () => {
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full bg-slate-50 dark:bg-[#050508] border border-slate-200 dark:border-white/10 rounded-xl py-2.5 px-3.5 text-xs text-white focus:border-[#00F0FF]/50 outline-none transition-colors"
+              className="w-full bg-slate-50 dark:bg-[#050508] border border-slate-200 dark:border-white/10 rounded-xl py-2.5 px-3.5 text-xs text-white focus:border-[#0A66C2] dark:border-[#00F0FF]/50 outline-none transition-colors"
               placeholder="e.g. Subhan Shahid"
               required
             />
@@ -281,7 +281,7 @@ const ProfileSettingsTab = () => {
               onChange={(e) => setStatus(e.target.value)}
               onFocus={() => setIsStatusFocused(true)}
               onBlur={() => setTimeout(() => setIsStatusFocused(false), 250)}
-              className="w-full bg-slate-50 dark:bg-[#050508] border border-slate-200 dark:border-white/10 rounded-xl py-2.5 px-3.5 text-xs text-white focus:border-[#00F0FF]/50 outline-none transition-colors"
+              className="w-full bg-slate-50 dark:bg-[#050508] border border-slate-200 dark:border-white/10 rounded-xl py-2.5 px-3.5 text-xs text-white focus:border-[#0A66C2] dark:border-[#00F0FF]/50 outline-none transition-colors"
               placeholder="e.g. Full Stack Developer"
               required
             />
@@ -294,7 +294,7 @@ const ProfileSettingsTab = () => {
                       setStatus(sug);
                       setIsStatusFocused(false);
                     }}
-                    className="px-3.5 py-2 text-xs text-slate-700 dark:text-gray-300 hover:bg-[#00F0FF]/10 hover:text-white cursor-pointer transition-colors"
+                    className="px-3.5 py-2 text-xs text-slate-700 dark:text-gray-300 hover:bg-[#0A66C2] dark:bg-[#00F0FF]/10 hover:text-white cursor-pointer transition-colors"
                   >
                     {sug}
                   </div>
@@ -313,7 +313,7 @@ const ProfileSettingsTab = () => {
                 type="text"
                 value={company}
                 onChange={(e) => setCompany(e.target.value)}
-                className="w-full bg-slate-50 dark:bg-[#050508] border border-slate-200 dark:border-white/10 rounded-xl py-2.5 pl-9 pr-3.5 text-xs text-white focus:border-[#00F0FF]/50 outline-none transition-colors"
+                className="w-full bg-slate-50 dark:bg-[#050508] border border-slate-200 dark:border-white/10 rounded-xl py-2.5 pl-9 pr-3.5 text-xs text-white focus:border-[#0A66C2] dark:border-[#00F0FF]/50 outline-none transition-colors"
                 placeholder="e.g. Google / Freelance"
               />
             </div>
@@ -329,7 +329,7 @@ const ProfileSettingsTab = () => {
                 type="text"
                 value={location}
                 onChange={(e) => setLocation(e.target.value)}
-                className="w-full bg-slate-50 dark:bg-[#050508] border border-slate-200 dark:border-white/10 rounded-xl py-2.5 pl-9 pr-3.5 text-xs text-white focus:border-[#00F0FF]/50 outline-none transition-colors"
+                className="w-full bg-slate-50 dark:bg-[#050508] border border-slate-200 dark:border-white/10 rounded-xl py-2.5 pl-9 pr-3.5 text-xs text-white focus:border-[#0A66C2] dark:border-[#00F0FF]/50 outline-none transition-colors"
                 placeholder="e.g. San Francisco, CA"
               />
             </div>
@@ -370,7 +370,7 @@ const ProfileSettingsTab = () => {
               type="button"
               onClick={() => setIsProvidingServices(!isProvidingServices)}
               className={`w-10 h-5.5 rounded-full p-0.5 transition-colors cursor-pointer flex-shrink-0 ${
-                isProvidingServices ? 'bg-[#00F0FF]' : 'bg-gray-700'
+                isProvidingServices ? 'bg-[#0A66C2] dark:bg-[#00F0FF]' : 'bg-gray-700'
               }`}
             >
               <div className={`w-4.5 h-4.5 rounded-full bg-white transition-transform ${isProvidingServices ? 'translate-x-4.5' : 'translate-x-0'}`} />
@@ -385,7 +385,7 @@ const ProfileSettingsTab = () => {
               type="text"
               value={servicesDetails}
               onChange={(e) => setServicesDetails(e.target.value)}
-              className="w-full bg-slate-50 dark:bg-[#050508] border border-slate-200 dark:border-white/10 rounded-xl py-2 px-3.5 text-xs text-white focus:border-[#00F0FF]/50 outline-none"
+              className="w-full bg-slate-50 dark:bg-[#050508] border border-slate-200 dark:border-white/10 rounded-xl py-2 px-3.5 text-xs text-white focus:border-[#0A66C2] dark:border-[#00F0FF]/50 outline-none"
               placeholder="e.g. Web Development, Code Audits ($70/hr)"
             />
           </div>
@@ -396,7 +396,7 @@ const ProfileSettingsTab = () => {
       <div className="bg-white dark:bg-[#111] border border-slate-200 dark:border-white/5 rounded-2xl p-6 sm:p-7 space-y-4">
         <div className="flex items-center justify-between border-b border-slate-200 dark:border-white/5 pb-3">
           <div className="flex items-center gap-2 text-slate-900 dark:text-white font-bold text-sm">
-            <Layers size={16} className="text-[#00F0FF]" />
+            <Layers size={16} className="text-[#0A66C2] dark:text-[#00F0FF]" />
             <span>Technical Skills</span>
           </div>
           <span className="text-[10px] font-mono text-gray-500">{skills.length} / 30</span>
@@ -409,7 +409,7 @@ const ProfileSettingsTab = () => {
               value={skillInput}
               onChange={(e) => setSkillInput(e.target.value)}
               onKeyDown={handleSkillKeyDown}
-              className="flex-1 bg-slate-50 dark:bg-[#050508] border border-slate-200 dark:border-white/10 rounded-xl py-2 px-3.5 text-xs text-white focus:border-[#00F0FF]/50 outline-none"
+              className="flex-1 bg-slate-50 dark:bg-[#050508] border border-slate-200 dark:border-white/10 rounded-xl py-2 px-3.5 text-xs text-white focus:border-[#0A66C2] dark:border-[#00F0FF]/50 outline-none"
               placeholder="Type skill & press Enter (e.g. React, Docker)..."
             />
             <button
@@ -476,7 +476,7 @@ const ProfileSettingsTab = () => {
               onChange={(e) => setBio(e.target.value)}
               maxLength={220}
               rows={2}
-              className="w-full bg-slate-50 dark:bg-[#050508] border border-slate-200 dark:border-white/10 rounded-xl py-2 px-3.5 text-xs text-white focus:border-[#00F0FF]/50 outline-none resize-none transition-colors"
+              className="w-full bg-slate-50 dark:bg-[#050508] border border-slate-200 dark:border-white/10 rounded-xl py-2 px-3.5 text-xs text-white focus:border-[#0A66C2] dark:border-[#00F0FF]/50 outline-none resize-none transition-colors"
               placeholder="Short bio for your feed cards..."
             />
           </div>
@@ -491,7 +491,7 @@ const ProfileSettingsTab = () => {
               onChange={(e) => setAbout(e.target.value)}
               maxLength={2000}
               rows={4}
-              className="w-full bg-slate-50 dark:bg-[#050508] border border-slate-200 dark:border-white/10 rounded-xl py-2.5 px-3.5 text-xs text-white focus:border-[#00F0FF]/50 outline-none resize-none transition-colors font-mono leading-relaxed"
+              className="w-full bg-slate-50 dark:bg-[#050508] border border-slate-200 dark:border-white/10 rounded-xl py-2.5 px-3.5 text-xs text-white focus:border-[#0A66C2] dark:border-[#00F0FF]/50 outline-none resize-none transition-colors font-mono leading-relaxed"
               placeholder="Detailed summary of your experience and interests..."
             />
           </div>
@@ -501,7 +501,7 @@ const ProfileSettingsTab = () => {
       {/* 6. Social & Repo Links */}
       <div className="bg-white dark:bg-[#111] border border-slate-200 dark:border-white/5 rounded-2xl p-6 sm:p-7 space-y-4">
         <div className="flex items-center gap-2 text-slate-900 dark:text-white font-bold text-sm border-b border-slate-200 dark:border-white/5 pb-3">
-          <Globe size={16} className="text-[#00F0FF]" />
+          <Globe size={16} className="text-[#0A66C2] dark:text-[#00F0FF]" />
           <span>Social & Repository Links</span>
         </div>
 
@@ -516,7 +516,7 @@ const ProfileSettingsTab = () => {
                 type="text"
                 value={githubusername}
                 onChange={(e) => setGithubusername(e.target.value)}
-                className="w-full bg-slate-50 dark:bg-[#050508] border border-slate-200 dark:border-white/10 rounded-xl py-2.5 pl-9 pr-3.5 text-xs text-white focus:border-[#00F0FF]/50 outline-none transition-colors"
+                className="w-full bg-slate-50 dark:bg-[#050508] border border-slate-200 dark:border-white/10 rounded-xl py-2.5 pl-9 pr-3.5 text-xs text-white focus:border-[#0A66C2] dark:border-[#00F0FF]/50 outline-none transition-colors"
                 placeholder="e.g. octocat"
               />
             </div>
@@ -532,7 +532,7 @@ const ProfileSettingsTab = () => {
                 type="url"
                 value={website}
                 onChange={(e) => setWebsite(e.target.value)}
-                className="w-full bg-slate-50 dark:bg-[#050508] border border-slate-200 dark:border-white/10 rounded-xl py-2.5 pl-9 pr-3.5 text-xs text-white focus:border-[#00F0FF]/50 outline-none transition-colors"
+                className="w-full bg-slate-50 dark:bg-[#050508] border border-slate-200 dark:border-white/10 rounded-xl py-2.5 pl-9 pr-3.5 text-xs text-white focus:border-[#0A66C2] dark:border-[#00F0FF]/50 outline-none transition-colors"
                 placeholder="https://portfolio.dev"
               />
             </div>
@@ -548,7 +548,7 @@ const ProfileSettingsTab = () => {
                 type="url"
                 value={linkedin}
                 onChange={(e) => setLinkedin(e.target.value)}
-                className="w-full bg-slate-50 dark:bg-[#050508] border border-slate-200 dark:border-white/10 rounded-xl py-2.5 pl-9 pr-3.5 text-xs text-white focus:border-[#00F0FF]/50 outline-none transition-colors"
+                className="w-full bg-slate-50 dark:bg-[#050508] border border-slate-200 dark:border-white/10 rounded-xl py-2.5 pl-9 pr-3.5 text-xs text-white focus:border-[#0A66C2] dark:border-[#00F0FF]/50 outline-none transition-colors"
                 placeholder="https://linkedin.com/in/username"
               />
             </div>
@@ -564,7 +564,7 @@ const ProfileSettingsTab = () => {
                 type="url"
                 value={twitter}
                 onChange={(e) => setTwitter(e.target.value)}
-                className="w-full bg-slate-50 dark:bg-[#050508] border border-slate-200 dark:border-white/10 rounded-xl py-2.5 pl-9 pr-3.5 text-xs text-white focus:border-[#00F0FF]/50 outline-none transition-colors"
+                className="w-full bg-slate-50 dark:bg-[#050508] border border-slate-200 dark:border-white/10 rounded-xl py-2.5 pl-9 pr-3.5 text-xs text-white focus:border-[#0A66C2] dark:border-[#00F0FF]/50 outline-none transition-colors"
                 placeholder="https://x.com/username"
               />
             </div>
@@ -577,7 +577,7 @@ const ProfileSettingsTab = () => {
         <button
           type="submit"
           disabled={saving}
-          className="px-6 py-2.5 bg-[#0A66C2] hover:bg-[#004182] text-white dark:bg-[#00F0FF] dark:hover:bg-[#00F0FF]/90 dark:text-black shadow-sm font-semibold text-xs rounded-xl transition-colors cursor-pointer disabled:opacity-50 flex items-center gap-2"
+          className="px-6 py-2.5 bg-[#0A66C2] hover:bg-[#004182] text-white dark:bg-[#00F0FF] dark:hover:bg-[#0A66C2] dark:bg-[#00F0FF]/90 dark:text-black shadow-sm font-semibold text-xs rounded-xl transition-colors cursor-pointer disabled:opacity-50 flex items-center gap-2"
         >
           <Save size={15} />
           <span>{saving ? 'Saving...' : 'Save Profile Changes'}</span>

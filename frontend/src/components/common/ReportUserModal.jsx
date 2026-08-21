@@ -130,7 +130,7 @@ const ReportUserModal = ({ isOpen, onClose, user }) => {
                     key={cat.id}
                     className={`flex items-start gap-3 p-2.5 rounded-xl border transition-all cursor-pointer ${
                       selectedCategory === cat.id
-                        ? 'bg-[#00F0FF]/10 border-[#00F0FF]/40 text-white'
+                        ? 'bg-[#0A66C2] dark:bg-[#00F0FF]/10 border-[#0A66C2] dark:border-[#00F0FF]/40 text-white'
                         : 'bg-white/[0.01] hover:bg-white/[0.03] border-slate-200 dark:border-white/5 text-slate-700 dark:text-gray-300'
                     }`}
                   >
@@ -161,7 +161,7 @@ const ReportUserModal = ({ isOpen, onClose, user }) => {
                 value={details}
                 onChange={(e) => setDetails(e.target.value)}
                 placeholder="Describe the incident, attach message timestamps or relevant links..."
-                className="w-full bg-slate-50 dark:bg-[#181820] border border-slate-200 dark:border-white/10 rounded-xl p-2.5 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-[#00F0FF]/50 transition-colors"
+                className="w-full bg-slate-50 dark:bg-[#181820] border border-slate-200 dark:border-white/10 rounded-xl p-2.5 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-[#0A66C2] dark:border-[#00F0FF]/50 transition-colors"
               />
             </div>
 

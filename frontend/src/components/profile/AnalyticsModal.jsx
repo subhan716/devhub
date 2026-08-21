@@ -60,7 +60,7 @@ const AnalyticsModal = ({ isOpen, onClose }) => {
           {/* Header */}
           <div className="flex items-center justify-between p-6 border-b border-slate-200 dark:border-white/5">
             <h2 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
-              <TrendingUp className="text-[#00F0FF]" size={24} />
+              <TrendingUp className="text-[#0A66C2] dark:text-[#00F0FF]" size={24} />
               Profile Analytics
             </h2>
             <button onClick={onClose} className="text-slate-600 dark:text-gray-400 hover:text-white transition-colors p-2 hover:bg-white/5 rounded-lg cursor-pointer">
@@ -71,7 +71,7 @@ const AnalyticsModal = ({ isOpen, onClose }) => {
           <div className="p-6">
             {isLoading ? (
               <div className="flex justify-center py-10">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#00F0FF]"></div>
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#0A66C2] dark:border-[#00F0FF]"></div>
               </div>
             ) : analytics ? (
               <>
@@ -87,7 +87,7 @@ const AnalyticsModal = ({ isOpen, onClose }) => {
                     <div className="flex items-center gap-2 text-slate-600 dark:text-gray-400 mb-2">
                       <TrendingUp size={16} /> <span className="text-sm font-medium">Last 7 Days</span>
                     </div>
-                    <div className="text-3xl font-bold text-[#00F0FF]">+{analytics.recentViews}</div>
+                    <div className="text-3xl font-bold text-[#0A66C2] dark:text-[#00F0FF]">+{analytics.recentViews}</div>
                   </div>
                 </div>
 
@@ -113,7 +113,7 @@ const AnalyticsModal = ({ isOpen, onClose }) => {
                                 className="w-10 h-10 rounded-full object-cover"
                               />
                               <div>
-                                <p className="text-sm font-bold text-white group-hover:text-[#00F0FF] transition-colors">{view.viewer.name}</p>
+                                <p className="text-sm font-bold text-white group-hover:text-[#0A66C2] dark:text-[#00F0FF] transition-colors">{view.viewer.name}</p>
                                 <p className="text-xs text-slate-600 dark:text-gray-400 line-clamp-1">{view.viewer.status || 'Member'}</p>
                               </div>
                             </div>
