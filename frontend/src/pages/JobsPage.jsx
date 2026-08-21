@@ -55,23 +55,23 @@ const JobsPage = () => {
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       {/* Header & Search */}
-      <div className="bg-white dark:bg-[#111] border border-slate-200 dark:border-slate-200 dark:border-white/5 rounded-2xl p-6 shadow-sm dark:shadow-lg">
+      <div className="bg-white dark:bg-[#111] border border-slate-200 dark:border-white/5 rounded-2xl p-6 shadow-sm dark:shadow-lg">
         <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-2 flex items-center gap-2">
           <Briefcase className="text-[#0A66C2] dark:text-[#00F0FF]" /> Developer Jobs
         </h1>
-        <p className="text-gray-400 mb-6 text-sm">Find your next role at top tech companies.</p>
+        <p className="text-slate-600 dark:text-gray-400 mb-6 text-sm">Find your next role at top tech companies.</p>
         
         <div className="flex flex-col sm:flex-row gap-4">
           <div className="relative flex-1">
             <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-              <Search className="text-gray-500" size={20} />
+              <Search className="text-slate-400 dark:text-gray-500" size={20} />
             </div>
             <input 
               type="text" 
               placeholder="Search by job title, skill, or company..." 
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-slate-50 dark:bg-[#0a0a0a] border border-slate-200 dark:border-white/10 rounded-xl py-3 pl-12 pr-4 text-slate-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-[#0A66C2] dark:focus:border-[#00F0FF]/50 focus:ring-1 focus:ring-[#0A66C2] dark:focus:ring-[#00F0FF]/50 transition-all"
+              className="w-full bg-slate-50 dark:bg-[#0a0a0a] border border-slate-200 dark:border-white/10 rounded-xl py-3 pl-12 pr-4 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-gray-500 focus:outline-none focus:border-[#0A66C2] dark:focus:border-[#00F0FF]/50 focus:ring-1 focus:ring-[#0A66C2] dark:focus:ring-[#00F0FF]/50 transition-all"
             />
           </div>
           <button className="px-8 py-3 bg-[#0A66C2] hover:bg-[#004182] text-white dark:bg-[#00F0FF] dark:text-black font-bold rounded-xl transition-all cursor-pointer shadow-sm">
@@ -85,7 +85,7 @@ const JobsPage = () => {
         {['All Jobs', 'Remote', 'Frontend', 'Backend', 'Full Stack'].map((filter, index) => (
           <button 
             key={index}
-            className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors cursor-pointer ${index === 0 ? 'bg-[#0A66C2] dark:bg-white/10 text-white shadow-xs' : 'bg-slate-100 dark:bg-white/5 text-slate-700 dark:text-gray-400 hover:bg-slate-200 dark:hover:bg-white/10 border border-slate-200 dark:border-slate-200 dark:border-white/5'}`}
+            className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors cursor-pointer ${index === 0 ? 'bg-[#0A66C2] dark:bg-white/10 text-white shadow-xs' : 'bg-slate-100 dark:bg-white/5 text-slate-700 dark:text-gray-400 hover:bg-slate-200 dark:hover:bg-white/10 border border-slate-200 dark:border-white/5'}`}
           >
             {filter}
           </button>
@@ -100,13 +100,13 @@ const JobsPage = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.1 }}
-            className="bg-white dark:bg-[#111] border border-slate-200 dark:border-slate-200 dark:border-white/5 rounded-2xl p-5 shadow-sm dark:shadow-lg hover:border-[#0A66C2]/40 dark:hover:border-[#00F0FF]/30 transition-all group"
+            className="bg-white dark:bg-[#111] border border-slate-200 dark:border-white/5 rounded-2xl p-5 shadow-sm dark:shadow-lg hover:border-[#0A66C2]/40 dark:hover:border-[#00F0FF]/30 transition-all group"
           >
             <div className="flex items-start gap-4">
               <img 
                 src={job.logo} 
                 alt={job.company} 
-                className="w-14 h-14 rounded-xl object-contain bg-white p-2"
+                className="w-14 h-14 rounded-xl object-contain bg-white p-2 border border-slate-200 dark:border-white/10"
                 onError={(e) => { e.target.src = 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y'; }}
               />
               <div className="flex-1">
@@ -114,19 +114,19 @@ const JobsPage = () => {
                   <h3 className="text-lg font-bold text-slate-900 dark:text-white group-hover:text-[#0A66C2] dark:group-hover:text-[#00F0FF] transition-colors cursor-pointer">
                     {job.title}
                   </h3>
-                  <button className="text-gray-500 hover:text-white transition-colors cursor-pointer p-1">
+                  <button className="text-slate-400 dark:text-gray-500 hover:text-slate-800 dark:hover:text-white transition-colors cursor-pointer p-1">
                     <BookmarkPlus size={20} />
                   </button>
                 </div>
                 
-                <div className="flex flex-wrap items-center gap-4 text-sm text-gray-400 mb-4 mt-2">
-                  <span className="flex items-center gap-1.5 font-medium text-gray-300">
+                <div className="flex flex-wrap items-center gap-4 text-sm text-slate-500 dark:text-gray-400 mb-4 mt-2">
+                  <span className="flex items-center gap-1.5 font-medium text-slate-800 dark:text-gray-300">
                     <Building2 size={16} /> {job.company}
                   </span>
                   <span className="flex items-center gap-1.5">
                     <MapPin size={16} /> {job.location}
                   </span>
-                  <span className="flex items-center gap-1.5 text-green-400">
+                  <span className="flex items-center gap-1.5 text-emerald-600 dark:text-green-400 font-semibold">
                     <DollarSign size={16} /> {job.salary}
                   </span>
                   <span className="flex items-center gap-1.5">
@@ -137,7 +137,7 @@ const JobsPage = () => {
                 <div className="flex items-center justify-between mt-4 pt-4 border-t border-slate-200 dark:border-white/5">
                   <div className="flex items-center gap-2 flex-wrap">
                     {job.tags.map(tag => (
-                      <span key={tag} className="px-3 py-1 bg-slate-100 dark:bg-white/5 text-slate-700 dark:text-gray-300 rounded-lg text-xs font-medium border border-slate-200 dark:border-white/5 hover:bg-white/10 transition-colors cursor-pointer">
+                      <span key={tag} className="px-3 py-1 bg-slate-100 dark:bg-white/5 text-slate-700 dark:text-gray-300 rounded-lg text-xs font-medium border border-slate-200 dark:border-white/5 hover:bg-slate-200 dark:hover:bg-white/10 transition-colors cursor-pointer">
                         {tag}
                       </span>
                     ))}
