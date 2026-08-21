@@ -80,8 +80,8 @@ const EditProfileForm = ({ profile, setProfile, onClose }) => {
     }
   };
 
-  const inputClass = "w-full bg-[#0a0a0a] border border-white/10 rounded-xl py-2.5 px-4 text-white focus:border-[#00F0FF]/50 outline-none transition-colors text-sm";
-  const labelClass = "text-xs font-medium text-gray-400 mb-1.5 block";
+  const inputClass = "w-full bg-slate-50 dark:bg-[#0a0a0a] border border-slate-200 dark:border-white/10 rounded-xl py-2.5 px-4 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-gray-500 focus:border-[#0A66C2] dark:focus:border-[#00F0FF]/50 outline-none transition-colors text-sm";
+  const labelClass = "text-xs font-semibold text-slate-700 dark:text-gray-400 mb-1.5 block";
 
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
@@ -100,11 +100,11 @@ const EditProfileForm = ({ profile, setProfile, onClose }) => {
           required
         />
         {statusSuggestions.length > 0 && isStatusFocused && (
-          <div className="absolute z-10 w-full mt-1 bg-[#1a1a1a] border border-white/10 rounded-xl shadow-2xl overflow-hidden">
+          <div className="absolute z-10 w-full mt-1 bg-white dark:bg-[#1a1a1a] border border-slate-200 dark:border-white/10 rounded-xl shadow-2xl overflow-hidden">
             {statusSuggestions.map((suggestion, idx) => (
               <div
                 key={idx}
-                className="px-4 py-2.5 text-sm text-gray-300 hover:bg-[#00F0FF]/10 hover:text-white cursor-pointer transition-colors"
+                className="px-4 py-2.5 text-sm text-slate-800 dark:text-gray-300 hover:bg-blue-50 dark:hover:bg-[#00F0FF]/10 hover:text-[#0A66C2] dark:hover:text-white cursor-pointer transition-colors"
                 onClick={() => { setStatusInput(suggestion); setFormData({ ...formData, status: suggestion }); setIsStatusFocused(false); }}
               >
                 {suggestion}

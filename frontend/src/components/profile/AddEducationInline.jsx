@@ -122,9 +122,9 @@ const AddEducationInline = ({ onClose, onAdd }) => {
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.95, opacity: 0 }}
         transition={{ duration: 0.2 }}
-        className="bg-[#1a1a1a] border border-white/10 rounded-xl w-full max-w-2xl max-h-[90vh] sm:max-h-[85vh] overflow-y-auto relative shadow-2xl my-auto"
+        className="bg-[#1a1a1a] border border-slate-200 dark:border-white/10 rounded-xl w-full max-w-2xl max-h-[90vh] sm:max-h-[85vh] overflow-y-auto relative shadow-2xl my-auto"
       >
-        <button onClick={onClose} type="button" className="absolute top-4 right-4 text-gray-400 hover:text-white bg-white/5 hover:bg-white/10 rounded-full p-1.5 sm:p-2 transition-colors z-[100]">
+        <button onClick={onClose} type="button" className="absolute top-4 right-4 text-slate-600 dark:text-gray-400 hover:text-white bg-white/5 hover:bg-white/10 rounded-full p-1.5 sm:p-2 transition-colors z-[100]">
           <X size={20} />
         </button>
 
@@ -134,7 +134,7 @@ const AddEducationInline = ({ onClose, onAdd }) => {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1.5 relative">
-              <label className="text-xs font-medium text-gray-400">School / University *</label>
+              <label className="text-xs font-medium text-slate-600 dark:text-gray-400">School / University *</label>
               <input 
                 type="text" 
                 name="school" 
@@ -142,14 +142,14 @@ const AddEducationInline = ({ onClose, onAdd }) => {
                 onChange={handleChange}
                 onFocus={() => setIsSchoolFocused(true)}
                 onBlur={() => setTimeout(() => setIsSchoolFocused(false), 200)}
-                className="w-full bg-[#0a0a0a] border border-white/10 rounded-lg py-2 px-3 text-white focus:border-[#00F0FF]/50 outline-none text-sm" 
+                className="w-full bg-slate-50 dark:bg-[#0a0a0a] border border-slate-200 dark:border-white/10 rounded-lg py-2 px-3 text-white focus:border-[#00F0FF]/50 outline-none text-sm" 
                 required 
                 placeholder="e.g. MIT" 
               />
               {isSchoolFocused && (formData.school.length >= 3) && (
-                <div className="absolute z-10 w-full mt-1 bg-[#1a1a1a] border border-white/10 rounded-xl shadow-2xl overflow-hidden max-h-48 overflow-y-auto">
+                <div className="absolute z-10 w-full mt-1 bg-[#1a1a1a] border border-slate-200 dark:border-white/10 rounded-xl shadow-2xl overflow-hidden max-h-48 overflow-y-auto">
                   {isSearchingSchool ? (
-                    <div className="px-4 py-3 text-xs text-gray-400">Searching...</div>
+                    <div className="px-4 py-3 text-xs text-slate-600 dark:text-gray-400">Searching...</div>
                   ) : schoolSuggestions.length > 0 ? (
                     schoolSuggestions.map((school, idx) => (
                       <div 
@@ -160,12 +160,12 @@ const AddEducationInline = ({ onClose, onAdd }) => {
                           setIsSchoolFocused(false);
                         }}
                       >
-                        <span className="text-sm text-gray-300 font-medium">{school.name}</span>
+                        <span className="text-sm text-slate-700 dark:text-gray-300 font-medium">{school.name}</span>
                         <span className="text-[10px] text-gray-500">{school.country}</span>
                       </div>
                     ))
                   ) : (
-                    <div className="px-4 py-3 text-xs text-gray-400 flex justify-between items-center">
+                    <div className="px-4 py-3 text-xs text-slate-600 dark:text-gray-400 flex justify-between items-center">
                       <span>No match found.</span>
                       <span className="text-[#00F0FF]">Will save as typed</span>
                     </div>
@@ -175,7 +175,7 @@ const AddEducationInline = ({ onClose, onAdd }) => {
             </div>
 
             <div className="space-y-1.5 relative">
-              <label className="text-xs font-medium text-gray-400">Degree *</label>
+              <label className="text-xs font-medium text-slate-600 dark:text-gray-400">Degree *</label>
               <input 
                 type="text" 
                 name="degree" 
@@ -183,16 +183,16 @@ const AddEducationInline = ({ onClose, onAdd }) => {
                 onChange={handleChange}
                 onFocus={() => setIsDegreeFocused(true)}
                 onBlur={() => setTimeout(() => setIsDegreeFocused(false), 200)}
-                className="w-full bg-[#0a0a0a] border border-white/10 rounded-lg py-2 px-3 text-white focus:border-[#00F0FF]/50 outline-none text-sm" 
+                className="w-full bg-slate-50 dark:bg-[#0a0a0a] border border-slate-200 dark:border-white/10 rounded-lg py-2 px-3 text-white focus:border-[#00F0FF]/50 outline-none text-sm" 
                 required 
                 placeholder="e.g. Bachelor of Science" 
               />
               {degreeSuggestions.length > 0 && isDegreeFocused && (
-                <div className="absolute z-10 w-full mt-1 bg-[#1a1a1a] border border-white/10 rounded-xl shadow-2xl overflow-hidden max-h-48 overflow-y-auto">
+                <div className="absolute z-10 w-full mt-1 bg-[#1a1a1a] border border-slate-200 dark:border-white/10 rounded-xl shadow-2xl overflow-hidden max-h-48 overflow-y-auto">
                   {degreeSuggestions.map((suggestion, idx) => (
                     <div 
                       key={idx} 
-                      className="px-4 py-2.5 text-xs text-gray-300 hover:bg-[#00F0FF]/10 hover:text-white cursor-pointer transition-colors flex justify-between items-center"
+                      className="px-4 py-2.5 text-xs text-slate-700 dark:text-gray-300 hover:bg-[#00F0FF]/10 hover:text-white cursor-pointer transition-colors flex justify-between items-center"
                       onClick={() => {
                         setFormData({ ...formData, degree: suggestion });
                         setIsDegreeFocused(false);
@@ -209,7 +209,7 @@ const AddEducationInline = ({ onClose, onAdd }) => {
             </div>
 
             <div className="space-y-1.5 relative">
-              <label className="text-xs font-medium text-gray-400">Field of Study *</label>
+              <label className="text-xs font-medium text-slate-600 dark:text-gray-400">Field of Study *</label>
               <input 
                 type="text" 
                 name="fieldOfStudy" 
@@ -217,16 +217,16 @@ const AddEducationInline = ({ onClose, onAdd }) => {
                 onChange={handleChange}
                 onFocus={() => setIsFieldFocused(true)}
                 onBlur={() => setTimeout(() => setIsFieldFocused(false), 200)}
-                className="w-full bg-[#0a0a0a] border border-white/10 rounded-lg py-2 px-3 text-white focus:border-[#00F0FF]/50 outline-none text-sm" 
+                className="w-full bg-slate-50 dark:bg-[#0a0a0a] border border-slate-200 dark:border-white/10 rounded-lg py-2 px-3 text-white focus:border-[#00F0FF]/50 outline-none text-sm" 
                 required 
                 placeholder="e.g. Computer Science" 
               />
               {fieldSuggestions.length > 0 && isFieldFocused && (
-                <div className="absolute z-10 w-full mt-1 bg-[#1a1a1a] border border-white/10 rounded-xl shadow-2xl overflow-hidden max-h-48 overflow-y-auto">
+                <div className="absolute z-10 w-full mt-1 bg-[#1a1a1a] border border-slate-200 dark:border-white/10 rounded-xl shadow-2xl overflow-hidden max-h-48 overflow-y-auto">
                   {fieldSuggestions.map((suggestion, idx) => (
                     <div 
                       key={idx} 
-                      className="px-4 py-2.5 text-xs text-gray-300 hover:bg-[#00F0FF]/10 hover:text-white cursor-pointer transition-colors flex justify-between items-center"
+                      className="px-4 py-2.5 text-xs text-slate-700 dark:text-gray-300 hover:bg-[#00F0FF]/10 hover:text-white cursor-pointer transition-colors flex justify-between items-center"
                       onClick={() => {
                         setFormData({ ...formData, fieldOfStudy: suggestion });
                         setIsFieldFocused(false);
@@ -243,13 +243,13 @@ const AddEducationInline = ({ onClose, onAdd }) => {
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-medium text-gray-400">Start Date *</label>
-              <input type="date" name="from" value={formData.from} onChange={handleChange} className="w-full bg-[#0a0a0a] border border-white/10 rounded-lg py-2 px-3 text-white focus:border-[#00F0FF]/50 outline-none text-sm" required style={{ colorScheme: 'dark' }} />
+              <label className="text-xs font-medium text-slate-600 dark:text-gray-400">Start Date *</label>
+              <input type="date" name="from" value={formData.from} onChange={handleChange} className="w-full bg-slate-50 dark:bg-[#0a0a0a] border border-slate-200 dark:border-white/10 rounded-lg py-2 px-3 text-white focus:border-[#00F0FF]/50 outline-none text-sm" required style={{ colorScheme: 'dark' }} />
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-medium text-gray-400">End Date</label>
-              <input type="date" name="to" value={formData.to} onChange={handleChange} disabled={formData.current} className="w-full bg-[#0a0a0a] border border-white/10 rounded-lg py-2 px-3 text-white focus:border-[#00F0FF]/50 outline-none text-sm disabled:opacity-50" style={{ colorScheme: 'dark' }} />
+              <label className="text-xs font-medium text-slate-600 dark:text-gray-400">End Date</label>
+              <input type="date" name="to" value={formData.to} onChange={handleChange} disabled={formData.current} className="w-full bg-slate-50 dark:bg-[#0a0a0a] border border-slate-200 dark:border-white/10 rounded-lg py-2 px-3 text-white focus:border-[#00F0FF]/50 outline-none text-sm disabled:opacity-50" style={{ colorScheme: 'dark' }} />
             </div>
           </div>
 
@@ -266,18 +266,18 @@ const AddEducationInline = ({ onClose, onAdd }) => {
                 <div className={`absolute top-0.5 w-4 h-4 rounded-full shadow transition-all duration-300 ${formData.current ? 'translate-x-5 bg-[#00F0FF] shadow-[0_0_8px_rgba(0,240,255,0.6)]' : 'translate-x-0.5 bg-gray-500'}`} />
               </div>
             </div>
-            <span className={`text-sm font-medium transition-colors duration-200 ${formData.current ? 'text-[#00F0FF]' : 'text-gray-400 group-hover:text-gray-300'}`}>
+            <span className={`text-sm font-medium transition-colors duration-200 ${formData.current ? 'text-[#00F0FF]' : 'text-slate-600 dark:text-gray-400 group-hover:text-slate-700 dark:text-gray-300'}`}>
               I currently study here
             </span>
           </label>
 
           <div className="space-y-1.5 mt-4">
-            <label className="text-xs font-medium text-gray-400">Description</label>
-            <textarea name="description" value={formData.description} onChange={handleChange} rows="3" className="w-full bg-[#0a0a0a] border border-white/10 rounded-lg py-2 px-3 text-white focus:border-[#00F0FF]/50 outline-none text-sm resize-none" placeholder="Extracurricular activities, societies, etc."></textarea>
+            <label className="text-xs font-medium text-slate-600 dark:text-gray-400">Description</label>
+            <textarea name="description" value={formData.description} onChange={handleChange} rows="3" className="w-full bg-slate-50 dark:bg-[#0a0a0a] border border-slate-200 dark:border-white/10 rounded-lg py-2 px-3 text-white focus:border-[#00F0FF]/50 outline-none text-sm resize-none" placeholder="Extracurricular activities, societies, etc."></textarea>
           </div>
 
           <div className="flex justify-end gap-3 pt-2">
-            <button type="button" onClick={onClose} className="px-4 py-2 rounded-lg text-sm font-medium text-gray-400 hover:text-white hover:bg-white/5 transition-colors cursor-pointer">
+            <button type="button" onClick={onClose} className="px-4 py-2 rounded-lg text-sm font-medium text-slate-600 dark:text-gray-400 hover:text-white hover:bg-white/5 transition-colors cursor-pointer">
               Cancel
             </button>
             <button type="submit" disabled={isSubmitting} className="flex items-center gap-2 px-4 py-2 bg-[#00F0FF] hover:bg-[#00F0FF]/90 text-black rounded-lg text-sm font-bold transition-colors disabled:opacity-50 cursor-pointer">

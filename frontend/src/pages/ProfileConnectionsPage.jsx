@@ -101,10 +101,10 @@ const ProfileConnectionsPage = () => {
       />
 
       {/* Profile Header Card */}
-      <div className="bg-[#111] border border-white/10 rounded-2xl p-6 mb-4 flex items-center gap-5">
+      <div className="bg-white dark:bg-[#111] border border-slate-200 dark:border-white/10 rounded-2xl p-6 mb-4 flex items-center gap-5">
         <button
           onClick={() => navigate(-1)}
-          className="p-2 text-gray-400 hover:text-white rounded-full hover:bg-white/10 transition-colors flex-shrink-0"
+          className="p-2 text-slate-600 dark:text-gray-400 hover:text-white rounded-full hover:bg-white/10 transition-colors flex-shrink-0"
         >
           <ArrowLeft size={22} />
         </button>
@@ -113,7 +113,7 @@ const ProfileConnectionsPage = () => {
           <img
             src={profile.user?.avatar?.url || 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y'}
             alt={profile.user?.name}
-            className="w-16 h-16 rounded-full border border-white/10 object-cover flex-shrink-0"
+            className="w-16 h-16 rounded-full border border-slate-200 dark:border-white/10 object-cover flex-shrink-0"
           />
         </Link>
 
@@ -123,7 +123,7 @@ const ProfileConnectionsPage = () => {
           </Link>
           {/* Headline below name */}
           {userHeadline && (
-            <p className="text-gray-400 text-sm mt-0.5 line-clamp-1">{userHeadline}</p>
+            <p className="text-slate-600 dark:text-gray-400 text-sm mt-0.5 line-clamp-1">{userHeadline}</p>
           )}
           {profile.location && (
             <p className="flex items-center gap-1 text-gray-500 text-xs mt-1">
@@ -135,29 +135,29 @@ const ProfileConnectionsPage = () => {
       </div>
 
       {/* Connections List */}
-      <div className="bg-[#111] border border-white/10 rounded-2xl p-6">
+      <div className="bg-white dark:bg-[#111] border border-slate-200 dark:border-white/10 rounded-2xl p-6">
         <h2 className="text-xl font-bold text-white mb-2">{connections.length} Connections</h2>
-        <div className="text-gray-400 text-sm mb-6 pb-4 border-b border-white/5">Sort by: Recently added</div>
+        <div className="text-slate-600 dark:text-gray-400 text-sm mb-6 pb-4 border-b border-slate-200 dark:border-white/5">Sort by: Recently added</div>
 
         {connections.length === 0 ? (
           <div className="text-center py-12">
             <UserCheck size={48} className="mx-auto text-gray-600 mb-4" />
-            <h3 className="text-white font-bold text-lg mb-2">No connections yet</h3>
-            <p className="text-gray-400 text-sm">This user hasn&apos;t made any connections yet.</p>
+            <h3 className="text-slate-900 dark:text-white font-bold text-lg mb-2">No connections yet</h3>
+            <p className="text-slate-600 dark:text-gray-400 text-sm">This user hasn&apos;t made any connections yet.</p>
           </div>
         ) : (
           <div className="flex flex-col">
             {connections.map((conn) => (
               <div
                 key={conn.connectionId}
-                className="flex flex-col sm:flex-row sm:items-start justify-between py-5 border-b border-white/5 gap-4 hover:bg-white/[0.02] transition-colors -mx-6 px-6"
+                className="flex flex-col sm:flex-row sm:items-start justify-between py-5 border-b border-slate-200 dark:border-white/5 gap-4 hover:bg-white/[0.02] transition-colors -mx-6 px-6"
               >
                 <div className="flex gap-4 items-start w-full sm:w-2/3">
                   <Link to={`/profile/${conn.user._id}`} className="flex-shrink-0">
                     <img
                       src={conn.user?.avatar?.url || 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y'}
                       alt={conn.user?.name}
-                      className="w-16 h-16 min-w-[4rem] min-h-[4rem] rounded-full object-cover border border-white/10"
+                      className="w-16 h-16 min-w-[4rem] min-h-[4rem] rounded-full object-cover border border-slate-200 dark:border-white/10"
                     />
                   </Link>
                   <div className="flex flex-col overflow-hidden">
@@ -169,7 +169,7 @@ const ProfileConnectionsPage = () => {
                     </Link>
                     {/* Headline — bio (headline field) → status → role */}
                     {(conn.user?.bio || conn.user?.status || conn.user?.role) && (
-                      <p className="text-gray-400 text-sm line-clamp-2 mt-0.5 leading-relaxed">
+                      <p className="text-slate-600 dark:text-gray-400 text-sm line-clamp-2 mt-0.5 leading-relaxed">
                         {conn.user?.bio || conn.user?.status || conn.user?.role}
                       </p>
                     )}
@@ -199,7 +199,7 @@ const ProfileConnectionsPage = () => {
                   <div className="relative">
                     <button
                       onClick={() => setActiveDropdown(activeDropdown === conn.connectionId ? null : conn.connectionId)}
-                      className="p-2 text-gray-400 hover:text-white hover:bg-white/10 rounded-full transition-colors flex-shrink-0"
+                      className="p-2 text-slate-600 dark:text-gray-400 hover:text-white hover:bg-white/10 rounded-full transition-colors flex-shrink-0"
                     >
                       <MoreHorizontal size={20} />
                     </button>
@@ -213,7 +213,7 @@ const ProfileConnectionsPage = () => {
                             animate={{ opacity: 1, scale: 1, y: 0 }}
                             exit={{ opacity: 0, scale: 0.95, y: -10 }}
                             transition={{ duration: 0.15 }}
-                            className="absolute right-0 top-full mt-2 w-52 bg-[#1A1A1A] border border-white/10 rounded-xl shadow-xl z-20 py-2"
+                            className="absolute right-0 top-full mt-2 w-52 bg-[#1A1A1A] border border-slate-200 dark:border-white/10 rounded-xl shadow-xl z-20 py-2"
                           >
                             <button
                               onClick={() => {

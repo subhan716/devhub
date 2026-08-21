@@ -77,10 +77,10 @@ const NotificationsPage = () => {
 
         {notifications.length === 0 ? (
           <div className="text-center py-16">
-            <div className="w-20 h-20 bg-white/5 rounded-full flex items-center justify-center mx-auto mb-4">
+            <div className="w-20 h-20 bg-slate-100 dark:bg-white/5 rounded-full flex items-center justify-center mx-auto mb-4">
               <Bell size={32} className="text-gray-500" />
             </div>
-            <h2 className="text-xl font-semibold text-white mb-2">You're all caught up!</h2>
+            <h2 className="text-xl font-semibold text-slate-900 dark:text-white mb-2">You're all caught up!</h2>
             <p className="text-gray-400">No new notifications right now.</p>
           </div>
         ) : (
@@ -117,7 +117,7 @@ const NotificationsPage = () => {
                       {formatDistanceToNow(new Date(notif.createdAt), { addSuffix: true })}
                     </span>
                   </div>
-                  <div className="bg-white/5 p-2 rounded-lg">
+                  <div className="bg-slate-100 dark:bg-white/5 p-2 rounded-lg">
                     {getIcon(notif.type)}
                   </div>
                 </motion.div>

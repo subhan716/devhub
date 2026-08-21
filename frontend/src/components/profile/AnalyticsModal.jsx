@@ -54,16 +54,16 @@ const AnalyticsModal = ({ isOpen, onClose }) => {
           initial={{ scale: 0.95, opacity: 0, y: 20 }}
           animate={{ scale: 1, opacity: 1, y: 0 }}
           exit={{ scale: 0.95, opacity: 0, y: 20 }}
-          className="bg-[#111] border border-white/10 rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl"
+          className="bg-white dark:bg-[#111] border border-slate-200 dark:border-white/10 rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl"
           onClick={e => e.stopPropagation()}
         >
           {/* Header */}
-          <div className="flex items-center justify-between p-6 border-b border-white/5">
-            <h2 className="text-xl font-bold text-white flex items-center gap-2">
+          <div className="flex items-center justify-between p-6 border-b border-slate-200 dark:border-white/5">
+            <h2 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
               <TrendingUp className="text-[#00F0FF]" size={24} />
               Profile Analytics
             </h2>
-            <button onClick={onClose} className="text-gray-400 hover:text-white transition-colors p-2 hover:bg-white/5 rounded-lg cursor-pointer">
+            <button onClick={onClose} className="text-slate-600 dark:text-gray-400 hover:text-white transition-colors p-2 hover:bg-white/5 rounded-lg cursor-pointer">
               <X size={20} />
             </button>
           </div>
@@ -77,14 +77,14 @@ const AnalyticsModal = ({ isOpen, onClose }) => {
               <>
                 {/* Stats Row */}
                 <div className="grid grid-cols-2 gap-4 mb-8">
-                  <div className="bg-[#1a1a1a] rounded-xl p-4 border border-white/5">
-                    <div className="flex items-center gap-2 text-gray-400 mb-2">
+                  <div className="bg-slate-50 dark:bg-[#1a1a1a] rounded-xl p-4 border border-slate-200 dark:border-white/5">
+                    <div className="flex items-center gap-2 text-slate-600 dark:text-gray-400 mb-2">
                       <Eye size={16} /> <span className="text-sm font-medium">Total Views</span>
                     </div>
                     <div className="text-3xl font-bold text-white">{analytics.totalViews}</div>
                   </div>
-                  <div className="bg-[#1a1a1a] rounded-xl p-4 border border-white/5">
-                    <div className="flex items-center gap-2 text-gray-400 mb-2">
+                  <div className="bg-slate-50 dark:bg-[#1a1a1a] rounded-xl p-4 border border-slate-200 dark:border-white/5">
+                    <div className="flex items-center gap-2 text-slate-600 dark:text-gray-400 mb-2">
                       <TrendingUp size={16} /> <span className="text-sm font-medium">Last 7 Days</span>
                     </div>
                     <div className="text-3xl font-bold text-[#00F0FF]">+{analytics.recentViews}</div>
@@ -93,7 +93,7 @@ const AnalyticsModal = ({ isOpen, onClose }) => {
 
                 {/* Recent Viewers */}
                 <div>
-                  <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-4">Recent Viewers</h3>
+                  <h3 className="text-sm font-bold text-slate-600 dark:text-gray-400 uppercase tracking-wider mb-4">Recent Viewers</h3>
                   
                   {analytics.viewers && analytics.viewers.length > 0 ? (
                     <div className="space-y-3 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar" data-lenis-prevent="true">
@@ -104,7 +104,7 @@ const AnalyticsModal = ({ isOpen, onClose }) => {
                             key={idx} 
                             to={`/profile/${view.viewer._id}`}
                             onClick={onClose}
-                            className="flex items-center justify-between bg-[#1a1a1a] hover:bg-white/5 p-3 rounded-xl border border-white/5 transition-colors group"
+                            className="flex items-center justify-between bg-slate-50 dark:bg-[#1a1a1a] hover:bg-white/5 p-3 rounded-xl border border-slate-200 dark:border-white/5 transition-colors group"
                           >
                             <div className="flex items-center gap-3">
                               <img 
@@ -114,7 +114,7 @@ const AnalyticsModal = ({ isOpen, onClose }) => {
                               />
                               <div>
                                 <p className="text-sm font-bold text-white group-hover:text-[#00F0FF] transition-colors">{view.viewer.name}</p>
-                                <p className="text-xs text-gray-400 line-clamp-1">{view.viewer.status || 'Member'}</p>
+                                <p className="text-xs text-slate-600 dark:text-gray-400 line-clamp-1">{view.viewer.status || 'Member'}</p>
                               </div>
                             </div>
                             <div className="flex items-center gap-1 text-xs text-gray-500 whitespace-nowrap">
@@ -126,7 +126,7 @@ const AnalyticsModal = ({ isOpen, onClose }) => {
                       })}
                     </div>
                   ) : (
-                    <div className="text-center py-8 text-gray-500 bg-[#1a1a1a] rounded-xl border border-white/5">
+                    <div className="text-center py-8 text-gray-500 bg-slate-50 dark:bg-[#1a1a1a] rounded-xl border border-slate-200 dark:border-white/5">
                       <Eye size={32} className="mx-auto mb-3 opacity-20" />
                       <p>No recent views</p>
                     </div>

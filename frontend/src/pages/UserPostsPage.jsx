@@ -58,7 +58,7 @@ const UserPostsPage = () => {
         <div className="flex items-center gap-4 mb-8">
           <button
             onClick={() => navigate(-1)}
-            className="p-2 rounded-full hover:bg-white/5 transition-colors text-gray-400 hover:text-white cursor-pointer"
+            className="p-2 rounded-full hover:bg-white/5 transition-colors text-slate-600 dark:text-gray-400 hover:text-white cursor-pointer"
           >
             <ArrowLeft size={20} />
           </button>
@@ -91,7 +91,7 @@ const UserPostsPage = () => {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-center text-gray-500 py-16 bg-[#111] rounded-2xl border border-white/5"
+            className="text-center text-gray-500 py-16 bg-white dark:bg-[#111] rounded-2xl border border-slate-200 dark:border-white/5"
           >
             <p className="text-lg font-medium">No posts yet</p>
             <p className="text-sm mt-1">This user hasn't shared anything yet.</p>

@@ -99,9 +99,9 @@ const AddExperienceInline = ({ onClose, onAdd }) => {
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.95, opacity: 0 }}
         transition={{ duration: 0.2 }}
-        className="bg-[#1a1a1a] border border-white/10 rounded-xl w-full max-w-2xl max-h-[90vh] sm:max-h-[85vh] overflow-y-auto relative shadow-2xl my-auto"
+        className="bg-[#1a1a1a] border border-slate-200 dark:border-white/10 rounded-xl w-full max-w-2xl max-h-[90vh] sm:max-h-[85vh] overflow-y-auto relative shadow-2xl my-auto"
       >
-        <button onClick={onClose} type="button" className="absolute top-4 right-4 text-gray-400 hover:text-white bg-white/5 hover:bg-white/10 rounded-full p-1.5 sm:p-2 transition-colors z-[100]">
+        <button onClick={onClose} type="button" className="absolute top-4 right-4 text-slate-600 dark:text-gray-400 hover:text-white bg-white/5 hover:bg-white/10 rounded-full p-1.5 sm:p-2 transition-colors z-[100]">
           <X size={20} />
         </button>
 
@@ -111,7 +111,7 @@ const AddExperienceInline = ({ onClose, onAdd }) => {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className={`space-y-1.5 relative ${isTitleFocused ? 'z-50' : ''}`}>
-              <label className="text-xs font-medium text-gray-400">Job Title *</label>
+              <label className="text-xs font-medium text-slate-600 dark:text-gray-400">Job Title *</label>
               <input 
                 type="text" 
                 name="title" 
@@ -119,16 +119,16 @@ const AddExperienceInline = ({ onClose, onAdd }) => {
                 onChange={handleChange}
                 onFocus={() => setIsTitleFocused(true)}
                 onBlur={() => setTimeout(() => setIsTitleFocused(false), 200)}
-                className="w-full bg-[#0a0a0a] border border-white/10 rounded-lg py-2 px-3 text-white focus:border-[#00F0FF]/50 outline-none text-sm" 
+                className="w-full bg-slate-50 dark:bg-[#0a0a0a] border border-slate-200 dark:border-white/10 rounded-lg py-2 px-3 text-white focus:border-[#00F0FF]/50 outline-none text-sm" 
                 required 
                 placeholder="e.g. Senior Frontend Engineer" 
               />
               {titleSuggestions.length > 0 && isTitleFocused && (
-                <div className="absolute z-10 w-full mt-1 bg-[#1a1a1a] border border-white/10 rounded-xl shadow-2xl overflow-hidden max-h-48 overflow-y-auto overscroll-contain">
+                <div className="absolute z-10 w-full mt-1 bg-[#1a1a1a] border border-slate-200 dark:border-white/10 rounded-xl shadow-2xl overflow-hidden max-h-48 overflow-y-auto overscroll-contain">
                   {titleSuggestions.map((suggestion, idx) => (
                     <div 
                       key={idx} 
-                      className="px-4 py-2.5 text-xs text-gray-300 hover:bg-[#00F0FF]/10 hover:text-white cursor-pointer transition-colors flex justify-between items-center"
+                      className="px-4 py-2.5 text-xs text-slate-700 dark:text-gray-300 hover:bg-[#00F0FF]/10 hover:text-white cursor-pointer transition-colors flex justify-between items-center"
                       onClick={() => {
                         setFormData({ ...formData, title: suggestion });
                         setIsTitleFocused(false);
@@ -145,7 +145,7 @@ const AddExperienceInline = ({ onClose, onAdd }) => {
             </div>
 
             <div className={`space-y-1.5 relative ${isCompanyFocused ? 'z-50' : ''}`}>
-              <label className="text-xs font-medium text-gray-400">Company *</label>
+              <label className="text-xs font-medium text-slate-600 dark:text-gray-400">Company *</label>
               <input 
                 type="text" 
                 name="company" 
@@ -153,14 +153,14 @@ const AddExperienceInline = ({ onClose, onAdd }) => {
                 onChange={handleChange}
                 onFocus={() => setIsCompanyFocused(true)}
                 onBlur={() => setTimeout(() => setIsCompanyFocused(false), 200)}
-                className="w-full bg-[#0a0a0a] border border-white/10 rounded-lg py-2 px-3 text-white focus:border-[#00F0FF]/50 outline-none text-sm" 
+                className="w-full bg-slate-50 dark:bg-[#0a0a0a] border border-slate-200 dark:border-white/10 rounded-lg py-2 px-3 text-white focus:border-[#00F0FF]/50 outline-none text-sm" 
                 required 
                 placeholder="e.g. Google" 
               />
               {isCompanyFocused && (formData.company.length >= 2) && (
-                <div className="absolute z-10 w-full mt-1 bg-[#1a1a1a] border border-white/10 rounded-xl shadow-2xl overflow-hidden max-h-48 overflow-y-auto overscroll-contain">
+                <div className="absolute z-10 w-full mt-1 bg-[#1a1a1a] border border-slate-200 dark:border-white/10 rounded-xl shadow-2xl overflow-hidden max-h-48 overflow-y-auto overscroll-contain">
                   {isSearchingCompany ? (
-                    <div className="px-4 py-3 text-xs text-gray-400">Searching...</div>
+                    <div className="px-4 py-3 text-xs text-slate-600 dark:text-gray-400">Searching...</div>
                   ) : companySuggestions.length > 0 ? (
                     companySuggestions.map((company, idx) => (
                       <div 
@@ -192,11 +192,11 @@ const AddExperienceInline = ({ onClose, onAdd }) => {
                             {company.name.charAt(0)}
                           </div>
                         ) : null}
-                        <span className="text-sm text-gray-300">{company.name}</span>
+                        <span className="text-sm text-slate-700 dark:text-gray-300">{company.name}</span>
                       </div>
                     ))
                   ) : (
-                    <div className="px-4 py-3 text-xs text-gray-400 flex justify-between items-center">
+                    <div className="px-4 py-3 text-xs text-slate-600 dark:text-gray-400 flex justify-between items-center">
                       <span>No match found.</span>
                       <span className="text-[#00F0FF]">Will save as typed</span>
                     </div>
@@ -206,13 +206,13 @@ const AddExperienceInline = ({ onClose, onAdd }) => {
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-medium text-gray-400">Start Date *</label>
-              <input type="date" name="from" value={formData.from} onChange={handleChange} className="w-full bg-[#0a0a0a] border border-white/10 rounded-lg py-2 px-3 text-white focus:border-[#00F0FF]/50 outline-none text-sm" required style={{ colorScheme: 'dark' }} />
+              <label className="text-xs font-medium text-slate-600 dark:text-gray-400">Start Date *</label>
+              <input type="date" name="from" value={formData.from} onChange={handleChange} className="w-full bg-slate-50 dark:bg-[#0a0a0a] border border-slate-200 dark:border-white/10 rounded-lg py-2 px-3 text-white focus:border-[#00F0FF]/50 outline-none text-sm" required style={{ colorScheme: 'dark' }} />
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-medium text-gray-400">End Date</label>
-              <input type="date" name="to" value={formData.to} onChange={handleChange} disabled={formData.current} className="w-full bg-[#0a0a0a] border border-white/10 rounded-lg py-2 px-3 text-white focus:border-[#00F0FF]/50 outline-none text-sm disabled:opacity-50" style={{ colorScheme: 'dark' }} />
+              <label className="text-xs font-medium text-slate-600 dark:text-gray-400">End Date</label>
+              <input type="date" name="to" value={formData.to} onChange={handleChange} disabled={formData.current} className="w-full bg-slate-50 dark:bg-[#0a0a0a] border border-slate-200 dark:border-white/10 rounded-lg py-2 px-3 text-white focus:border-[#00F0FF]/50 outline-none text-sm disabled:opacity-50" style={{ colorScheme: 'dark' }} />
             </div>
           </div>
 
@@ -229,18 +229,18 @@ const AddExperienceInline = ({ onClose, onAdd }) => {
                 <div className={`absolute top-0.5 w-4 h-4 rounded-full shadow transition-all duration-300 ${formData.current ? 'translate-x-5 bg-[#00F0FF] shadow-[0_0_8px_rgba(0,240,255,0.6)]' : 'translate-x-0.5 bg-gray-500'}`} />
               </div>
             </div>
-            <span className={`text-sm font-medium transition-colors duration-200 ${formData.current ? 'text-[#00F0FF]' : 'text-gray-400 group-hover:text-gray-300'}`}>
+            <span className={`text-sm font-medium transition-colors duration-200 ${formData.current ? 'text-[#00F0FF]' : 'text-slate-600 dark:text-gray-400 group-hover:text-slate-700 dark:text-gray-300'}`}>
               I currently work here
             </span>
           </label>
 
           <div className="space-y-1.5 mt-4">
-            <label className="text-xs font-medium text-gray-400">Description</label>
-            <textarea name="description" value={formData.description} onChange={handleChange} rows="3" className="w-full bg-[#0a0a0a] border border-white/10 rounded-lg py-2 px-3 text-white focus:border-[#00F0FF]/50 outline-none text-sm resize-none" placeholder="What were your key responsibilities and achievements?"></textarea>
+            <label className="text-xs font-medium text-slate-600 dark:text-gray-400">Description</label>
+            <textarea name="description" value={formData.description} onChange={handleChange} rows="3" className="w-full bg-slate-50 dark:bg-[#0a0a0a] border border-slate-200 dark:border-white/10 rounded-lg py-2 px-3 text-white focus:border-[#00F0FF]/50 outline-none text-sm resize-none" placeholder="What were your key responsibilities and achievements?"></textarea>
           </div>
 
           <div className="flex justify-end gap-3 pt-2">
-            <button type="button" onClick={onClose} className="px-4 py-2 rounded-lg text-sm font-medium text-gray-400 hover:text-white hover:bg-white/5 transition-colors cursor-pointer">
+            <button type="button" onClick={onClose} className="px-4 py-2 rounded-lg text-sm font-medium text-slate-600 dark:text-gray-400 hover:text-white hover:bg-white/5 transition-colors cursor-pointer">
               Cancel
             </button>
             <button type="submit" disabled={isSubmitting} className="flex items-center gap-2 px-4 py-2 bg-[#00F0FF] hover:bg-[#00F0FF]/90 text-black rounded-lg text-sm font-bold transition-colors disabled:opacity-50 cursor-pointer">

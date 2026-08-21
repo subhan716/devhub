@@ -72,9 +72,9 @@ const AddCertificationInline = ({ setProfile, onClose }) => {
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.95, opacity: 0 }}
         transition={{ duration: 0.2 }}
-        className="bg-[#1a1a1a] border border-white/10 rounded-xl w-full max-w-2xl max-h-[90vh] sm:max-h-[85vh] overflow-y-auto relative shadow-2xl my-auto"
+        className="bg-[#1a1a1a] border border-slate-200 dark:border-white/10 rounded-xl w-full max-w-2xl max-h-[90vh] sm:max-h-[85vh] overflow-y-auto relative shadow-2xl my-auto"
       >
-        <button onClick={onClose} type="button" className="absolute top-4 right-4 text-gray-400 hover:text-white bg-white/5 hover:bg-white/10 rounded-full p-1.5 sm:p-2 transition-colors z-[100]">
+        <button onClick={onClose} type="button" className="absolute top-4 right-4 text-slate-600 dark:text-gray-400 hover:text-white bg-white/5 hover:bg-white/10 rounded-full p-1.5 sm:p-2 transition-colors z-[100]">
           <X size={20} />
         </button>
 
@@ -84,20 +84,20 @@ const AddCertificationInline = ({ setProfile, onClose }) => {
         <form onSubmit={onSubmit} className="space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1.5 relative">
-              <label className="text-xs font-medium text-gray-400">Certification Name *</label>
+              <label className="text-xs font-medium text-slate-600 dark:text-gray-400">Certification Name *</label>
               <input
                 type="text"
                 name="title"
                 value={title}
                 onChange={onChange}
-                className="w-full bg-[#0a0a0a] border border-white/10 rounded-lg py-2 px-3 text-white focus:border-[#00F0FF]/50 outline-none text-sm"
+                className="w-full bg-slate-50 dark:bg-[#0a0a0a] border border-slate-200 dark:border-white/10 rounded-lg py-2 px-3 text-white focus:border-[#00F0FF]/50 outline-none text-sm"
                 placeholder="e.g. AWS Certified Solutions Architect"
                 required
               />
             </div>
 
             <div className={`space-y-1.5 relative ${isCompanyFocused ? 'z-50' : ''}`}>
-              <label className="text-xs font-medium text-gray-400">Issuing Organization *</label>
+              <label className="text-xs font-medium text-slate-600 dark:text-gray-400">Issuing Organization *</label>
               <input
                 type="text"
                 name="issuingOrganization"
@@ -105,14 +105,14 @@ const AddCertificationInline = ({ setProfile, onClose }) => {
                 onChange={onChange}
                 onFocus={() => setIsCompanyFocused(true)}
                 onBlur={() => setTimeout(() => setIsCompanyFocused(false), 200)}
-                className="w-full bg-[#0a0a0a] border border-white/10 rounded-lg py-2 px-3 text-white focus:border-[#00F0FF]/50 outline-none text-sm"
+                className="w-full bg-slate-50 dark:bg-[#0a0a0a] border border-slate-200 dark:border-white/10 rounded-lg py-2 px-3 text-white focus:border-[#00F0FF]/50 outline-none text-sm"
                 placeholder="e.g. Amazon"
                 required
               />
               {isCompanyFocused && (issuingOrganization.length >= 2) && (
-                <div className="absolute z-10 w-full mt-1 bg-[#1a1a1a] border border-white/10 rounded-xl shadow-2xl overflow-hidden max-h-48 overflow-y-auto overscroll-contain">
+                <div className="absolute z-10 w-full mt-1 bg-[#1a1a1a] border border-slate-200 dark:border-white/10 rounded-xl shadow-2xl overflow-hidden max-h-48 overflow-y-auto overscroll-contain">
                   {isSearchingCompany ? (
-                    <div className="px-4 py-3 text-xs text-gray-400">Searching...</div>
+                    <div className="px-4 py-3 text-xs text-slate-600 dark:text-gray-400">Searching...</div>
                   ) : companySuggestions.length > 0 ? (
                     companySuggestions.map((company, idx) => (
                       <div 
@@ -144,11 +144,11 @@ const AddCertificationInline = ({ setProfile, onClose }) => {
                             {company.name.charAt(0)}
                           </div>
                         ) : null}
-                        <span className="text-sm text-gray-300">{company.name}</span>
+                        <span className="text-sm text-slate-700 dark:text-gray-300">{company.name}</span>
                       </div>
                     ))
                   ) : (
-                    <div className="px-4 py-3 text-xs text-gray-400 flex justify-between items-center">
+                    <div className="px-4 py-3 text-xs text-slate-600 dark:text-gray-400 flex justify-between items-center">
                       <span>No match found.</span>
                       <span className="text-[#00F0FF]">Will save as typed</span>
                     </div>
@@ -160,25 +160,25 @@ const AddCertificationInline = ({ setProfile, onClose }) => {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1.5 relative">
-              <label className="text-xs font-medium text-gray-400">Issue Date *</label>
+              <label className="text-xs font-medium text-slate-600 dark:text-gray-400">Issue Date *</label>
               <input
                 type="date"
                 name="issueDate"
                 value={issueDate}
                 onChange={onChange}
-                className="w-full bg-[#0a0a0a] border border-white/10 rounded-lg py-2 px-3 text-white focus:border-[#00F0FF]/50 outline-none text-sm [color-scheme:dark]"
+                className="w-full bg-slate-50 dark:bg-[#0a0a0a] border border-slate-200 dark:border-white/10 rounded-lg py-2 px-3 text-white focus:border-[#00F0FF]/50 outline-none text-sm [color-scheme:dark]"
                 required
               />
             </div>
 
             <div className="space-y-1.5 relative">
-              <label className="text-xs font-medium text-gray-400">Credential URL (Optional)</label>
+              <label className="text-xs font-medium text-slate-600 dark:text-gray-400">Credential URL (Optional)</label>
               <input
                 type="url"
                 name="credentialUrl"
                 value={credentialUrl}
                 onChange={onChange}
-                className="w-full bg-[#0a0a0a] border border-white/10 rounded-lg py-2 px-3 text-white focus:border-[#00F0FF]/50 outline-none text-sm"
+                className="w-full bg-slate-50 dark:bg-[#0a0a0a] border border-slate-200 dark:border-white/10 rounded-lg py-2 px-3 text-white focus:border-[#00F0FF]/50 outline-none text-sm"
                 placeholder="https://..."
               />
             </div>
@@ -188,7 +188,7 @@ const AddCertificationInline = ({ setProfile, onClose }) => {
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-sm text-gray-400 hover:text-white transition-colors"
+              className="px-4 py-2 text-sm text-slate-600 dark:text-gray-400 hover:text-white transition-colors"
             >
               Cancel
             </button>

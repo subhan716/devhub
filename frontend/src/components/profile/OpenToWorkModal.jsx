@@ -63,23 +63,23 @@ const OpenToWorkModal = ({ isOpen, onClose, profile, setProfile }) => {
           initial={{ opacity: 0, scale: 0.95, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 20 }}
-          className="relative w-full max-w-lg bg-[#111] rounded-2xl shadow-2xl border border-white/10 overflow-hidden z-10"
+          className="relative w-full max-w-lg bg-white dark:bg-[#111] rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-200 dark:border-white/10 overflow-hidden z-10"
         >
           {/* Header */}
-          <div className="flex items-center justify-between p-6 border-b border-white/10 bg-white/5">
-            <h2 className="text-xl font-bold text-white flex items-center gap-2">
+          <div className="flex items-center justify-between p-6 border-b border-slate-200 dark:border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5">
+            <h2 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
               <Briefcase className="text-[#00F0FF]" /> Edit job preferences
             </h2>
-            <button onClick={onClose} className="p-2 text-gray-400 hover:text-white rounded-full hover:bg-white/10 transition-colors">
+            <button onClick={onClose} className="p-2 text-slate-500 hover:text-slate-900 dark:text-slate-600 dark:text-gray-400 dark:hover:text-white rounded-full hover:bg-slate-100 dark:hover:bg-white/10 transition-colors">
               <X size={20} />
             </button>
           </div>
 
           <form onSubmit={handleSubmit} className="p-6 space-y-6">
-            <div className="flex items-center justify-between bg-[#1a1a1a] p-4 rounded-xl border border-white/5">
+            <div className="flex items-center justify-between bg-slate-50 dark:bg-[#1a1a1a] p-4 rounded-xl border border-slate-200 dark:border-white/5">
               <div>
-                <p className="text-white font-semibold">Open to Work</p>
-                <p className="text-sm text-gray-400">Show recruiters and others that you're looking</p>
+                <p className="text-slate-900 dark:text-white font-semibold">Open to Work</p>
+                <p className="text-sm text-slate-600 dark:text-gray-400">Show recruiters and others that you're looking</p>
               </div>
               <button 
                 type="button" 
@@ -93,31 +93,31 @@ const OpenToWorkModal = ({ isOpen, onClose, profile, setProfile }) => {
             {formData.isLooking && (
               <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="space-y-4">
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-gray-300">Job titles you are looking for</label>
+                  <label className="text-sm font-medium text-slate-700 dark:text-gray-300">Job titles you are looking for</label>
                   <input
                     type="text"
                     name="jobTitles"
                     value={formData.jobTitles}
                     onChange={handleChange}
                     placeholder="e.g. Graphic Designer, Frontend Developer (comma separated)"
-                    className="w-full bg-[#0a0a0a] border border-white/10 rounded-xl py-3 px-4 text-white focus:border-[#00F0FF]/50 outline-none transition-colors"
+                    className="w-full bg-slate-50 dark:bg-[#0a0a0a] border border-slate-200 dark:border-white/10 rounded-xl py-3 px-4 text-white focus:border-[#00F0FF]/50 outline-none transition-colors"
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-gray-300">Workplaces</label>
+                  <label className="text-sm font-medium text-slate-700 dark:text-gray-300">Workplaces</label>
                   <input
                     type="text"
                     name="workplaces"
                     value={formData.workplaces}
                     onChange={handleChange}
                     placeholder="e.g. Remote, On-site, Hybrid (comma separated)"
-                    className="w-full bg-[#0a0a0a] border border-white/10 rounded-xl py-3 px-4 text-white focus:border-[#00F0FF]/50 outline-none transition-colors"
+                    className="w-full bg-slate-50 dark:bg-[#0a0a0a] border border-slate-200 dark:border-white/10 rounded-xl py-3 px-4 text-white focus:border-[#00F0FF]/50 outline-none transition-colors"
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-gray-300">Locations (Optional)</label>
+                  <label className="text-sm font-medium text-slate-700 dark:text-gray-300">Locations (Optional)</label>
                   <div className="relative">
                     <MapPin className="absolute top-3.5 left-3.5 text-gray-500" size={18} />
                     <input
@@ -126,14 +126,14 @@ const OpenToWorkModal = ({ isOpen, onClose, profile, setProfile }) => {
                       value={formData.locations}
                       onChange={handleChange}
                       placeholder="e.g. New York, London (comma separated)"
-                      className="w-full bg-[#0a0a0a] border border-white/10 rounded-xl py-3 pl-10 pr-4 text-white focus:border-[#00F0FF]/50 outline-none transition-colors"
+                      className="w-full bg-slate-50 dark:bg-[#0a0a0a] border border-slate-200 dark:border-white/10 rounded-xl py-3 pl-10 pr-4 text-white focus:border-[#00F0FF]/50 outline-none transition-colors"
                     />
                   </div>
                 </div>
               </motion.div>
             )}
 
-            <div className="pt-4 flex justify-end gap-3 border-t border-white/10">
+            <div className="pt-4 flex justify-end gap-3 border-t border-slate-200 dark:border-white/10">
               <button type="button" onClick={onClose} className="px-6 py-2 rounded-xl text-white font-medium hover:bg-white/10 transition-colors">
                 Cancel
               </button>
