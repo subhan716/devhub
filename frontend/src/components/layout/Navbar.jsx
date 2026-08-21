@@ -3,19 +3,19 @@ import { Link } from 'react-router-dom';
 
 const Navbar = ({ onOpenAuth }) => {
   return (
-    <nav className="fixed w-full z-40 top-0 border-b border-white/10 bg-[#0A0A0A]/80 backdrop-blur-md transition-colors duration-200">
+    <nav className="fixed w-full z-40 top-0 border-b border-zinc-800/80 bg-[#08080A]/85 backdrop-blur-md transition-colors duration-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-20">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-3">
-            <img src="/images/logo.png" alt="DevHub Logo" className="w-9 h-9 object-contain rounded-xl drop-shadow-[0_0_10px_rgba(0,240,255,0.5)]" />
-            <span className="text-2xl font-extrabold tracking-tight text-white">
-              Dev<span className="text-[#00F0FF]">Hub</span>
+            <img src="/images/logo.png" alt="DevHub Logo" className="w-8 h-8 object-contain rounded-xl" />
+            <span className="text-xl font-extrabold tracking-tight text-white">
+              Dev<span className="text-zinc-400">Hub</span>
             </span>
           </Link>
 
           {/* Links */}
-          <div className="hidden md:flex items-center gap-8 text-sm font-semibold text-zinc-300">
+          <div className="hidden md:flex items-center gap-8 text-xs font-semibold text-zinc-400">
             <a href="#features" className="hover:text-white transition-colors">Features</a>
             <a href="#how-it-works" className="hover:text-white transition-colors">How It Works</a>
           </div>
@@ -25,14 +25,14 @@ const Navbar = ({ onOpenAuth }) => {
             <button
               type="button"
               onClick={() => onOpenAuth ? onOpenAuth('login') : null}
-              className="text-zinc-300 hover:text-white font-bold text-xs sm:text-sm transition-colors px-3 py-2 cursor-pointer"
+              className="text-zinc-300 hover:text-white font-semibold text-xs sm:text-sm transition-colors px-3 py-2 cursor-pointer"
             >
               Sign In
             </button>
             <button
               type="button"
               onClick={() => onOpenAuth ? onOpenAuth('register') : null}
-              className="bg-gradient-to-r from-[#00F0FF] to-[#0A66C2] text-black hover:opacity-90 px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-extrabold transition-all shadow-[0_0_15px_rgba(0,240,255,0.3)] hover:scale-105 cursor-pointer"
+              className="bg-white hover:bg-zinc-200 text-zinc-950 px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all shadow-sm cursor-pointer"
             >
               Join the Hub
             </button>
