@@ -60,6 +60,7 @@ app.use('/api/network', require('./routes/connectionRoutes'));
 app.use('/api/notifications', require('./routes/notificationRoutes'));
 app.use('/api/admin', require('./routes/adminRoutes'));
 app.use('/api/policies', require('./routes/policyRoutes'));
+app.use('/api/config', require('./routes/configRoutes'));
 
 // Basic health check route
 app.get('/api', (req, res) => {

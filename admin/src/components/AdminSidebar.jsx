@@ -1,5 +1,6 @@
 import React from 'react';
 import { 
+  Globe,
   Scale, 
   LayoutDashboard, 
   Users, 
@@ -24,6 +25,7 @@ const AdminSidebar = ({ activeTab, setActiveTab, adminUser, onLogout, pendingRep
     },
     { id: 'broadcast', label: 'Push Broadcast', icon: Megaphone },
     { id: 'mobile_app', label: 'Mobile Fleet & Version', icon: Smartphone },
+    { id: 'landing_cms', label: 'Landing Page CMS', icon: Globe },
     { id: 'policies', label: 'Legal & Policy CMS', icon: Scale },
     { id: 'audit_logs', label: 'Audit Forensics', icon: Shield },
   ];

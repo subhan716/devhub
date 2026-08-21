@@ -23,6 +23,7 @@ import BroadcastModal from '../components/BroadcastModal';
 import MobileAppConfig from '../components/MobileAppConfig';
 import AuditLogsExplorer from '../components/AuditLogsExplorer';
 import PolicyCMS from '../components/PolicyCMS';
+import LandingCMS from '../components/LandingCMS';
 import { getAdminStats } from '../api/adminApi';
 import toast from 'react-hot-toast';
 
@@ -73,6 +74,7 @@ const AdminDashboardPage = ({ adminUser, onLogout }) => {
               {activeTab === 'moderation' && 'Content Moderation Sentinel'}
               {activeTab === 'broadcast' && 'System Broadcast & Notification Hub'}
               {activeTab === 'mobile_app' && 'Mobile Fleet & Version Gatekeeper'}
+              {activeTab === 'landing_cms' && 'Landing Page & Hero Visual CMS'}
               {activeTab === 'policies' && 'Legal & Policy Governance Center'}
               {activeTab === 'audit_logs' && 'Security Audit Forensics & Compliance'}
             </h2>
@@ -208,6 +210,7 @@ const AdminDashboardPage = ({ adminUser, onLogout }) => {
         {activeTab === 'mobile_app' && <MobileAppConfig />}
 
         {/* Tab 6: Legal & Policy CMS */}
+        {activeTab === 'landing_cms' && <LandingCMS />}
         {activeTab === 'policies' && <PolicyCMS />}
 
         {/* Tab 7: Security Audit Logs */}

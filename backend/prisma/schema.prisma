@@ -384,3 +384,24 @@ model SuggestionCache {
 
   @@index([expiresAt])
 }
+
+model LandingConfig {
+  id               String   @id @default(uuid())
+  key              String   @unique @default("global_landing")
+  badgeText        String   @default("The Universal Professional & Creator Network 🚀")
+  heroTitlePrefix  String   @default("The Network for")
+  heroHighlight    String   @default("Those Who Build, Create & Lead.")
+  heroDescription  String   @default("Connect with elite creators, tech founders, designers, and innovators. Showcase your work and build high-impact partnerships across the digital universe.")
+  ctaPrimaryText   String   @default("Start Networking")
+  ctaPrimaryLink   String   @default("/register")
+  ctaSecondaryText String   @default("Explore Ecosystem")
+  ctaSecondaryLink String   @default("#features")
+  marqueeKeywords  String[] @default(["Tech & Engineering", "Creative & Design", "Product & Leadership", "Founders & Startups", "AI & Data Science", "Growth & Marketing", "Venture & Capital"])
+  stats            Json     @default("{\"members\": \"50K+\", \"projects\": \"120K+\", \"collaborations\": \"95K+\", \"countries\": \"140+\"}")
+  features         Json     @default("[{\"icon\": \"Users\", \"color\": \"#00F0FF\", \"title\": \"Verified Professional Identity\", \"desc\": \"Showcase your real-world achievements, multi-disciplinary portfolio, and verified credentials.\"}, {\"icon\": \"Briefcase\", \"color\": \"#FF0055\", \"title\": \"Smart Co-Founder & Peer Matching\", \"desc\": \"Connect with engineers, designers, and marketers based on verified skill graphs.\"}, {\"icon\": \"Rocket\", \"color\": \"#8A2BE2\", \"title\": \"High-Impact Opportunities\", \"desc\": \"Land top tier remote roles, venture collaborations, and creator partnerships directly.\"}]")
+  model3DConfig    Json     @default("{\"speed\": 1.0, \"particleCount\": 1500, \"glowIntensity\": 2.0, \"coreColor\": \"#00F0FF\", \"secondaryColor\": \"#8A2BE2\"}")
+  lastUpdatedBy    String?
+  lastUpdatedEmail String   @default("")
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}

@@ -158,3 +158,14 @@ export const getAdminMe = async () => {
 };
 
 export default api;
+
+// Landing Page CMS
+export const getLandingConfig = async () => {
+  const { data } = await api.get('/admin/landing-config');
+  return data;
+};
+
+export const updateLandingConfig = async (payload) => {
+  const { data } = await api.put('/admin/landing-config', payload);
+  return data;
+};

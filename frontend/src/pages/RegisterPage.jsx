@@ -81,17 +81,7 @@ const RegisterPage = () => {
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-[#0A0A0A] flex flex-col justify-center py-12 sm:px-6 lg:px-8 relative overflow-hidden transition-colors duration-200">
-            {/* Floating Theme Switcher */}
-      <div className="absolute top-6 right-6 z-20">
-        <button
-          onClick={toggleTheme}
-          aria-label={isDark ? "Switch to Light Mode" : "Switch to Dark Mode"}
-          title={isDark ? "Switch to Light Studio" : "Switch to Dark Obsidian"}
-          className="p-2.5 rounded-full text-slate-600 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white bg-white dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 border border-slate-200 dark:border-white/10 transition-all cursor-pointer shadow-md flex items-center justify-center"
-        >
-          {isDark ? <Sun size={20} className="text-amber-400" /> : <Moon size={20} className="text-slate-700" />}
-        </button>
-      </div>
+            
       {/* Background Effects */}
       <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
         <div className="absolute -top-[20%] -left-[10%] w-[50%] h-[50%] rounded-full bg-[#00F0FF]/10 blur-[120px]" />

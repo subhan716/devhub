@@ -349,29 +349,7 @@ const TopNavbar = ({ setIsMobileMenuOpen, currentUser, isMessagesPage }) => {
                     Preferences
                   </div>
 
-                  {/* Theme Switcher Segmented Control */}
-                  <div className="flex items-center justify-between px-3 py-2">
-                    <span className="text-xs font-medium text-slate-700 dark:text-gray-300 flex items-center gap-2">
-                      {isDark ? <Moon size={15} className="text-[#00F0FF]" /> : <Sun size={15} className="text-amber-500" />}
-                      Theme
-                    </span>
-                    <div className="flex items-center bg-slate-100 dark:bg-white/5 p-0.5 rounded-lg border border-slate-200 dark:border-white/10">
-                      <button
-                        type="button"
-                        onClick={() => { if (isDark) toggleTheme(); }}
-                        className={`flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-semibold transition-all cursor-pointer ${!isDark ? 'bg-white text-slate-900 shadow-xs' : 'text-gray-400 hover:text-white'}`}
-                      >
-                        <Sun size={12} className={!isDark ? 'text-amber-500' : ''} /> Light
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => { if (!isDark) toggleTheme(); }}
-                        className={`flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-semibold transition-all cursor-pointer ${isDark ? 'bg-white/10 text-white shadow-xs' : 'text-slate-500 hover:text-slate-900'}`}
-                      >
-                        <Moon size={12} className={isDark ? 'text-[#00F0FF]' : ''} /> Dark
-                      </button>
-                    </div>
-                  </div>
+                  
 
                   {/* Active / Invisible Status Toggle */}
                   {toggleStatusPref && (

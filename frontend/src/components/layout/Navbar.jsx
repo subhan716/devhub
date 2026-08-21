@@ -1,5 +1,4 @@
 import { Link } from 'react-router-dom';
-import { Sun, Moon } from 'lucide-react';
 import { useTheme } from '../../context/ThemeContext';
 
 const Navbar = () => {
@@ -25,19 +24,7 @@ const Navbar = () => {
 
           {/* Auth Buttons & Theme Switcher */}
           <div className="flex items-center gap-3 sm:gap-4">
-            {/* 1-Click Theme Toggle Button */}
-            <button
-              onClick={toggleTheme}
-              aria-label={isDark ? "Switch to Light Mode" : "Switch to Dark Mode"}
-              title={isDark ? "Switch to Light Studio" : "Switch to Dark Obsidian"}
-              className="p-2 rounded-xl text-slate-600 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 border border-slate-200 dark:border-white/10 transition-all cursor-pointer flex items-center justify-center group shadow-xs"
-            >
-              {isDark ? (
-                <Sun size={18} className="text-amber-400 group-hover:rotate-45 transition-transform duration-300" />
-              ) : (
-                <Moon size={18} className="text-slate-700 group-hover:-rotate-12 transition-transform duration-300" />
-              )}
-            </button>
+            
 
             <Link to="/login" className="text-slate-700 dark:text-gray-300 hover:text-slate-900 dark:hover:text-white font-medium text-sm transition-colors px-2 py-1.5">
               Sign In

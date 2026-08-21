@@ -30,6 +30,7 @@ const {
   getAllPolicies,
   updatePolicy,
 } = require('../controllers/policyController');
+const { getPublicLandingConfig, updateAdminLandingConfig } = require('../controllers/landingConfigController');
 const { protect, protectAdmin } = require('../middleware/authMiddleware');
 
 // Public Mobile & Web App Handshake & Active Alert Banners
@@ -75,3 +76,7 @@ router.put('/policies/:slug', protect, protectAdmin, updatePolicy);
 router.get('/audit-logs', protect, protectAdmin, getAuditLogs);
 
 module.exports = router;
+
+// Landing Page CMS Management
+router.get('/landing-config', protect, protectAdmin, getPublicLandingConfig);
+router.put('/landing-config', protect, protectAdmin, updateAdminLandingConfig);
