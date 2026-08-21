@@ -29,8 +29,8 @@ const MainLayout = () => {
 
   return (
     <SocketProvider currentUser={currentUser}>
-      <div className={`bg-[#050505] text-white selection:bg-[#00F0FF]/30 ${isMessagesPage ? 'h-[100dvh] overflow-hidden fixed inset-0 w-full' : 'min-h-[100dvh]'}`}>
-        {/* 3-Column Layout structure matching the mockup */}
+      <div className={`bg-slate-50 dark:bg-[#050505] text-slate-900 dark:text-white selection:bg-[#0A66C2]/20 dark:selection:bg-[#00F0FF]/30 ${isMessagesPage ? 'h-[100dvh] overflow-hidden fixed inset-0 w-full' : 'min-h-[100dvh]'} transition-colors duration-200 font-sans`}>
+        {/* 3-Column Layout structure */}
         <Sidebar isMobileMenuOpen={isMobileMenuOpen} setIsMobileMenuOpen={setIsMobileMenuOpen} />
         {!isMessagesPage && <RightSidebar currentUser={currentUser} />}
         

@@ -250,9 +250,9 @@ const SecuritySettingsTab = () => {
   return (
     <div className="space-y-6 font-sans">
       {/* 1. Password Management Form */}
-      <div className="bg-[#111] border border-white/5 rounded-2xl p-6 sm:p-7 space-y-5">
-        <div className="flex items-center justify-between border-b border-white/5 pb-3">
-          <div className="flex items-center gap-2 text-white font-bold text-sm">
+      <div className="bg-white dark:bg-[#111] border border-slate-200 dark:border-white/5 rounded-2xl p-6 sm:p-7 space-y-5">
+        <div className="flex items-center justify-between border-b border-slate-200 dark:border-white/5 pb-3">
+          <div className="flex items-center gap-2 text-slate-900 dark:text-white font-bold text-sm">
             <KeyRound size={16} className="text-[#00F0FF]" />
             <span>Change Password</span>
           </div>
@@ -262,7 +262,7 @@ const SecuritySettingsTab = () => {
         </div>
 
         {forensics && forensics.isOAuthUser && (
-          <div className="p-4 rounded-xl bg-cyan-950/20 border border-cyan-500/20 flex items-start gap-3 text-xs text-gray-300 leading-relaxed">
+          <div className="p-4 rounded-xl bg-cyan-950/20 border border-cyan-500/20 flex items-start gap-3 text-xs text-slate-700 dark:text-gray-300 leading-relaxed">
             <Info size={16} className="text-[#00F0FF] flex-shrink-0 mt-0.5" />
             <div>
               <span className="font-bold text-white block mb-0.5">Google / GitHub Account</span>
@@ -275,7 +275,7 @@ const SecuritySettingsTab = () => {
           {forensics?.hasPasswordSet && (
             <div className="space-y-1.5">
               <div className="flex items-center justify-between">
-                <label className="text-xs font-medium text-gray-300">Current Password</label>
+                <label className="text-xs font-medium text-slate-700 dark:text-gray-300">Current Password</label>
                 <button
                   type="button"
                   onClick={handleInSessionForgotPassword}
@@ -289,7 +289,7 @@ const SecuritySettingsTab = () => {
                   type={showCurrent ? 'text' : 'password'}
                   value={currentPassword}
                   onChange={(e) => setCurrentPassword(e.target.value)}
-                  className="w-full bg-[#050508] border border-white/10 rounded-xl py-2.5 pl-3.5 pr-10 text-xs text-white focus:border-[#00F0FF]/50 outline-none transition-colors"
+                  className="w-full bg-slate-50 dark:bg-[#050508] border border-slate-200 dark:border-white/10 rounded-xl py-2.5 pl-3.5 pr-10 text-xs text-white focus:border-[#00F0FF]/50 outline-none transition-colors"
                   placeholder="Enter your current password"
                   required={!isInSessionForgotMode}
                 />
@@ -305,7 +305,7 @@ const SecuritySettingsTab = () => {
           )}
 
           <div className="space-y-1.5">
-            <label className="text-xs font-medium text-gray-300">
+            <label className="text-xs font-medium text-slate-700 dark:text-gray-300">
               {forensics?.hasPasswordSet ? 'New Password' : 'Set Password'}
             </label>
             <div className="relative">
@@ -313,7 +313,7 @@ const SecuritySettingsTab = () => {
                 type={showNew ? 'text' : 'password'}
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
-                className="w-full bg-[#050508] border border-white/10 rounded-xl py-2.5 pl-3.5 pr-10 text-xs text-white focus:border-[#00F0FF]/50 outline-none transition-colors"
+                className="w-full bg-slate-50 dark:bg-[#050508] border border-slate-200 dark:border-white/10 rounded-xl py-2.5 pl-3.5 pr-10 text-xs text-white focus:border-[#00F0FF]/50 outline-none transition-colors"
                 placeholder="Minimum 6 characters"
                 required
               />
@@ -363,13 +363,13 @@ const SecuritySettingsTab = () => {
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-xs font-medium text-gray-300">Confirm New Password</label>
+            <label className="text-xs font-medium text-slate-700 dark:text-gray-300">Confirm New Password</label>
             <div className="relative">
               <input
                 type={showConfirm ? 'text' : 'password'}
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                className="w-full bg-[#050508] border border-white/10 rounded-xl py-2.5 pl-3.5 pr-10 text-xs text-white focus:border-[#00F0FF]/50 outline-none transition-colors"
+                className="w-full bg-slate-50 dark:bg-[#050508] border border-slate-200 dark:border-white/10 rounded-xl py-2.5 pl-3.5 pr-10 text-xs text-white focus:border-[#00F0FF]/50 outline-none transition-colors"
                 placeholder="Repeat new password"
                 required
               />
@@ -390,12 +390,12 @@ const SecuritySettingsTab = () => {
 
           {/* Instagram/Meta Style Checkbox */}
           <div className="pt-2">
-            <label className="flex items-center gap-2 text-xs text-gray-300 cursor-pointer select-none">
+            <label className="flex items-center gap-2 text-xs text-slate-700 dark:text-gray-300 cursor-pointer select-none">
               <input
                 type="checkbox"
                 checked={logoutOtherDevices}
                 onChange={(e) => setLogoutOtherDevices(e.target.checked)}
-                className="w-4 h-4 rounded border-white/20 bg-[#050508] text-[#00F0FF] focus:ring-0 cursor-pointer"
+                className="w-4 h-4 rounded border-white/20 bg-slate-50 dark:bg-[#050508] text-[#00F0FF] focus:ring-0 cursor-pointer"
               />
               <span>Sign out of all other browsers and mobile devices after updating</span>
             </label>
@@ -405,7 +405,7 @@ const SecuritySettingsTab = () => {
             <button
               type="submit"
               disabled={isRequestingOtp || (newPassword.length > 0 && newPassword !== confirmPassword)}
-              className="px-5 py-2.5 bg-[#00F0FF] hover:bg-[#00F0FF]/90 text-black text-xs font-semibold rounded-xl transition-colors cursor-pointer disabled:opacity-50 flex items-center gap-2"
+              className="px-5 py-2.5 bg-[#0A66C2] hover:bg-[#004182] text-white dark:bg-[#00F0FF] dark:hover:bg-[#00F0FF]/90 dark:text-black shadow-sm text-xs font-semibold rounded-xl transition-colors cursor-pointer disabled:opacity-50 flex items-center gap-2"
             >
               <Lock size={14} />
               <span>{isRequestingOtp ? 'Sending Security Code...' : 'Update Password'}</span>
@@ -415,9 +415,9 @@ const SecuritySettingsTab = () => {
       </div>
 
       {/* 2. Session Management */}
-      <div className="bg-[#111] border border-white/5 rounded-2xl p-6 sm:p-7 space-y-4">
-        <div className="flex items-center gap-2 text-white font-bold text-sm border-b border-white/5 pb-3">
-          <ShieldCheck size={16} className="text-gray-300" />
+      <div className="bg-white dark:bg-[#111] border border-slate-200 dark:border-white/5 rounded-2xl p-6 sm:p-7 space-y-4">
+        <div className="flex items-center gap-2 text-slate-900 dark:text-white font-bold text-sm border-b border-slate-200 dark:border-white/5 pb-3">
+          <ShieldCheck size={16} className="text-slate-700 dark:text-gray-300" />
           <span>Active Sessions</span>
         </div>
 
@@ -430,7 +430,7 @@ const SecuritySettingsTab = () => {
             type="button"
             onClick={() => setIsRevokeModalOpen(true)}
             disabled={isRevoking}
-            className="px-5 py-2.5 bg-white/5 hover:bg-white/10 text-gray-300 hover:text-white border border-white/10 text-xs font-medium rounded-xl transition-colors cursor-pointer flex items-center gap-2 disabled:opacity-50"
+            className="px-5 py-2.5 bg-white/5 hover:bg-white/10 text-slate-700 dark:text-gray-300 hover:text-white border border-slate-200 dark:border-white/10 text-xs font-medium rounded-xl transition-colors cursor-pointer flex items-center gap-2 disabled:opacity-50"
           >
             <LogOut size={14} />
             <span>{isRevoking ? 'Signing Out...' : 'Sign Out Other Sessions'}</span>
@@ -439,7 +439,7 @@ const SecuritySettingsTab = () => {
       </div>
 
       {/* 3. Delete Account / Danger Zone */}
-      <div className="bg-[#111] border border-red-500/20 rounded-2xl p-6 sm:p-7 space-y-4">
+      <div className="bg-white dark:bg-[#111] border border-red-500/20 rounded-2xl p-6 sm:p-7 space-y-4">
         <div className="flex items-center gap-2 text-red-400 font-bold text-sm border-b border-red-500/20 pb-3">
           <Trash2 size={16} />
           <span>Delete Account</span>
@@ -466,7 +466,7 @@ const SecuritySettingsTab = () => {
       {/* ========================================================================= */}
       {isOtpModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="bg-[#111] border border-white/10 rounded-2xl max-w-md w-full p-6 sm:p-7 space-y-6 shadow-2xl relative">
+          <div className="bg-white dark:bg-[#111] border border-slate-200 dark:border-white/10 rounded-2xl max-w-md w-full p-6 sm:p-7 space-y-6 shadow-2xl relative">
             {/* Close Button */}
             <button
               onClick={() => {
@@ -494,7 +494,7 @@ const SecuritySettingsTab = () => {
             {/* OTP Input Form */}
             <form onSubmit={handleVerifyOtpSubmit} className="space-y-5">
               <div className="space-y-1.5">
-                <label className="text-xs font-medium text-gray-300 block text-center">
+                <label className="text-xs font-medium text-slate-700 dark:text-gray-300 block text-center">
                   6-Digit Security Code
                 </label>
                 <input
@@ -504,7 +504,7 @@ const SecuritySettingsTab = () => {
                   onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
                   placeholder="• • • • • •"
                   autoFocus
-                  className="w-full bg-[#050508] border border-white/10 rounded-xl py-3 text-center text-xl tracking-[8px] text-white font-mono focus:border-[#00F0FF]/50 outline-none transition-colors"
+                  className="w-full bg-slate-50 dark:bg-[#050508] border border-slate-200 dark:border-white/10 rounded-xl py-3 text-center text-xl tracking-[8px] text-white font-mono focus:border-[#00F0FF]/50 outline-none transition-colors"
                   required
                 />
               </div>
@@ -536,14 +536,14 @@ const SecuritySettingsTab = () => {
                     setIsOtpModalOpen(false);
                     setIsInSessionForgotMode(false);
                   }}
-                  className="px-4 py-2 bg-white/5 hover:bg-white/10 text-gray-300 rounded-xl border border-white/10 text-xs font-medium transition-colors cursor-pointer"
+                  className="px-4 py-2 bg-white/5 hover:bg-white/10 text-slate-700 dark:text-gray-300 rounded-xl border border-slate-200 dark:border-white/10 text-xs font-medium transition-colors cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={isVerifyingOtp || otp.length !== 6}
-                  className="px-5 py-2 bg-[#00F0FF] hover:bg-[#00F0FF]/90 text-black text-xs font-semibold rounded-xl transition-colors cursor-pointer disabled:opacity-50 flex items-center gap-2"
+                  className="px-5 py-2 bg-[#0A66C2] hover:bg-[#004182] text-white dark:bg-[#00F0FF] dark:hover:bg-[#00F0FF]/90 dark:text-black shadow-sm text-xs font-semibold rounded-xl transition-colors cursor-pointer disabled:opacity-50 flex items-center gap-2"
                 >
                   <Check size={14} />
                   <span>{isVerifyingOtp ? 'Verifying...' : 'Confirm & Update'}</span>

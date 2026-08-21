@@ -14,29 +14,114 @@
   }
 }
 
-/* Custom Professional Scrollbar */
+/* ========================================================================= */
+/* UNIVERSAL DESIGN TOKENS (LIGHT STUDIO DEFAULT vs DARK OBSIDIAN OVERRIDE)  */
+/* ========================================================================= */
+:root {
+  /* LIGHT STUDIO MODE (LinkedIn / Meta Standard) */
+  --bg-app: #F8FAFC;
+  --bg-surface: #FFFFFF;
+  --bg-surface-secondary: #F1F5F9;
+  --bg-surface-hover: #E2E8F0;
+  
+  --border-subtle: #E2E8F0;
+  --border-strong: #CBD5E1;
+  
+  --text-primary: #0F172A;
+  --text-secondary: #475569;
+  --text-muted: #94A3B8;
+  
+  /* Primary Button (LinkedIn Royal Blue) */
+  --btn-primary-bg: #0A66C2;
+  --btn-primary-hover: #004182;
+  --btn-primary-text: #FFFFFF;
+
+  /* Secondary Outline Button */
+  --btn-outline-text: #0A66C2;
+  --btn-outline-border: #0A66C2;
+  --btn-outline-hover-bg: #EFF6FF;
+
+  /* Secondary Neutral Button */
+  --btn-neutral-bg: #E4E6EB;
+  --btn-neutral-hover: #D8DADF;
+  --btn-neutral-text: #050505;
+
+  /* Card Shadow */
+  --card-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.06), 0 1px 2px -1px rgba(0, 0, 0, 0.04);
+}
+
+html.dark, [data-theme='dark'] {
+  /* DARK OBSIDIAN MODE (Developer Dark Mode) */
+  --bg-app: #0A0A0A;
+  --bg-surface: #111116;
+  --bg-surface-secondary: #050508;
+  --bg-surface-hover: rgba(255, 255, 255, 0.05);
+  
+  --border-subtle: rgba(255, 255, 255, 0.08);
+  --border-strong: rgba(255, 255, 255, 0.16);
+  
+  --text-primary: #FFFFFF;
+  --text-secondary: #9CA3AF;
+  --text-muted: #6B7280;
+  
+  /* Primary Button (Electric Cyan) */
+  --btn-primary-bg: #00F0FF;
+  --btn-primary-hover: rgba(0, 240, 255, 0.85);
+  --btn-primary-text: #000000;
+
+  /* Secondary Outline Button */
+  --btn-outline-text: #00F0FF;
+  --btn-outline-border: rgba(0, 240, 255, 0.4);
+  --btn-outline-hover-bg: rgba(0, 240, 255, 0.1);
+
+  /* Secondary Neutral Button */
+  --btn-neutral-bg: rgba(255, 255, 255, 0.07);
+  --btn-neutral-hover: rgba(255, 255, 255, 0.12);
+  --btn-neutral-text: #FFFFFF;
+
+  /* Card Shadow */
+  --card-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.6);
+}
+
+/* Base Body Styling */
+body {
+  background-color: var(--bg-app);
+  color: var(--text-primary);
+  min-height: 100vh;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+/* Custom Scrollbar (Theme Adaptive) */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #0a0a0a;
+  background: var(--bg-app);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #333333;
+  background: #CBD5E1;
   border-radius: 4px;
 }
 
+html.dark ::-webkit-scrollbar-thumb {
+  background: #27272A;
+}
+
 ::-webkit-scrollbar-thumb:hover {
-  background: #00F0FF;
+  background: var(--btn-primary-bg);
 }
 
 /* Firefox */
 * {
   scrollbar-width: thin;
-  scrollbar-color: #333333 #0a0a0a;
+  scrollbar-color: #CBD5E1 var(--bg-app);
+}
+
+html.dark * {
+  scrollbar-color: #27272A var(--bg-app);
 }
 
 /* Hide scrollbar for specific elements */
@@ -44,6 +129,6 @@
   display: none;
 }
 .no-scrollbar, .hide-scrollbar {
-  -ms-overflow-style: none;  /* IE and Edge */
-  scrollbar-width: none;  /* Firefox */
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }

@@ -354,7 +354,7 @@ const FeedPage = () => {
     <div className="flex flex-col gap-6 pb-20">
       
       {/* LinkedIn Style Create Post Trigger Box */}
-      <div className="bg-[#111] border border-white/5 rounded-2xl p-4 shadow-lg flex flex-col gap-3">
+      <div className="bg-white dark:bg-[#111] border border-slate-200 dark:border-white/5 rounded-2xl p-4 shadow-sm dark:shadow-lg flex flex-col gap-3 transition-colors">
         <div className="flex items-center gap-3">
           <img 
             src={currentUser?.avatar?.url || 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y'} 
@@ -363,17 +363,17 @@ const FeedPage = () => {
           />
           <button 
             onClick={() => openPostModal('text')}
-            className="flex-1 bg-[#1a1a1a] hover:bg-[#222] border border-white/10 rounded-full px-5 py-3.5 text-left text-gray-400 font-medium text-sm transition-colors cursor-pointer outline-none"
+            className="flex-1 bg-slate-100 dark:bg-[#1a1a1a] hover:bg-slate-200 dark:hover:bg-[#222] border border-slate-200 dark:border-white/10 rounded-full px-5 py-3.5 text-left text-slate-600 dark:text-gray-400 font-medium text-sm transition-colors cursor-pointer outline-none"
           >
             Start a post
           </button>
         </div>
         
         {/* Row of Action Buttons */}
-        <div className="flex justify-around pt-2 border-t border-white/5">
+        <div className="flex justify-around pt-2 border-t border-slate-100 dark:border-white/5">
           <button 
             onClick={() => openPostModal('image')}
-            className="flex items-center gap-2.5 text-gray-400 hover:text-white transition-colors text-sm font-semibold cursor-pointer py-2 px-3 rounded-xl hover:bg-white/5"
+            className="flex items-center gap-2.5 text-slate-600 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white transition-colors text-sm font-semibold cursor-pointer py-2 px-3 rounded-xl hover:bg-slate-100 dark:hover:bg-white/5"
           >
             <Image size={18} className="text-[#378fe9]" />
             <span>Photo</span>
@@ -381,7 +381,7 @@ const FeedPage = () => {
           
           <button 
             onClick={() => openPostModal('code')}
-            className="flex items-center gap-2.5 text-gray-400 hover:text-white transition-colors text-sm font-semibold cursor-pointer py-2 px-3 rounded-xl hover:bg-white/5"
+            className="flex items-center gap-2.5 text-slate-600 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white transition-colors text-sm font-semibold cursor-pointer py-2 px-3 rounded-xl hover:bg-slate-100 dark:hover:bg-white/5"
           >
             <Code2 size={18} className="text-[#e7a33e]" />
             <span>Code Snippet</span>
@@ -389,7 +389,7 @@ const FeedPage = () => {
 
           <button 
             onClick={() => openPostModal('video')}
-            className="flex items-center gap-2.5 text-gray-400 hover:text-white transition-colors text-sm font-semibold cursor-pointer py-2 px-3 rounded-xl hover:bg-white/5"
+            className="flex items-center gap-2.5 text-slate-600 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white transition-colors text-sm font-semibold cursor-pointer py-2 px-3 rounded-xl hover:bg-slate-100 dark:hover:bg-white/5"
           >
             <Video size={18} className="text-[#5f9b41]" />
             <span>Video</span>
@@ -485,11 +485,11 @@ const FeedPage = () => {
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.9, opacity: 0, y: 50 }}
               transition={{ type: 'spring', damping: 25, stiffness: 350 }}
-              className="relative w-full sm:max-w-xl bg-[#111] border-0 sm:border border-white/10 rounded-none sm:rounded-2xl shadow-2xl flex flex-col h-[100dvh] sm:h-auto sm:max-h-[90vh] overflow-hidden"
+              className="relative w-full sm:max-w-xl bg-white dark:bg-[#111] border-0 sm:border border-slate-200 dark:border-white/10 rounded-none sm:rounded-2xl shadow-2xl flex flex-col h-[100dvh] sm:h-auto sm:max-h-[90vh] overflow-hidden"
             >
               {/* Header */}
-              <div className="px-5 py-4 border-b border-white/5 flex justify-between items-center bg-[#161616]">
-                <h3 className="text-lg font-bold text-white">{editingPostId ? 'Edit post' : 'Create a post'}</h3>
+              <div className="px-5 py-4 border-b border-slate-100 dark:border-white/5 flex justify-between items-center bg-slate-50 dark:bg-[#161616]">
+                <h3 className="text-lg font-bold text-slate-900 dark:text-white">{editingPostId ? 'Edit post' : 'Create a post'}</h3>
                 <button 
                   onClick={handleCloseModal}
                   className="p-1.5 text-gray-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors cursor-pointer"
@@ -508,7 +508,7 @@ const FeedPage = () => {
                     className="w-11 h-11 rounded-full object-cover border border-white/10"
                   />
                   <div>
-                    <h4 className="text-white font-semibold text-sm leading-tight">{currentUser?.name}</h4>
+                    <h4 className="text-slate-900 dark:text-white font-semibold text-sm leading-tight">{currentUser?.name}</h4>
                     <div className="flex items-center gap-1 text-[11px] text-gray-500 mt-0.5 border border-white/10 rounded-full px-2 py-0.5 bg-white/[0.02] w-fit">
                       <Globe size={11} />
                       <span>Post to Anyone</span>
@@ -523,7 +523,7 @@ const FeedPage = () => {
                     placeholder="What do you want to talk about? Type @ to mention a connection..."
                     value={postContent}
                     onChange={handlePostContentChange}
-                    className="w-full bg-transparent text-white placeholder-gray-600 resize-none focus:outline-none min-h-[140px] text-base leading-relaxed"
+                    className="w-full bg-transparent text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-gray-600 resize-none focus:outline-none min-h-[140px] text-base leading-relaxed"
                   />
 
                   {/* @Mention Suggestion Dropdown */}
@@ -698,7 +698,7 @@ const FeedPage = () => {
                   <button 
                     onClick={handlePostSubmit}
                     disabled={isSubmitting || isUploading || (!postContent.trim() && !codeContent.trim() && !selectedImage && !selectedVideo)}
-                    className="px-5 py-2.5 bg-[#00F0FF] hover:bg-[#00F0FF]/90 text-black font-bold rounded-full transition-all text-sm flex items-center gap-2 disabled:opacity-30 disabled:hover:bg-[#00F0FF] cursor-pointer"
+                    className="px-5 py-2.5 bg-[#0A66C2] hover:bg-[#004182] text-white dark:bg-[#00F0FF] dark:hover:bg-[#00F0FF]/90 dark:text-black font-bold rounded-full transition-all text-sm flex items-center gap-2 disabled:opacity-30 cursor-pointer shadow-sm"
                   >
                     {isSubmitting ? (editingPostId ? 'Saving...' : 'Posting...') : (editingPostId ? 'Save' : 'Post')}
                   </button>

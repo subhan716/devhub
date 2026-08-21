@@ -48,16 +48,16 @@ const Sidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
       )}
 
       {/* Sidebar Drawer */}
-      <aside className={`w-64 h-screen fixed left-0 top-0 border-r border-white/5 bg-[#0a0a0a] flex flex-col pt-8 pb-6 px-6 z-50 transform ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 transition-transform duration-300`}>
+      <aside className={`w-64 h-screen fixed left-0 top-0 border-r border-slate-200 dark:border-white/5 bg-white dark:bg-[#0a0a0a] flex flex-col pt-8 pb-6 px-6 z-50 transform ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 transition-all duration-300`}>
         {/* Logo and Close Button */}
         <div className="flex items-center justify-between mb-10">
           <Link to="/feed" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 group">
-            <img src="/images/logo.png" alt="DevHub Logo" className="w-10 h-10 object-contain rounded-xl drop-shadow-[0_0_10px_rgba(0,240,255,0.5)]" />
-            <span className="text-xl font-bold text-white tracking-tight">DevHub</span>
+            <img src="/images/logo.png" alt="DevHub Logo" className="w-10 h-10 object-contain rounded-xl drop-shadow-[0_0_10px_rgba(0,240,255,0.3)]" />
+            <span className="text-xl font-bold text-slate-900 dark:text-white tracking-tight">DevHub</span>
           </Link>
           <button 
             onClick={() => setIsMobileMenuOpen(false)}
-            className="md:hidden text-gray-400 hover:text-white"
+            className="md:hidden text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white cursor-pointer"
           >
             <X size={24} />
           </button>
@@ -74,35 +74,35 @@ const Sidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
                 onClick={() => setIsMobileMenuOpen(false)}
                 className={`flex items-center gap-4 px-4 py-3 rounded-xl font-medium transition-all group cursor-pointer ${
                   isActive 
-                    ? 'bg-gradient-to-r from-[#00F0FF]/10 to-transparent text-white border-l-2 border-[#00F0FF]' 
-                    : 'text-gray-400 hover:bg-white/5 hover:text-white border-l-2 border-transparent'
+                    ? 'bg-blue-50 dark:bg-gradient-to-r dark:from-[#00F0FF]/10 dark:to-transparent text-[#0A66C2] dark:text-white border-l-2 border-[#0A66C2] dark:border-[#00F0FF]' 
+                    : 'text-gray-600 dark:text-gray-400 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-black dark:hover:text-white border-l-2 border-transparent'
                 }`}
               >
-                <div className={`${isActive ? 'text-[#00F0FF]' : 'text-gray-500 group-hover:text-gray-300'} transition-colors`}>
+                <div className={`${isActive ? 'text-[#0A66C2] dark:text-[#00F0FF]' : 'text-gray-400 dark:text-gray-500 group-hover:text-gray-700 dark:group-hover:text-gray-300'} transition-colors`}>
                   {link.icon}
                 </div>
-                {link.name}
+                <span className="text-sm font-semibold">{link.name}</span>
               </Link>
             );
           })}
         </nav>
 
         {/* Bottom Area: Trust & Guidelines + Sign Out */}
-        <div className="mt-auto pt-4 border-t border-white/5 space-y-1">
+        <div className="mt-auto pt-4 border-t border-slate-200 dark:border-white/5 space-y-1">
           <Link
             to="/guidelines"
             onClick={() => setIsMobileMenuOpen(false)}
-            className="w-full flex items-center gap-3 px-4 py-2.5 text-xs font-medium text-gray-400 hover:text-[#00F0FF] hover:bg-white/5 rounded-xl transition-all group cursor-pointer"
+            className="w-full flex items-center gap-3 px-4 py-2.5 text-xs font-medium text-gray-600 dark:text-gray-400 hover:text-[#0A66C2] dark:hover:text-[#00F0FF] hover:bg-slate-100 dark:hover:bg-white/5 rounded-xl transition-all group cursor-pointer"
           >
-            <ShieldCheck size={18} className="text-gray-500 group-hover:text-[#00F0FF] transition-colors" />
+            <ShieldCheck size={18} className="text-amber-500 dark:text-amber-400" />
             <span>Trust & Legal Center</span>
           </Link>
 
           <button 
             onClick={() => setIsLogoutModalOpen(true)}
-            className="w-full flex items-center gap-3 px-4 py-2.5 text-xs font-medium text-red-400/70 hover:text-red-500 hover:bg-red-500/10 rounded-xl transition-all group cursor-pointer"
+            className="w-full flex items-center gap-3 px-4 py-2.5 text-xs font-medium text-red-600 dark:text-red-400/70 hover:text-red-700 dark:hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-xl transition-all group cursor-pointer"
           >
-            <LogOut size={18} className="text-red-400/70 group-hover:text-red-500 transition-colors" />
+            <LogOut size={18} />
             <span>Sign Out</span>
           </button>
         </div>

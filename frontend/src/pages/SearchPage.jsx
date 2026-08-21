@@ -62,21 +62,21 @@ const SearchPage = () => {
     <div className="flex flex-col gap-6 pb-20">
       
       {/* Search Header */}
-      <div className="bg-[#111] border border-white/5 rounded-2xl p-6 shadow-lg">
+      <div className="bg-white dark:bg-[#111] border border-slate-200 dark:border-white/5 rounded-2xl p-6 shadow-lg">
         <h1 className="text-2xl font-bold text-white flex items-center gap-3">
           <SearchIcon className="text-[#00F0FF]" />
           Search Results for "{searchQuery}"
         </h1>
         
         {/* Tabs */}
-        <div className="flex gap-2 mt-6 border-b border-white/5 pb-2 overflow-x-auto custom-scrollbar">
+        <div className="flex gap-2 mt-6 border-b border-slate-200 dark:border-white/5 pb-2 overflow-x-auto custom-scrollbar">
           {tabs.map(tab => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
               className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-medium transition-all whitespace-nowrap ${
                 activeTab === tab.id 
-                  ? 'bg-white/10 text-white shadow-md border border-white/10' 
+                  ? 'bg-white/10 text-white shadow-md border border-slate-200 dark:border-white/10' 
                   : 'text-gray-400 hover:text-white hover:bg-white/5'
               }`}
             >
@@ -112,7 +112,7 @@ const SearchPage = () => {
           {activeTab === 'people' && (
             <AnimatePresence>
               {profiles.length === 0 ? (
-                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-20 text-gray-500 bg-[#111] rounded-2xl border border-white/5">
+                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-20 text-gray-500 bg-white dark:bg-[#111] rounded-2xl border border-slate-200 dark:border-white/5">
                   No people found matching "{searchQuery}"
                 </motion.div>
               ) : (
@@ -123,17 +123,17 @@ const SearchPage = () => {
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: idx * 0.05 }}
-                      className="bg-[#111] border border-white/5 rounded-2xl p-5 hover:border-white/10 transition-colors flex items-center gap-4"
+                      className="bg-white dark:bg-[#111] border border-slate-200 dark:border-white/5 rounded-2xl p-5 hover:border-slate-200 dark:border-white/10 transition-colors flex items-center gap-4"
                     >
                       <Link to={`/profile/${profile.user._id}`}>
                         <img 
                           src={profile.user?.avatar?.url || 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y'} 
                           alt={profile.user?.name}
-                          className="w-16 h-16 rounded-full object-cover border border-white/10 cursor-pointer"
+                          className="w-16 h-16 rounded-full object-cover border border-slate-200 dark:border-white/10 cursor-pointer"
                         />
                       </Link>
                       <div className="flex-1">
-                        <Link to={`/profile/${profile.user._id}`} className="text-white font-bold text-lg hover:text-[#00F0FF] transition-colors line-clamp-1">
+                        <Link to={`/profile/${profile.user._id}`} className="text-slate-900 dark:text-white font-bold text-lg hover:text-[#00F0FF] transition-colors line-clamp-1">
                           {profile.user?.name}
                         </Link>
                         <p className="text-sm text-gray-400 line-clamp-1 mt-0.5">{profile.status || 'Developer'}</p>
@@ -161,7 +161,7 @@ const SearchPage = () => {
           {activeTab === 'posts' && (
             <AnimatePresence>
               {posts.length === 0 ? (
-                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-20 text-gray-500 bg-[#111] rounded-2xl border border-white/5">
+                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-20 text-gray-500 bg-white dark:bg-[#111] rounded-2xl border border-slate-200 dark:border-white/5">
                   No posts found matching "{searchQuery}"
                 </motion.div>
               ) : (
@@ -176,7 +176,7 @@ const SearchPage = () => {
 
           {/* JOBS TAB */}
           {activeTab === 'jobs' && (
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-20 text-gray-500 bg-[#111] rounded-2xl border border-white/5">
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-20 text-gray-500 bg-white dark:bg-[#111] rounded-2xl border border-slate-200 dark:border-white/5">
               <Briefcase size={40} className="mx-auto mb-4 text-[#00F0FF]/50" />
               <p>Job search functionality coming soon!</p>
             </motion.div>

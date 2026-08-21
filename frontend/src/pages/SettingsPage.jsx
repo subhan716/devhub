@@ -46,15 +46,15 @@ const SettingsPage = () => {
   return (
     <div className="max-w-4xl mx-auto pb-20 font-sans space-y-6">
       {/* Header */}
-      <div className="border-b border-white/5 pb-4">
-        <h1 className="text-xl sm:text-2xl font-bold text-white tracking-tight">Account Settings</h1>
+      <div className="border-b border-slate-200 dark:border-white/5 pb-4">
+        <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white tracking-tight">Account Settings</h1>
         <p className="text-xs text-gray-400 mt-1">
           Manage your developer profile, security credentials, and platform policies.
         </p>
       </div>
 
       {/* Clean Horizontal Tabs */}
-      <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar border-b border-white/5 pb-3">
+      <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar border-b border-slate-200 dark:border-white/5 pb-3">
         {navTabs.map((tab) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
@@ -85,10 +85,10 @@ const SettingsPage = () => {
 
         {/* TAB 3: TRUST & POLICIES */}
         {activeTab === 'legal' && (
-          <div className="bg-[#111] border border-white/5 rounded-2xl p-6 sm:p-7 space-y-6">
+          <div className="bg-white dark:bg-[#111] border border-slate-200 dark:border-white/5 rounded-2xl p-6 sm:p-7 space-y-6 shadow-sm dark:shadow-none">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/5 pb-4">
               <div className="space-y-1">
-                <div className="flex items-center gap-2 text-white font-bold text-sm">
+                <div className="flex items-center gap-2 text-slate-900 dark:text-white font-bold text-sm">
                   <Scale size={16} className="text-[#00F0FF]" />
                   <span>Platform Policies & Guidelines</span>
                 </div>

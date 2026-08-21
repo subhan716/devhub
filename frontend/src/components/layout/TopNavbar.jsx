@@ -1,4 +1,20 @@
-import { Bell, Mail, LogOut, User as UserIcon, Search, Menu, Heart, MessageSquare, UserPlus, Eye, EyeOff, Settings, ShieldCheck } from 'lucide-react';
+import { 
+  Bell, 
+  Mail, 
+  LogOut, 
+  User as UserIcon, 
+  Search, 
+  Menu, 
+  Heart, 
+  MessageSquare, 
+  UserPlus, 
+  Eye, 
+  EyeOff, 
+  Settings, 
+  ShieldCheck,
+  Sun,
+  Moon
+} from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -6,10 +22,10 @@ import axios from 'axios';
 import toast from 'react-hot-toast';
 import ConfirmModal from '../common/ConfirmModal';
 import { useSocket } from '../../context/SocketContext';
-
+import { useTheme } from '../../context/ThemeContext';
 import { formatDistanceToNow } from 'date-fns';
 
-// Create an audio instance for the notification ping
+// Notification ping sound
 const notificationSound = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
 
 const TopNavbar = ({ setIsMobileMenuOpen, currentUser, isMessagesPage }) => {
@@ -21,6 +37,7 @@ const TopNavbar = ({ setIsMobileMenuOpen, currentUser, isMessagesPage }) => {
   const [searchQuery, setSearchQuery] = useState('');
   
   const { statusPref, toggleStatusPref } = useSocket() || {};
+  const { theme, isDark, toggleTheme } = useTheme();
   
   const notifRef = useRef(null);
   const profileRef = useRef(null);
@@ -42,9 +59,8 @@ const TopNavbar = ({ setIsMobileMenuOpen, currentUser, isMessagesPage }) => {
 
   const { socket } = useSocket() || {};
 
-  // Fetch and Socket Logic
+  // Fetch notifications and listen to socket
   useEffect(() => {
-    // Request Desktop Notification Permission
     if ('Notification' in window && Notification.permission === 'default') {
       Notification.requestPermission();
     }
@@ -63,13 +79,10 @@ const TopNavbar = ({ setIsMobileMenuOpen, currentUser, isMessagesPage }) => {
       socket.on('newNotification', (newNotif) => {
         setNotifications(prev => [newNotif, ...prev]);
         
-        // Determine if sound and popup should play
         const playSoundTypes = ['connection_request', 'follow', 'connection_accepted'];
         if (playSoundTypes.includes(newNotif.type)) {
-          // Play sound
           notificationSound.play().catch(e => console.log('Audio play failed:', e));
           
-          // Show Native Desktop Popup
           if ('Notification' in window && Notification.permission === 'granted') {
             new Notification('DevHub', {
               body: `${newNotif.sender.name} ${newNotif.message}`,
@@ -128,57 +141,72 @@ const TopNavbar = ({ setIsMobileMenuOpen, currentUser, isMessagesPage }) => {
   };
 
   return (
-    <div className={`h-20 border-b border-white/5 bg-[#0a0a0a]/80 backdrop-blur-md sticky top-0 z-20 flex items-center justify-between px-8 w-full ${isMessagesPage ? 'lg:pr-[352px]' : ''} transition-all duration-300`}>
-      {/* Logo & Page Title */}
+    <div className={`h-20 border-b border-black/5 dark:border-white/5 bg-white/90 dark:bg-[#0a0a0a]/90 backdrop-blur-md sticky top-0 z-20 flex items-center justify-between px-6 sm:px-8 w-full ${isMessagesPage ? 'lg:pr-[352px]' : ''} transition-colors duration-200`}>
+      {/* Left: Mobile Menu & Page Title */}
       <div className="flex items-center gap-4">
-        {/* Mobile Menu Toggle */}
         <button 
           onClick={() => setIsMobileMenuOpen(true)}
-          className="md:hidden text-gray-400 hover:text-white transition-colors"
+          className="md:hidden text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white transition-colors cursor-pointer"
         >
           <Menu size={24} />
         </button>
 
-        {/* Mobile/Tablet Logo (Visible when Sidebar is hidden) */}
         <Link to="/feed" className="flex items-center gap-3 md:hidden group">
-          <img src="/images/logo.png" alt="DevHub Logo" className="w-8 h-8 object-contain rounded-xl drop-shadow-[0_0_10px_rgba(0,240,255,0.5)]" />
+          <img src="/images/logo.png" alt="DevHub Logo" className="w-8 h-8 object-contain rounded-xl drop-shadow-[0_0_10px_rgba(0,240,255,0.3)]" />
         </Link>
-        <h1 className="text-2xl font-bold text-white tracking-tight hidden md:block">Feed</h1>
+        <h1 className="text-xl font-bold text-slate-900 dark:text-white tracking-tight hidden md:block">
+          Feed
+        </h1>
       </div>
 
-      {/* Search Bar */}
-      <div className="flex-1 max-w-lg mx-8 hidden lg:block">
+      {/* Center: Search Bar */}
+      <div className="flex-1 max-w-lg mx-6 lg:mx-8 hidden lg:block">
         <form onSubmit={handleSearch} className="relative group">
           <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-            <Search className="text-gray-500 group-focus-within:text-[#00F0FF] transition-colors" size={18} />
+            <Search className="text-gray-400 dark:text-gray-500 group-focus-within:text-[#0A66C2] dark:group-focus-within:text-[#00F0FF] transition-colors" size={17} />
           </div>
           <input 
             type="text" 
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search developers, posts, or tags..." 
-            className="w-full bg-[#111] border border-white/10 rounded-full py-2.5 pl-11 pr-4 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-[#00F0FF]/50 focus:ring-1 focus:ring-[#00F0FF]/50 transition-all"
+            className="w-full bg-slate-100 dark:bg-[#111] border border-slate-200 dark:border-white/10 rounded-full py-2.5 pl-11 pr-4 text-xs sm:text-sm text-slate-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-[#0A66C2] dark:focus:border-[#00F0FF]/50 focus:ring-1 focus:ring-[#0A66C2] dark:focus:ring-[#00F0FF]/50 transition-all"
           />
         </form>
       </div>
 
-      {/* Right Actions */}
-      <div className="flex items-center gap-6">
+      {/* Right Actions: Theme Toggle, Notifications, Profile */}
+      <div className="flex items-center gap-3 sm:gap-5">
+        
+        {/* 1-CLICK SUN / MOON THEME TOGGLE BUTTON */}
+        <button
+          onClick={toggleTheme}
+          aria-label={isDark ? "Switch to Light Mode" : "Switch to Dark Mode"}
+          title={isDark ? "Switch to Light Studio" : "Switch to Dark Obsidian"}
+          className="p-2 rounded-xl text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 border border-slate-200 dark:border-white/10 transition-all cursor-pointer flex items-center justify-center group"
+        >
+          {isDark ? (
+            <Sun size={18} className="text-amber-400 group-hover:rotate-45 transition-transform duration-300" />
+          ) : (
+            <Moon size={18} className="text-slate-700 group-hover:-rotate-12 transition-transform duration-300" />
+          )}
+        </button>
+
         {/* Notifications Dropdown */}
         <div className="relative" ref={notifRef}>
           <button 
             onClick={() => { setIsNotifOpen(!isNotifOpen); setIsDropdownOpen(false); }}
-            className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors group focus:outline-none"
+            className="flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white transition-colors group focus:outline-none cursor-pointer"
           >
             <div className="relative">
-              <Bell size={20} className="group-hover:text-[#00F0FF] transition-colors" />
+              <Bell size={20} className="group-hover:text-[#0A66C2] dark:group-hover:text-[#00F0FF] transition-colors" />
               {unreadCount > 0 && (
-                <span className="absolute -top-1.5 -right-1.5 flex items-center justify-center min-w-[18px] h-[18px] px-1 bg-[#FF0055] rounded-full border-2 border-[#0a0a0a] text-[9px] font-bold text-white">
+                <span className="absolute -top-1.5 -right-1.5 flex items-center justify-center min-w-[18px] h-[18px] px-1 bg-[#FF0055] rounded-full border-2 border-white dark:border-[#0a0a0a] text-[9px] font-bold text-white">
                   {unreadCount > 99 ? '99+' : unreadCount}
                 </span>
               )}
             </div>
-            <span className="text-sm font-medium hidden sm:block">Notifications</span>
+            <span className="text-xs font-medium hidden sm:block">Notifications</span>
           </button>
 
           <AnimatePresence>
@@ -188,40 +216,42 @@ const TopNavbar = ({ setIsMobileMenuOpen, currentUser, isMessagesPage }) => {
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: -10, scale: 0.95 }}
                 transition={{ duration: 0.2, ease: "easeOut" }}
-                className="fixed top-[70px] left-4 right-4 sm:absolute sm:top-auto sm:left-auto sm:right-0 sm:mt-4 w-auto sm:w-80 max-w-[360px] mx-auto bg-[#111] border border-white/10 rounded-xl shadow-2xl py-2 z-50 overflow-hidden sm:origin-top-right"
+                className="fixed top-[70px] left-4 right-4 sm:absolute sm:top-auto sm:left-auto sm:right-0 sm:mt-4 w-auto sm:w-80 max-w-[360px] mx-auto bg-white dark:bg-[#111] border border-slate-200 dark:border-white/10 rounded-xl shadow-2xl py-2 z-50 overflow-hidden sm:origin-top-right"
               >
-                <div className="px-4 py-2 border-b border-white/10 flex justify-between items-center">
-                  <h3 className="text-white font-semibold">Notifications</h3>
+                <div className="px-4 py-2 border-b border-slate-100 dark:border-white/10 flex justify-between items-center">
+                  <h3 className="text-slate-900 dark:text-white font-semibold text-xs">Notifications</h3>
                   {unreadCount > 0 && (
-                    <span onClick={markAllAsRead} className="text-xs text-[#00F0FF] cursor-pointer hover:underline">Mark all as read</span>
+                    <span onClick={markAllAsRead} className="text-xs text-[#0A66C2] dark:text-[#00F0FF] cursor-pointer hover:underline">
+                      Mark all as read
+                    </span>
                   )}
                 </div>
                 
-                <div className="max-h-[60vh] overflow-y-auto scrollbar-thin scrollbar-thumb-[#00F0FF]/30 scrollbar-track-transparent">
+                <div className="max-h-[60vh] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-[#00F0FF]/30 scrollbar-track-transparent">
                   {notifications.length === 0 ? (
-                    <div className="p-6 text-center text-gray-400 text-sm">No notifications yet.</div>
+                    <div className="p-6 text-center text-gray-500 text-xs">No notifications yet.</div>
                   ) : (
                     notifications.map((notif) => (
                       <div 
                         key={notif._id} 
                         onClick={() => markAsRead(notif._id, notif.read)}
-                        className={`px-4 py-3 border-b border-white/5 hover:bg-white/5 cursor-pointer flex gap-3 transition-colors ${!notif.read ? 'bg-[#00F0FF]/5' : ''}`}
+                        className={`px-4 py-3 border-b border-slate-100 dark:border-white/5 hover:bg-slate-50 dark:hover:bg-white/5 cursor-pointer flex gap-3 transition-colors ${!notif.read ? 'bg-blue-50/50 dark:bg-[#00F0FF]/5' : ''}`}
                       >
                         <img 
                           src={notif.sender?.avatar?.url || 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y'} 
                           alt="avatar" 
-                          className="w-10 h-10 rounded-full object-cover mt-1"
+                          className="w-9 h-9 rounded-full object-cover mt-1 flex-shrink-0"
                         />
-                        <div className="flex-1">
-                          <p className={`text-sm ${!notif.read ? 'text-white font-medium' : 'text-gray-300'}`}>
-                            <span className="font-bold">{notif.sender?.name}</span> {notif.message}
+                        <div className="flex-1 min-w-0">
+                          <p className={`text-xs ${!notif.read ? 'text-slate-900 dark:text-white font-medium' : 'text-gray-600 dark:text-gray-300'}`}>
+                            <strong className="font-bold text-slate-900 dark:text-white">{notif.sender?.name}</strong> {notif.message}
                           </p>
-                          <span className="text-xs text-gray-500 mt-1 block">
+                          <span className="text-[10px] text-gray-400 dark:text-gray-500 mt-1 block">
                             {formatDistanceToNow(new Date(notif.createdAt), { addSuffix: true })}
                           </span>
                         </div>
                         {!notif.read && (
-                          <div className="w-2 h-2 rounded-full bg-[#00F0FF] mt-2 flex-shrink-0"></div>
+                          <div className="w-2 h-2 rounded-full bg-[#0A66C2] dark:bg-[#00F0FF] mt-2 flex-shrink-0"></div>
                         )}
                       </div>
                     ))
@@ -231,7 +261,7 @@ const TopNavbar = ({ setIsMobileMenuOpen, currentUser, isMessagesPage }) => {
                 <Link 
                   to="/notifications" 
                   onClick={() => setIsNotifOpen(false)}
-                  className="block w-full text-center py-2.5 text-sm text-[#00F0FF] hover:bg-white/5 transition-colors border-t border-white/10 font-medium"
+                  className="block w-full text-center py-2.5 text-xs text-[#0A66C2] dark:text-[#00F0FF] hover:bg-slate-50 dark:hover:bg-white/5 transition-colors border-t border-slate-100 dark:border-white/10 font-semibold"
                 >
                   View all notifications
                 </Link>
@@ -240,24 +270,24 @@ const TopNavbar = ({ setIsMobileMenuOpen, currentUser, isMessagesPage }) => {
           </AnimatePresence>
         </div>
 
-        <div className="w-px h-8 bg-white/10 mx-2 hidden sm:block"></div>
+        <div className="w-px h-6 bg-slate-200 dark:bg-white/10 mx-1 hidden sm:block"></div>
 
-        {/* Profile Dropdown */}
+        {/* Profile Avatar Dropdown */}
         <div className="relative" ref={profileRef}>
           <button 
             onClick={() => { setIsDropdownOpen(!isDropdownOpen); setIsNotifOpen(false); }}
-            className="flex items-center gap-3 group focus:outline-none"
+            className="flex items-center gap-2.5 group focus:outline-none cursor-pointer"
           >
-            <span className="text-sm font-medium text-gray-300 group-hover:text-white transition-colors hidden sm:block">
+            <span className="text-xs font-medium text-slate-700 dark:text-gray-300 group-hover:text-black dark:group-hover:text-white transition-colors hidden sm:block">
               {currentUser?.name || 'Loading...'}
             </span>
             <div className="relative">
               <img 
                 src={currentUser?.avatar?.url || 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y'} 
                 alt="Profile" 
-                className="w-9 h-9 rounded-full object-cover border border-white/10 group-hover:border-[#00F0FF]/50 transition-colors bg-[#111]"
+                className="w-8 h-8 sm:w-9 sm:h-9 rounded-full object-cover border border-slate-200 dark:border-white/10 group-hover:border-[#0A66C2] dark:group-hover:border-[#00F0FF]/50 transition-colors bg-slate-100 dark:bg-[#111]"
               />
-              <div className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-[#0a0a0a] ${statusPref === 'online' ? 'bg-[#00F0FF] shadow-[0_0_8px_rgba(0,240,255,0.6)]' : 'bg-gray-500'}`}></div>
+              <div className={`absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full border-2 border-white dark:border-[#0a0a0a] ${statusPref === 'online' ? 'bg-emerald-500 dark:bg-[#00F0FF]' : 'bg-gray-400'}`}></div>
             </div>
           </button>
 
@@ -268,12 +298,12 @@ const TopNavbar = ({ setIsMobileMenuOpen, currentUser, isMessagesPage }) => {
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: -10, scale: 0.95 }}
                 transition={{ duration: 0.2, ease: "easeOut" }}
-                className="absolute right-[-10px] sm:right-0 mt-3 w-48 bg-[#111] border border-white/10 rounded-xl shadow-2xl py-1 z-50 overflow-hidden sm:origin-top-right origin-top"
+                className="absolute right-[-10px] sm:right-0 mt-3 w-52 bg-white dark:bg-[#111] border border-slate-200 dark:border-white/10 rounded-2xl shadow-2xl py-1.5 z-50 overflow-hidden sm:origin-top-right origin-top"
               >
                 <Link 
                   to="/profile" 
                   onClick={() => setIsDropdownOpen(false)}
-                  className="flex items-center gap-2.5 px-4 py-2.5 text-xs text-gray-300 hover:bg-white/5 hover:text-white transition-colors"
+                  className="flex items-center gap-2.5 px-4 py-2.5 text-xs text-slate-700 dark:text-gray-300 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-black dark:hover:text-white transition-colors"
                 >
                   <UserIcon size={15} className="text-gray-400" />
                   <span>My Profile</span>
@@ -282,42 +312,56 @@ const TopNavbar = ({ setIsMobileMenuOpen, currentUser, isMessagesPage }) => {
                 <Link 
                   to="/settings" 
                   onClick={() => setIsDropdownOpen(false)}
-                  className="flex items-center gap-2.5 px-4 py-2.5 text-xs text-gray-300 hover:bg-white/5 hover:text-white transition-colors group cursor-pointer"
+                  className="flex items-center gap-2.5 px-4 py-2.5 text-xs text-slate-700 dark:text-gray-300 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-black dark:hover:text-white transition-colors group cursor-pointer"
                 >
-                  <Settings size={15} className="text-[#00F0FF]" />
-                  <span className="font-semibold text-white group-hover:text-[#00F0FF]">Account Settings</span>
+                  <Settings size={15} className="text-[#0A66C2] dark:text-[#00F0FF]" />
+                  <span className="font-semibold text-slate-900 dark:text-white group-hover:text-[#0A66C2] dark:group-hover:text-[#00F0FF]">Account Settings</span>
                 </Link>
 
                 <Link 
                   to="/guidelines" 
                   onClick={() => setIsDropdownOpen(false)}
-                  className="flex items-center gap-2.5 px-4 py-2.5 text-xs text-gray-300 hover:bg-white/5 hover:text-white transition-colors group cursor-pointer"
+                  className="flex items-center gap-2.5 px-4 py-2.5 text-xs text-slate-700 dark:text-gray-300 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-black dark:hover:text-white transition-colors group cursor-pointer"
                 >
-                  <ShieldCheck size={15} className="text-amber-400" />
+                  <ShieldCheck size={15} className="text-amber-500 dark:text-amber-400" />
                   <span>Trust & Legal Center</span>
                 </Link>
                 
+                {/* Theme Toggle in Dropdown */}
+                <button
+                  onClick={toggleTheme}
+                  className="w-full flex items-center justify-between px-4 py-2.5 text-xs text-slate-700 dark:text-gray-300 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-black dark:hover:text-white transition-colors text-left cursor-pointer"
+                >
+                  <div className="flex items-center gap-2.5">
+                    {isDark ? <Sun size={15} className="text-amber-400" /> : <Moon size={15} className="text-slate-600" />}
+                    <span>{isDark ? 'Light Studio Mode' : 'Dark Obsidian Mode'}</span>
+                  </div>
+                  <span className="text-[10px] uppercase font-mono px-1.5 py-0.5 rounded bg-slate-200 dark:bg-white/10 text-slate-700 dark:text-gray-300">
+                    {isDark ? 'Dark' : 'Light'}
+                  </span>
+                </button>
+
                 {toggleStatusPref && (
                   <button 
                     onClick={toggleStatusPref}
-                    className="w-full flex items-center justify-between px-4 py-3 text-sm text-gray-300 hover:bg-white/5 hover:text-white transition-colors text-left cursor-pointer"
+                    className="w-full flex items-center justify-between px-4 py-2.5 text-xs text-slate-700 dark:text-gray-300 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-black dark:hover:text-white transition-colors text-left cursor-pointer"
                   >
-                    <div className="flex items-center gap-2">
-                      {statusPref === 'online' ? <Eye size={16} className="text-[#00F0FF]" /> : <EyeOff size={16} className="text-gray-500" />}
+                    <div className="flex items-center gap-2.5">
+                      {statusPref === 'online' ? <Eye size={15} className="text-emerald-500 dark:text-[#00F0FF]" /> : <EyeOff size={15} className="text-gray-400" />}
                       <span>{statusPref === 'online' ? 'Online Mode' : 'Invisible Mode'}</span>
                     </div>
-                    <div className={`w-8 h-4 rounded-full p-0.5 transition-colors ${statusPref === 'online' ? 'bg-[#00F0FF]' : 'bg-gray-600'}`}>
-                      <div className={`w-3 h-3 rounded-full bg-white transition-transform ${statusPref === 'online' ? 'translate-x-4' : 'translate-x-0'}`}></div>
+                    <div className={`w-7 h-3.5 rounded-full p-0.5 transition-colors ${statusPref === 'online' ? 'bg-emerald-500 dark:bg-[#00F0FF]' : 'bg-gray-400 dark:bg-gray-600'}`}>
+                      <div className={`w-2.5 h-2.5 rounded-full bg-white transition-transform ${statusPref === 'online' ? 'translate-x-3.5' : 'translate-x-0'}`}></div>
                     </div>
                   </button>
                 )}
 
-                <div className="h-px bg-white/10 my-1 w-full"></div>
+                <div className="h-px bg-slate-200 dark:bg-white/10 my-1 w-full"></div>
                 <button 
                   onClick={() => setIsLogoutModalOpen(true)}
-                  className="w-full flex items-center gap-2 px-4 py-3 text-sm text-red-400 hover:bg-red-500/10 transition-colors text-left cursor-pointer"
+                  className="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors text-left cursor-pointer"
                 >
-                  <LogOut size={16} /> Sign Out
+                  <LogOut size={15} /> Sign Out
                 </button>
               </motion.div>
             )}

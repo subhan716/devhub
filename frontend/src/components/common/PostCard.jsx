@@ -275,7 +275,7 @@ const PostCard = ({ post: rootPost, idx = 0, currentUser, onDelete, onEdit, auto
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.95 }}
       transition={{ duration: 0.3, delay: Math.min(idx * 0.1, 0.5) }}
-      className="bg-[#111] rounded-2xl p-5 shadow-lg flex flex-col gap-4 relative overflow-visible group transition-colors duration-300 border border-white/5 hover:border-white/10"
+      className="bg-white dark:bg-[#111] rounded-2xl p-5 shadow-sm dark:shadow-lg flex flex-col gap-4 relative overflow-visible group transition-colors duration-200 border border-slate-200 dark:border-white/5 hover:border-slate-300 dark:hover:border-white/10"
     >
       {isRepost && (
         <div className="flex justify-between items-start mb-1">
@@ -316,7 +316,7 @@ const PostCard = ({ post: rootPost, idx = 0, currentUser, onDelete, onEdit, auto
                 className="w-10 h-10 rounded-full object-cover border border-white/10 cursor-pointer" 
               />
               <div className="flex flex-col leading-tight cursor-pointer">
-                <span className="text-white font-medium text-sm">{post?.author?.name || 'Unknown User'}</span>
+                <span className="text-slate-900 dark:text-white font-semibold text-sm">{post?.author?.name || 'Unknown User'}</span>
                 <span className="text-[11px] text-gray-500 mt-0.5">{formatPostDate(post?.createdAt)}</span>
               </div>
             </div>
@@ -443,7 +443,7 @@ const PostCard = ({ post: rootPost, idx = 0, currentUser, onDelete, onEdit, auto
       </div>
 
       {/* Post Content */}
-      <p className="text-sm text-gray-200 leading-relaxed whitespace-pre-wrap">
+      <p className="text-sm text-slate-800 dark:text-gray-200 leading-relaxed whitespace-pre-wrap">
         {renderContentWithMentions(post.content)}
       </p>
 
@@ -473,7 +473,7 @@ const PostCard = ({ post: rootPost, idx = 0, currentUser, onDelete, onEdit, auto
       )}
 
       {/* Post Footer Actions */}
-      <div className="flex items-center gap-6 mt-2 pt-4 border-t border-white/5 text-xs font-medium text-gray-400">
+      <div className="flex items-center gap-6 mt-2 pt-4 border-t border-slate-100 dark:border-white/5 text-xs font-medium text-slate-500 dark:text-gray-400">
         <motion.button 
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
@@ -513,11 +513,11 @@ const PostCard = ({ post: rootPost, idx = 0, currentUser, onDelete, onEdit, auto
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.95, opacity: 0, y: 20 }}
               onClick={(e) => e.stopPropagation()}
-              className="bg-[#111] border border-white/10 rounded-2xl shadow-2xl w-full max-w-2xl max-h-[85vh] flex flex-col overflow-hidden"
+              className="bg-white dark:bg-[#111] border border-slate-200 dark:border-white/10 rounded-2xl shadow-2xl w-full max-w-2xl max-h-[85vh] flex flex-col overflow-hidden"
             >
               {/* Modal Header */}
-              <div className="flex items-center justify-between p-4 sm:p-5 border-b border-white/5 bg-[#181820]">
-                <h3 className="text-lg font-bold text-white flex items-center gap-2">
+              <div className="flex items-center justify-between p-4 sm:p-5 border-b border-slate-100 dark:border-white/5 bg-slate-50 dark:bg-[#181820]">
+                <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
                   <MessageCircle className="text-[#00F0FF]" size={20} />
                   Comments
                 </h3>

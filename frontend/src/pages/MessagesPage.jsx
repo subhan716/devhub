@@ -960,7 +960,7 @@ const MessagesPage = () => {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search messages"
-                className="w-full bg-[#050507] border border-white/5 rounded-xl py-2 pl-11 pr-4 text-sm text-white focus:outline-none focus:border-[#00F0FF]/30 transition-all placeholder:text-gray-600"
+                className="w-full bg-[#050507] border border-slate-200 dark:border-white/5 rounded-xl py-2 pl-11 pr-4 text-sm text-white focus:outline-none focus:border-[#00F0FF]/30 transition-all placeholder:text-gray-600"
               />
             </div>
           </div>
@@ -970,13 +970,13 @@ const MessagesPage = () => {
         <div className="mx-4 mb-3 p-1 flex gap-1 bg-[#050507] rounded-xl border border-white/[0.02]">
           <button 
             onClick={() => setActiveTab('Focused')}
-            className={`flex-1 py-1.5 text-xs font-bold transition-all rounded-lg ${activeTab === 'Focused' ? 'text-white bg-white/10 shadow-sm' : 'text-gray-400 hover:text-gray-200'}`}
+            className={`flex-1 py-1.5 text-xs font-bold transition-all rounded-lg ${activeTab === 'Focused' ? 'text-white bg-white/10 shadow-sm' : 'text-gray-400 hover:text-slate-800 dark:text-gray-200'}`}
           >
             Focused
           </button>
           <button 
             onClick={() => setActiveTab('Other')}
-            className={`flex-1 py-1.5 text-xs font-bold transition-all rounded-lg ${activeTab === 'Other' ? 'text-white bg-white/10 shadow-sm' : 'text-gray-400 hover:text-gray-200'}`}
+            className={`flex-1 py-1.5 text-xs font-bold transition-all rounded-lg ${activeTab === 'Other' ? 'text-white bg-white/10 shadow-sm' : 'text-gray-400 hover:text-slate-800 dark:text-gray-200'}`}
           >
             Other
           </button>
@@ -988,7 +988,7 @@ const MessagesPage = () => {
             // Skeleton Loader
             <div className="flex flex-col w-full">
               {[...Array(7)].map((_, i) => (
-                <div key={i} className="border-b border-white/5 w-full">
+                <div key={i} className="border-b border-slate-200 dark:border-white/5 w-full">
                   <ChatListSkeleton />
                 </div>
               ))}
@@ -1013,7 +1013,7 @@ const MessagesPage = () => {
                     className={`mx-2 my-0.5 px-3 py-2.5 flex items-start gap-3 cursor-pointer transition-all rounded-xl group ${
                       selectedChat?._id === chat.user._id 
                         ? 'bg-white/5 text-white shadow-sm' 
-                        : 'text-gray-400 hover:bg-white/[0.03] hover:text-gray-200'
+                        : 'text-gray-400 hover:bg-white/[0.03] hover:text-slate-800 dark:text-gray-200'
                     }`}
                   >
                     <div className="relative flex-shrink-0">
@@ -1040,7 +1040,7 @@ const MessagesPage = () => {
                       </div>
                       <p className={`text-sm truncate ${
                         chat.latestMessage?.receiver === currentUser?._id && !chat.latestMessage?.read 
-                          ? 'text-white font-semibold' 
+                          ? 'text-slate-900 dark:text-white font-semibold' 
                           : 'text-gray-400'
                       }`}>
                         {(chat.latestMessage?.sender === currentUser?._id || chat.latestMessage?.sender?._id === currentUser?._id) ? 'You: ' : ''}
@@ -1076,7 +1076,7 @@ const MessagesPage = () => {
                       {activeSidebarMenuChatId === chat.user._id && (
                         <div
                           onClick={(e) => e.stopPropagation()}
-                          className="absolute right-0 top-7 z-30 w-44 bg-[#1a1a1f] border border-white/10 rounded-xl shadow-2xl py-1 animate-in fade-in slide-in-from-top-2 duration-150"
+                          className="absolute right-0 top-7 z-30 w-44 bg-[#1a1a1f] border border-slate-200 dark:border-white/10 rounded-xl shadow-2xl py-1 animate-in fade-in slide-in-from-top-2 duration-150"
                         >
                           <button
                             type="button"
@@ -1085,7 +1085,7 @@ const MessagesPage = () => {
                               toast.success('Name copied!');
                               setActiveSidebarMenuChatId(null);
                             }}
-                            className="w-full text-left px-3 py-2 text-xs text-gray-200 hover:bg-white/10 transition-colors flex items-center gap-2"
+                            className="w-full text-left px-3 py-2 text-xs text-slate-800 dark:text-gray-200 hover:bg-white/10 transition-colors flex items-center gap-2"
                           >
                             Copy name
                           </button>
@@ -1097,7 +1097,7 @@ const MessagesPage = () => {
                               toast.success('Profile link copied!');
                               setActiveSidebarMenuChatId(null);
                             }}
-                            className="w-full text-left px-3 py-2 text-xs text-gray-200 hover:bg-white/10 transition-colors flex items-center gap-2"
+                            className="w-full text-left px-3 py-2 text-xs text-slate-800 dark:text-gray-200 hover:bg-white/10 transition-colors flex items-center gap-2"
                           >
                             Copy profile link
                           </button>
@@ -1106,7 +1106,7 @@ const MessagesPage = () => {
                             target="_blank"
                             rel="noopener noreferrer"
                             onClick={() => setActiveSidebarMenuChatId(null)}
-                            className="w-full text-left px-3 py-2 text-xs text-gray-200 hover:bg-white/10 transition-colors flex items-center gap-2"
+                            className="w-full text-left px-3 py-2 text-xs text-slate-800 dark:text-gray-200 hover:bg-white/10 transition-colors flex items-center gap-2"
                           >
                             View profile
                           </a>
@@ -1142,7 +1142,7 @@ const MessagesPage = () => {
                     className={`mx-2 my-0.5 px-3 py-2.5 flex items-start gap-3 cursor-pointer transition-all rounded-xl group ${
                       selectedChat?._id === conn.user._id 
                         ? 'bg-white/5 text-white shadow-sm' 
-                        : 'text-gray-400 hover:bg-white/[0.03] hover:text-gray-200'
+                        : 'text-gray-400 hover:bg-white/[0.03] hover:text-slate-800 dark:text-gray-200'
                     }`}
                   >
                     <div className="relative flex-shrink-0">
@@ -1201,7 +1201,7 @@ const MessagesPage = () => {
               transition={{ duration: 0.5 }}
               className="relative z-10"
             >
-              <div className="w-28 h-28 bg-gradient-to-br from-[#00F0FF]/10 to-[#8A2BE2]/10 rounded-full flex items-center justify-center mb-8 mx-auto border border-white/5 shadow-[0_0_30px_rgba(0,240,255,0.1)]">
+              <div className="w-28 h-28 bg-gradient-to-br from-[#00F0FF]/10 to-[#8A2BE2]/10 rounded-full flex items-center justify-center mb-8 mx-auto border border-slate-200 dark:border-white/5 shadow-[0_0_30px_rgba(0,240,255,0.1)]">
                 <Send size={44} className="text-[#00F0FF] opacity-90 ml-2 drop-shadow-[0_0_10px_rgba(0,240,255,0.5)]" />
               </div>
               <h2 className="text-3xl font-black text-white mb-3 tracking-tight">Your Workspace</h2>
@@ -1225,14 +1225,14 @@ const MessagesPage = () => {
                   <img
                     src={selectedChat.avatar?.url || 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y'}
                     alt={selectedChat.name}
-                    className="w-11 h-11 rounded-full object-cover border border-white/10 hover:opacity-80 transition-opacity"
+                    className="w-11 h-11 rounded-full object-cover border border-slate-200 dark:border-white/10 hover:opacity-80 transition-opacity"
                   />
                   {isUserOnline(selectedChat._id) && (
                     <div className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-[#00F0FF] border-2 border-[#111] rounded-full shadow-[0_0_8px_rgba(0,240,255,0.5)]"></div>
                   )}
                 </div>
                 <div>
-                  <h3 onClick={() => setShowChatDetails(v => !v)} className="text-white font-bold text-[17px] leading-tight cursor-pointer hover:text-[#00F0FF] transition-colors">{selectedChat.name}</h3>
+                  <h3 onClick={() => setShowChatDetails(v => !v)} className="text-slate-900 dark:text-white font-bold text-[17px] leading-tight cursor-pointer hover:text-[#00F0FF] transition-colors">{selectedChat.name}</h3>
                   <div className="flex items-center gap-1.5 mt-0.5">
                     <span className={`w-2 h-2 rounded-full ${isUserOnline(selectedChat._id) ? 'bg-[#00F0FF] shadow-[0_0_5px_rgba(0,240,255,0.5)]' : 'bg-gray-500'}`}></span>
                     <span className="text-[12px] font-medium text-gray-400">
@@ -1268,7 +1268,7 @@ const MessagesPage = () => {
                       <button
                         onClick={loadMoreMessages}
                         disabled={isLoadingMore}
-                        className="flex items-center gap-2 text-xs font-semibold text-gray-400 hover:text-[#00F0FF] bg-white/5 hover:bg-white/10 border border-white/10 rounded-full px-4 py-1.5 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="flex items-center gap-2 text-xs font-semibold text-gray-400 hover:text-[#00F0FF] bg-white/5 hover:bg-white/10 border border-slate-200 dark:border-white/10 rounded-full px-4 py-1.5 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         {isLoadingMore ? (
                           <>
@@ -1284,7 +1284,7 @@ const MessagesPage = () => {
                   <AnimatePresence initial={false}>
                 {messages.length === 0 ? (
                   <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-10 text-gray-400">
-                    <div className="inline-block p-4 bg-white/5 rounded-2xl border border-white/5 mb-4">
+                    <div className="inline-block p-4 bg-white/5 rounded-2xl border border-slate-200 dark:border-white/5 mb-4">
                       <MessageSquare size={32} className="text-gray-500" />
                     </div>
                     <p className="text-sm">Say hi to {selectedChat.name}! 👋</p>
@@ -1317,7 +1317,7 @@ const MessagesPage = () => {
                         {showTime && (
                           <div className="flex items-center justify-center my-4">
                             <div className="h-px bg-white/5 flex-1 mx-4"></div>
-                            <span className="text-[10px] text-gray-500 uppercase tracking-widest font-semibold bg-[#0a0a0a] px-3 py-1 rounded-full border border-white/5">
+                            <span className="text-[10px] text-gray-500 uppercase tracking-widest font-semibold bg-slate-50 dark:bg-[#0a0a0a] px-3 py-1 rounded-full border border-slate-200 dark:border-white/5">
                               {format(new Date(msg.createdAt), 'MMM d, h:mm a')}
                             </span>
                             <div className="h-px bg-white/5 flex-1 mx-4"></div>
@@ -1336,7 +1336,7 @@ const MessagesPage = () => {
                             <img
                               src={isMe ? (currentUser?.avatar?.url || 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y') : (selectedChat.avatar?.url || 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y')}
                               alt="Avatar"
-                              className="w-10 h-10 rounded-full object-cover shadow-md border border-white/5 mt-0.5 flex-shrink-0"
+                              className="w-10 h-10 rounded-full object-cover shadow-md border border-slate-200 dark:border-white/5 mt-0.5 flex-shrink-0"
                             />
                           )}
 
@@ -1381,7 +1381,7 @@ const MessagesPage = () => {
                                   <div className="font-semibold text-[11px] text-white truncate">
                                     {msg.replyTo.sender?._id === currentUser?._id ? 'You' : msg.replyTo.sender?.name}
                                   </div>
-                                  <div className="truncate mt-0.5 text-gray-300">
+                                  <div className="truncate mt-0.5 text-slate-700 dark:text-gray-300">
                                     {msg.replyTo.text ? (
                                       msg.replyTo.text
                                     ) : msg.replyTo.attachment ? (
@@ -1396,7 +1396,7 @@ const MessagesPage = () => {
                                   <img 
                                     src={msg.replyTo.attachment.url} 
                                     alt="" 
-                                    className="w-8 h-8 rounded object-cover border border-white/10 flex-shrink-0"
+                                    className="w-8 h-8 rounded object-cover border border-slate-200 dark:border-white/10 flex-shrink-0"
                                   />
                                 )}
                               </div>
@@ -1410,25 +1410,25 @@ const MessagesPage = () => {
                                     <img
                                       src={msg.attachment.url}
                                       alt="attachment"
-                                      className="w-full rounded-xl object-cover shadow-lg cursor-zoom-in hover:opacity-95 transition-opacity border border-white/10"
+                                      className="w-full rounded-xl object-cover shadow-lg cursor-zoom-in hover:opacity-95 transition-opacity border border-slate-200 dark:border-white/10"
                                       onClick={() => setPreviewFile(msg.attachment)}
                                     />
                                   </div>
                                 ) : msg.attachment.type === 'video' ? (
-                                  <div className="max-w-[350px] rounded-xl overflow-hidden shadow-lg border border-white/10 bg-black/40 cursor-pointer" onClick={() => setPreviewFile(msg.attachment)}>
+                                  <div className="max-w-[350px] rounded-xl overflow-hidden shadow-lg border border-slate-200 dark:border-white/10 bg-black/40 cursor-pointer" onClick={() => setPreviewFile(msg.attachment)}>
                                     <video src={msg.attachment.url} controls className="w-full h-auto max-h-[250px] object-cover" onClick={(e) => e.stopPropagation()} />
                                   </div>
                                 ) : msg.attachment.type === 'audio' ? (
-                                  <div className="w-full max-w-[300px] bg-white/5 p-2 rounded-xl border border-white/10 flex items-center gap-2 cursor-pointer" onClick={() => setPreviewFile(msg.attachment)}>
+                                  <div className="w-full max-w-[300px] bg-white/5 p-2 rounded-xl border border-slate-200 dark:border-white/10 flex items-center gap-2 cursor-pointer" onClick={() => setPreviewFile(msg.attachment)}>
                                     <audio src={msg.attachment.url} controls className="w-full h-10 accent-[#00F0FF]" onClick={(e) => e.stopPropagation()} />
                                   </div>
                                 ) : (
                                   <div 
                                     onClick={() => setPreviewFile(msg.attachment)}
-                                    className="inline-flex items-center gap-3 bg-white/5 p-3 rounded-xl border border-white/10 hover:bg-white/10 transition-colors cursor-pointer"
+                                    className="inline-flex items-center gap-3 bg-white/5 p-3 rounded-xl border border-slate-200 dark:border-white/10 hover:bg-white/10 transition-colors cursor-pointer"
                                   >
                                     <FileText size={24} className="text-[#00F0FF]" />
-                                    <span className="text-sm font-medium text-gray-200 truncate max-w-[200px]">{msg.attachment.name}</span>
+                                    <span className="text-sm font-medium text-slate-800 dark:text-gray-200 truncate max-w-[200px]">{msg.attachment.name}</span>
                                     <button
                                       type="button"
                                       onClick={(e) => {
@@ -1460,7 +1460,7 @@ const MessagesPage = () => {
                                       cancelEditing();
                                     }
                                   }}
-                                  className="w-full bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-[15px] text-gray-200 resize-none focus:outline-none focus:border-[#00F0FF]/50 custom-scrollbar"
+                                  className="w-full bg-black/40 border border-slate-200 dark:border-white/10 rounded-xl px-3 py-2 text-[15px] text-slate-800 dark:text-gray-200 resize-none focus:outline-none focus:border-[#00F0FF]/50 custom-scrollbar"
                                   rows={2}
                                 />
                                 <div className="flex items-center gap-3 mt-1 text-[11px] text-gray-500">
@@ -1471,7 +1471,7 @@ const MessagesPage = () => {
                               </div>
                             ) : (
                               msg.text && (
-                                <div className="text-[15px] text-gray-200 leading-relaxed whitespace-pre-wrap">
+                                <div className="text-[15px] text-slate-800 dark:text-gray-200 leading-relaxed whitespace-pre-wrap">
                                   {renderMessageTextWithMentions(msg.text)}
                                   {msg.edited && (
                                     <span className="text-[10px] text-gray-500 ml-1.5 align-baseline">(edited)</span>
@@ -1507,7 +1507,7 @@ const MessagesPage = () => {
                                         className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] border transition-colors ${
                                           hasReacted
                                             ? 'bg-[#00F0FF]/15 border-[#00F0FF]/40 text-[#00F0FF]'
-                                            : 'bg-white/5 border-white/10 text-gray-400 hover:text-white hover:bg-white/10'
+                                            : 'bg-white/5 border-slate-200 dark:border-white/10 text-gray-400 hover:text-white hover:bg-white/10'
                                         }`}
                                       >
                                         <span>{emoji}</span>
@@ -1522,7 +1522,7 @@ const MessagesPage = () => {
 
                           {/* Slack-style Message Action Bar (Hover Overlay) */}
                           {!msg.pending && !isEditing && (
-                            <div className={`absolute -top-3 right-4 z-20 transition-all duration-200 flex items-center bg-[#161616] border border-white/10 rounded-lg shadow-xl px-1.5 py-0.5 gap-1.5 ${
+                            <div className={`absolute -top-3 right-4 z-20 transition-all duration-200 flex items-center bg-[#161616] border border-slate-200 dark:border-white/10 rounded-lg shadow-xl px-1.5 py-0.5 gap-1.5 ${
                               (openMenuId === msg._id || activeReactionMenuId === msg._id)
                                 ? 'opacity-100'
                                 : 'opacity-0 group-hover:opacity-100 focus-within:opacity-100'
@@ -1618,12 +1618,12 @@ const MessagesPage = () => {
                                 {openMenuId === msg._id && (
                                   <div
                                     onClick={(e) => e.stopPropagation()}
-                                    className="absolute right-0 bottom-full mb-2 z-30 w-32 bg-[#1a1a1a] border border-white/10 rounded-xl shadow-2xl overflow-hidden py-1"
+                                    className="absolute right-0 bottom-full mb-2 z-30 w-32 bg-[#1a1a1a] border border-slate-200 dark:border-white/10 rounded-xl shadow-2xl overflow-hidden py-1"
                                   >
                                     {isMe && msg.text && (
                                       <button
                                         onClick={() => startEditing(msg)}
-                                        className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-200 hover:bg-white/10 transition-colors"
+                                        className="w-full flex items-center gap-2 px-3 py-2 text-sm text-slate-800 dark:text-gray-200 hover:bg-white/10 transition-colors"
                                       >
                                         <Pencil size={14} /> Edit
                                       </button>
@@ -1658,7 +1658,7 @@ const MessagesPage = () => {
                     exit={{ opacity: 0, scale: 0.9 }}
                     className="flex justify-start mb-1.5"
                   >
-                    <div className="bg-[#111] border border-white/5 rounded-xl px-4 py-2 flex items-center gap-2.5 shadow-lg backdrop-blur-sm">
+                    <div className="bg-white dark:bg-[#111] border border-slate-200 dark:border-white/5 rounded-xl px-4 py-2 flex items-center gap-2.5 shadow-lg backdrop-blur-sm">
                       <div className="flex gap-1 items-center">
                         <span className="w-1.5 h-1.5 bg-[#00F0FF] rounded-full animate-bounce" style={{ animationDelay: '0s' }}></span>
                         <span className="w-1.5 h-1.5 bg-[#00F0FF] rounded-full animate-bounce" style={{ animationDelay: '0.15s' }}></span>
@@ -1679,7 +1679,7 @@ const MessagesPage = () => {
               
               {/* Quote Reply Banner */}
               {replyingToMessage && (
-                <div className="mx-2 p-3 bg-white/5 border border-white/10 rounded-xl flex items-center justify-between gap-4 animate-in fade-in slide-in-from-bottom-2 duration-200">
+                <div className="mx-2 p-3 bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl flex items-center justify-between gap-4 animate-in fade-in slide-in-from-bottom-2 duration-200">
                   <div className="min-w-0 flex-1 flex items-center justify-between gap-3">
                     <div className="min-w-0">
                       <div className="flex items-center gap-1.5 text-xs text-gray-400 font-medium">
@@ -1689,7 +1689,7 @@ const MessagesPage = () => {
                           {replyingToMessage.sender?._id === currentUser?._id ? 'yourself' : replyingToMessage.sender?.name}
                         </span>
                       </div>
-                      <div className="text-sm text-gray-300 truncate mt-0.5">
+                      <div className="text-sm text-slate-700 dark:text-gray-300 truncate mt-0.5">
                         {replyingToMessage.text ? (
                           replyingToMessage.text
                         ) : replyingToMessage.attachment ? (
@@ -1704,7 +1704,7 @@ const MessagesPage = () => {
                       <img 
                         src={replyingToMessage.attachment.url} 
                         alt="" 
-                        className="w-10 h-10 rounded object-cover border border-white/10 flex-shrink-0"
+                        className="w-10 h-10 rounded object-cover border border-slate-200 dark:border-white/10 flex-shrink-0"
                       />
                     )}
                   </div>
@@ -1720,18 +1720,18 @@ const MessagesPage = () => {
               
               {/* Attachment Preview */}
               {attachment && (
-                <div className="mx-2 mb-1 p-3 bg-white/5 border border-white/10 rounded-xl relative flex items-center gap-3 w-fit">
+                <div className="mx-2 mb-1 p-3 bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl relative flex items-center gap-3 w-fit">
                   <button type="button" onClick={() => setAttachment(null)} className="absolute -top-2 -right-2 bg-red-500 rounded-full p-1 shadow-lg hover:bg-red-600 transition-colors z-10">
                     <X size={14} className="text-white" />
                   </button>
                   {attachment.type.startsWith('image/') ? (
-                    <img src={URL.createObjectURL(attachment)} alt="Preview" className="h-14 w-14 object-cover rounded-lg border border-white/10" />
+                    <img src={URL.createObjectURL(attachment)} alt="Preview" className="h-14 w-14 object-cover rounded-lg border border-slate-200 dark:border-white/10" />
                   ) : (
-                    <div className="h-14 w-14 bg-black/20 rounded-lg border border-white/10 flex items-center justify-center">
+                    <div className="h-14 w-14 bg-black/20 rounded-lg border border-slate-200 dark:border-white/10 flex items-center justify-center">
                       <FileText size={24} className="text-[#00F0FF]" />
                     </div>
                   )}
-                  <span className="text-sm text-gray-300 truncate max-w-[150px] font-medium">{attachment.name}</span>
+                  <span className="text-sm text-slate-700 dark:text-gray-300 truncate max-w-[150px] font-medium">{attachment.name}</span>
                 </div>
               )}
 
@@ -1779,7 +1779,7 @@ const MessagesPage = () => {
 
                 {/* Mention Autocomplete Dropdown */}
                 {showMentionDropdown && mentionCandidates.length > 0 && (
-                  <div className="absolute bottom-full mb-2 left-2 z-50 w-72 bg-[#0d0d0d] border border-white/10 rounded-2xl shadow-[0_10px_40px_rgba(0,0,0,0.8)] overflow-hidden py-1.5 flex flex-col max-h-48 overflow-y-auto custom-scrollbar scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
+                  <div className="absolute bottom-full mb-2 left-2 z-50 w-72 bg-[#0d0d0d] border border-slate-200 dark:border-white/10 rounded-2xl shadow-[0_10px_40px_rgba(0,0,0,0.8)] overflow-hidden py-1.5 flex flex-col max-h-48 overflow-y-auto custom-scrollbar scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
                     {mentionCandidates.map(user => (
                       <button
                         key={user._id}
@@ -1790,7 +1790,7 @@ const MessagesPage = () => {
                         <img
                           src={user.avatar?.url || 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y'}
                           alt=""
-                          className="w-6 h-6 rounded-full object-cover border border-white/10 animate-in fade-in zoom-in-50 duration-200"
+                          className="w-6 h-6 rounded-full object-cover border border-slate-200 dark:border-white/10 animate-in fade-in zoom-in-50 duration-200"
                         />
                         <span className="text-sm font-semibold text-white truncate">{user.name}</span>
                       </button>
@@ -1839,7 +1839,7 @@ const MessagesPage = () => {
               ) : (
                 <form 
                   onSubmit={handleSendMessage}
-                  className="flex items-end gap-3 bg-[#181820] border border-white/5 rounded-2xl px-4 py-2.5 focus-within:border-[#0055FF]/30 transition-all duration-300 shadow-[0_10px_30px_rgba(0,0,0,0.4)] animate-in fade-in duration-200"
+                  className="flex items-end gap-3 bg-[#181820] border border-slate-200 dark:border-white/5 rounded-2xl px-4 py-2.5 focus-within:border-[#0055FF]/30 transition-all duration-300 shadow-[0_10px_30px_rgba(0,0,0,0.4)] animate-in fade-in duration-200"
                 >
                   <textarea 
                     ref={inputRef}
@@ -1885,7 +1885,7 @@ const MessagesPage = () => {
                     <button onClick={() => setShowChatDetails(false)} className="p-2 -ml-2 text-gray-400 hover:text-white rounded-lg transition-colors">
                       <X size={20} />
                     </button>
-                    <h2 className="text-white font-bold text-lg">Contact Info</h2>
+                    <h2 className="text-slate-900 dark:text-white font-bold text-lg">Contact Info</h2>
                   </div>
 
                   {/* Profile */}
@@ -1908,7 +1908,7 @@ const MessagesPage = () => {
                     <a
                       href={`/profile/${selectedChat._id}`}
                       target="_blank" rel="noopener noreferrer"
-                      className="mt-5 w-full py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-white text-sm font-semibold flex justify-center items-center gap-2 transition-colors"
+                      className="mt-5 w-full py-2.5 bg-white/5 hover:bg-white/10 border border-slate-200 dark:border-white/10 rounded-xl text-white text-sm font-semibold flex justify-center items-center gap-2 transition-colors"
                     >
                       <Info size={16} /> View Profile
                     </a>
@@ -1924,7 +1924,7 @@ const MessagesPage = () => {
                     </h4>
                     <div className="grid grid-cols-3 gap-2">
                       {messages.filter(m => m.attachment?.type === 'image').slice(-9).reverse().map((msg, idx) => (
-                        <div key={idx} className="aspect-square rounded-lg overflow-hidden border border-white/10 cursor-zoom-in hover:opacity-80 transition-opacity" onClick={() => setPreviewFile(msg.attachment)}>
+                        <div key={idx} className="aspect-square rounded-lg overflow-hidden border border-slate-200 dark:border-white/10 cursor-zoom-in hover:opacity-80 transition-opacity" onClick={() => setPreviewFile(msg.attachment)}>
                           <img src={msg.attachment.url} alt="media" className="w-full h-full object-cover" />
                         </div>
                       ))}
@@ -1947,13 +1947,13 @@ const MessagesPage = () => {
                         <div 
                           key={idx} 
                           onClick={() => setPreviewFile(msg.attachment)} 
-                          className="flex items-center gap-3 p-3 bg-white/5 border border-white/10 hover:bg-white/10 rounded-xl transition-colors cursor-pointer"
+                          className="flex items-center gap-3 p-3 bg-white/5 border border-slate-200 dark:border-white/10 hover:bg-white/10 rounded-xl transition-colors cursor-pointer"
                         >
                           <div className="p-2 bg-[#00F0FF]/10 rounded-lg">
                             <FileText size={16} className="text-[#00F0FF]" />
                           </div>
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm text-gray-200 truncate font-medium">{msg.attachment.name}</p>
+                            <p className="text-sm text-slate-800 dark:text-gray-200 truncate font-medium">{msg.attachment.name}</p>
                             <p className="text-[10px] text-gray-500">{format(new Date(msg.createdAt), 'MMM d, yyyy')}</p>
                           </div>
                         </div>
@@ -1979,10 +1979,10 @@ const MessagesPage = () => {
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
-            className="w-full max-w-5xl h-[85vh] bg-[#0c0c0c] border border-white/10 rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200"
+            className="w-full max-w-5xl h-[85vh] bg-[#0c0c0c] border border-slate-200 dark:border-white/10 rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200"
           >
             {/* Header */}
-            <div className="px-6 py-4 border-b border-white/5 flex justify-between items-center bg-[#111]">
+            <div className="px-6 py-4 border-b border-slate-200 dark:border-white/5 flex justify-between items-center bg-white dark:bg-[#111]">
               <div className="min-w-0 flex-1 flex items-center gap-3">
                 <FileText className="text-[#00F0FF] flex-shrink-0" size={20} />
                 <h3 className="text-white text-sm font-semibold truncate max-w-[50vw]">{previewFile.name}</h3>
@@ -1991,7 +1991,7 @@ const MessagesPage = () => {
                 <button
                   type="button"
                   onClick={() => handleDownloadFile(previewFile.url, previewFile.name)}
-                  className="bg-white/5 hover:bg-white/10 text-white rounded-xl px-4 py-2 text-xs font-semibold border border-white/10 flex items-center gap-1.5 transition-colors"
+                  className="bg-white/5 hover:bg-white/10 text-white rounded-xl px-4 py-2 text-xs font-semibold border border-slate-200 dark:border-white/10 flex items-center gap-1.5 transition-colors"
                 >
                   <Download size={14} /> Download
                 </button>
@@ -2016,7 +2016,7 @@ const MessagesPage = () => {
                     <img 
                       src={previewFile.url} 
                       alt={previewFile.name} 
-                      className="max-w-full max-h-[70vh] rounded-xl object-contain shadow-2xl border border-white/5"
+                      className="max-w-full max-h-[70vh] rounded-xl object-contain shadow-2xl border border-slate-200 dark:border-white/5"
                     />
                   );
                 }
@@ -2027,7 +2027,7 @@ const MessagesPage = () => {
                     <video 
                       src={previewFile.url} 
                       controls 
-                      className="max-w-full max-h-[70vh] rounded-xl object-contain border border-white/5"
+                      className="max-w-full max-h-[70vh] rounded-xl object-contain border border-slate-200 dark:border-white/5"
                     />
                   );
                 }
@@ -2035,11 +2035,11 @@ const MessagesPage = () => {
                 // 3. Audio formats
                 if (previewFile.type === 'audio' || ['mp3', 'wav', 'ogg', 'm4a'].includes(ext)) {
                   return (
-                    <div className="bg-[#111] p-6 rounded-2xl border border-white/5 w-full max-w-md flex flex-col items-center gap-4 text-center">
+                    <div className="bg-white dark:bg-[#111] p-6 rounded-2xl border border-slate-200 dark:border-white/5 w-full max-w-md flex flex-col items-center gap-4 text-center">
                       <div className="p-4 bg-[#00F0FF]/10 rounded-full border border-[#00F0FF]/20">
                         <FileText className="text-[#00F0FF]" size={36} />
                       </div>
-                      <span className="text-sm text-gray-200 font-semibold truncate w-full">{previewFile.name}</span>
+                      <span className="text-sm text-slate-800 dark:text-gray-200 font-semibold truncate w-full">{previewFile.name}</span>
                       <audio src={previewFile.url} controls className="w-full mt-2 accent-[#00F0FF]" />
                     </div>
                   );
@@ -2052,7 +2052,7 @@ const MessagesPage = () => {
                   return (
                     <iframe 
                       src={viewerUrl} 
-                      className="w-full h-full rounded-xl border border-white/5 bg-[#111]" 
+                      className="w-full h-full rounded-xl border border-slate-200 dark:border-white/5 bg-white dark:bg-[#111]" 
                       title="Document Preview"
                     />
                   );
@@ -2067,7 +2067,7 @@ const MessagesPage = () => {
                       <span className="text-xs text-gray-500">Fetching preview content...</span>
                     </div>
                   ) : (
-                    <pre className="w-full h-full p-6 overflow-auto bg-[#050505] border border-white/5 rounded-xl text-gray-300 font-mono text-sm whitespace-pre-wrap text-left custom-scrollbar">
+                    <pre className="w-full h-full p-6 overflow-auto bg-[#050505] border border-slate-200 dark:border-white/5 rounded-xl text-slate-700 dark:text-gray-300 font-mono text-sm whitespace-pre-wrap text-left custom-scrollbar">
                       {textPreviewContent}
                     </pre>
                   );
@@ -2075,8 +2075,8 @@ const MessagesPage = () => {
 
                 // 7. Fallback: No preview available
                 return (
-                  <div className="bg-[#111] p-8 rounded-2xl border border-white/5 w-full max-w-md flex flex-col items-center gap-5 text-center shadow-2xl">
-                    <div className="p-5 bg-white/5 rounded-full border border-white/10">
+                  <div className="bg-white dark:bg-[#111] p-8 rounded-2xl border border-slate-200 dark:border-white/5 w-full max-w-md flex flex-col items-center gap-5 text-center shadow-2xl">
+                    <div className="p-5 bg-white/5 rounded-full border border-slate-200 dark:border-white/10">
                       <FileText className="text-gray-400" size={40} />
                     </div>
                     <div className="flex flex-col gap-1.5 w-full">
@@ -2110,10 +2110,10 @@ const MessagesPage = () => {
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            className="w-full max-w-lg bg-[#0e0e0e] border border-white/10 rounded-2xl shadow-2xl flex flex-col max-h-[90vh] overflow-hidden"
+            className="w-full max-w-lg bg-[#0e0e0e] border border-slate-200 dark:border-white/10 rounded-2xl shadow-2xl flex flex-col max-h-[90vh] overflow-hidden"
           >
             {/* Header */}
-            <div className="px-6 py-4 border-b border-white/5 flex justify-between items-center bg-white/[0.01]">
+            <div className="px-6 py-4 border-b border-slate-200 dark:border-white/5 flex justify-between items-center bg-white/[0.01]">
               <h3 className="text-white text-lg font-bold">Share message</h3>
               <button 
                 type="button"
@@ -2140,12 +2140,12 @@ const MessagesPage = () => {
                   placeholder="Search for person"
                   value={searchForwardQuery}
                   onChange={(e) => setSearchForwardQuery(e.target.value)}
-                  className="w-full bg-[#161616] border border-white/10 rounded-xl py-2 pl-9 pr-4 text-sm text-white focus:outline-none focus:border-[#00F0FF]/50 transition-colors placeholder:text-gray-600"
+                  className="w-full bg-[#161616] border border-slate-200 dark:border-white/10 rounded-xl py-2 pl-9 pr-4 text-sm text-white focus:outline-none focus:border-[#00F0FF]/50 transition-colors placeholder:text-gray-600"
                 />
               </div>
 
               {/* Contacts checklist list */}
-              <div className="max-h-36 overflow-y-auto custom-scrollbar border border-white/5 bg-[#161616]/30 rounded-xl p-2 flex flex-col gap-1.5">
+              <div className="max-h-36 overflow-y-auto custom-scrollbar border border-slate-200 dark:border-white/5 bg-[#161616]/30 rounded-xl p-2 flex flex-col gap-1.5">
                 {forwardDisplayList.map((conn) => {
                   const isSelected = selectedForwardTargets.includes(conn.user._id);
                   return (
@@ -2157,7 +2157,7 @@ const MessagesPage = () => {
                         <img 
                           src={conn.user.avatar?.url || 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y'} 
                           alt="" 
-                          className="w-8 h-8 rounded-full object-cover border border-white/10"
+                          className="w-8 h-8 rounded-full object-cover border border-slate-200 dark:border-white/10"
                         />
                         <span className="text-sm font-medium text-white">{conn.user.name}</span>
                       </div>
@@ -2191,20 +2191,20 @@ const MessagesPage = () => {
                   onChange={(e) => setForwardComment(e.target.value)}
                   placeholder="Type a message..."
                   rows={3}
-                  className="w-full bg-[#161616] border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[#00F0FF]/50 resize-none custom-scrollbar"
+                  className="w-full bg-[#161616] border border-slate-200 dark:border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[#00F0FF]/50 resize-none custom-scrollbar"
                 />
               </div>
 
               {/* Message preview block */}
               <div className="flex flex-col gap-1.5">
                 <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">Preview</label>
-                <div className="p-4 bg-white/5 border border-white/5 rounded-xl max-w-full min-w-0">
+                <div className="p-4 bg-white/5 border border-slate-200 dark:border-white/5 rounded-xl max-w-full min-w-0">
                   {forwardTargetMessage.attachment && (
                     <div className="mb-2">
                       {forwardTargetMessage.attachment.type === 'image' ? (
-                        <img src={forwardTargetMessage.attachment.url} alt="" className="max-w-[150px] rounded-lg object-contain border border-white/10" />
+                        <img src={forwardTargetMessage.attachment.url} alt="" className="max-w-[150px] rounded-lg object-contain border border-slate-200 dark:border-white/10" />
                       ) : (
-                        <div className="flex items-center gap-2 text-xs text-gray-400 bg-black/20 p-2 rounded-lg border border-white/5 w-fit max-w-full">
+                        <div className="flex items-center gap-2 text-xs text-gray-400 bg-black/20 p-2 rounded-lg border border-slate-200 dark:border-white/5 w-fit max-w-full">
                           <FileText size={16} className="text-[#00F0FF] flex-shrink-0" />
                           <span className="truncate max-w-[180px]">{forwardTargetMessage.attachment.name}</span>
                         </div>
@@ -2212,7 +2212,7 @@ const MessagesPage = () => {
                     </div>
                   )}
                   {forwardTargetMessage.text && (
-                    <p className="text-sm text-gray-300 whitespace-pre-wrap truncate max-h-20 leading-relaxed">
+                    <p className="text-sm text-slate-700 dark:text-gray-300 whitespace-pre-wrap truncate max-h-20 leading-relaxed">
                       {forwardTargetMessage.text}
                     </p>
                   )}
@@ -2222,7 +2222,7 @@ const MessagesPage = () => {
             </div>
 
             {/* Footer */}
-            <div className="px-6 py-4 border-t border-white/5 flex justify-between items-center bg-white/[0.01]">
+            <div className="px-6 py-4 border-t border-slate-200 dark:border-white/5 flex justify-between items-center bg-white/[0.01]">
               <button 
                 type="button"
                 onClick={handleCopyLink}

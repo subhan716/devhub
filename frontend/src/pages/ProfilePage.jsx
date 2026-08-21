@@ -410,7 +410,7 @@ const ProfilePage = () => {
 
   if (!profile) {
     return (
-      <div className="text-center text-gray-500 py-20 bg-[#111] rounded-2xl border border-white/5 max-w-3xl mx-auto">
+      <div className="text-center text-gray-500 py-20 bg-white dark:bg-[#111] rounded-2xl border border-slate-200 dark:border-white/5 max-w-3xl mx-auto">
         <h2 className="text-xl font-bold text-white mb-2">Profile Not Found</h2>
         <p>Please setup your profile to view this page.</p>
       </div>
@@ -440,7 +440,7 @@ const ProfilePage = () => {
                 animate={{ x: 0 }}
                 exit={{ x: '100%' }}
                 transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-                className="fixed top-0 right-0 h-[100dvh] w-full max-w-md bg-[#0f0f0f] border-l border-white/10 z-[9999] overflow-y-auto shadow-2xl"
+                className="fixed top-0 right-0 h-[100dvh] w-full max-w-md bg-[#0f0f0f] border-l border-slate-200 dark:border-white/10 z-[9999] overflow-y-auto shadow-2xl"
                 data-lenis-prevent="true"
               >
                 <div className="p-6 pb-[100px] lg:pb-6">
@@ -453,12 +453,12 @@ const ProfilePage = () => {
                   </div>
 
                   {/* Avatar Section */}
-                  <div className="flex flex-col items-center gap-3 mb-8 p-5 bg-[#1a1a1a] rounded-2xl border border-white/10">
+                  <div className="flex flex-col items-center gap-3 mb-8 p-5 bg-[#1a1a1a] rounded-2xl border border-slate-200 dark:border-white/10">
                     <div className="relative">
                       <img
                         src={profile.user?.avatar?.url || 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y'}
                         alt="Profile"
-                        className="w-24 h-24 rounded-full object-cover border-4 border-white/10"
+                        className="w-24 h-24 rounded-full object-cover border-4 border-slate-200 dark:border-white/10"
                       />
                       <label className="absolute bottom-0 right-0 p-2 bg-[#00F0FF] text-black rounded-full hover:bg-white transition-colors cursor-pointer shadow-lg" title="Change profile picture">
                         <Image size={14} />
@@ -511,7 +511,7 @@ const ProfilePage = () => {
               transition={{ type: "spring", damping: 25, stiffness: 300 }}
               src={profile.user?.avatar?.url || 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y'}
               alt="Profile Preview"
-              className="w-80 h-80 sm:w-96 sm:h-96 object-cover rounded-full shadow-[0_0_50px_rgba(0,0,0,0.5)] border-4 border-white/10"
+              className="w-80 h-80 sm:w-96 sm:h-96 object-cover rounded-full shadow-[0_0_50px_rgba(0,0,0,0.5)] border-4 border-slate-200 dark:border-white/10"
               onClick={(e) => e.stopPropagation()}
             />
           </motion.div>
@@ -539,7 +539,7 @@ const ProfilePage = () => {
       />
 
       {/* Cover & Avatar Header */}
-      <div className="relative rounded-2xl overflow-hidden mb-8 border border-white/10 bg-[#111]">
+      <div className="relative rounded-2xl overflow-hidden mb-8 border border-slate-200 dark:border-white/10 bg-white dark:bg-[#111]">
         {/* Cover Photo */}
         <div
           className="h-48 w-full relative"
@@ -566,7 +566,7 @@ const ProfilePage = () => {
               <img
                 src={profile.user?.avatar?.url || 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y'}
                 alt="Profile"
-                className="w-[152px] h-[152px] rounded-full border-[4px] border-[#111] object-cover bg-[#111] cursor-pointer hover:opacity-80 transition-opacity shadow-lg relative z-10"
+                className="w-[152px] h-[152px] rounded-full border-[4px] border-[#111] object-cover bg-white dark:bg-[#111] cursor-pointer hover:opacity-80 transition-opacity shadow-lg relative z-10"
                 onClick={() => setIsPreviewOpen(true)}
               />
 
@@ -644,7 +644,7 @@ const ProfilePage = () => {
 
             {/* Company inline below headline with Clearbit logo */}
             {profile.company && (
-              <div className="flex items-center gap-2 mt-2 text-sm text-gray-300">
+              <div className="flex items-center gap-2 mt-2 text-sm text-slate-700 dark:text-gray-300">
                 <img
                   src={`https://logo.clearbit.com/${profile.company.toLowerCase().replace(/\s+/g, '')}.com`}
                   alt={profile.company}
@@ -655,7 +655,7 @@ const ProfilePage = () => {
                   }}
                 />
                 <span style={{display:'none'}} className="w-5 h-5 rounded bg-white/20 items-center justify-center flex-shrink-0">
-                  <Briefcase size={12} className="text-gray-300" />
+                  <Briefcase size={12} className="text-slate-700 dark:text-gray-300" />
                 </span>
                 <span className="font-medium">{profile.company}</span>
               </div>
@@ -682,7 +682,7 @@ const ProfilePage = () => {
                       setIsAddSectionDropdownOpen(false);
                       setIsMoreDropdownOpen(false);
                     }}
-                    className="bg-[#00F0FF] hover:bg-[#00F0FF]/90 text-black px-4 py-1.5 rounded-full font-bold transition-all text-sm cursor-pointer"
+                    className="bg-[#0A66C2] hover:bg-[#004182] text-white dark:bg-[#00F0FF] dark:hover:bg-[#00F0FF]/90 dark:text-black shadow-sm px-4 py-1.5 rounded-full font-bold transition-all text-sm cursor-pointer"
                   >
                     Open to
                   </button>
@@ -690,11 +690,11 @@ const ProfilePage = () => {
                     {isOpenToDropdownOpen && (
                       <>
                         <div className="fixed inset-0 z-10" onClick={() => setIsOpenToDropdownOpen(false)} />
-                        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }} className="absolute left-0 mt-2 w-48 bg-[#1A1A1A] border border-white/10 rounded-xl shadow-xl z-20 py-2">
-                          <button onClick={() => { setIsOpenToDropdownOpen(false); setIsOpenToWorkModalOpen(true); }} className="w-full text-left px-4 py-2 text-sm text-gray-300 hover:text-white hover:bg-white/10 transition-colors font-medium">
+                        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }} className="absolute left-0 mt-2 w-48 bg-[#1A1A1A] border border-slate-200 dark:border-white/10 rounded-xl shadow-xl z-20 py-2">
+                          <button onClick={() => { setIsOpenToDropdownOpen(false); setIsOpenToWorkModalOpen(true); }} className="w-full text-left px-4 py-2 text-sm text-slate-700 dark:text-gray-300 hover:text-white hover:bg-white/10 transition-colors font-medium">
                             Finding a new job
                           </button>
-                          <button onClick={() => { setIsOpenToDropdownOpen(false); setIsProvidingServicesModalOpen(true); }} className="w-full text-left px-4 py-2 text-sm text-gray-300 hover:text-white hover:bg-white/10 transition-colors font-medium">
+                          <button onClick={() => { setIsOpenToDropdownOpen(false); setIsProvidingServicesModalOpen(true); }} className="w-full text-left px-4 py-2 text-sm text-slate-700 dark:text-gray-300 hover:text-white hover:bg-white/10 transition-colors font-medium">
                             Providing services
                           </button>
                         </motion.div>
@@ -719,14 +719,14 @@ const ProfilePage = () => {
                     {isAddSectionDropdownOpen && (
                       <>
                         <div className="fixed inset-0 z-10" onClick={() => setIsAddSectionDropdownOpen(false)} />
-                        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }} className="absolute left-0 mt-2 w-48 bg-[#1A1A1A] border border-white/10 rounded-xl shadow-xl z-20 py-2">
-                          <button onClick={() => { setIsAddSectionDropdownOpen(false); setIsAddExpOpen(true); }} className="w-full text-left px-4 py-2 text-sm text-gray-300 hover:text-white hover:bg-white/10 transition-colors font-medium">
+                        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }} className="absolute left-0 mt-2 w-48 bg-[#1A1A1A] border border-slate-200 dark:border-white/10 rounded-xl shadow-xl z-20 py-2">
+                          <button onClick={() => { setIsAddSectionDropdownOpen(false); setIsAddExpOpen(true); }} className="w-full text-left px-4 py-2 text-sm text-slate-700 dark:text-gray-300 hover:text-white hover:bg-white/10 transition-colors font-medium">
                             Add Experience
                           </button>
-                          <button onClick={() => { setIsAddSectionDropdownOpen(false); setIsAddEduOpen(true); }} className="w-full text-left px-4 py-2 text-sm text-gray-300 hover:text-white hover:bg-white/10 transition-colors font-medium">
+                          <button onClick={() => { setIsAddSectionDropdownOpen(false); setIsAddEduOpen(true); }} className="w-full text-left px-4 py-2 text-sm text-slate-700 dark:text-gray-300 hover:text-white hover:bg-white/10 transition-colors font-medium">
                             Add Education
                           </button>
-                          <button onClick={() => { setIsAddSectionDropdownOpen(false); setIsEditProfileOpen(true); }} className="w-full text-left px-4 py-2 text-sm text-gray-300 hover:text-white hover:bg-white/10 transition-colors font-medium">
+                          <button onClick={() => { setIsAddSectionDropdownOpen(false); setIsEditProfileOpen(true); }} className="w-full text-left px-4 py-2 text-sm text-slate-700 dark:text-gray-300 hover:text-white hover:bg-white/10 transition-colors font-medium">
                             Edit About/Headline
                           </button>
                         </motion.div>
@@ -743,7 +743,7 @@ const ProfilePage = () => {
                       setIsOpenToDropdownOpen(false);
                       setIsAddSectionDropdownOpen(false);
                     }}
-                    className="bg-transparent border border-gray-400 hover:bg-white/10 hover:border-gray-200 text-gray-200 px-3 py-1.5 rounded-full font-bold transition-all text-sm cursor-pointer flex items-center justify-center"
+                    className="bg-transparent border border-gray-400 hover:bg-white/10 hover:border-gray-200 text-slate-800 dark:text-gray-200 px-3 py-1.5 rounded-full font-bold transition-all text-sm cursor-pointer flex items-center justify-center"
                   >
                     <MoreHorizontal size={18} />
                   </button>
@@ -751,20 +751,20 @@ const ProfilePage = () => {
                     {isMoreDropdownOpen && (
                       <>
                         <div className="fixed inset-0 z-10" onClick={() => setIsMoreDropdownOpen(false)} />
-                        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }} className="absolute left-0 md:left-auto mt-2 w-56 bg-[#1A1A1A] border border-white/10 rounded-xl shadow-xl z-20 py-2">
-                          <button onClick={() => { setIsMoreDropdownOpen(false); navigator.clipboard.writeText(window.location.href); toast.success('Profile link copied!'); }} className="w-full text-left px-4 py-3 text-sm text-gray-300 hover:text-white hover:bg-white/10 transition-colors font-medium flex items-center gap-3">
+                        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }} className="absolute left-0 md:left-auto mt-2 w-56 bg-[#1A1A1A] border border-slate-200 dark:border-white/10 rounded-xl shadow-xl z-20 py-2">
+                          <button onClick={() => { setIsMoreDropdownOpen(false); navigator.clipboard.writeText(window.location.href); toast.success('Profile link copied!'); }} className="w-full text-left px-4 py-3 text-sm text-slate-700 dark:text-gray-300 hover:text-white hover:bg-white/10 transition-colors font-medium flex items-center gap-3">
                             <Share2 size={18} /> Send profile in a message
                           </button>
-                          <button onClick={() => { setIsMoreDropdownOpen(false); handleDownloadPdf(); }} className="w-full text-left px-4 py-3 text-sm text-gray-300 hover:text-white hover:bg-white/10 transition-colors font-medium flex items-center gap-3">
+                          <button onClick={() => { setIsMoreDropdownOpen(false); handleDownloadPdf(); }} className="w-full text-left px-4 py-3 text-sm text-slate-700 dark:text-gray-300 hover:text-white hover:bg-white/10 transition-colors font-medium flex items-center gap-3">
                             <FileText size={18} /> Save to PDF
                           </button>
-                          <button onClick={() => { setIsMoreDropdownOpen(false); setActiveTab('activity'); }} className="w-full text-left px-4 py-3 text-sm text-gray-300 hover:text-white hover:bg-white/10 transition-colors font-medium flex items-center gap-3">
+                          <button onClick={() => { setIsMoreDropdownOpen(false); setActiveTab('activity'); }} className="w-full text-left px-4 py-3 text-sm text-slate-700 dark:text-gray-300 hover:text-white hover:bg-white/10 transition-colors font-medium flex items-center gap-3">
                             <Activity size={18} /> Activity
                           </button>
-                          <button onClick={() => { setIsMoreDropdownOpen(false); setActiveTab('overview'); }} className="w-full text-left px-4 py-3 text-sm text-gray-300 hover:text-white hover:bg-white/10 transition-colors font-medium flex items-center gap-3">
+                          <button onClick={() => { setIsMoreDropdownOpen(false); setActiveTab('overview'); }} className="w-full text-left px-4 py-3 text-sm text-slate-700 dark:text-gray-300 hover:text-white hover:bg-white/10 transition-colors font-medium flex items-center gap-3">
                             <Users size={18} /> About this member
                           </button>
-                          <button onClick={() => { setIsMoreDropdownOpen(false); setIsAnalyticsOpen(true); }} className="w-full text-left px-4 py-3 text-sm text-gray-300 hover:text-white hover:bg-white/10 transition-colors font-medium flex items-center gap-3 border-t border-white/10 mt-1 pt-3">
+                          <button onClick={() => { setIsMoreDropdownOpen(false); setIsAnalyticsOpen(true); }} className="w-full text-left px-4 py-3 text-sm text-slate-700 dark:text-gray-300 hover:text-white hover:bg-white/10 transition-colors font-medium flex items-center gap-3 border-t border-slate-200 dark:border-white/10 mt-1 pt-3">
                             <Eye size={18} /> View Analytics
                           </button>
                         </motion.div>
@@ -777,7 +777,7 @@ const ProfilePage = () => {
               <div className="flex flex-wrap gap-2">
                 <button 
                   onClick={handleConnectionToggle}
-                  className={`${connectionState.status === 'accepted' ? 'bg-transparent border border-gray-400 hover:bg-white/10 hover:border-gray-200 text-gray-200' : connectionState.status === 'pending' ? 'bg-transparent border border-yellow-500 hover:bg-yellow-500/10 hover:border-yellow-400 text-yellow-500' : 'bg-[#00F0FF] hover:bg-[#00F0FF]/90 text-black'} px-4 py-1.5 rounded-full font-bold transition-all text-sm cursor-pointer`}
+                  className={`${connectionState.status === 'accepted' ? 'bg-transparent border border-gray-400 hover:bg-white/10 hover:border-gray-200 text-slate-800 dark:text-gray-200' : connectionState.status === 'pending' ? 'bg-transparent border border-yellow-500 hover:bg-yellow-500/10 hover:border-yellow-400 text-yellow-500' : 'bg-[#0A66C2] hover:bg-[#004182] text-white dark:bg-[#00F0FF] dark:hover:bg-[#00F0FF]/90 dark:text-black shadow-sm'} px-4 py-1.5 rounded-full font-bold transition-all text-sm cursor-pointer`}
                 >
                   {connectionState.status === 'accepted' ? 'Remove Connection' : connectionState.status === 'pending' ? 'Pending' : 'Connect'}
                 </button>
@@ -793,14 +793,14 @@ const ProfilePage = () => {
                 </button>
                 <button 
                   onClick={handleFollowToggle}
-                  className={`px-4 py-1.5 rounded-full font-bold transition-all text-sm border ${isFollowing ? 'bg-transparent border-gray-400 hover:bg-white/10 hover:border-gray-200 text-gray-200' : 'bg-transparent border-[#00F0FF]/40 text-[#00F0FF] hover:bg-[#00F0FF]/10 hover:border-[#00F0FF]/60'} cursor-pointer`}
+                  className={`px-4 py-1.5 rounded-full font-bold transition-all text-sm border ${isFollowing ? 'bg-transparent border-gray-400 hover:bg-white/10 hover:border-gray-200 text-slate-800 dark:text-gray-200' : 'bg-transparent border-[#00F0FF]/40 text-[#00F0FF] hover:bg-[#00F0FF]/10 hover:border-[#00F0FF]/60'} cursor-pointer`}
                 >
                   {isFollowing ? 'Following' : 'Follow'}
                 </button>
                 <div className="relative">
                   <button 
                     onClick={() => setIsMoreDropdownOpen(!isMoreDropdownOpen)}
-                    className="bg-transparent border border-gray-400 hover:bg-white/10 hover:border-gray-200 text-gray-200 px-3 py-1.5 rounded-full font-bold transition-all text-sm cursor-pointer flex items-center justify-center"
+                    className="bg-transparent border border-gray-400 hover:bg-white/10 hover:border-gray-200 text-slate-800 dark:text-gray-200 px-3 py-1.5 rounded-full font-bold transition-all text-sm cursor-pointer flex items-center justify-center"
                   >
                     <MoreHorizontal size={18} />
                   </button>
@@ -808,11 +808,11 @@ const ProfilePage = () => {
                     {isMoreDropdownOpen && (
                       <>
                         <div className="fixed inset-0 z-10" onClick={() => setIsMoreDropdownOpen(false)} />
-                        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }} className="absolute left-0 mt-2 w-56 bg-[#1A1A1A] border border-white/10 rounded-xl shadow-xl z-20 py-2">
-                          <button onClick={() => { setIsMoreDropdownOpen(false); navigator.clipboard.writeText(window.location.href); toast.success('Profile link copied!'); }} className="w-full text-left px-4 py-3 text-sm text-gray-300 hover:text-white hover:bg-white/10 transition-colors font-medium flex items-center gap-3">
+                        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }} className="absolute left-0 mt-2 w-56 bg-[#1A1A1A] border border-slate-200 dark:border-white/10 rounded-xl shadow-xl z-20 py-2">
+                          <button onClick={() => { setIsMoreDropdownOpen(false); navigator.clipboard.writeText(window.location.href); toast.success('Profile link copied!'); }} className="w-full text-left px-4 py-3 text-sm text-slate-700 dark:text-gray-300 hover:text-white hover:bg-white/10 transition-colors font-medium flex items-center gap-3">
                             <Share2 size={18} /> Share Profile
                           </button>
-                          <button onClick={() => { setIsMoreDropdownOpen(false); handleDownloadPdf(); }} className="w-full text-left px-4 py-3 text-sm text-gray-300 hover:text-white hover:bg-white/10 transition-colors font-medium flex items-center gap-3">
+                          <button onClick={() => { setIsMoreDropdownOpen(false); handleDownloadPdf(); }} className="w-full text-left px-4 py-3 text-sm text-slate-700 dark:text-gray-300 hover:text-white hover:bg-white/10 transition-colors font-medium flex items-center gap-3">
                             <FileText size={18} /> Save to PDF
                           </button>
                         </motion.div>
@@ -886,7 +886,7 @@ const ProfilePage = () => {
       </div>
 
       {/* Tabs Navigation */}
-      <div className="flex border-b border-white/10 mb-8 overflow-x-auto scrollbar-none">
+      <div className="flex border-b border-slate-200 dark:border-white/10 mb-8 overflow-x-auto scrollbar-none">
         {['overview', 'activity'].map(tab => (
           <button
             key={tab}
@@ -907,12 +907,12 @@ const ProfilePage = () => {
         <>
           {/* About Section */}
           {profile.about && (
-            <div className="bg-[#111] border border-white/5 rounded-2xl p-6 shadow-lg mb-6">
-              <h3 className="text-white font-bold text-lg mb-4 flex items-center gap-2">
+            <div className="bg-white dark:bg-[#111] border border-slate-200 dark:border-white/5 rounded-2xl p-6 shadow-lg mb-6">
+              <h3 className="text-slate-900 dark:text-white font-bold text-lg mb-4 flex items-center gap-2">
                 <FileText size={20} className="text-[#00F0FF]" />
                 About
               </h3>
-              <p className="text-gray-300 text-sm leading-relaxed whitespace-pre-wrap">
+              <p className="text-slate-700 dark:text-gray-300 text-sm leading-relaxed whitespace-pre-wrap">
                 {profile.about}
               </p>
             </div>
@@ -920,15 +920,15 @@ const ProfilePage = () => {
 
           {/* GitHub Contributions Graph */}
           {profile.githubusername && (
-            <div className="bg-[#111] border border-white/5 rounded-2xl p-6 shadow-lg mb-6 overflow-hidden">
+            <div className="bg-white dark:bg-[#111] border border-slate-200 dark:border-white/5 rounded-2xl p-6 shadow-lg mb-6 overflow-hidden">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
-                <h3 className="text-white font-bold text-lg flex items-center gap-2">
+                <h3 className="text-slate-900 dark:text-white font-bold text-lg flex items-center gap-2">
                   <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" className="text-[#00F0FF]"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg>
                   GitHub Contributions
                 </h3>
 
                 {/* Year Switcher (Arrow Navigation: Current & Previous Year) */}
-                <div className="flex items-center gap-2 bg-[#1a1a1a] border border-white/10 rounded-xl p-1 self-start sm:self-auto shadow-inner">
+                <div className="flex items-center gap-2 bg-[#1a1a1a] border border-slate-200 dark:border-white/10 rounded-xl p-1 self-start sm:self-auto shadow-inner">
                   <button
                     type="button"
                     onClick={() => setIsCurrentYearSelected(false)}
@@ -944,7 +944,7 @@ const ProfilePage = () => {
                     <ChevronLeft size={16} />
                   </button>
 
-                  <span className="px-2 text-xs font-semibold text-gray-300 min-w-[90px] text-center select-none">
+                  <span className="px-2 text-xs font-semibold text-slate-700 dark:text-gray-300 min-w-[90px] text-center select-none">
                     {isCurrentYearSelected ? 'Current Year' : 'Previous Year'}
                   </span>
 
@@ -998,11 +998,11 @@ const ProfilePage = () => {
             <div className="md:col-span-1 space-y-6">
               {/* Skills */}
               {profile.skills && profile.skills.length > 0 && (
-                <div className="bg-[#111] border border-white/5 rounded-2xl p-5 shadow-lg">
-                  <h3 className="text-white font-bold mb-4">Skills</h3>
+                <div className="bg-white dark:bg-[#111] border border-slate-200 dark:border-white/5 rounded-2xl p-5 shadow-lg">
+                  <h3 className="text-slate-900 dark:text-white font-bold mb-4">Skills</h3>
                   <div className="flex flex-wrap gap-2">
                     {profile.skills.map(skill => (
-                      <span key={skill} className="px-3 py-1 bg-white/5 border border-white/10 rounded-full text-xs text-gray-300">
+                      <span key={skill} className="px-3 py-1 bg-white/5 border border-slate-200 dark:border-white/10 rounded-full text-xs text-slate-700 dark:text-gray-300">
                         {skill}
                       </span>
                     ))}
@@ -1012,8 +1012,8 @@ const ProfilePage = () => {
 
               {/* Social Links */}
               {(profile.githubusername || profile.socialLinks?.website || profile.socialLinks?.linkedin) && (
-                <div className="bg-[#111] border border-white/5 rounded-2xl p-5 shadow-lg">
-                <h3 className="text-white font-bold mb-4">Links</h3>
+                <div className="bg-white dark:bg-[#111] border border-slate-200 dark:border-white/5 rounded-2xl p-5 shadow-lg">
+                <h3 className="text-slate-900 dark:text-white font-bold mb-4">Links</h3>
                 <div className="space-y-3">
                   {profile.githubusername && (
                     <a href={`https://github.com/${profile.githubusername}`} target="_blank" rel="noreferrer" className="flex items-center gap-3 text-gray-400 hover:text-white transition-colors cursor-pointer text-sm">
@@ -1039,9 +1039,9 @@ const ProfilePage = () => {
 
               {/* Resume Section */}
               {isOwner && (
-                <div className="bg-[#111] border border-white/5 rounded-2xl p-5 shadow-lg">
+                <div className="bg-white dark:bg-[#111] border border-slate-200 dark:border-white/5 rounded-2xl p-5 shadow-lg">
                   <div className="flex justify-between items-center mb-4">
-                    <h3 className="text-white font-bold flex items-center gap-2">
+                    <h3 className="text-slate-900 dark:text-white font-bold flex items-center gap-2">
                       <FileText size={18} className="text-[#00F0FF]" /> Resume
                     </h3>
                     <div>
@@ -1052,7 +1052,7 @@ const ProfilePage = () => {
                     </div>
                   </div>
                   {profile.resume?.url ? (
-                    <a href={profile.resume.url} target="_blank" rel="noreferrer" className="flex items-center justify-center gap-2 w-full py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-sm font-medium text-white transition-colors">
+                    <a href={profile.resume.url} target="_blank" rel="noreferrer" className="flex items-center justify-center gap-2 w-full py-2.5 bg-white/5 hover:bg-white/10 border border-slate-200 dark:border-white/10 rounded-xl text-sm font-medium text-white transition-colors">
                       View {profile.resume.originalName || 'Resume'}
                     </a>
                   ) : (
@@ -1069,13 +1069,13 @@ const ProfilePage = () => {
 
               {/* Experience */}
               {(isOwner || (profile.experience && profile.experience.length > 0)) && (
-                <div className="bg-[#111] border border-white/5 rounded-2xl p-6 shadow-lg">
+                <div className="bg-white dark:bg-[#111] border border-slate-200 dark:border-white/5 rounded-2xl p-6 shadow-lg">
                 <div className="flex justify-between items-center mb-6">
-                  <h3 className="text-white font-bold text-lg flex items-center gap-2">
+                  <h3 className="text-slate-900 dark:text-white font-bold text-lg flex items-center gap-2">
                     <Briefcase size={20} className="text-[#00F0FF]" /> Experience
                   </h3>
                   {isOwner && (
-                    <button onClick={() => setIsAddExpOpen(!isAddExpOpen)} className={`p-1.5 rounded-lg transition-colors cursor-pointer ${isAddExpOpen ? 'bg-white/10 text-white' : 'bg-white/5 hover:bg-white/10 text-gray-300 hover:text-white'}`}>
+                    <button onClick={() => setIsAddExpOpen(!isAddExpOpen)} className={`p-1.5 rounded-lg transition-colors cursor-pointer ${isAddExpOpen ? 'bg-white/10 text-white' : 'bg-white/5 hover:bg-white/10 text-slate-700 dark:text-gray-300 hover:text-white'}`}>
                       <Plus size={18} className={`transform transition-transform ${isAddExpOpen ? 'rotate-45' : ''}`} />
                     </button>
                   )}
@@ -1089,8 +1089,8 @@ const ProfilePage = () => {
                   {profile.experience && profile.experience.length > 0 ? (
                     <>
                       {(showAllExp ? profile.experience : profile.experience.slice(0, 3)).map(exp => (
-                        <div key={exp._id} className="relative group border-l-2 border-white/10 pl-4 pb-2">
-                          <div className="absolute w-3 h-3 bg-[#111] border-2 border-[#00F0FF] rounded-full -left-[7px] top-1.5"></div>
+                        <div key={exp._id} className="relative group border-l-2 border-slate-200 dark:border-white/10 pl-4 pb-2">
+                          <div className="absolute w-3 h-3 bg-white dark:bg-[#111] border-2 border-[#00F0FF] rounded-full -left-[7px] top-1.5"></div>
                           <div className="flex justify-between items-start">
                             <div>
                               <h4 className="text-white font-semibold">{exp.title}</h4>
@@ -1105,7 +1105,7 @@ const ProfilePage = () => {
                               </button>
                             )}
                           </div>
-                          {exp.description && <p className="text-sm text-gray-300 mt-3 whitespace-pre-wrap">{exp.description}</p>}
+                          {exp.description && <p className="text-sm text-slate-700 dark:text-gray-300 mt-3 whitespace-pre-wrap">{exp.description}</p>}
                         </div>
                       ))}
                       {profile.experience.length > 3 && (
@@ -1128,13 +1128,13 @@ const ProfilePage = () => {
 
               {/* Education */}
               {(isOwner || (profile.education && profile.education.length > 0)) && (
-                <div className="bg-[#111] border border-white/5 rounded-2xl p-6 shadow-lg">
+                <div className="bg-white dark:bg-[#111] border border-slate-200 dark:border-white/5 rounded-2xl p-6 shadow-lg">
                 <div className="flex justify-between items-center mb-6">
-                  <h3 className="text-white font-bold text-lg flex items-center gap-2">
+                  <h3 className="text-slate-900 dark:text-white font-bold text-lg flex items-center gap-2">
                     <GraduationCap size={20} className="text-[#8A2BE2]" /> Education
                   </h3>
                   {isOwner && (
-                    <button onClick={() => setIsAddEduOpen(!isAddEduOpen)} className={`p-1.5 rounded-lg transition-colors cursor-pointer ${isAddEduOpen ? 'bg-white/10 text-white' : 'bg-white/5 hover:bg-white/10 text-gray-300 hover:text-white'}`}>
+                    <button onClick={() => setIsAddEduOpen(!isAddEduOpen)} className={`p-1.5 rounded-lg transition-colors cursor-pointer ${isAddEduOpen ? 'bg-white/10 text-white' : 'bg-white/5 hover:bg-white/10 text-slate-700 dark:text-gray-300 hover:text-white'}`}>
                       <Plus size={18} className={`transform transition-transform ${isAddEduOpen ? 'rotate-45' : ''}`} />
                     </button>
                   )}
@@ -1148,8 +1148,8 @@ const ProfilePage = () => {
                   {profile.education && profile.education.length > 0 ? (
                     <>
                       {(showAllEdu ? profile.education : profile.education.slice(0, 3)).map(edu => (
-                        <div key={edu._id} className="relative group border-l-2 border-white/10 pl-4 pb-2">
-                          <div className="absolute w-3 h-3 bg-[#111] border-2 border-[#8A2BE2] rounded-full -left-[7px] top-1.5"></div>
+                        <div key={edu._id} className="relative group border-l-2 border-slate-200 dark:border-white/10 pl-4 pb-2">
+                          <div className="absolute w-3 h-3 bg-white dark:bg-[#111] border-2 border-[#8A2BE2] rounded-full -left-[7px] top-1.5"></div>
                           <div className="flex justify-between items-start">
                             <div>
                               <h4 className="text-white font-semibold">{edu.school}</h4>
@@ -1186,13 +1186,13 @@ const ProfilePage = () => {
 
               {/* Certifications */}
               {(isOwner || (profile.certifications && profile.certifications.length > 0)) && (
-                <div className="bg-[#111] border border-white/5 rounded-2xl p-6 shadow-lg">
+                <div className="bg-white dark:bg-[#111] border border-slate-200 dark:border-white/5 rounded-2xl p-6 shadow-lg">
                 <div className="flex justify-between items-center mb-6">
-                  <h3 className="text-white font-bold text-lg flex items-center gap-2">
+                  <h3 className="text-slate-900 dark:text-white font-bold text-lg flex items-center gap-2">
                     <Award size={20} className="text-[#00F0FF]" /> Certifications
                   </h3>
                   {isOwner && (
-                    <button onClick={() => setIsAddCertOpen(!isAddCertOpen)} className={`p-1.5 rounded-lg transition-colors cursor-pointer ${isAddCertOpen ? 'bg-white/10 text-white' : 'bg-white/5 hover:bg-white/10 text-gray-300 hover:text-white'}`}>
+                    <button onClick={() => setIsAddCertOpen(!isAddCertOpen)} className={`p-1.5 rounded-lg transition-colors cursor-pointer ${isAddCertOpen ? 'bg-white/10 text-white' : 'bg-white/5 hover:bg-white/10 text-slate-700 dark:text-gray-300 hover:text-white'}`}>
                       <Plus size={18} className={`transform transition-transform ${isAddCertOpen ? 'rotate-45' : ''}`} />
                     </button>
                   )}
@@ -1206,8 +1206,8 @@ const ProfilePage = () => {
                   {profile.certifications && profile.certifications.length > 0 ? (
                     <>
                       {(showAllCert ? profile.certifications : profile.certifications.slice(0, 3)).map(cert => (
-                        <div key={cert._id} className="relative group border-l-2 border-white/10 pl-4 pb-2">
-                          <div className="absolute w-3 h-3 bg-[#111] border-2 border-[#00F0FF] rounded-full -left-[7px] top-1.5"></div>
+                        <div key={cert._id} className="relative group border-l-2 border-slate-200 dark:border-white/10 pl-4 pb-2">
+                          <div className="absolute w-3 h-3 bg-white dark:bg-[#111] border-2 border-[#00F0FF] rounded-full -left-[7px] top-1.5"></div>
                           <div className="flex justify-between items-start">
                             <div>
                               <h4 className="text-white font-semibold">{cert.title}</h4>
@@ -1257,7 +1257,7 @@ const ProfilePage = () => {
       {/* Tab Content: ACTIVITY */}
       {activeTab === 'activity' && (
         <div className="mt-2">
-          <h3 className="text-white font-bold text-xl mb-6 flex items-center gap-2">
+          <h3 className="text-slate-900 dark:text-white font-bold text-xl mb-6 flex items-center gap-2">
             <MessageCircle className="text-[#00F0FF]" /> Recent Activity
           </h3>
 
@@ -1268,7 +1268,7 @@ const ProfilePage = () => {
                 <PostSkeleton />
               </>
             ) : userPosts.length === 0 ? (
-              <div className="text-center text-gray-500 py-10 bg-[#111] rounded-2xl border border-white/5">
+              <div className="text-center text-gray-500 py-10 bg-white dark:bg-[#111] rounded-2xl border border-slate-200 dark:border-white/5">
                 No recent activity found.
               </div>
             ) : (
@@ -1290,7 +1290,7 @@ const ProfilePage = () => {
                   <div className="flex justify-center mt-4">
                     <Link
                       to={`/profile/${id || profile?.user?._id}/posts`}
-                      className="flex items-center gap-2 px-8 py-2.5 bg-white/5 hover:bg-[#00F0FF]/10 text-white hover:text-[#00F0FF] font-medium rounded-full border border-white/10 hover:border-[#00F0FF]/30 transition-all text-sm shadow-lg"
+                      className="flex items-center gap-2 px-8 py-2.5 bg-white/5 hover:bg-[#00F0FF]/10 text-white hover:text-[#00F0FF] font-medium rounded-full border border-slate-200 dark:border-white/10 hover:border-[#00F0FF]/30 transition-all text-sm shadow-lg"
                     >
                       Show All {userPosts.length} Posts
                     </Link>

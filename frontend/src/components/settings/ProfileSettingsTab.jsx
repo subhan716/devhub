@@ -210,10 +210,10 @@ const ProfileSettingsTab = () => {
   return (
     <form onSubmit={handleSubmit} className="space-y-6 font-sans">
       {/* 1. Profile Picture Row */}
-      <div className="bg-[#111] border border-white/5 rounded-2xl p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-5">
+      <div className="bg-white dark:bg-[#111] border border-slate-200 dark:border-white/5 rounded-2xl p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-5">
         <div className="flex items-center gap-4">
           <div className="relative">
-            <div className={`w-16 h-16 rounded-full overflow-hidden border ${isOpenToWork ? 'border-emerald-400' : 'border-white/10'}`}>
+            <div className={`w-16 h-16 rounded-full overflow-hidden border ${isOpenToWork ? 'border-emerald-400' : 'border-slate-200 dark:border-white/10'}`}>
               <img
                 src={avatarUrl || 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png'}
                 alt={name || 'Avatar'}
@@ -238,7 +238,7 @@ const ProfileSettingsTab = () => {
             type="button"
             onClick={() => avatarInputRef.current?.click()}
             disabled={uploadingAvatar}
-            className="px-4 py-2 bg-white/5 hover:bg-white/10 text-white rounded-xl border border-white/10 text-xs font-medium transition-colors cursor-pointer flex items-center gap-2"
+            className="px-4 py-2 bg-white/5 hover:bg-white/10 text-white rounded-xl border border-slate-200 dark:border-white/10 text-xs font-medium transition-colors cursor-pointer flex items-center gap-2"
           >
             <Camera size={14} className={uploadingAvatar ? 'animate-spin' : ''} />
             <span>{uploadingAvatar ? 'Uploading...' : 'Change Photo'}</span>
@@ -254,39 +254,39 @@ const ProfileSettingsTab = () => {
       </div>
 
       {/* 2. Core Professional Identity */}
-      <div className="bg-[#111] border border-white/5 rounded-2xl p-6 sm:p-7 space-y-5">
-        <div className="flex items-center gap-2 text-white font-bold text-sm border-b border-white/5 pb-3">
+      <div className="bg-white dark:bg-[#111] border border-slate-200 dark:border-white/5 rounded-2xl p-6 sm:p-7 space-y-5">
+        <div className="flex items-center gap-2 text-slate-900 dark:text-white font-bold text-sm border-b border-slate-200 dark:border-white/5 pb-3">
           <UserIcon size={16} className="text-[#00F0FF]" />
           <span>Professional Identity</span>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-1.5">
-            <label className="text-xs font-medium text-gray-300">Full Display Name *</label>
+            <label className="text-xs font-medium text-slate-700 dark:text-gray-300">Full Display Name *</label>
             <input
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full bg-[#050508] border border-white/10 rounded-xl py-2.5 px-3.5 text-xs text-white focus:border-[#00F0FF]/50 outline-none transition-colors"
+              className="w-full bg-slate-50 dark:bg-[#050508] border border-slate-200 dark:border-white/10 rounded-xl py-2.5 px-3.5 text-xs text-white focus:border-[#00F0FF]/50 outline-none transition-colors"
               placeholder="e.g. Subhan Shahid"
               required
             />
           </div>
 
           <div className="space-y-1.5 relative">
-            <label className="text-xs font-medium text-gray-300">Headline / Role *</label>
+            <label className="text-xs font-medium text-slate-700 dark:text-gray-300">Headline / Role *</label>
             <input
               type="text"
               value={status}
               onChange={(e) => setStatus(e.target.value)}
               onFocus={() => setIsStatusFocused(true)}
               onBlur={() => setTimeout(() => setIsStatusFocused(false), 250)}
-              className="w-full bg-[#050508] border border-white/10 rounded-xl py-2.5 px-3.5 text-xs text-white focus:border-[#00F0FF]/50 outline-none transition-colors"
+              className="w-full bg-slate-50 dark:bg-[#050508] border border-slate-200 dark:border-white/10 rounded-xl py-2.5 px-3.5 text-xs text-white focus:border-[#00F0FF]/50 outline-none transition-colors"
               placeholder="e.g. Full Stack Developer"
               required
             />
             {isStatusFocused && filteredSuggestions.length > 0 && (
-              <div className="absolute z-20 w-full mt-1 bg-[#16161C] border border-white/10 rounded-xl shadow-2xl overflow-hidden py-1">
+              <div className="absolute z-20 w-full mt-1 bg-[#16161C] border border-slate-200 dark:border-white/10 rounded-xl shadow-2xl overflow-hidden py-1">
                 {filteredSuggestions.map((sug, idx) => (
                   <div
                     key={idx}
@@ -294,7 +294,7 @@ const ProfileSettingsTab = () => {
                       setStatus(sug);
                       setIsStatusFocused(false);
                     }}
-                    className="px-3.5 py-2 text-xs text-gray-300 hover:bg-[#00F0FF]/10 hover:text-white cursor-pointer transition-colors"
+                    className="px-3.5 py-2 text-xs text-slate-700 dark:text-gray-300 hover:bg-[#00F0FF]/10 hover:text-white cursor-pointer transition-colors"
                   >
                     {sug}
                   </div>
@@ -304,7 +304,7 @@ const ProfileSettingsTab = () => {
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-xs font-medium text-gray-300">Company / Organization</label>
+            <label className="text-xs font-medium text-slate-700 dark:text-gray-300">Company / Organization</label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-500">
                 <Building2 size={14} />
@@ -313,14 +313,14 @@ const ProfileSettingsTab = () => {
                 type="text"
                 value={company}
                 onChange={(e) => setCompany(e.target.value)}
-                className="w-full bg-[#050508] border border-white/10 rounded-xl py-2.5 pl-9 pr-3.5 text-xs text-white focus:border-[#00F0FF]/50 outline-none transition-colors"
+                className="w-full bg-slate-50 dark:bg-[#050508] border border-slate-200 dark:border-white/10 rounded-xl py-2.5 pl-9 pr-3.5 text-xs text-white focus:border-[#00F0FF]/50 outline-none transition-colors"
                 placeholder="e.g. Google / Freelance"
               />
             </div>
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-xs font-medium text-gray-300">Location</label>
+            <label className="text-xs font-medium text-slate-700 dark:text-gray-300">Location</label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-500">
                 <MapPin size={14} />
@@ -329,7 +329,7 @@ const ProfileSettingsTab = () => {
                 type="text"
                 value={location}
                 onChange={(e) => setLocation(e.target.value)}
-                className="w-full bg-[#050508] border border-white/10 rounded-xl py-2.5 pl-9 pr-3.5 text-xs text-white focus:border-[#00F0FF]/50 outline-none transition-colors"
+                className="w-full bg-slate-50 dark:bg-[#050508] border border-slate-200 dark:border-white/10 rounded-xl py-2.5 pl-9 pr-3.5 text-xs text-white focus:border-[#00F0FF]/50 outline-none transition-colors"
                 placeholder="e.g. San Francisco, CA"
               />
             </div>
@@ -338,14 +338,14 @@ const ProfileSettingsTab = () => {
       </div>
 
       {/* 3. Hiring & Services Flags */}
-      <div className="bg-[#111] border border-white/5 rounded-2xl p-6 sm:p-7 space-y-4">
-        <div className="flex items-center gap-2 text-white font-bold text-sm border-b border-white/5 pb-3">
+      <div className="bg-white dark:bg-[#111] border border-slate-200 dark:border-white/5 rounded-2xl p-6 sm:p-7 space-y-4">
+        <div className="flex items-center gap-2 text-slate-900 dark:text-white font-bold text-sm border-b border-slate-200 dark:border-white/5 pb-3">
           <Briefcase size={16} className="text-emerald-400" />
           <span>Opportunity & Availability</span>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <div className="p-3.5 rounded-xl bg-[#050508] border border-white/10 flex items-center justify-between gap-3">
+          <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-[#050508] border border-slate-200 dark:border-white/10 flex items-center justify-between gap-3">
             <div>
               <div className="text-xs font-semibold text-white">Open to Work</div>
               <p className="text-[10px] text-gray-400">Signals recruiters you're looking</p>
@@ -361,7 +361,7 @@ const ProfileSettingsTab = () => {
             </button>
           </div>
 
-          <div className="p-3.5 rounded-xl bg-[#050508] border border-white/10 flex items-center justify-between gap-3">
+          <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-[#050508] border border-slate-200 dark:border-white/10 flex items-center justify-between gap-3">
             <div>
               <div className="text-xs font-semibold text-white">Freelance Services</div>
               <p className="text-[10px] text-gray-400">Showcases consulting availability</p>
@@ -380,12 +380,12 @@ const ProfileSettingsTab = () => {
 
         {isProvidingServices && (
           <div className="space-y-1.5 pt-1">
-            <label className="text-xs font-medium text-gray-300">Services Offered / Rates</label>
+            <label className="text-xs font-medium text-slate-700 dark:text-gray-300">Services Offered / Rates</label>
             <input
               type="text"
               value={servicesDetails}
               onChange={(e) => setServicesDetails(e.target.value)}
-              className="w-full bg-[#050508] border border-white/10 rounded-xl py-2 px-3.5 text-xs text-white focus:border-[#00F0FF]/50 outline-none"
+              className="w-full bg-slate-50 dark:bg-[#050508] border border-slate-200 dark:border-white/10 rounded-xl py-2 px-3.5 text-xs text-white focus:border-[#00F0FF]/50 outline-none"
               placeholder="e.g. Web Development, Code Audits ($70/hr)"
             />
           </div>
@@ -393,9 +393,9 @@ const ProfileSettingsTab = () => {
       </div>
 
       {/* 4. Skills Matrix */}
-      <div className="bg-[#111] border border-white/5 rounded-2xl p-6 sm:p-7 space-y-4">
-        <div className="flex items-center justify-between border-b border-white/5 pb-3">
-          <div className="flex items-center gap-2 text-white font-bold text-sm">
+      <div className="bg-white dark:bg-[#111] border border-slate-200 dark:border-white/5 rounded-2xl p-6 sm:p-7 space-y-4">
+        <div className="flex items-center justify-between border-b border-slate-200 dark:border-white/5 pb-3">
+          <div className="flex items-center gap-2 text-slate-900 dark:text-white font-bold text-sm">
             <Layers size={16} className="text-[#00F0FF]" />
             <span>Technical Skills</span>
           </div>
@@ -409,24 +409,24 @@ const ProfileSettingsTab = () => {
               value={skillInput}
               onChange={(e) => setSkillInput(e.target.value)}
               onKeyDown={handleSkillKeyDown}
-              className="flex-1 bg-[#050508] border border-white/10 rounded-xl py-2 px-3.5 text-xs text-white focus:border-[#00F0FF]/50 outline-none"
+              className="flex-1 bg-slate-50 dark:bg-[#050508] border border-slate-200 dark:border-white/10 rounded-xl py-2 px-3.5 text-xs text-white focus:border-[#00F0FF]/50 outline-none"
               placeholder="Type skill & press Enter (e.g. React, Docker)..."
             />
             <button
               type="button"
               onClick={() => handleAddSkill()}
-              className="px-3.5 py-2 bg-white/5 hover:bg-white/10 text-white rounded-xl border border-white/10 text-xs font-medium transition-colors cursor-pointer"
+              className="px-3.5 py-2 bg-white/5 hover:bg-white/10 text-white rounded-xl border border-slate-200 dark:border-white/10 text-xs font-medium transition-colors cursor-pointer"
             >
               Add
             </button>
           </div>
 
-          <div className="flex flex-wrap gap-2 min-h-10 p-2.5 bg-[#050508] border border-white/10 rounded-xl">
+          <div className="flex flex-wrap gap-2 min-h-10 p-2.5 bg-slate-50 dark:bg-[#050508] border border-slate-200 dark:border-white/10 rounded-xl">
             {skills.length > 0 ? (
               skills.map((skill, idx) => (
                 <span
                   key={idx}
-                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/5 text-gray-200 border border-white/10 text-xs"
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/5 text-gray-200 border border-slate-200 dark:border-white/10 text-xs"
                 >
                   <span>{skill}</span>
                   <button
@@ -449,7 +449,7 @@ const ProfileSettingsTab = () => {
                 key={pop}
                 type="button"
                 onClick={() => handleAddSkill(pop)}
-                className="px-2 py-0.5 rounded-md bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white border border-white/5 text-[11px] font-mono transition-colors cursor-pointer"
+                className="px-2 py-0.5 rounded-md bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white border border-slate-200 dark:border-white/5 text-[11px] font-mono transition-colors cursor-pointer"
               >
                 + {pop}
               </button>
@@ -459,8 +459,8 @@ const ProfileSettingsTab = () => {
       </div>
 
       {/* 5. Bio & About Story */}
-      <div className="bg-[#111] border border-white/5 rounded-2xl p-6 sm:p-7 space-y-4">
-        <div className="flex items-center gap-2 text-white font-bold text-sm border-b border-white/5 pb-3">
+      <div className="bg-white dark:bg-[#111] border border-slate-200 dark:border-white/5 rounded-2xl p-6 sm:p-7 space-y-4">
+        <div className="flex items-center gap-2 text-slate-900 dark:text-white font-bold text-sm border-b border-slate-200 dark:border-white/5 pb-3">
           <Sparkles size={16} className="text-amber-400" />
           <span>Bio & About</span>
         </div>
@@ -468,7 +468,7 @@ const ProfileSettingsTab = () => {
         <div className="space-y-4">
           <div className="space-y-1.5">
             <div className="flex items-center justify-between">
-              <label className="text-xs font-medium text-gray-300">Headline Bio</label>
+              <label className="text-xs font-medium text-slate-700 dark:text-gray-300">Headline Bio</label>
               <span className="text-[10px] font-mono text-gray-500">{bio.length} / 220</span>
             </div>
             <textarea
@@ -476,14 +476,14 @@ const ProfileSettingsTab = () => {
               onChange={(e) => setBio(e.target.value)}
               maxLength={220}
               rows={2}
-              className="w-full bg-[#050508] border border-white/10 rounded-xl py-2 px-3.5 text-xs text-white focus:border-[#00F0FF]/50 outline-none resize-none transition-colors"
+              className="w-full bg-slate-50 dark:bg-[#050508] border border-slate-200 dark:border-white/10 rounded-xl py-2 px-3.5 text-xs text-white focus:border-[#00F0FF]/50 outline-none resize-none transition-colors"
               placeholder="Short bio for your feed cards..."
             />
           </div>
 
           <div className="space-y-1.5">
             <div className="flex items-center justify-between">
-              <label className="text-xs font-medium text-gray-300">Extended About Story</label>
+              <label className="text-xs font-medium text-slate-700 dark:text-gray-300">Extended About Story</label>
               <span className="text-[10px] font-mono text-gray-500">{about.length} / 2000</span>
             </div>
             <textarea
@@ -491,7 +491,7 @@ const ProfileSettingsTab = () => {
               onChange={(e) => setAbout(e.target.value)}
               maxLength={2000}
               rows={4}
-              className="w-full bg-[#050508] border border-white/10 rounded-xl py-2.5 px-3.5 text-xs text-white focus:border-[#00F0FF]/50 outline-none resize-none transition-colors font-mono leading-relaxed"
+              className="w-full bg-slate-50 dark:bg-[#050508] border border-slate-200 dark:border-white/10 rounded-xl py-2.5 px-3.5 text-xs text-white focus:border-[#00F0FF]/50 outline-none resize-none transition-colors font-mono leading-relaxed"
               placeholder="Detailed summary of your experience and interests..."
             />
           </div>
@@ -499,15 +499,15 @@ const ProfileSettingsTab = () => {
       </div>
 
       {/* 6. Social & Repo Links */}
-      <div className="bg-[#111] border border-white/5 rounded-2xl p-6 sm:p-7 space-y-4">
-        <div className="flex items-center gap-2 text-white font-bold text-sm border-b border-white/5 pb-3">
+      <div className="bg-white dark:bg-[#111] border border-slate-200 dark:border-white/5 rounded-2xl p-6 sm:p-7 space-y-4">
+        <div className="flex items-center gap-2 text-slate-900 dark:text-white font-bold text-sm border-b border-slate-200 dark:border-white/5 pb-3">
           <Globe size={16} className="text-[#00F0FF]" />
           <span>Social & Repository Links</span>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-1.5">
-            <label className="text-xs font-medium text-gray-300">GitHub Username</label>
+            <label className="text-xs font-medium text-slate-700 dark:text-gray-300">GitHub Username</label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-500">
                 <FolderGit2 size={14} />
@@ -516,14 +516,14 @@ const ProfileSettingsTab = () => {
                 type="text"
                 value={githubusername}
                 onChange={(e) => setGithubusername(e.target.value)}
-                className="w-full bg-[#050508] border border-white/10 rounded-xl py-2.5 pl-9 pr-3.5 text-xs text-white focus:border-[#00F0FF]/50 outline-none transition-colors"
+                className="w-full bg-slate-50 dark:bg-[#050508] border border-slate-200 dark:border-white/10 rounded-xl py-2.5 pl-9 pr-3.5 text-xs text-white focus:border-[#00F0FF]/50 outline-none transition-colors"
                 placeholder="e.g. octocat"
               />
             </div>
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-xs font-medium text-gray-300">Personal Website</label>
+            <label className="text-xs font-medium text-slate-700 dark:text-gray-300">Personal Website</label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-500">
                 <Globe size={14} />
@@ -532,14 +532,14 @@ const ProfileSettingsTab = () => {
                 type="url"
                 value={website}
                 onChange={(e) => setWebsite(e.target.value)}
-                className="w-full bg-[#050508] border border-white/10 rounded-xl py-2.5 pl-9 pr-3.5 text-xs text-white focus:border-[#00F0FF]/50 outline-none transition-colors"
+                className="w-full bg-slate-50 dark:bg-[#050508] border border-slate-200 dark:border-white/10 rounded-xl py-2.5 pl-9 pr-3.5 text-xs text-white focus:border-[#00F0FF]/50 outline-none transition-colors"
                 placeholder="https://portfolio.dev"
               />
             </div>
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-xs font-medium text-gray-300">LinkedIn Profile URL</label>
+            <label className="text-xs font-medium text-slate-700 dark:text-gray-300">LinkedIn Profile URL</label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-500">
                 <Link2 size={14} />
@@ -548,14 +548,14 @@ const ProfileSettingsTab = () => {
                 type="url"
                 value={linkedin}
                 onChange={(e) => setLinkedin(e.target.value)}
-                className="w-full bg-[#050508] border border-white/10 rounded-xl py-2.5 pl-9 pr-3.5 text-xs text-white focus:border-[#00F0FF]/50 outline-none transition-colors"
+                className="w-full bg-slate-50 dark:bg-[#050508] border border-slate-200 dark:border-white/10 rounded-xl py-2.5 pl-9 pr-3.5 text-xs text-white focus:border-[#00F0FF]/50 outline-none transition-colors"
                 placeholder="https://linkedin.com/in/username"
               />
             </div>
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-xs font-medium text-gray-300">Twitter / X URL</label>
+            <label className="text-xs font-medium text-slate-700 dark:text-gray-300">Twitter / X URL</label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-500">
                 <Link2 size={14} />
@@ -564,7 +564,7 @@ const ProfileSettingsTab = () => {
                 type="url"
                 value={twitter}
                 onChange={(e) => setTwitter(e.target.value)}
-                className="w-full bg-[#050508] border border-white/10 rounded-xl py-2.5 pl-9 pr-3.5 text-xs text-white focus:border-[#00F0FF]/50 outline-none transition-colors"
+                className="w-full bg-slate-50 dark:bg-[#050508] border border-slate-200 dark:border-white/10 rounded-xl py-2.5 pl-9 pr-3.5 text-xs text-white focus:border-[#00F0FF]/50 outline-none transition-colors"
                 placeholder="https://x.com/username"
               />
             </div>
@@ -577,7 +577,7 @@ const ProfileSettingsTab = () => {
         <button
           type="submit"
           disabled={saving}
-          className="px-6 py-2.5 bg-[#00F0FF] hover:bg-[#00F0FF]/90 text-black font-semibold text-xs rounded-xl transition-colors cursor-pointer disabled:opacity-50 flex items-center gap-2"
+          className="px-6 py-2.5 bg-[#0A66C2] hover:bg-[#004182] text-white dark:bg-[#00F0FF] dark:hover:bg-[#00F0FF]/90 dark:text-black shadow-sm font-semibold text-xs rounded-xl transition-colors cursor-pointer disabled:opacity-50 flex items-center gap-2"
         >
           <Save size={15} />
           <span>{saving ? 'Saving...' : 'Save Profile Changes'}</span>

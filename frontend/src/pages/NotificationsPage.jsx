@@ -67,10 +67,10 @@ const NotificationsPage = () => {
 
   return (
     <div className="max-w-3xl mx-auto space-y-6 animate-fade-in pb-20">
-      <div className="bg-[#111] border border-white/5 rounded-2xl p-6 shadow-xl">
+      <div className="bg-white dark:bg-[#111] border border-slate-200 dark:border-white/5 rounded-2xl p-6 shadow-sm dark:shadow-xl">
         <div className="flex items-center justify-between mb-6">
-          <h1 className="text-2xl font-bold text-white flex items-center gap-3">
-            <Bell className="text-[#00F0FF]" /> 
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-3">
+            <Bell className="text-[#0A66C2] dark:text-[#00F0FF]" /> 
             Notifications
           </h1>
         </div>
@@ -93,7 +93,7 @@ const NotificationsPage = () => {
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   className={`p-4 rounded-xl border border-white/5 transition-all flex items-start gap-4 cursor-pointer hover:bg-white/5 ${
-                    !notif.read ? 'bg-[#00F0FF]/5' : 'bg-white/[0.02]'
+                    !notif.read ? 'bg-blue-50/60 dark:bg-[#00F0FF]/5 border-blue-200 dark:border-white/10' : 'bg-slate-50 dark:bg-white/[0.02] border-slate-200 dark:border-white/5'
                   }`}
                 >
                   <img 
@@ -102,8 +102,8 @@ const NotificationsPage = () => {
                     className="w-12 h-12 rounded-full object-cover border border-white/10"
                   />
                   <div className="flex-1">
-                    <p className={`text-base ${!notif.read ? 'text-white' : 'text-gray-300'}`}>
-                      <span className="font-bold text-white hover:text-[#00F0FF] cursor-pointer transition-colors">
+                    <p className={`text-base ${!notif.read ? 'text-slate-900 dark:text-white font-medium' : 'text-slate-700 dark:text-gray-300'}`}>
+                      <span className="font-bold text-slate-900 dark:text-white hover:text-[#0A66C2] dark:hover:text-[#00F0FF] cursor-pointer transition-colors">
                         {notif.sender?.name}
                       </span>{' '}
                       {notif.message}

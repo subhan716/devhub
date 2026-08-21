@@ -107,7 +107,7 @@ const CommentItem = ({ comment, postId, onReply, onDelete, depth = 0, isTarget, 
               </div>
             </div>
           ) : (
-            <p className="text-[14px] text-gray-200 leading-relaxed whitespace-pre-wrap">{comment.text}</p>
+            <p className="text-[14px] text-slate-800 dark:text-gray-200 leading-relaxed whitespace-pre-wrap">{comment.text}</p>
           )}
           
           {/* Horizontal Actions (Edit, Delete, Copy) */}
@@ -390,7 +390,7 @@ const CommentsList = ({ postId, targetCommentId, onUpdateCount, currentUser }) =
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: -10, scale: 0.95 }}
                 transition={{ duration: 0.15 }}
-                className="absolute right-0 top-full mt-2 w-36 bg-[#181820] border border-white/10 rounded-xl shadow-2xl py-1.5 z-50 overflow-hidden backdrop-blur-md"
+                className="absolute right-0 top-full mt-2 w-36 bg-slate-100 dark:bg-[#181820] border border-white/10 rounded-xl shadow-2xl py-1.5 z-50 overflow-hidden backdrop-blur-md"
               >
                 {[
                   { value: 'newest', label: 'Newest first' },

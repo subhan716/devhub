@@ -35,8 +35,6 @@ const RightSidebar = ({ currentUser }) => {
 
     window.addEventListener('network-update', handleNetworkUpdate);
     return () => window.removeEventListener('network-update', handleNetworkUpdate);
-  // Re-fetch when currentUser loads (it's null initially)
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentUserId]);
 
   const handleConnect = async (userId) => {
@@ -53,93 +51,101 @@ const RightSidebar = ({ currentUser }) => {
   };
 
   return (
-    <div className="w-80 h-screen fixed right-0 top-0 border-l border-white/5 bg-[#0a0a0a] pt-24 pb-6 px-6 hidden xl:block overflow-y-auto scrollbar-none z-10">
+    <div className="w-80 h-screen fixed right-0 top-0 border-l border-slate-200 dark:border-white/5 bg-slate-50/50 dark:bg-[#0a0a0a] pt-24 pb-6 px-6 hidden xl:block overflow-y-auto scrollbar-none z-10 transition-colors duration-200">
       {/* Suggested Connections Box */}
-      <div className="bg-[#111] border border-white/5 rounded-2xl p-5 shadow-lg">
-        <h3 className="text-white font-semibold mb-6">Suggested Connections</h3>
+      <div className="bg-white dark:bg-[#111] border border-slate-200 dark:border-white/5 rounded-2xl p-5 shadow-sm dark:shadow-lg">
+        <h3 className="text-slate-900 dark:text-white font-semibold text-sm mb-5">Suggested Connections</h3>
         
-        <div className="flex flex-col gap-6">
+        <div className="flex flex-col gap-5">
           {suggestedUsers.length > 0 ? suggestedUsers.map((user) => (
             <div key={user._id} className="flex flex-col gap-3 group">
               <div className="flex items-center justify-between">
                 <div 
-                  className="flex items-center gap-3 cursor-pointer" 
+                  className="flex items-center gap-3 cursor-pointer min-w-0" 
                   onClick={() => navigate(`/profile/${user._id}`)}
                 >
-                  <img src={user.avatar?.url || 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y'} alt={user.name} className="w-10 h-10 rounded-full object-cover border border-white/10 group-hover:border-[#00F0FF]/50 transition-colors" />
-                  <div className="flex flex-col">
-                    <span className="text-white text-sm font-medium group-hover:text-[#00F0FF] transition-colors">{user.name}</span>
-                    <span className="text-gray-500 text-xs">{user.role || 'Developer'}</span>
+                  <img 
+                    src={user.avatar?.url || 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y'} 
+                    alt={user.name} 
+                    className="w-10 h-10 rounded-full object-cover border border-slate-200 dark:border-white/10 group-hover:border-[#0A66C2] dark:group-hover:border-[#00F0FF]/50 transition-colors flex-shrink-0" 
+                  />
+                  <div className="flex flex-col min-w-0">
+                    <span className="text-slate-900 dark:text-white text-xs font-semibold group-hover:text-[#0A66C2] dark:group-hover:text-[#00F0FF] transition-colors truncate">
+                      {user.name}
+                    </span>
+                    <span className="text-gray-500 text-[11px] truncate">
+                      {user.role || 'Developer'}
+                    </span>
                   </div>
                 </div>
                 <button 
                   onClick={() => handleConnect(user._id)}
                   disabled={loadingIds.includes(user._id)}
-                  className="px-4 py-1.5 bg-[#00F0FF]/10 text-[#00F0FF] hover:bg-[#00F0FF]/20 text-xs font-semibold rounded-full transition-colors border border-[#00F0FF]/20 cursor-pointer disabled:opacity-50"
+                  className="px-3.5 py-1.5 bg-[#0A66C2]/10 text-[#0A66C2] hover:bg-[#0A66C2]/20 border border-[#0A66C2]/30 dark:bg-[#00F0FF]/10 dark:text-[#00F0FF] dark:hover:bg-[#00F0FF]/20 dark:border-[#00F0FF]/20 text-xs font-semibold rounded-full transition-colors cursor-pointer disabled:opacity-50 flex-shrink-0"
                 >
                   {loadingIds.includes(user._id) ? '...' : 'Connect'}
                 </button>
               </div>
             </div>
           )) : (
-            <p className="text-sm text-gray-500 text-center py-4">No new suggestions</p>
+            <p className="text-xs text-gray-400 dark:text-gray-500 text-center py-4">No new suggestions</p>
           )}
         </div>
       </div>
       
       {/* Active Working Footer Legal & Governance Links */}
-      <div className="mt-8 bg-[#111]/40 border border-white/5 rounded-2xl p-4 space-y-3 text-[11px] text-gray-400">
-        <span className="text-[10px] font-mono uppercase tracking-wider text-gray-500 block">
+      <div className="mt-6 bg-white dark:bg-[#111]/40 border border-slate-200 dark:border-white/5 rounded-2xl p-4 space-y-3 text-[11px] text-gray-500 dark:text-gray-400 shadow-sm dark:shadow-none">
+        <span className="text-[10px] font-mono uppercase tracking-wider text-gray-400 dark:text-gray-500 block font-semibold">
           Trust & Legal Center
         </span>
 
         <div className="flex flex-col gap-2">
           <Link 
             to="/guidelines" 
-            className="flex items-center justify-between hover:text-[#00F0FF] transition-colors group cursor-pointer"
+            className="flex items-center justify-between hover:text-[#0A66C2] dark:hover:text-[#00F0FF] transition-colors group cursor-pointer"
           >
             <div className="flex items-center gap-2">
-              <ShieldCheck size={13} className="text-amber-400" />
+              <ShieldCheck size={13} className="text-amber-500 dark:text-amber-400" />
               <span>Community Guidelines</span>
             </div>
-            <span className="text-[10px] text-gray-600 group-hover:text-[#00F0FF]">→</span>
+            <span className="text-[10px] text-gray-400 group-hover:text-[#0A66C2] dark:group-hover:text-[#00F0FF]">→</span>
           </Link>
 
           <Link 
             to="/terms" 
-            className="flex items-center justify-between hover:text-[#00F0FF] transition-colors group cursor-pointer"
+            className="flex items-center justify-between hover:text-[#0A66C2] dark:hover:text-[#00F0FF] transition-colors group cursor-pointer"
           >
             <div className="flex items-center gap-2">
-              <Scale size={13} className="text-cyan-400" />
+              <Scale size={13} className="text-blue-500 dark:text-cyan-400" />
               <span>Terms of Service</span>
             </div>
-            <span className="text-[10px] text-gray-600 group-hover:text-[#00F0FF]">→</span>
+            <span className="text-[10px] text-gray-400 group-hover:text-[#0A66C2] dark:group-hover:text-[#00F0FF]">→</span>
           </Link>
 
           <Link 
             to="/privacy" 
-            className="flex items-center justify-between hover:text-[#00F0FF] transition-colors group cursor-pointer"
+            className="flex items-center justify-between hover:text-[#0A66C2] dark:hover:text-[#00F0FF] transition-colors group cursor-pointer"
           >
             <div className="flex items-center gap-2">
-              <Lock size={13} className="text-emerald-400" />
+              <Lock size={13} className="text-emerald-500 dark:text-emerald-400" />
               <span>Privacy Policy (GDPR)</span>
             </div>
-            <span className="text-[10px] text-gray-600 group-hover:text-[#00F0FF]">→</span>
+            <span className="text-[10px] text-gray-400 group-hover:text-[#0A66C2] dark:group-hover:text-[#00F0FF]">→</span>
           </Link>
 
           <a 
             href="mailto:devhubapp.support@gmail.com" 
-            className="flex items-center justify-between hover:text-white transition-colors group cursor-pointer pt-1 border-t border-white/5"
+            className="flex items-center justify-between hover:text-slate-900 dark:hover:text-white transition-colors group cursor-pointer pt-1 border-t border-slate-100 dark:border-white/5"
           >
-            <div className="flex items-center gap-2 text-gray-500">
+            <div className="flex items-center gap-2 text-gray-400 dark:text-gray-500">
               <HelpCircle size={13} />
               <span>Trust Desk & Support</span>
             </div>
-            <ExternalLink size={11} className="text-gray-600" />
+            <ExternalLink size={11} className="text-gray-400" />
           </a>
         </div>
 
-        <div className="text-[10px] text-gray-600 font-mono pt-1">
+        <div className="text-[10px] text-gray-400 dark:text-gray-600 font-mono pt-1">
           DevHub Corporation © 2026
         </div>
       </div>
