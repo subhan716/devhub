@@ -64,7 +64,7 @@ const SearchPage = () => {
       {/* Search Header */}
       <div className="bg-white dark:bg-[#111] border border-slate-200 dark:border-white/5 rounded-2xl p-6 shadow-lg">
         <h1 className="text-2xl font-bold text-white flex items-center gap-3">
-          <SearchIcon className="text-[#0A66C2] dark:text-[#00F0FF]" />
+          <SearchIcon className="text-[#00F0FF]" />
           Search Results for "{searchQuery}"
         </h1>
         
@@ -83,12 +83,12 @@ const SearchPage = () => {
               {tab.icon}
               {tab.label}
               {tab.id === 'people' && profiles.length > 0 && (
-                <span className="ml-2 bg-[#0A66C2] dark:bg-[#00F0FF]/20 text-[#0A66C2] dark:text-[#00F0FF] py-0.5 px-2 rounded-full text-xs">
+                <span className="ml-2 bg-[#00F0FF]/20 text-[#00F0FF] py-0.5 px-2 rounded-full text-xs">
                   {profiles.length}
                 </span>
               )}
               {tab.id === 'posts' && posts.length > 0 && (
-                <span className="ml-2 bg-[#0A66C2] dark:bg-[#00F0FF]/20 text-[#0A66C2] dark:text-[#00F0FF] py-0.5 px-2 rounded-full text-xs">
+                <span className="ml-2 bg-[#00F0FF]/20 text-[#00F0FF] py-0.5 px-2 rounded-full text-xs">
                   {posts.length}
                 </span>
               )}
@@ -100,7 +100,7 @@ const SearchPage = () => {
       {/* Loading State */}
       {isLoading && (
         <div className="flex justify-center py-20">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#0A66C2] dark:border-[#00F0FF]"></div>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#00F0FF]"></div>
         </div>
       )}
 
@@ -133,7 +133,7 @@ const SearchPage = () => {
                         />
                       </Link>
                       <div className="flex-1">
-                        <Link to={`/profile/${profile.user._id}`} className="text-slate-900 dark:text-white font-bold text-lg hover:text-[#0A66C2] dark:text-[#00F0FF] transition-colors line-clamp-1">
+                        <Link to={`/profile/${profile.user._id}`} className="text-slate-900 dark:text-white font-bold text-lg hover:text-[#00F0FF] transition-colors line-clamp-1">
                           {profile.user?.name}
                         </Link>
                         <p className="text-sm text-gray-400 line-clamp-1 mt-0.5">{profile.status || 'Developer'}</p>
@@ -146,7 +146,7 @@ const SearchPage = () => {
                       </div>
                       <Link 
                         to={`/profile/${profile.user._id}`}
-                        className="px-4 py-2 border border-[#0A66C2] dark:border-[#00F0FF]/30 text-[#0A66C2] dark:text-[#00F0FF] rounded-full text-xs font-bold hover:bg-[#0A66C2] dark:bg-[#00F0FF]/10 transition-colors"
+                        className="px-4 py-2 border border-[#00F0FF]/30 text-[#00F0FF] rounded-full text-xs font-bold hover:bg-[#00F0FF]/10 transition-colors"
                       >
                         View
                       </Link>
@@ -177,7 +177,7 @@ const SearchPage = () => {
           {/* JOBS TAB */}
           {activeTab === 'jobs' && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-20 text-gray-500 bg-white dark:bg-[#111] rounded-2xl border border-slate-200 dark:border-white/5">
-              <Briefcase size={40} className="mx-auto mb-4 text-[#0A66C2] dark:text-[#00F0FF]/50" />
+              <Briefcase size={40} className="mx-auto mb-4 text-[#00F0FF]/50" />
               <p>Job search functionality coming soon!</p>
             </motion.div>
           )}

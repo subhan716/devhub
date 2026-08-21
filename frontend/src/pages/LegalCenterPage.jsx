@@ -85,8 +85,8 @@ const LegalCenterPage = ({ initialTab = 'guidelines' }) => {
       }
       if (line.startsWith('### ')) {
         return (
-          <h3 key={idx} className="text-sm font-bold text-[#0A66C2] dark:text-[#00F0FF] mt-4 mb-1.5 flex items-center gap-1.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#0A66C2] dark:bg-[#00F0FF]" />
+          <h3 key={idx} className="text-sm font-bold text-[#00F0FF] mt-4 mb-1.5 flex items-center gap-1.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#00F0FF]" />
             {line.replace('### ', '')}
           </h3>
         );
@@ -120,7 +120,7 @@ const LegalCenterPage = ({ initialTab = 'guidelines' }) => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-[#050508] text-slate-900 dark:text-white font-sans selection:bg-[#0A66C2] dark:bg-[#00F0FF]/30">
+    <div className="min-h-screen bg-slate-50 dark:bg-[#050508] text-slate-900 dark:text-white font-sans selection:bg-[#00F0FF]/30">
       {/* Top Navigation Bar */}
       <header className="border-b border-slate-200 dark:border-white/5 bg-[#09090D]/80 backdrop-blur-md sticky top-0 z-50">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
@@ -134,7 +134,7 @@ const LegalCenterPage = ({ initialTab = 'guidelines' }) => {
             </Link>
             <div className="h-4 w-px bg-white/10" />
             <div className="flex items-center gap-2">
-              <Scale size={18} className="text-[#0A66C2] dark:text-[#00F0FF]" />
+              <Scale size={18} className="text-[#00F0FF]" />
               <h1 className="text-sm font-bold text-slate-900 dark:text-white tracking-wide">DevHub Trust & Legal Center</h1>
             </div>
           </div>
@@ -206,12 +206,12 @@ const LegalCenterPage = ({ initialTab = 'guidelines' }) => {
               {/* Version & Sentinel Telemetry Card */}
               <div className="p-4 rounded-2xl bg-gradient-to-br from-cyan-950/20 to-black/40 border border-cyan-500/20 text-xs space-y-2">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2 text-[#0A66C2] dark:text-[#00F0FF] font-bold">
+                  <div className="flex items-center gap-2 text-[#00F0FF] font-bold">
                     <Terminal size={14} />
                     <span>Dynamic Policy Sync</span>
                   </div>
                   {policyData?.version && (
-                    <span className="px-2 py-0.5 rounded bg-[#0A66C2] dark:bg-[#00F0FF]/10 border border-[#0A66C2] dark:border-[#00F0FF]/30 text-[#0A66C2] dark:text-[#00F0FF] font-mono text-[10px] font-bold">
+                    <span className="px-2 py-0.5 rounded bg-[#00F0FF]/10 border border-[#00F0FF]/30 text-[#00F0FF] font-mono text-[10px] font-bold">
                       v{policyData.version}
                     </span>
                   )}
@@ -231,7 +231,7 @@ const LegalCenterPage = ({ initialTab = 'guidelines' }) => {
             <div className="bg-[#0C0C12] border border-slate-200 dark:border-white/10 rounded-2xl p-6 sm:p-10 shadow-xl space-y-6 leading-relaxed">
               {loading ? (
                 <div className="py-20 flex flex-col items-center justify-center gap-3 text-gray-500 font-mono text-xs">
-                  <RefreshCw size={24} className="animate-spin text-[#0A66C2] dark:text-[#00F0FF]" />
+                  <RefreshCw size={24} className="animate-spin text-[#00F0FF]" />
                   <span>Loading official policy document...</span>
                 </div>
               ) : (

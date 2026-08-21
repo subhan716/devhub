@@ -9,7 +9,7 @@ const ThreeDNetwork = lazy(() => import('../components/ui/ThreeDNetwork'));
 
 const LandingPage = () => {
   return (
-    <main className="min-h-screen bg-slate-50 dark:bg-[#0A0A0A] text-slate-900 dark:text-white overflow-x-hidden font-sans selection:bg-[#0A66C2] dark:bg-[#00F0FF]/30 transition-colors duration-200">
+    <main className="min-h-screen bg-slate-50 dark:bg-[#0A0A0A] text-slate-900 dark:text-white overflow-x-hidden font-sans selection:bg-[#00F0FF]/30 transition-colors duration-200">
       <Navbar />
 
       {/* 1. Hero Section */}
@@ -34,7 +34,7 @@ const LandingPage = () => {
               Connect with elite developers, showcase your code, and build your professional portfolio in an ecosystem designed exclusively for engineers.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4">
-              <Link to="/register" className="w-full sm:w-auto px-8 py-4 rounded-xl bg-[#0A66C2] hover:bg-[#004182] text-white dark:bg-[#00F0FF] dark:hover:bg-[#0A66C2] dark:bg-[#00F0FF]/90 dark:text-black font-bold text-lg transition-transform hover:scale-105 shadow-lg shadow-blue-500/20 dark:shadow-[0_0_20px_rgba(0,240,255,0.4)] text-center">
+              <Link to="/register" className="w-full sm:w-auto px-8 py-4 rounded-xl bg-[#0A66C2] hover:bg-[#004182] text-white dark:bg-[#00F0FF] dark:hover:bg-[#00F0FF]/90 dark:text-black font-bold text-lg transition-transform hover:scale-105 shadow-lg shadow-blue-500/20 dark:shadow-[0_0_20px_rgba(0,240,255,0.4)] text-center">
                 Start Networking
               </Link>
               <a href="#features" className="w-full sm:w-auto px-8 py-4 rounded-xl border border-slate-300 dark:border-white/20 bg-white dark:bg-white/5 hover:bg-slate-50 dark:hover:bg-white/10 text-slate-800 dark:text-white font-bold text-lg backdrop-blur-md transition-all shadow-xs text-center">
@@ -47,7 +47,7 @@ const LandingPage = () => {
             initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 1.2, delay: 0.2 }}
             className="w-full lg:w-1/2 h-[400px] lg:h-[600px] mt-12 lg:mt-0 relative"
           >
-            <div className="absolute inset-0 bg-[#0A66C2] dark:bg-[#00F0FF] opacity-20 blur-[120px] rounded-full" />
+            <div className="absolute inset-0 bg-[#00F0FF] opacity-20 blur-[120px] rounded-full" />
             <Suspense fallback={null}>
               <ThreeDNetwork />
             </Suspense>
@@ -62,10 +62,10 @@ const LandingPage = () => {
         <div className="flex w-[200%] animate-[marquee_20s_linear_infinite]">
           {[...Array(2)].map((_, index) => (
             <div key={index} className="flex justify-around w-1/2 items-center text-gray-500 font-mono text-xl md:text-2xl font-bold opacity-50">
-              <span>Engineering</span><span className="text-[#0A66C2] dark:text-[#00F0FF]">●</span>
+              <span>Engineering</span><span className="text-[#00F0FF]">●</span>
               <span>Business</span><span className="text-[#FF0055]">●</span>
               <span>Design</span><span className="text-[#8A2BE2]">●</span>
-              <span>Marketing</span><span className="text-[#0A66C2] dark:text-[#00F0FF]">●</span>
+              <span>Marketing</span><span className="text-[#00F0FF]">●</span>
               <span>Management</span><span className="text-[#FF0055]">●</span>
               <span>Startups</span><span className="text-[#8A2BE2]">●</span>
             </div>

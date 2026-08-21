@@ -67,10 +67,10 @@ const RightSidebar = ({ currentUser }) => {
                   <img 
                     src={user.avatar?.url || 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y'} 
                     alt={user.name} 
-                    className="w-10 h-10 rounded-full object-cover border border-slate-200 dark:border-white/10 group-hover:border-[#0A66C2] dark:group-hover:border-[#0A66C2] dark:border-[#00F0FF]/50 transition-colors flex-shrink-0" 
+                    className="w-10 h-10 rounded-full object-cover border border-slate-200 dark:border-white/10 group-hover:border-[#0A66C2] dark:group-hover:border-[#00F0FF]/50 transition-colors flex-shrink-0" 
                   />
                   <div className="flex flex-col min-w-0">
-                    <span className="text-slate-900 dark:text-white text-xs font-semibold group-hover:text-[#0A66C2] dark:group-hover:text-[#0A66C2] dark:text-[#00F0FF] transition-colors truncate">
+                    <span className="text-slate-900 dark:text-white text-xs font-semibold group-hover:text-[#0A66C2] dark:group-hover:text-[#00F0FF] transition-colors truncate">
                       {user.name}
                     </span>
                     <span className="text-gray-500 text-[11px] truncate">
@@ -81,7 +81,7 @@ const RightSidebar = ({ currentUser }) => {
                 <button 
                   onClick={() => handleConnect(user._id)}
                   disabled={loadingIds.includes(user._id)}
-                  className="px-3.5 py-1.5 bg-[#0A66C2]/10 text-[#0A66C2] hover:bg-[#0A66C2]/20 border border-[#0A66C2]/30 dark:bg-[#00F0FF]/10 dark:text-[#00F0FF] dark:hover:bg-[#0A66C2] dark:bg-[#00F0FF]/20 dark:border-[#00F0FF]/20 text-xs font-semibold rounded-full transition-colors cursor-pointer disabled:opacity-50 flex-shrink-0"
+                  className="px-3.5 py-1.5 bg-[#0A66C2]/10 text-[#0A66C2] hover:bg-[#0A66C2]/20 border border-[#0A66C2]/30 dark:bg-[#00F0FF]/10 dark:text-[#00F0FF] dark:hover:bg-[#00F0FF]/20 dark:border-[#00F0FF]/20 text-xs font-semibold rounded-full transition-colors cursor-pointer disabled:opacity-50 flex-shrink-0"
                 >
                   {loadingIds.includes(user._id) ? '...' : 'Connect'}
                 </button>
@@ -102,35 +102,35 @@ const RightSidebar = ({ currentUser }) => {
         <div className="flex flex-col gap-2">
           <Link 
             to="/guidelines" 
-            className="flex items-center justify-between hover:text-[#0A66C2] dark:hover:text-[#0A66C2] dark:text-[#00F0FF] transition-colors group cursor-pointer"
+            className="flex items-center justify-between hover:text-[#0A66C2] dark:hover:text-[#00F0FF] transition-colors group cursor-pointer"
           >
             <div className="flex items-center gap-2">
               <ShieldCheck size={13} className="text-amber-500 dark:text-amber-400" />
               <span>Community Guidelines</span>
             </div>
-            <span className="text-[10px] text-gray-400 group-hover:text-[#0A66C2] dark:group-hover:text-[#0A66C2] dark:text-[#00F0FF]">→</span>
+            <span className="text-[10px] text-gray-400 group-hover:text-[#0A66C2] dark:group-hover:text-[#00F0FF]">→</span>
           </Link>
 
           <Link 
             to="/terms" 
-            className="flex items-center justify-between hover:text-[#0A66C2] dark:hover:text-[#0A66C2] dark:text-[#00F0FF] transition-colors group cursor-pointer"
+            className="flex items-center justify-between hover:text-[#0A66C2] dark:hover:text-[#00F0FF] transition-colors group cursor-pointer"
           >
             <div className="flex items-center gap-2">
               <Scale size={13} className="text-blue-500 dark:text-cyan-400" />
               <span>Terms of Service</span>
             </div>
-            <span className="text-[10px] text-gray-400 group-hover:text-[#0A66C2] dark:group-hover:text-[#0A66C2] dark:text-[#00F0FF]">→</span>
+            <span className="text-[10px] text-gray-400 group-hover:text-[#0A66C2] dark:group-hover:text-[#00F0FF]">→</span>
           </Link>
 
           <Link 
             to="/privacy" 
-            className="flex items-center justify-between hover:text-[#0A66C2] dark:hover:text-[#0A66C2] dark:text-[#00F0FF] transition-colors group cursor-pointer"
+            className="flex items-center justify-between hover:text-[#0A66C2] dark:hover:text-[#00F0FF] transition-colors group cursor-pointer"
           >
             <div className="flex items-center gap-2">
               <Lock size={13} className="text-emerald-500 dark:text-emerald-400" />
               <span>Privacy Policy (GDPR)</span>
             </div>
-            <span className="text-[10px] text-gray-400 group-hover:text-[#0A66C2] dark:group-hover:text-[#0A66C2] dark:text-[#00F0FF]">→</span>
+            <span className="text-[10px] text-gray-400 group-hover:text-[#0A66C2] dark:group-hover:text-[#00F0FF]">→</span>
           </Link>
 
           <a 

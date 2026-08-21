@@ -85,7 +85,7 @@ const UserPostsPage = () => {
         {/* Posts */}
         {isLoading ? (
           <div className="flex justify-center items-center py-20">
-            <Loader2 className="animate-spin h-8 w-8 text-[#0A66C2] dark:text-[#00F0FF]" />
+            <Loader2 className="animate-spin h-8 w-8 text-[#00F0FF]" />
           </div>
         ) : posts.length === 0 ? (
           <motion.div

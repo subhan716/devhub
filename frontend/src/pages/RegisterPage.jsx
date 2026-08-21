@@ -94,7 +94,7 @@ const RegisterPage = () => {
       </div>
       {/* Background Effects */}
       <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
-        <div className="absolute -top-[20%] -left-[10%] w-[50%] h-[50%] rounded-full bg-[#0A66C2] dark:bg-[#00F0FF]/10 blur-[120px]" />
+        <div className="absolute -top-[20%] -left-[10%] w-[50%] h-[50%] rounded-full bg-[#00F0FF]/10 blur-[120px]" />
         <div className="absolute bottom-[10%] -right-[10%] w-[40%] h-[40%] rounded-full bg-[#8A2BE2]/10 blur-[120px]" />
       </div>
 
@@ -132,7 +132,7 @@ const RegisterPage = () => {
                   type="text"
                   value={formData.name}
                   onChange={handleChange}
-                  className={`block w-full pl-10 pr-3 py-3 border ${errors.name ? 'border-red-500 focus:ring-red-500 focus:border-red-500' : 'border-slate-300 dark:border-white/10 focus:ring-[#0A66C2]/50 dark:focus:ring-[#00F0FF]/50 focus:border-[#0A66C2] dark:focus:border-[#0A66C2] dark:border-[#00F0FF]/50'} rounded-lg bg-slate-50 dark:bg-black/50 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 transition-all sm:text-sm`}
+                  className={`block w-full pl-10 pr-3 py-3 border ${errors.name ? 'border-red-500 focus:ring-red-500 focus:border-red-500' : 'border-slate-300 dark:border-white/10 focus:ring-[#0A66C2]/50 dark:focus:ring-[#00F0FF]/50 focus:border-[#0A66C2] dark:focus:border-[#00F0FF]/50'} rounded-lg bg-slate-50 dark:bg-black/50 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 transition-all sm:text-sm`}
                   placeholder="Enter your full name"
                 />
               </div>
@@ -150,7 +150,7 @@ const RegisterPage = () => {
                   type="email"
                   value={formData.email}
                   onChange={handleChange}
-                  className={`block w-full pl-10 pr-3 py-3 border ${errors.email ? 'border-red-500 focus:ring-red-500 focus:border-red-500' : 'border-slate-300 dark:border-white/10 focus:ring-[#0A66C2]/50 dark:focus:ring-[#00F0FF]/50 focus:border-[#0A66C2] dark:focus:border-[#0A66C2] dark:border-[#00F0FF]/50'} rounded-lg bg-slate-50 dark:bg-black/50 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 transition-all sm:text-sm`}
+                  className={`block w-full pl-10 pr-3 py-3 border ${errors.email ? 'border-red-500 focus:ring-red-500 focus:border-red-500' : 'border-slate-300 dark:border-white/10 focus:ring-[#0A66C2]/50 dark:focus:ring-[#00F0FF]/50 focus:border-[#0A66C2] dark:focus:border-[#00F0FF]/50'} rounded-lg bg-slate-50 dark:bg-black/50 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 transition-all sm:text-sm`}
                   placeholder="name@gmail.com"
                 />
               </div>
@@ -168,7 +168,7 @@ const RegisterPage = () => {
                   type="password"
                   value={formData.password}
                   onChange={handleChange}
-                  className={`block w-full pl-10 pr-3 py-3 border ${errors.password ? 'border-red-500 focus:ring-red-500 focus:border-red-500' : 'border-slate-300 dark:border-white/10 focus:ring-[#0A66C2]/50 dark:focus:ring-[#00F0FF]/50 focus:border-[#0A66C2] dark:focus:border-[#0A66C2] dark:border-[#00F0FF]/50'} rounded-lg bg-slate-50 dark:bg-black/50 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 transition-all sm:text-sm`}
+                  className={`block w-full pl-10 pr-3 py-3 border ${errors.password ? 'border-red-500 focus:ring-red-500 focus:border-red-500' : 'border-slate-300 dark:border-white/10 focus:ring-[#0A66C2]/50 dark:focus:ring-[#00F0FF]/50 focus:border-[#0A66C2] dark:focus:border-[#00F0FF]/50'} rounded-lg bg-slate-50 dark:bg-black/50 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 transition-all sm:text-sm`}
                   placeholder="Create a strong password"
                 />
               </div>
@@ -179,7 +179,7 @@ const RegisterPage = () => {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full flex justify-center items-center gap-2 py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-bold text-black bg-gradient-to-r from-[#00F0FF] to-[#00F0FF]/80 hover:from-[#00F0FF]/90 hover:to-[#00F0FF]/70 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-[#0A0A0A] focus:ring-[#0A66C2] dark:focus:ring-[#00F0FF] transition-all disabled:opacity-50 cursor-pointer"
+                className="w-full flex justify-center items-center gap-2 py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-bold text-black bg-gradient-to-r from-[#00F0FF] to-[#00F0FF]/80 hover:from-[#00F0FF]/90 hover:to-[#00F0FF]/70 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-[#0A0A0A] focus:ring-[#00F0FF] transition-all disabled:opacity-50 cursor-pointer"
               >
                 {isLoading ? 'Creating Identity...' : 'Initialize Profile'}
                 <ArrowRight size={18} />

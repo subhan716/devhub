@@ -90,7 +90,7 @@ const AddCertificationInline = ({ setProfile, onClose }) => {
                 name="title"
                 value={title}
                 onChange={onChange}
-                className="w-full bg-slate-50 dark:bg-[#0a0a0a] border border-slate-300 dark:border-white/10 rounded-xl py-2 px-3 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-gray-500 focus:border-[#0A66C2] dark:focus:border-[#0A66C2] dark:border-[#00F0FF]/50 outline-none text-sm"
+                className="w-full bg-slate-50 dark:bg-[#0a0a0a] border border-slate-300 dark:border-white/10 rounded-xl py-2 px-3 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-gray-500 focus:border-[#0A66C2] dark:focus:border-[#00F0FF]/50 outline-none text-sm"
                 placeholder="e.g. AWS Certified Solutions Architect"
                 required
               />
@@ -105,7 +105,7 @@ const AddCertificationInline = ({ setProfile, onClose }) => {
                 onChange={onChange}
                 onFocus={() => setIsCompanyFocused(true)}
                 onBlur={() => setTimeout(() => setIsCompanyFocused(false), 200)}
-                className="w-full bg-slate-50 dark:bg-[#0a0a0a] border border-slate-300 dark:border-white/10 rounded-xl py-2 px-3 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-gray-500 focus:border-[#0A66C2] dark:focus:border-[#0A66C2] dark:border-[#00F0FF]/50 outline-none text-sm"
+                className="w-full bg-slate-50 dark:bg-[#0a0a0a] border border-slate-300 dark:border-white/10 rounded-xl py-2 px-3 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-gray-500 focus:border-[#0A66C2] dark:focus:border-[#00F0FF]/50 outline-none text-sm"
                 placeholder="e.g. Amazon"
                 required
               />
@@ -117,7 +117,7 @@ const AddCertificationInline = ({ setProfile, onClose }) => {
                     companySuggestions.map((company, idx) => (
                       <div 
                         key={idx} 
-                        className="px-4 py-2.5 flex items-center gap-3 hover:bg-slate-100 dark:hover:bg-[#0A66C2] dark:bg-[#00F0FF]/10 hover:text-[#0A66C2] dark:hover:text-white cursor-pointer transition-colors"
+                        className="px-4 py-2.5 flex items-center gap-3 hover:bg-slate-100 dark:hover:bg-[#00F0FF]/10 hover:text-[#0A66C2] dark:hover:text-white cursor-pointer transition-colors"
                         onClick={() => {
                           setFormData({ ...formData, issuingOrganization: company.name });
                           setIsCompanyFocused(false);
@@ -150,7 +150,7 @@ const AddCertificationInline = ({ setProfile, onClose }) => {
                   ) : (
                     <div className="px-4 py-3 text-xs text-slate-600 dark:text-gray-400 flex justify-between items-center">
                       <span>No match found.</span>
-                      <span className="text-[#0A66C2] dark:text-[#00F0FF]">Will save as typed</span>
+                      <span className="text-[#00F0FF]">Will save as typed</span>
                     </div>
                   )}
                 </div>
@@ -166,7 +166,7 @@ const AddCertificationInline = ({ setProfile, onClose }) => {
                 name="issueDate"
                 value={issueDate}
                 onChange={onChange}
-                className="w-full bg-slate-50 dark:bg-[#0a0a0a] border border-slate-300 dark:border-white/10 rounded-xl py-2 px-3 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-gray-500 focus:border-[#0A66C2] dark:focus:border-[#0A66C2] dark:border-[#00F0FF]/50 outline-none text-sm [color-scheme:dark]"
+                className="w-full bg-slate-50 dark:bg-[#0a0a0a] border border-slate-300 dark:border-white/10 rounded-xl py-2 px-3 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-gray-500 focus:border-[#0A66C2] dark:focus:border-[#00F0FF]/50 outline-none text-sm [color-scheme:dark]"
                 required
               />
             </div>
@@ -178,7 +178,7 @@ const AddCertificationInline = ({ setProfile, onClose }) => {
                 name="credentialUrl"
                 value={credentialUrl}
                 onChange={onChange}
-                className="w-full bg-slate-50 dark:bg-[#0a0a0a] border border-slate-300 dark:border-white/10 rounded-xl py-2 px-3 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-gray-500 focus:border-[#0A66C2] dark:focus:border-[#0A66C2] dark:border-[#00F0FF]/50 outline-none text-sm"
+                className="w-full bg-slate-50 dark:bg-[#0a0a0a] border border-slate-300 dark:border-white/10 rounded-xl py-2 px-3 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-gray-500 focus:border-[#0A66C2] dark:focus:border-[#00F0FF]/50 outline-none text-sm"
                 placeholder="https://..."
               />
             </div>

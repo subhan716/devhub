@@ -268,27 +268,27 @@ const SetupProfilePage = () => {
     <div className="min-h-screen bg-[#0A0A0A] flex flex-col justify-center py-12 sm:px-6 lg:px-8 relative overflow-y-auto overflow-x-hidden scrollbar-thin scrollbar-thumb-[#00F0FF]/30 scrollbar-track-transparent">
       {/* Background Effects */}
       <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
-        <div className="absolute -top-[10%] left-[10%] w-[30%] h-[30%] rounded-full bg-[#0A66C2] dark:bg-[#00F0FF]/10 blur-[100px]" />
+        <div className="absolute -top-[10%] left-[10%] w-[30%] h-[30%] rounded-full bg-[#00F0FF]/10 blur-[100px]" />
         <div className="absolute bottom-[10%] right-[10%] w-[30%] h-[30%] rounded-full bg-[#8A2BE2]/10 blur-[100px]" />
       </div>
 
       <div className="sm:mx-auto sm:w-full sm:max-w-2xl relative z-10">
         <div className="flex justify-center items-center gap-2 mb-6">
-          <TerminalSquare className="text-[#0A66C2] dark:text-[#00F0FF]" size={32} />
+          <TerminalSquare className="text-[#00F0FF]" size={32} />
           <span className="text-3xl font-bold text-white tracking-tight">
-            Dev<span className="text-[#0A66C2] dark:text-[#00F0FF]">Hub</span>
+            Dev<span className="text-[#00F0FF]">Hub</span>
           </span>
         </div>
 
         {/* Progress Bar */}
         <div className="mb-8">
           <div className="flex justify-between text-sm font-medium text-gray-400 mb-2 px-1">
-            <span className={step >= 1 ? 'text-[#0A66C2] dark:text-[#00F0FF]' : ''}>1. Developer Identity</span>
-            <span className={step >= 2 ? 'text-[#0A66C2] dark:text-[#00F0FF]' : ''}>2. Background & Social</span>
+            <span className={step >= 1 ? 'text-[#00F0FF]' : ''}>1. Developer Identity</span>
+            <span className={step >= 2 ? 'text-[#00F0FF]' : ''}>2. Background & Social</span>
           </div>
           <div className="w-full bg-white/10 rounded-full h-2">
             <div 
-              className="bg-[#0A66C2] dark:bg-[#00F0FF] shadow-[0_0_10px_rgba(0,240,255,0.5)] h-2 rounded-full transition-all duration-500"
+              className="bg-[#00F0FF] shadow-[0_0_10px_rgba(0,240,255,0.5)] h-2 rounded-full transition-all duration-500"
               style={{ width: step === 1 ? '50%' : '100%' }}
             />
           </div>
@@ -316,7 +316,7 @@ const SetupProfilePage = () => {
                 {/* Searchable Custom Status Input */}
                 <div className="relative z-50">
                   <label className="block text-sm font-medium text-gray-300 mb-1">
-                    Professional Status <span className="text-[#0A66C2] dark:text-[#00F0FF]">*</span>
+                    Professional Status <span className="text-[#00F0FF]">*</span>
                   </label>
                   <div className={`relative rounded-md shadow-sm ${errors.status ? 'ring-1 ring-red-500 rounded-lg' : ''}`}>
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -333,7 +333,7 @@ const SetupProfilePage = () => {
                       }}
                       onFocus={() => setIsStatusFocused(true)}
                       onBlur={() => setTimeout(() => setIsStatusFocused(false), 200)}
-                      className={`block w-full pl-10 pr-3 py-3 border ${errors.status ? 'border-red-500 bg-red-500/5' : 'border-white/10 focus:border-[#0A66C2] dark:border-[#00F0FF]/50 focus:ring-1 focus:ring-[#0A66C2] dark:focus:ring-[#00F0FF]/50'} rounded-lg bg-black/50 text-white placeholder-gray-600 outline-none transition-all sm:text-sm`}
+                      className={`block w-full pl-10 pr-3 py-3 border ${errors.status ? 'border-red-500 bg-red-500/5' : 'border-white/10 focus:border-[#00F0FF]/50 focus:ring-1 focus:ring-[#00F0FF]/50'} rounded-lg bg-black/50 text-white placeholder-gray-600 outline-none transition-all sm:text-sm`}
                       placeholder="e.g. Software Engineer"
                       required
                       autoComplete="off"
@@ -369,7 +369,7 @@ const SetupProfilePage = () => {
                 <div>
                   <div className="flex justify-between items-end mb-1">
                     <label className="block text-sm font-medium text-gray-300">
-                      Tech Stack (Skills) <span className="text-[#0A66C2] dark:text-[#00F0FF]">*</span>
+                      Tech Stack (Skills) <span className="text-[#00F0FF]">*</span>
                     </label>
                     <span className={`text-xs ${selectedSkills.length >= MAX_SKILLS ? 'text-red-500 font-bold' : 'text-gray-500'}`}>
                       {selectedSkills.length}/{MAX_SKILLS} Added
@@ -402,7 +402,7 @@ const SetupProfilePage = () => {
                       onChange={(e) => setSkillInput(e.target.value)}
                       onKeyDown={handleSkillKeyDown}
                       disabled={selectedSkills.length >= MAX_SKILLS}
-                      className={`block w-full pl-10 pr-3 py-3 border ${errors.skills ? 'border-red-500 bg-red-500/5' : 'border-white/10'} rounded-lg bg-black/50 text-white placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-[#0A66C2] dark:focus:ring-[#00F0FF]/50 transition-all sm:text-sm disabled:opacity-50`}
+                      className={`block w-full pl-10 pr-3 py-3 border ${errors.skills ? 'border-red-500 bg-red-500/5' : 'border-white/10'} rounded-lg bg-black/50 text-white placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-[#00F0FF]/50 transition-all sm:text-sm disabled:opacity-50`}
                       placeholder={selectedSkills.length >= MAX_SKILLS ? "Skill limit reached" : "Type a skill and press Enter (e.g. React, Node.js)"}
                       autoComplete="off"
                     />
@@ -420,7 +420,7 @@ const SetupProfilePage = () => {
                               onClick={() => addSkill(skill)}
                               className="px-4 py-3 hover:bg-white/5 cursor-pointer transition-colors border-b border-white/5 last:border-0 text-white text-sm"
                             >
-                              Add <span className="font-bold text-[#0A66C2] dark:text-[#00F0FF]">{skill}</span>
+                              Add <span className="font-bold text-[#00F0FF]">{skill}</span>
                             </div>
                           ))}
                         </motion.div>
@@ -462,7 +462,7 @@ const SetupProfilePage = () => {
                           setIsCompanyFocused(false);
                         }
                       }}
-                      className="block w-full pl-10 pr-3 py-3 border border-white/10 rounded-lg bg-black/50 text-white placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-[#0A66C2] dark:focus:ring-[#00F0FF]/50 transition-all sm:text-sm"
+                      className="block w-full pl-10 pr-3 py-3 border border-white/10 rounded-lg bg-black/50 text-white placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-[#00F0FF]/50 transition-all sm:text-sm"
                       placeholder="e.g. Google, MIT, or Freelance"
                       autoComplete="off"
                     />
@@ -499,7 +499,7 @@ const SetupProfilePage = () => {
                             onClick={() => setSuggestions([])}
                           >
                             <span className="block mb-1">Company not found in global directory.</span>
-                            <span className="text-white font-medium">Press <kbd className="bg-white/10 px-2 py-0.5 rounded text-[#0A66C2] dark:text-[#00F0FF]">Enter</kbd> to keep "{formData.company}"</span>
+                            <span className="text-white font-medium">Press <kbd className="bg-white/10 px-2 py-0.5 rounded text-[#00F0FF]">Enter</kbd> to keep "{formData.company}"</span>
                           </div>
                         )}
                       </motion.div>
@@ -518,7 +518,7 @@ const SetupProfilePage = () => {
                       type="text"
                       value={formData.githubusername}
                       onChange={handleChange}
-                      className={`block w-full pl-10 pr-3 py-3 border ${errors.githubusername ? 'border-red-500 focus:ring-red-500' : 'border-white/10 focus:ring-[#0A66C2] dark:focus:ring-[#00F0FF]/50'} rounded-lg bg-black/50 text-white placeholder-gray-600 focus:outline-none focus:ring-2 transition-all sm:text-sm`}
+                      className={`block w-full pl-10 pr-3 py-3 border ${errors.githubusername ? 'border-red-500 focus:ring-red-500' : 'border-white/10 focus:ring-[#00F0FF]/50'} rounded-lg bg-black/50 text-white placeholder-gray-600 focus:outline-none focus:ring-2 transition-all sm:text-sm`}
                       placeholder="e.g. torvalds or https://github.com/..."
                     />
                   </div>
@@ -533,14 +533,14 @@ const SetupProfilePage = () => {
                       <span className="text-xs text-gray-500">{formData.bio.length}/{MAX_HEADLINE_LENGTH}</span>
                     </div>
                     <div className="relative">
-                      <div className="absolute top-3 left-4 text-gray-400 group-focus-within:text-[#0A66C2] dark:text-[#00F0FF] transition-colors">
+                      <div className="absolute top-3 left-4 text-gray-400 group-focus-within:text-[#00F0FF] transition-colors">
                         <FileText size={20} />
                       </div>
                       <textarea
                         name="bio"
                         value={formData.bio}
                         onChange={handleChange}
-                        className="w-full bg-[#0a0a0a] border border-white/10 rounded-xl py-3 pl-11 pr-4 text-white focus:border-[#0A66C2] dark:border-[#00F0FF]/50 outline-none resize-none transition-colors h-24"
+                        className="w-full bg-[#0a0a0a] border border-white/10 rounded-xl py-3 pl-11 pr-4 text-white focus:border-[#00F0FF]/50 outline-none resize-none transition-colors h-24"
                         placeholder="e.g. Flutter Developer | Building Real-Time Mobile Apps | Riverpod"
                       />
                     </div>
@@ -553,14 +553,14 @@ const SetupProfilePage = () => {
                       <span className="text-xs text-gray-500">{formData.about.length}/{MAX_ABOUT_LENGTH}</span>
                     </div>
                     <div className="relative">
-                      <div className="absolute top-3 left-4 text-gray-400 group-focus-within:text-[#0A66C2] dark:text-[#00F0FF] transition-colors">
+                      <div className="absolute top-3 left-4 text-gray-400 group-focus-within:text-[#00F0FF] transition-colors">
                         <FileText size={20} />
                       </div>
                       <textarea
                         name="about"
                         value={formData.about}
                         onChange={handleChange}
-                        className="w-full bg-[#0a0a0a] border border-white/10 rounded-xl py-3 pl-11 pr-4 text-white focus:border-[#0A66C2] dark:border-[#00F0FF]/50 outline-none resize-none transition-colors h-32"
+                        className="w-full bg-[#0a0a0a] border border-white/10 rounded-xl py-3 pl-11 pr-4 text-white focus:border-[#00F0FF]/50 outline-none resize-none transition-colors h-32"
                         placeholder="Tell us a detailed story about yourself, your career, and your interests..."
                       />
                     </div>
@@ -599,7 +599,7 @@ const SetupProfilePage = () => {
               )}
               <button
                 type="submit"
-                className={`${step === 1 ? 'flex-[2]' : 'flex-[2]'} flex justify-center items-center gap-2 py-3 px-4 border border-transparent rounded-lg shadow-[0_0_15px_rgba(0,240,255,0.3)] hover:shadow-[0_0_20px_rgba(0,240,255,0.4)] text-sm font-bold text-black bg-[#0A66C2] dark:bg-[#00F0FF] hover:opacity-90 focus:outline-none transition-all disabled:opacity-50 cursor-pointer`}
+                className={`${step === 1 ? 'flex-[2]' : 'flex-[2]'} flex justify-center items-center gap-2 py-3 px-4 border border-transparent rounded-lg shadow-[0_0_15px_rgba(0,240,255,0.3)] hover:shadow-[0_0_20px_rgba(0,240,255,0.4)] text-sm font-bold text-black bg-[#00F0FF] hover:opacity-90 focus:outline-none transition-all disabled:opacity-50 cursor-pointer`}
               >
                 {step === 1 ? (
                   <>Continue <ArrowRight size={18} /></>

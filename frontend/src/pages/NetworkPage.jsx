@@ -184,7 +184,7 @@ const NetworkPage = () => {
   if (isLoading) {
     return (
       <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#0A66C2] dark:border-[#00F0FF]"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#00F0FF]"></div>
       </div>
     );
   }
@@ -239,14 +239,14 @@ const NetworkPage = () => {
                   className={`pb-2 px-2 text-sm font-semibold transition-colors relative ${invitationTab === 'received' ? 'text-white' : 'text-gray-500 hover:text-slate-700 dark:text-gray-300'}`}
                 >
                   Received ({pendingRequests.received.length})
-                  {invitationTab === 'received' && <div className="absolute bottom-0 left-0 w-full h-0.5 bg-[#0A66C2] dark:bg-[#00F0FF] rounded-t-full"></div>}
+                  {invitationTab === 'received' && <div className="absolute bottom-0 left-0 w-full h-0.5 bg-[#00F0FF] rounded-t-full"></div>}
                 </button>
                 <button
                   onClick={() => setInvitationTab('sent')}
                   className={`pb-2 px-2 text-sm font-semibold transition-colors relative ${invitationTab === 'sent' ? 'text-white' : 'text-gray-500 hover:text-slate-700 dark:text-gray-300'}`}
                 >
                   Sent ({pendingRequests.sent.length})
-                  {invitationTab === 'sent' && <div className="absolute bottom-0 left-0 w-full h-0.5 bg-[#0A66C2] dark:bg-[#00F0FF] rounded-t-full"></div>}
+                  {invitationTab === 'sent' && <div className="absolute bottom-0 left-0 w-full h-0.5 bg-[#00F0FF] rounded-t-full"></div>}
                 </button>
               </div>
 
@@ -278,7 +278,7 @@ const NetworkPage = () => {
                             <button
                               onClick={() => handleAccept(req._id)}
                               disabled={actionLoading === `accept-${req._id}`}
-                              className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-2 bg-[#0A66C2] dark:bg-[#00F0FF]/10 text-[#0A66C2] dark:text-[#00F0FF] hover:bg-[#0A66C2] dark:bg-[#00F0FF]/20 rounded-lg font-medium transition-all duration-300 disabled:opacity-50"
+                              className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-2 bg-[#00F0FF]/10 text-[#00F0FF] hover:bg-[#00F0FF]/20 rounded-lg font-medium transition-all duration-300 disabled:opacity-50"
                             >
                               {actionLoading === `accept-${req._id}` ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check size={18} />}
                               Accept
@@ -360,7 +360,7 @@ const NetworkPage = () => {
                       <button
                         onClick={() => handleConnect(user._id)}
                         disabled={actionLoading === `connect-${user._id}` || pendingRequests.sent.some(req => req.recipient._id === user._id)}
-                        className="w-full flex items-center justify-center gap-2 py-2 rounded-lg border border-[#0A66C2] dark:border-[#00F0FF]/50 text-[#0A66C2] dark:text-[#00F0FF] hover:bg-[#0A66C2] dark:bg-[#00F0FF] hover:text-black font-medium transition-all duration-300 disabled:opacity-50"
+                        className="w-full flex items-center justify-center gap-2 py-2 rounded-lg border border-[#00F0FF]/50 text-[#00F0FF] hover:bg-[#00F0FF] hover:text-black font-medium transition-all duration-300 disabled:opacity-50"
                       >
                         {actionLoading === `connect-${user._id}` ? (
                           <Loader2 className="w-5 h-5 animate-spin" />
@@ -402,7 +402,7 @@ const NetworkPage = () => {
                           className="w-16 h-16 rounded-full object-cover flex-shrink-0 border border-slate-200 dark:border-white/10"
                         />
                         <div className="flex flex-col overflow-hidden">
-                          <Link to={`/profile/${conn.user._id}`} className="text-white font-semibold text-base hover:text-[#0A66C2] dark:text-[#00F0FF] transition-colors truncate block">
+                          <Link to={`/profile/${conn.user._id}`} className="text-white font-semibold text-base hover:text-[#00F0FF] transition-colors truncate block">
                             {conn.user.name}
                           </Link>
                           <p className="text-gray-400 text-sm line-clamp-2 mt-0.5 leading-relaxed">{conn.user.bio || conn.user.role || 'Software Engineer | Developer'}</p>
@@ -480,7 +480,7 @@ const NetworkPage = () => {
                           className="w-16 h-16 rounded-full object-cover flex-shrink-0 border border-slate-200 dark:border-white/10"
                         />
                         <div className="flex flex-col overflow-hidden">
-                          <Link to={`/profile/${profile.user._id}`} className="text-white font-semibold text-base hover:text-[#0A66C2] dark:text-[#00F0FF] transition-colors truncate block">
+                          <Link to={`/profile/${profile.user._id}`} className="text-white font-semibold text-base hover:text-[#00F0FF] transition-colors truncate block">
                             {profile.user?.name}
                           </Link>
                           <p className="text-gray-400 text-sm line-clamp-2 mt-0.5 leading-relaxed">{profile.bio || profile.user?.role || 'Software Engineer'}</p>
@@ -528,7 +528,7 @@ const NetworkPage = () => {
                             className="w-16 h-16 rounded-full object-cover flex-shrink-0 border border-slate-200 dark:border-white/10"
                           />
                           <div className="flex flex-col overflow-hidden">
-                            <Link to={`/profile/${profile.user._id}`} className="text-white font-semibold text-base hover:text-[#0A66C2] dark:text-[#00F0FF] transition-colors truncate block">
+                            <Link to={`/profile/${profile.user._id}`} className="text-white font-semibold text-base hover:text-[#00F0FF] transition-colors truncate block">
                               {profile.user?.name}
                             </Link>
                             <p className="text-gray-400 text-sm line-clamp-2 mt-0.5 leading-relaxed">{profile.bio || profile.user?.role || 'Software Engineer'}</p>
@@ -541,7 +541,7 @@ const NetworkPage = () => {
                           </button>
                           <button 
                             onClick={() => handleFollowToggle(profile.user._id, isFollowingUser)}
-                            className={`px-5 py-1.5 rounded-full text-sm font-medium transition-colors ${isFollowingUser ? 'border border-slate-200 dark:border-white/10 text-white hover:bg-white/5' : 'bg-[#0A66C2] dark:bg-[#00F0FF] text-black hover:bg-[#0A66C2] dark:bg-[#00F0FF]/90 shadow-[0_0_10px_rgba(0,240,255,0.2)]'}`}
+                            className={`px-5 py-1.5 rounded-full text-sm font-medium transition-colors ${isFollowingUser ? 'border border-slate-200 dark:border-white/10 text-white hover:bg-white/5' : 'bg-[#00F0FF] text-black hover:bg-[#00F0FF]/90 shadow-[0_0_10px_rgba(0,240,255,0.2)]'}`}
                           >
                             {actionLoading === `follow-${profile.user._id}` ? <Loader2 className="w-4 h-4 animate-spin mx-auto" /> : (isFollowingUser ? 'Following' : 'Follow Back')}
                           </button>

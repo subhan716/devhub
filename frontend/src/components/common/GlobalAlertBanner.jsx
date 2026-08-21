@@ -16,8 +16,8 @@ const TIER_STYLES = {
   announcement: {
     icon: Sparkles,
     bg: 'bg-cyan-950/80 border-cyan-500/30 text-cyan-200',
-    badge: 'bg-[#0A66C2] dark:bg-[#00F0FF]/20 text-[#0A66C2] dark:text-[#00F0FF] border-[#0A66C2] dark:border-[#00F0FF]/40',
-    button: 'bg-[#0A66C2] dark:bg-[#00F0FF] hover:bg-[#00D8E6] text-black',
+    badge: 'bg-[#00F0FF]/20 text-[#00F0FF] border-[#00F0FF]/40',
+    button: 'bg-[#00F0FF] hover:bg-[#00D8E6] text-black',
   },
   maintenance: {
     icon: Wrench,

@@ -125,7 +125,7 @@ const VerifyOtpPage = () => {
           initial={{ scale: 0.5, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ type: 'spring', duration: 0.8 }}
-          className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-[#0A66C2] dark:bg-[#00F0FF]/10 text-[#0A66C2] dark:text-[#00F0FF] border border-[#0A66C2] dark:border-[#00F0FF]/20 shadow-[0_0_20px_rgba(0,240,255,0.1)]"
+          className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-[#00F0FF]/10 text-[#00F0FF] border border-[#00F0FF]/20 shadow-[0_0_20px_rgba(0,240,255,0.1)]"
         >
           <ShieldCheck size={32} />
         </motion.div>
@@ -163,7 +163,7 @@ const VerifyOtpPage = () => {
                     onChange={(e) => handleChange(idx, e.target.value)}
                     onKeyDown={(e) => handleKeyDown(idx, e)}
                     onPaste={handlePaste}
-                    className="w-11 h-12 text-center text-xl font-bold bg-black/40 border border-white/10 rounded-xl text-white focus:outline-none focus:border-[#0A66C2] dark:border-[#00F0FF] focus:ring-1 focus:ring-[#0A66C2] dark:focus:ring-[#00F0FF] transition-all shadow-[0_0_10px_rgba(0,0,0,0.3)] font-mono"
+                    className="w-11 h-12 text-center text-xl font-bold bg-black/40 border border-white/10 rounded-xl text-white focus:outline-none focus:border-[#00F0FF] focus:ring-1 focus:ring-[#00F0FF] transition-all shadow-[0_0_10px_rgba(0,0,0,0.3)] font-mono"
                   />
                 ))}
               </div>
@@ -173,7 +173,7 @@ const VerifyOtpPage = () => {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full flex justify-center items-center gap-2 py-3 px-4 border border-transparent rounded-lg shadow-lg text-sm font-bold text-black bg-[#0A66C2] dark:bg-[#00F0FF] hover:bg-[#0A66C2] dark:bg-[#00F0FF]/90 transition-all disabled:opacity-50 cursor-pointer"
+                className="w-full flex justify-center items-center gap-2 py-3 px-4 border border-transparent rounded-lg shadow-lg text-sm font-bold text-black bg-[#00F0FF] hover:bg-[#00F0FF]/90 transition-all disabled:opacity-50 cursor-pointer"
               >
                 {isLoading ? (
                   <Loader2 size={18} className="animate-spin" />
@@ -195,7 +195,7 @@ const VerifyOtpPage = () => {
               className={`text-sm font-medium transition-colors ${
                 resendTimer > 0 
                   ? 'text-gray-600 cursor-not-allowed' 
-                  : 'text-[#0A66C2] dark:text-[#00F0FF] hover:underline cursor-pointer'
+                  : 'text-[#00F0FF] hover:underline cursor-pointer'
               }`}
             >
               {isResending ? (

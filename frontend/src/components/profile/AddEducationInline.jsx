@@ -142,7 +142,7 @@ const AddEducationInline = ({ onClose, onAdd }) => {
                 onChange={handleChange}
                 onFocus={() => setIsSchoolFocused(true)}
                 onBlur={() => setTimeout(() => setIsSchoolFocused(false), 200)}
-                className="w-full bg-slate-50 dark:bg-[#0a0a0a] border border-slate-300 dark:border-white/10 rounded-xl py-2 px-3 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-gray-500 focus:border-[#0A66C2] dark:focus:border-[#0A66C2] dark:border-[#00F0FF]/50 outline-none text-sm" 
+                className="w-full bg-slate-50 dark:bg-[#0a0a0a] border border-slate-300 dark:border-white/10 rounded-xl py-2 px-3 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-gray-500 focus:border-[#0A66C2] dark:focus:border-[#00F0FF]/50 outline-none text-sm" 
                 required 
                 placeholder="e.g. MIT" 
               />
@@ -154,7 +154,7 @@ const AddEducationInline = ({ onClose, onAdd }) => {
                     schoolSuggestions.map((school, idx) => (
                       <div 
                         key={idx} 
-                        className="px-4 py-2.5 flex flex-col hover:bg-slate-100 dark:hover:bg-[#0A66C2] dark:bg-[#00F0FF]/10 hover:text-[#0A66C2] dark:hover:text-white cursor-pointer transition-colors"
+                        className="px-4 py-2.5 flex flex-col hover:bg-slate-100 dark:hover:bg-[#00F0FF]/10 hover:text-[#0A66C2] dark:hover:text-white cursor-pointer transition-colors"
                         onClick={() => {
                           setFormData({ ...formData, school: school.name });
                           setIsSchoolFocused(false);
@@ -167,7 +167,7 @@ const AddEducationInline = ({ onClose, onAdd }) => {
                   ) : (
                     <div className="px-4 py-3 text-xs text-slate-600 dark:text-gray-400 flex justify-between items-center">
                       <span>No match found.</span>
-                      <span className="text-[#0A66C2] dark:text-[#00F0FF]">Will save as typed</span>
+                      <span className="text-[#00F0FF]">Will save as typed</span>
                     </div>
                   )}
                 </div>
@@ -183,7 +183,7 @@ const AddEducationInline = ({ onClose, onAdd }) => {
                 onChange={handleChange}
                 onFocus={() => setIsDegreeFocused(true)}
                 onBlur={() => setTimeout(() => setIsDegreeFocused(false), 200)}
-                className="w-full bg-slate-50 dark:bg-[#0a0a0a] border border-slate-300 dark:border-white/10 rounded-xl py-2 px-3 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-gray-500 focus:border-[#0A66C2] dark:focus:border-[#0A66C2] dark:border-[#00F0FF]/50 outline-none text-sm" 
+                className="w-full bg-slate-50 dark:bg-[#0a0a0a] border border-slate-300 dark:border-white/10 rounded-xl py-2 px-3 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-gray-500 focus:border-[#0A66C2] dark:focus:border-[#00F0FF]/50 outline-none text-sm" 
                 required 
                 placeholder="e.g. Bachelor of Science" 
               />
@@ -192,7 +192,7 @@ const AddEducationInline = ({ onClose, onAdd }) => {
                   {degreeSuggestions.map((suggestion, idx) => (
                     <div 
                       key={idx} 
-                      className="px-4 py-2.5 text-xs text-slate-700 dark:text-gray-300 hover:bg-slate-100 dark:hover:bg-[#0A66C2] dark:bg-[#00F0FF]/10 hover:text-[#0A66C2] dark:hover:text-white cursor-pointer transition-colors flex justify-between items-center"
+                      className="px-4 py-2.5 text-xs text-slate-700 dark:text-gray-300 hover:bg-slate-100 dark:hover:bg-[#00F0FF]/10 hover:text-[#0A66C2] dark:hover:text-white cursor-pointer transition-colors flex justify-between items-center"
                       onClick={() => {
                         setFormData({ ...formData, degree: suggestion });
                         setIsDegreeFocused(false);
@@ -200,7 +200,7 @@ const AddEducationInline = ({ onClose, onAdd }) => {
                     >
                       <span>{suggestion}</span>
                       {suggestion === formData.degree && !degreeOptions.includes(suggestion) && (
-                        <span className="text-[#0A66C2] dark:text-[#00F0FF] text-[10px]">Use as typed</span>
+                        <span className="text-[#00F0FF] text-[10px]">Use as typed</span>
                       )}
                     </div>
                   ))}
@@ -217,7 +217,7 @@ const AddEducationInline = ({ onClose, onAdd }) => {
                 onChange={handleChange}
                 onFocus={() => setIsFieldFocused(true)}
                 onBlur={() => setTimeout(() => setIsFieldFocused(false), 200)}
-                className="w-full bg-slate-50 dark:bg-[#0a0a0a] border border-slate-300 dark:border-white/10 rounded-xl py-2 px-3 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-gray-500 focus:border-[#0A66C2] dark:focus:border-[#0A66C2] dark:border-[#00F0FF]/50 outline-none text-sm" 
+                className="w-full bg-slate-50 dark:bg-[#0a0a0a] border border-slate-300 dark:border-white/10 rounded-xl py-2 px-3 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-gray-500 focus:border-[#0A66C2] dark:focus:border-[#00F0FF]/50 outline-none text-sm" 
                 required 
                 placeholder="e.g. Computer Science" 
               />
@@ -226,7 +226,7 @@ const AddEducationInline = ({ onClose, onAdd }) => {
                   {fieldSuggestions.map((suggestion, idx) => (
                     <div 
                       key={idx} 
-                      className="px-4 py-2.5 text-xs text-slate-700 dark:text-gray-300 hover:bg-slate-100 dark:hover:bg-[#0A66C2] dark:bg-[#00F0FF]/10 hover:text-[#0A66C2] dark:hover:text-white cursor-pointer transition-colors flex justify-between items-center"
+                      className="px-4 py-2.5 text-xs text-slate-700 dark:text-gray-300 hover:bg-slate-100 dark:hover:bg-[#00F0FF]/10 hover:text-[#0A66C2] dark:hover:text-white cursor-pointer transition-colors flex justify-between items-center"
                       onClick={() => {
                         setFormData({ ...formData, fieldOfStudy: suggestion });
                         setIsFieldFocused(false);
@@ -234,7 +234,7 @@ const AddEducationInline = ({ onClose, onAdd }) => {
                     >
                       <span>{suggestion}</span>
                       {suggestion === formData.fieldOfStudy && !fieldOfStudyOptions.includes(suggestion) && (
-                        <span className="text-[#0A66C2] dark:text-[#00F0FF] text-[10px]">Use as typed</span>
+                        <span className="text-[#00F0FF] text-[10px]">Use as typed</span>
                       )}
                     </div>
                   ))}
@@ -244,12 +244,12 @@ const AddEducationInline = ({ onClose, onAdd }) => {
 
             <div className="space-y-1.5">
               <label className="text-xs font-medium text-slate-600 dark:text-gray-400">Start Date *</label>
-              <input type="date" name="from" value={formData.from} onChange={handleChange} className="w-full bg-slate-50 dark:bg-[#0a0a0a] border border-slate-300 dark:border-white/10 rounded-xl py-2 px-3 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-gray-500 focus:border-[#0A66C2] dark:focus:border-[#0A66C2] dark:border-[#00F0FF]/50 outline-none text-sm" required  />
+              <input type="date" name="from" value={formData.from} onChange={handleChange} className="w-full bg-slate-50 dark:bg-[#0a0a0a] border border-slate-300 dark:border-white/10 rounded-xl py-2 px-3 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-gray-500 focus:border-[#0A66C2] dark:focus:border-[#00F0FF]/50 outline-none text-sm" required  />
             </div>
 
             <div className="space-y-1.5">
               <label className="text-xs font-medium text-slate-600 dark:text-gray-400">End Date</label>
-              <input type="date" name="to" value={formData.to} onChange={handleChange} disabled={formData.current} className="w-full bg-slate-50 dark:bg-[#0a0a0a] border border-slate-300 dark:border-white/10 rounded-xl py-2 px-3 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-gray-500 focus:border-[#0A66C2] dark:focus:border-[#0A66C2] dark:border-[#00F0FF]/50 outline-none text-sm disabled:opacity-50"  />
+              <input type="date" name="to" value={formData.to} onChange={handleChange} disabled={formData.current} className="w-full bg-slate-50 dark:bg-[#0a0a0a] border border-slate-300 dark:border-white/10 rounded-xl py-2 px-3 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-gray-500 focus:border-[#0A66C2] dark:focus:border-[#00F0FF]/50 outline-none text-sm disabled:opacity-50"  />
             </div>
           </div>
 
@@ -262,25 +262,25 @@ const AddEducationInline = ({ onClose, onAdd }) => {
                 onChange={handleChange}
                 className="sr-only"
               />
-              <div className={`w-10 h-5 rounded-full transition-all duration-300 ${formData.current ? 'bg-[#0A66C2] dark:bg-[#00F0FF]/30 border border-[#0A66C2] dark:border-[#00F0FF]/60' : 'bg-white/10 border border-white/20'}`}>
-                <div className={`absolute top-0.5 w-4 h-4 rounded-full shadow transition-all duration-300 ${formData.current ? 'translate-x-5 bg-[#0A66C2] dark:bg-[#00F0FF] shadow-[0_0_8px_rgba(0,240,255,0.6)]' : 'translate-x-0.5 bg-gray-500'}`} />
+              <div className={`w-10 h-5 rounded-full transition-all duration-300 ${formData.current ? 'bg-[#00F0FF]/30 border border-[#00F0FF]/60' : 'bg-white/10 border border-white/20'}`}>
+                <div className={`absolute top-0.5 w-4 h-4 rounded-full shadow transition-all duration-300 ${formData.current ? 'translate-x-5 bg-[#00F0FF] shadow-[0_0_8px_rgba(0,240,255,0.6)]' : 'translate-x-0.5 bg-gray-500'}`} />
               </div>
             </div>
-            <span className={`text-sm font-medium transition-colors duration-200 ${formData.current ? 'text-[#0A66C2] dark:text-[#00F0FF]' : 'text-slate-600 dark:text-gray-400 group-hover:text-slate-700 dark:text-gray-300'}`}>
+            <span className={`text-sm font-medium transition-colors duration-200 ${formData.current ? 'text-[#00F0FF]' : 'text-slate-600 dark:text-gray-400 group-hover:text-slate-700 dark:text-gray-300'}`}>
               I currently study here
             </span>
           </label>
 
           <div className="space-y-1.5 mt-4">
             <label className="text-xs font-medium text-slate-600 dark:text-gray-400">Description</label>
-            <textarea name="description" value={formData.description} onChange={handleChange} rows="3" className="w-full bg-slate-50 dark:bg-[#0a0a0a] border border-slate-300 dark:border-white/10 rounded-xl py-2 px-3 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-gray-500 focus:border-[#0A66C2] dark:focus:border-[#0A66C2] dark:border-[#00F0FF]/50 outline-none text-sm resize-none" placeholder="Extracurricular activities, societies, etc."></textarea>
+            <textarea name="description" value={formData.description} onChange={handleChange} rows="3" className="w-full bg-slate-50 dark:bg-[#0a0a0a] border border-slate-300 dark:border-white/10 rounded-xl py-2 px-3 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-gray-500 focus:border-[#0A66C2] dark:focus:border-[#00F0FF]/50 outline-none text-sm resize-none" placeholder="Extracurricular activities, societies, etc."></textarea>
           </div>
 
           <div className="flex justify-end gap-3 pt-2">
             <button type="button" onClick={onClose} className="px-4 py-2 rounded-xl text-sm font-medium text-slate-600 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5 transition-colors cursor-pointer">
               Cancel
             </button>
-            <button type="submit" disabled={isSubmitting} className="flex items-center gap-2 px-5 py-2.5 bg-[#0A66C2] hover:bg-[#004182] text-white dark:bg-[#00F0FF] dark:hover:bg-[#0A66C2] dark:bg-[#00F0FF]/90 dark:text-black rounded-xl text-sm font-bold transition-colors disabled:opacity-50 cursor-pointer shadow-xs">
+            <button type="submit" disabled={isSubmitting} className="flex items-center gap-2 px-5 py-2.5 bg-[#0A66C2] hover:bg-[#004182] text-white dark:bg-[#00F0FF] dark:hover:bg-[#00F0FF]/90 dark:text-black rounded-xl text-sm font-bold transition-colors disabled:opacity-50 cursor-pointer shadow-xs">
               <Save size={16} />
               {isSubmitting ? 'Saving...' : 'Save Education'}
             </button>

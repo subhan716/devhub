@@ -82,7 +82,7 @@ const CommentItem = ({ comment, postId, onReply, onDelete, depth = 0, isTarget, 
   };
 
   return (
-    <div ref={commentRef} className={`flex gap-3 mb-5 transition-colors duration-1000 ${isTarget ? 'bg-[#0A66C2] dark:bg-[#00F0FF]/10 -mx-2 px-2 py-1 rounded-lg' : ''}`}>
+    <div ref={commentRef} className={`flex gap-3 mb-5 transition-colors duration-1000 ${isTarget ? 'bg-[#00F0FF]/10 -mx-2 px-2 py-1 rounded-lg' : ''}`}>
       <img src={comment.user?.avatar?.url || 'https://www.gravatar.com/avatar/0?d=mp'} alt={comment.user?.name} className="w-9 h-9 rounded-full object-cover mt-0.5 border border-white/5" />
       <div className="flex-1">
         <div className="relative group">
@@ -99,11 +99,11 @@ const CommentItem = ({ comment, postId, onReply, onDelete, depth = 0, isTarget, 
               <textarea
                 value={editText}
                 onChange={(e) => setEditText(e.target.value)}
-                className="w-full bg-[#1a1a1a] border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-[#0A66C2] dark:border-[#00F0FF] resize-none h-20 custom-scrollbar"
+                className="w-full bg-[#1a1a1a] border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-[#00F0FF] resize-none h-20 custom-scrollbar"
               />
               <div className="flex gap-2 justify-end mt-2">
                 <button onClick={() => setIsEditing(false)} className="text-xs text-gray-400 hover:text-white px-3 py-1.5 rounded-full">Cancel</button>
-                <button onClick={handleEditSubmit} className="text-xs bg-[#0A66C2] dark:bg-[#00F0FF] text-black font-bold px-3 py-1.5 rounded-full hover:bg-[#0A66C2] dark:bg-[#00F0FF]/90">Save</button>
+                <button onClick={handleEditSubmit} className="text-xs bg-[#00F0FF] text-black font-bold px-3 py-1.5 rounded-full hover:bg-[#00F0FF]/90">Save</button>
               </div>
             </div>
           ) : (
@@ -159,8 +159,8 @@ const CommentItem = ({ comment, postId, onReply, onDelete, depth = 0, isTarget, 
         {/* Replies */}
         {comment.replies && comment.replies.length > 0 && (
           <div className="mt-2">
-            <button onClick={() => setShowReplies(!showReplies)} className="flex items-center gap-1 text-[12px] text-[#0A66C2] dark:text-[#00F0FF] hover:underline mb-3 font-semibold">
-              <span className="w-6 border-b border-[#0A66C2] dark:border-[#00F0FF]/30 mr-1 inline-block mb-1"></span>
+            <button onClick={() => setShowReplies(!showReplies)} className="flex items-center gap-1 text-[12px] text-[#00F0FF] hover:underline mb-3 font-semibold">
+              <span className="w-6 border-b border-[#00F0FF]/30 mr-1 inline-block mb-1"></span>
               {showReplies ? 'Hide replies' : `View ${comment.replies.length} replies`}
             </button>
             
@@ -339,7 +339,7 @@ const CommentsList = ({ postId, targetCommentId, onUpdateCount, currentUser }) =
         <form onSubmit={handleSubmit} className="flex flex-col gap-2">
           {replyTo && (
             <div className="flex items-center justify-between bg-white/5 px-3 py-1.5 rounded-lg text-xs text-gray-300">
-              <span>Replying to <span className="font-bold text-[#0A66C2] dark:text-[#00F0FF]">{replyTo.user?.name}</span></span>
+              <span>Replying to <span className="font-bold text-[#00F0FF]">{replyTo.user?.name}</span></span>
               <button type="button" onClick={() => setReplyTo(null)} className="text-gray-500 hover:text-white">Cancel</button>
             </div>
           )}
@@ -361,7 +361,7 @@ const CommentsList = ({ postId, targetCommentId, onUpdateCount, currentUser }) =
                 <div className="flex justify-end px-3 pb-2 pt-1 border-t border-white/5 bg-[#1a1a1a]">
                   <button 
                     type="submit" 
-                    className="bg-[#0A66C2] dark:bg-[#00F0FF] text-black px-4 py-1.5 rounded-full font-bold text-sm hover:bg-[#0A66C2] dark:bg-[#00F0FF]/90 transition-all"
+                    className="bg-[#00F0FF] text-black px-4 py-1.5 rounded-full font-bold text-sm hover:bg-[#00F0FF]/90 transition-all"
                   >
                     Reply
                   </button>
@@ -377,10 +377,10 @@ const CommentsList = ({ postId, targetCommentId, onUpdateCount, currentUser }) =
         <div className="relative inline-block" ref={sortMenuRef}>
           <button 
             onClick={() => setIsSortMenuOpen(!isSortMenuOpen)}
-            className={`flex items-center gap-2 bg-[#1a1a1a] border rounded-full px-4 py-1.5 text-xs font-semibold cursor-pointer outline-none transition-all shadow-sm ${isSortMenuOpen ? 'border-[#0A66C2] dark:border-[#00F0FF]/50 text-white' : 'border-white/10 text-gray-300 hover:text-white hover:border-white/20'}`}
+            className={`flex items-center gap-2 bg-[#1a1a1a] border rounded-full px-4 py-1.5 text-xs font-semibold cursor-pointer outline-none transition-all shadow-sm ${isSortMenuOpen ? 'border-[#00F0FF]/50 text-white' : 'border-white/10 text-gray-300 hover:text-white hover:border-white/20'}`}
           >
             {sort === 'newest' ? 'Newest first' : sort === 'top' ? 'Top comments' : 'Oldest first'}
-            <ChevronDown size={14} className={`transition-transform duration-200 ${isSortMenuOpen ? 'rotate-180 text-[#0A66C2] dark:text-[#00F0FF]' : 'text-gray-400'}`} />
+            <ChevronDown size={14} className={`transition-transform duration-200 ${isSortMenuOpen ? 'rotate-180 text-[#00F0FF]' : 'text-gray-400'}`} />
           </button>
           
           <AnimatePresence>
@@ -405,7 +405,7 @@ const CommentsList = ({ postId, targetCommentId, onUpdateCount, currentUser }) =
                     }}
                     className={`w-full text-left px-4 py-2 text-xs font-medium transition-colors ${
                       sort === option.value 
-                        ? 'text-[#0A66C2] dark:text-[#00F0FF] bg-[#0A66C2] dark:bg-[#00F0FF]/10' 
+                        ? 'text-[#00F0FF] bg-[#00F0FF]/10' 
                         : 'text-gray-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5'
                     }`}
                   >

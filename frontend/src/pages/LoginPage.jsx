@@ -99,7 +99,7 @@ const LoginPage = () => {
       </div>
       {/* Background Effects */}
       <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
-        <div className="absolute -top-[20%] -left-[10%] w-[50%] h-[50%] rounded-full bg-[#0A66C2] dark:bg-[#00F0FF]/10 blur-[120px]" />
+        <div className="absolute -top-[20%] -left-[10%] w-[50%] h-[50%] rounded-full bg-[#00F0FF]/10 blur-[120px]" />
         <div className="absolute bottom-[10%] -right-[10%] w-[40%] h-[40%] rounded-full bg-[#8A2BE2]/10 blur-[120px]" />
       </div>
 
@@ -137,7 +137,7 @@ const LoginPage = () => {
                   type="email"
                   value={formData.email}
                   onChange={handleChange}
-                  className={`block w-full pl-10 pr-3 py-3 border ${errors.email ? 'border-red-500 focus:ring-red-500 focus:border-red-500' : 'border-slate-300 dark:border-white/10 focus:ring-[#0A66C2]/50 dark:focus:ring-[#00F0FF]/50 focus:border-[#0A66C2] dark:focus:border-[#0A66C2] dark:border-[#00F0FF]/50'} rounded-lg bg-slate-50 dark:bg-black/50 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 transition-all sm:text-sm`}
+                  className={`block w-full pl-10 pr-3 py-3 border ${errors.email ? 'border-red-500 focus:ring-red-500 focus:border-red-500' : 'border-slate-300 dark:border-white/10 focus:ring-[#0A66C2]/50 dark:focus:ring-[#00F0FF]/50 focus:border-[#0A66C2] dark:focus:border-[#00F0FF]/50'} rounded-lg bg-slate-50 dark:bg-black/50 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 transition-all sm:text-sm`}
                   placeholder="name@gmail.com"
                 />
               </div>
@@ -155,7 +155,7 @@ const LoginPage = () => {
                   type="password"
                   value={formData.password}
                   onChange={handleChange}
-                  className={`block w-full pl-10 pr-3 py-3 border ${errors.password ? 'border-red-500 focus:ring-red-500 focus:border-red-500' : 'border-slate-300 dark:border-white/10 focus:ring-[#0A66C2]/50 dark:focus:ring-[#00F0FF]/50 focus:border-[#0A66C2] dark:focus:border-[#0A66C2] dark:border-[#00F0FF]/50'} rounded-lg bg-slate-50 dark:bg-black/50 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 transition-all sm:text-sm`}
+                  className={`block w-full pl-10 pr-3 py-3 border ${errors.password ? 'border-red-500 focus:ring-red-500 focus:border-red-500' : 'border-slate-300 dark:border-white/10 focus:ring-[#0A66C2]/50 dark:focus:ring-[#00F0FF]/50 focus:border-[#0A66C2] dark:focus:border-[#00F0FF]/50'} rounded-lg bg-slate-50 dark:bg-black/50 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 transition-all sm:text-sm`}
                   placeholder="Enter your password"
                 />
               </div>
@@ -174,7 +174,7 @@ const LoginPage = () => {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full flex justify-center items-center gap-2 py-3 px-4 rounded-xl shadow-md text-sm font-bold text-white bg-[#0A66C2] hover:bg-[#004182] dark:bg-[#00F0FF] dark:hover:bg-[#0A66C2] dark:bg-[#00F0FF]/90 dark:text-black focus:outline-none transition-all disabled:opacity-50 cursor-pointer"
+                className="w-full flex justify-center items-center gap-2 py-3 px-4 rounded-xl shadow-md text-sm font-bold text-white bg-[#0A66C2] hover:bg-[#004182] dark:bg-[#00F0FF] dark:hover:bg-[#00F0FF]/90 dark:text-black focus:outline-none transition-all disabled:opacity-50 cursor-pointer"
               >
                 {isLoading ? 'Authenticating...' : 'Sign in'}
                 <ArrowRight size={18} />

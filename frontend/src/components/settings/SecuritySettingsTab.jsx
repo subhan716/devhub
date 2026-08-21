@@ -93,7 +93,7 @@ const SecuritySettingsTab = () => {
       case 2:
         return { score: 2, label: 'Fair', color: 'bg-amber-400', width: 'w-2/4' };
       case 3:
-        return { score: 3, label: 'Strong', color: 'bg-[#0A66C2] dark:bg-[#00F0FF]', width: 'w-3/4' };
+        return { score: 3, label: 'Strong', color: 'bg-[#00F0FF]', width: 'w-3/4' };
       case 4:
         return { score: 4, label: 'Very Strong', color: 'bg-emerald-400', width: 'w-full' };
       default:
@@ -241,7 +241,7 @@ const SecuritySettingsTab = () => {
   if (loading) {
     return (
       <div className="py-20 flex flex-col items-center justify-center gap-3 text-gray-500 text-xs font-mono">
-        <RefreshCw size={20} className="animate-spin text-[#0A66C2] dark:text-[#00F0FF]" />
+        <RefreshCw size={20} className="animate-spin text-[#00F0FF]" />
         <span>Loading security settings...</span>
       </div>
     );
@@ -253,7 +253,7 @@ const SecuritySettingsTab = () => {
       <div className="bg-white dark:bg-[#111] border border-slate-200 dark:border-white/5 rounded-2xl p-6 sm:p-7 space-y-5">
         <div className="flex items-center justify-between border-b border-slate-200 dark:border-white/5 pb-3">
           <div className="flex items-center gap-2 text-slate-900 dark:text-white font-bold text-sm">
-            <KeyRound size={16} className="text-[#0A66C2] dark:text-[#00F0FF]" />
+            <KeyRound size={16} className="text-[#00F0FF]" />
             <span>Change Password</span>
           </div>
           <span className="text-[10px] text-gray-500 font-mono">
@@ -263,7 +263,7 @@ const SecuritySettingsTab = () => {
 
         {forensics && forensics.isOAuthUser && (
           <div className="p-4 rounded-xl bg-cyan-950/20 border border-cyan-500/20 flex items-start gap-3 text-xs text-slate-700 dark:text-gray-300 leading-relaxed">
-            <Info size={16} className="text-[#0A66C2] dark:text-[#00F0FF] flex-shrink-0 mt-0.5" />
+            <Info size={16} className="text-[#00F0FF] flex-shrink-0 mt-0.5" />
             <div>
               <span className="font-bold text-white block mb-0.5">Google / GitHub Account</span>
               You signed in with social login. You can set a dedicated password below. A 6-digit verification code will be sent to your email to confirm.
@@ -279,7 +279,7 @@ const SecuritySettingsTab = () => {
                 <button
                   type="button"
                   onClick={handleInSessionForgotPassword}
-                  className="text-[11px] text-[#0A66C2] dark:text-[#00F0FF] hover:underline cursor-pointer font-medium"
+                  className="text-[11px] text-[#00F0FF] hover:underline cursor-pointer font-medium"
                 >
                   Forgot your password?
                 </button>
@@ -289,7 +289,7 @@ const SecuritySettingsTab = () => {
                   type={showCurrent ? 'text' : 'password'}
                   value={currentPassword}
                   onChange={(e) => setCurrentPassword(e.target.value)}
-                  className="w-full bg-slate-50 dark:bg-[#050508] border border-slate-200 dark:border-white/10 rounded-xl py-2.5 pl-3.5 pr-10 text-xs text-white focus:border-[#0A66C2] dark:border-[#00F0FF]/50 outline-none transition-colors"
+                  className="w-full bg-slate-50 dark:bg-[#050508] border border-slate-200 dark:border-white/10 rounded-xl py-2.5 pl-3.5 pr-10 text-xs text-white focus:border-[#00F0FF]/50 outline-none transition-colors"
                   placeholder="Enter your current password"
                   required={!isInSessionForgotMode}
                 />
@@ -313,7 +313,7 @@ const SecuritySettingsTab = () => {
                 type={showNew ? 'text' : 'password'}
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
-                className="w-full bg-slate-50 dark:bg-[#050508] border border-slate-200 dark:border-white/10 rounded-xl py-2.5 pl-3.5 pr-10 text-xs text-white focus:border-[#0A66C2] dark:border-[#00F0FF]/50 outline-none transition-colors"
+                className="w-full bg-slate-50 dark:bg-[#050508] border border-slate-200 dark:border-white/10 rounded-xl py-2.5 pl-3.5 pr-10 text-xs text-white focus:border-[#00F0FF]/50 outline-none transition-colors"
                 placeholder="Minimum 6 characters"
                 required
               />
@@ -331,7 +331,7 @@ const SecuritySettingsTab = () => {
                 <div className="flex items-center justify-between text-[11px]">
                   <span className="text-gray-400">Strength:</span>
                   <span className={`font-semibold ${
-                    strength.score === 4 ? 'text-emerald-400' : strength.score === 3 ? 'text-[#0A66C2] dark:text-[#00F0FF]' : strength.score === 2 ? 'text-amber-400' : 'text-red-400'
+                    strength.score === 4 ? 'text-emerald-400' : strength.score === 3 ? 'text-[#00F0FF]' : strength.score === 2 ? 'text-amber-400' : 'text-red-400'
                   }`}>
                     {strength.label}
                   </span>
@@ -369,7 +369,7 @@ const SecuritySettingsTab = () => {
                 type={showConfirm ? 'text' : 'password'}
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                className="w-full bg-slate-50 dark:bg-[#050508] border border-slate-200 dark:border-white/10 rounded-xl py-2.5 pl-3.5 pr-10 text-xs text-white focus:border-[#0A66C2] dark:border-[#00F0FF]/50 outline-none transition-colors"
+                className="w-full bg-slate-50 dark:bg-[#050508] border border-slate-200 dark:border-white/10 rounded-xl py-2.5 pl-3.5 pr-10 text-xs text-white focus:border-[#00F0FF]/50 outline-none transition-colors"
                 placeholder="Repeat new password"
                 required
               />
@@ -395,7 +395,7 @@ const SecuritySettingsTab = () => {
                 type="checkbox"
                 checked={logoutOtherDevices}
                 onChange={(e) => setLogoutOtherDevices(e.target.checked)}
-                className="w-4 h-4 rounded border-white/20 bg-slate-50 dark:bg-[#050508] text-[#0A66C2] dark:text-[#00F0FF] focus:ring-0 cursor-pointer"
+                className="w-4 h-4 rounded border-white/20 bg-slate-50 dark:bg-[#050508] text-[#00F0FF] focus:ring-0 cursor-pointer"
               />
               <span>Sign out of all other browsers and mobile devices after updating</span>
             </label>
@@ -405,7 +405,7 @@ const SecuritySettingsTab = () => {
             <button
               type="submit"
               disabled={isRequestingOtp || (newPassword.length > 0 && newPassword !== confirmPassword)}
-              className="px-5 py-2.5 bg-[#0A66C2] hover:bg-[#004182] text-white dark:bg-[#00F0FF] dark:hover:bg-[#0A66C2] dark:bg-[#00F0FF]/90 dark:text-black shadow-sm text-xs font-semibold rounded-xl transition-colors cursor-pointer disabled:opacity-50 flex items-center gap-2"
+              className="px-5 py-2.5 bg-[#0A66C2] hover:bg-[#004182] text-white dark:bg-[#00F0FF] dark:hover:bg-[#00F0FF]/90 dark:text-black shadow-sm text-xs font-semibold rounded-xl transition-colors cursor-pointer disabled:opacity-50 flex items-center gap-2"
             >
               <Lock size={14} />
               <span>{isRequestingOtp ? 'Sending Security Code...' : 'Update Password'}</span>
@@ -480,7 +480,7 @@ const SecuritySettingsTab = () => {
 
             {/* Modal Header */}
             <div className="text-center space-y-2">
-              <div className="w-12 h-12 rounded-2xl bg-[#0A66C2] dark:bg-[#00F0FF]/10 text-[#0A66C2] dark:text-[#00F0FF] border border-[#0A66C2] dark:border-[#00F0FF]/20 flex items-center justify-center mx-auto">
+              <div className="w-12 h-12 rounded-2xl bg-[#00F0FF]/10 text-[#00F0FF] border border-[#00F0FF]/20 flex items-center justify-center mx-auto">
                 <MailCheck size={24} />
               </div>
               <h3 className="text-base font-bold text-white tracking-tight">
@@ -504,7 +504,7 @@ const SecuritySettingsTab = () => {
                   onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
                   placeholder="• • • • • •"
                   autoFocus
-                  className="w-full bg-slate-50 dark:bg-[#050508] border border-slate-200 dark:border-white/10 rounded-xl py-3 text-center text-xl tracking-[8px] text-white font-mono focus:border-[#0A66C2] dark:border-[#00F0FF]/50 outline-none transition-colors"
+                  className="w-full bg-slate-50 dark:bg-[#050508] border border-slate-200 dark:border-white/10 rounded-xl py-3 text-center text-xl tracking-[8px] text-white font-mono focus:border-[#00F0FF]/50 outline-none transition-colors"
                   required
                 />
               </div>
@@ -520,7 +520,7 @@ const SecuritySettingsTab = () => {
                     type="button"
                     onClick={handleResendOtp}
                     disabled={isResending}
-                    className="text-xs text-[#0A66C2] dark:text-[#00F0FF] hover:underline cursor-pointer inline-flex items-center gap-1 font-medium"
+                    className="text-xs text-[#00F0FF] hover:underline cursor-pointer inline-flex items-center gap-1 font-medium"
                   >
                     <RotateCw size={12} className={isResending ? 'animate-spin' : ''} />
                     <span>{isResending ? 'Sending...' : 'Resend Code'}</span>
@@ -543,7 +543,7 @@ const SecuritySettingsTab = () => {
                 <button
                   type="submit"
                   disabled={isVerifyingOtp || otp.length !== 6}
-                  className="px-5 py-2 bg-[#0A66C2] hover:bg-[#004182] text-white dark:bg-[#00F0FF] dark:hover:bg-[#0A66C2] dark:bg-[#00F0FF]/90 dark:text-black shadow-sm text-xs font-semibold rounded-xl transition-colors cursor-pointer disabled:opacity-50 flex items-center gap-2"
+                  className="px-5 py-2 bg-[#0A66C2] hover:bg-[#004182] text-white dark:bg-[#00F0FF] dark:hover:bg-[#00F0FF]/90 dark:text-black shadow-sm text-xs font-semibold rounded-xl transition-colors cursor-pointer disabled:opacity-50 flex items-center gap-2"
                 >
                   <Check size={14} />
                   <span>{isVerifyingOtp ? 'Verifying...' : 'Confirm & Update'}</span>

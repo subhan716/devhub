@@ -49,7 +49,7 @@ const NotificationsPage = () => {
   const getIcon = (type) => {
     switch(type) {
       case 'like': return <Heart size={16} className="text-pink-500" />;
-      case 'comment': return <MessageSquare size={16} className="text-[#0A66C2] dark:text-[#00F0FF]" />;
+      case 'comment': return <MessageSquare size={16} className="text-[#00F0FF]" />;
       case 'follow': return <UserPlus size={16} className="text-[#8A2BE2]" />;
       case 'connection_request': return <UserPlus size={16} className="text-green-500" />;
       case 'connection_accepted': return <Check size={16} className="text-green-500" />;
@@ -60,7 +60,7 @@ const NotificationsPage = () => {
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
-        <Loader2 className="w-8 h-8 animate-spin text-[#0A66C2] dark:text-[#00F0FF]" />
+        <Loader2 className="w-8 h-8 animate-spin text-[#00F0FF]" />
       </div>
     );
   }
@@ -103,7 +103,7 @@ const NotificationsPage = () => {
                   />
                   <div className="flex-1">
                     <p className={`text-base ${!notif.read ? 'text-slate-900 dark:text-white font-medium' : 'text-slate-700 dark:text-gray-300'}`}>
-                      <span className="font-bold text-slate-900 dark:text-white hover:text-[#0A66C2] dark:hover:text-[#0A66C2] dark:text-[#00F0FF] cursor-pointer transition-colors">
+                      <span className="font-bold text-slate-900 dark:text-white hover:text-[#0A66C2] dark:hover:text-[#00F0FF] cursor-pointer transition-colors">
                         {notif.sender?.name}
                       </span>{' '}
                       {notif.message}

@@ -562,9 +562,9 @@ const FeedPage = () => {
                 {activeAttachmentType === 'image' && !imagePreview && (
                   <div 
                     onClick={() => fileInputRef.current?.click()}
-                    className="border-2 border-dashed border-white/10 hover:border-[#0A66C2] dark:border-[#00F0FF]/30 rounded-xl p-8 flex flex-col items-center justify-center gap-3 cursor-pointer bg-white/[0.01] hover:bg-white/[0.03] transition-all group"
+                    className="border-2 border-dashed border-white/10 hover:border-[#00F0FF]/30 rounded-xl p-8 flex flex-col items-center justify-center gap-3 cursor-pointer bg-white/[0.01] hover:bg-white/[0.03] transition-all group"
                   >
-                    <div className="p-3 bg-white/5 rounded-full text-gray-400 group-hover:text-[#0A66C2] dark:text-[#00F0FF] group-hover:bg-[#0A66C2] dark:bg-[#00F0FF]/10 transition-all">
+                    <div className="p-3 bg-white/5 rounded-full text-gray-400 group-hover:text-[#00F0FF] group-hover:bg-[#00F0FF]/10 transition-all">
                       <Image size={28} />
                     </div>
                     <div className="text-center">
@@ -592,9 +592,9 @@ const FeedPage = () => {
                 {activeAttachmentType === 'video' && !videoPreview && (
                   <div 
                     onClick={() => videoInputRef.current?.click()}
-                    className="border-2 border-dashed border-white/10 hover:border-[#0A66C2] dark:border-[#00F0FF]/30 rounded-xl p-8 flex flex-col items-center justify-center gap-3 cursor-pointer bg-white/[0.01] hover:bg-white/[0.03] transition-all group"
+                    className="border-2 border-dashed border-white/10 hover:border-[#00F0FF]/30 rounded-xl p-8 flex flex-col items-center justify-center gap-3 cursor-pointer bg-white/[0.01] hover:bg-white/[0.03] transition-all group"
                   >
-                    <div className="p-3 bg-white/5 rounded-full text-gray-400 group-hover:text-[#0A66C2] dark:text-[#00F0FF] group-hover:bg-[#0A66C2] dark:bg-[#00F0FF]/10 transition-all">
+                    <div className="p-3 bg-white/5 rounded-full text-gray-400 group-hover:text-[#00F0FF] group-hover:bg-[#00F0FF]/10 transition-all">
                       <Video size={28} />
                     </div>
                     <div className="text-center">
@@ -658,7 +658,7 @@ const FeedPage = () => {
                       setIsCodeMode(false);
                       setActiveAttachmentType('image');
                     }}
-                    className={`p-2.5 rounded-full hover:bg-white/5 transition-colors cursor-pointer ${activeAttachmentType === 'image' ? 'text-[#0A66C2] dark:text-[#00F0FF] bg-[#0A66C2] dark:bg-[#00F0FF]/10' : 'text-gray-400 hover:text-white'}`}
+                    className={`p-2.5 rounded-full hover:bg-white/5 transition-colors cursor-pointer ${activeAttachmentType === 'image' ? 'text-[#00F0FF] bg-[#00F0FF]/10' : 'text-gray-400 hover:text-white'}`}
                     title="Add a photo"
                   >
                     <Image size={20} />
@@ -670,7 +670,7 @@ const FeedPage = () => {
                       setIsCodeMode(false);
                       setActiveAttachmentType('video');
                     }}
-                    className={`p-2.5 rounded-full hover:bg-white/5 transition-colors cursor-pointer ${activeAttachmentType === 'video' ? 'text-[#0A66C2] dark:text-[#00F0FF] bg-[#0A66C2] dark:bg-[#00F0FF]/10' : 'text-gray-400 hover:text-white'}`}
+                    className={`p-2.5 rounded-full hover:bg-white/5 transition-colors cursor-pointer ${activeAttachmentType === 'video' ? 'text-[#00F0FF] bg-[#00F0FF]/10' : 'text-gray-400 hover:text-white'}`}
                     title="Add a video"
                   >
                     <Video size={20} />
@@ -682,7 +682,7 @@ const FeedPage = () => {
                       removeAllMedia();
                       setIsCodeMode(!isCodeMode);
                     }}
-                    className={`p-2.5 rounded-full hover:bg-white/5 transition-colors cursor-pointer ${isCodeMode ? 'text-[#0A66C2] dark:text-[#00F0FF] bg-[#0A66C2] dark:bg-[#00F0FF]/10' : 'text-gray-400 hover:text-white'}`}
+                    className={`p-2.5 rounded-full hover:bg-white/5 transition-colors cursor-pointer ${isCodeMode ? 'text-[#00F0FF] bg-[#00F0FF]/10' : 'text-gray-400 hover:text-white'}`}
                     title="Add code snippet"
                   >
                     <Code2 size={20} />
@@ -698,7 +698,7 @@ const FeedPage = () => {
                   <button 
                     onClick={handlePostSubmit}
                     disabled={isSubmitting || isUploading || (!postContent.trim() && !codeContent.trim() && !selectedImage && !selectedVideo)}
-                    className="px-5 py-2.5 bg-[#0A66C2] hover:bg-[#004182] text-white dark:bg-[#00F0FF] dark:hover:bg-[#0A66C2] dark:bg-[#00F0FF]/90 dark:text-black font-bold rounded-full transition-all text-sm flex items-center gap-2 disabled:opacity-30 cursor-pointer shadow-sm"
+                    className="px-5 py-2.5 bg-[#0A66C2] hover:bg-[#004182] text-white dark:bg-[#00F0FF] dark:hover:bg-[#00F0FF]/90 dark:text-black font-bold rounded-full transition-all text-sm flex items-center gap-2 disabled:opacity-30 cursor-pointer shadow-sm"
                   >
                     {isSubmitting ? (editingPostId ? 'Saving...' : 'Posting...') : (editingPostId ? 'Save' : 'Post')}
                   </button>

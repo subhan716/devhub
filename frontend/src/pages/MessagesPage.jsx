@@ -183,7 +183,7 @@ const MessagesPage = () => {
         
         if (hasMatch) {
           return (
-            <span key={index} className="text-[#0A66C2] dark:text-[#00F0FF] font-medium bg-[#0A66C2] dark:bg-[#00F0FF]/10 px-1 rounded hover:underline cursor-pointer">
+            <span key={index} className="text-[#00F0FF] font-medium bg-[#00F0FF]/10 px-1 rounded hover:underline cursor-pointer">
               {part}
             </span>
           );
@@ -956,13 +956,13 @@ const MessagesPage = () => {
           <div className="relative group mt-2">
             <div className="absolute -inset-0.5 bg-gradient-to-r from-[#00F0FF] to-[#8A2BE2] rounded-xl opacity-0 group-hover:opacity-20 transition duration-500 blur"></div>
             <div className="relative">
-              <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-[#0A66C2] dark:text-[#00F0FF] transition-colors" />
+              <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-[#00F0FF] transition-colors" />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search messages"
-                className={`w-full ${isDark ? "bg-[#050507] text-white border-white/5 placeholder:text-gray-600 focus:border-[#0A66C2] dark:border-[#00F0FF]/30" : "bg-slate-100 text-slate-900 border-slate-200 placeholder:text-slate-400 focus:border-[#0A66C2]"} border rounded-xl py-2 pl-11 pr-4 text-sm focus:outline-none transition-all`}
+                className={`w-full ${isDark ? "bg-[#050507] text-white border-white/5 placeholder:text-gray-600 focus:border-[#00F0FF]/30" : "bg-slate-100 text-slate-900 border-slate-200 placeholder:text-slate-400 focus:border-[#0A66C2]"} border rounded-xl py-2 pl-11 pr-4 text-sm focus:outline-none transition-all`}
               />
             </div>
           </div>
@@ -1062,7 +1062,7 @@ const MessagesPage = () => {
                     {/* Unread Badge / Hover Options Menu */}
                     <div className="relative ml-2 flex-shrink-0 flex items-center justify-center self-center min-w-[20px]">
                       {chat.latestMessage?.receiver === currentUser?._id && !chat.latestMessage?.read && (
-                        <div className={`w-2.5 h-2.5 bg-[#0A66C2] dark:bg-[#00F0FF] rounded-full transition-all ${activeSidebarMenuChatId === chat.user._id ? 'hidden' : 'group-hover:hidden'}`}></div>
+                        <div className={`w-2.5 h-2.5 bg-[#00F0FF] rounded-full transition-all ${activeSidebarMenuChatId === chat.user._id ? 'hidden' : 'group-hover:hidden'}`}></div>
                       )}
                       <button
                         type="button"
@@ -1204,7 +1204,7 @@ const MessagesPage = () => {
               className="relative z-10"
             >
               <div className="w-28 h-28 bg-gradient-to-br from-[#00F0FF]/10 to-[#8A2BE2]/10 rounded-full flex items-center justify-center mb-8 mx-auto border border-slate-200 dark:border-white/5 shadow-[0_0_30px_rgba(0,240,255,0.1)]">
-                <Send size={44} className="text-[#0A66C2] dark:text-[#00F0FF] opacity-90 ml-2 drop-shadow-[0_0_10px_rgba(0,240,255,0.5)]" />
+                <Send size={44} className="text-[#00F0FF] opacity-90 ml-2 drop-shadow-[0_0_10px_rgba(0,240,255,0.5)]" />
               </div>
               <h2 className={`text-3xl font-black ${isDark ? "text-white" : "text-slate-900"} mb-3 tracking-tight`}>Your Workspace</h2>
               <p className="max-w-md text-gray-400 leading-relaxed">Select a conversation from the sidebar or navigate to a developer's profile to start networking.</p>
@@ -1230,13 +1230,13 @@ const MessagesPage = () => {
                     className="w-11 h-11 rounded-full object-cover border border-slate-200 dark:border-white/10 hover:opacity-80 transition-opacity"
                   />
                   {isUserOnline(selectedChat._id) && (
-                    <div className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-[#0A66C2] dark:bg-[#00F0FF] border-2 border-white dark:border-[#111] rounded-full shadow-[0_0_8px_rgba(0,240,255,0.5)]"></div>
+                    <div className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-[#00F0FF] border-2 border-white dark:border-[#111] rounded-full shadow-[0_0_8px_rgba(0,240,255,0.5)]"></div>
                   )}
                 </div>
                 <div>
-                  <h3 onClick={() => setShowChatDetails(v => !v)} className="text-slate-900 dark:text-white font-bold text-[17px] leading-tight cursor-pointer hover:text-[#0A66C2] dark:text-[#00F0FF] transition-colors">{selectedChat.name}</h3>
+                  <h3 onClick={() => setShowChatDetails(v => !v)} className="text-slate-900 dark:text-white font-bold text-[17px] leading-tight cursor-pointer hover:text-[#00F0FF] transition-colors">{selectedChat.name}</h3>
                   <div className="flex items-center gap-1.5 mt-0.5">
-                    <span className={`w-2 h-2 rounded-full ${isUserOnline(selectedChat._id) ? 'bg-[#0A66C2] dark:bg-[#00F0FF] shadow-[0_0_5px_rgba(0,240,255,0.5)]' : 'bg-gray-500'}`}></span>
+                    <span className={`w-2 h-2 rounded-full ${isUserOnline(selectedChat._id) ? 'bg-[#00F0FF] shadow-[0_0_5px_rgba(0,240,255,0.5)]' : 'bg-gray-500'}`}></span>
                     <span className="text-[12px] font-medium text-gray-400">
                       {isUserOnline(selectedChat._id) ? 'Active now' : 'Offline'}
                     </span>
@@ -1246,7 +1246,7 @@ const MessagesPage = () => {
               <button
                 onClick={() => setShowChatDetails(v => !v)}
                 title="Contact info"
-                className={`p-2 rounded-xl transition-colors ${showChatDetails ? 'bg-white/10 text-[#0A66C2] dark:text-[#00F0FF]' : 'text-gray-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5'}`}
+                className={`p-2 rounded-xl transition-colors ${showChatDetails ? 'bg-white/10 text-[#00F0FF]' : 'text-gray-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5'}`}
               >
                 <Info size={20} />
               </button>
@@ -1270,7 +1270,7 @@ const MessagesPage = () => {
                       <button
                         onClick={loadMoreMessages}
                         disabled={isLoadingMore}
-                        className="flex items-center gap-2 text-xs font-semibold text-gray-400 hover:text-[#0A66C2] dark:text-[#00F0FF] bg-white/5 hover:bg-white/10 border border-slate-200 dark:border-white/10 rounded-full px-4 py-1.5 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="flex items-center gap-2 text-xs font-semibold text-gray-400 hover:text-[#00F0FF] bg-white/5 hover:bg-white/10 border border-slate-200 dark:border-white/10 rounded-full px-4 py-1.5 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         {isLoadingMore ? (
                           <>
@@ -1369,7 +1369,7 @@ const MessagesPage = () => {
                                     {msg.pending ? (
                                       <Check size={14} className="text-gray-500" />
                                     ) : msg.read ? (
-                                      <CheckCheck size={14} className="text-[#0A66C2] dark:text-[#00F0FF]" />
+                                      <CheckCheck size={14} className="text-[#00F0FF]" />
                                     ) : (
                                       <CheckCheck size={14} className="text-gray-500" />
                                     )}
@@ -1380,7 +1380,7 @@ const MessagesPage = () => {
 
                             {/* Quote Reply Block */}
                             {msg.replyTo && (
-                              <div className="mb-2 pl-3 border-l-2 border-[#0A66C2] dark:border-[#00F0FF]/50 bg-white/5 rounded-r-lg p-2 max-w-[400px] flex items-center justify-between text-xs text-gray-400 gap-3">
+                              <div className="mb-2 pl-3 border-l-2 border-[#00F0FF]/50 bg-white/5 rounded-r-lg p-2 max-w-[400px] flex items-center justify-between text-xs text-gray-400 gap-3">
                                 <div className="min-w-0 flex-1">
                                   <div className="font-semibold text-[11px] text-white truncate">
                                     {msg.replyTo.sender?._id === currentUser?._id ? 'You' : msg.replyTo.sender?.name}
@@ -1431,7 +1431,7 @@ const MessagesPage = () => {
                                     onClick={() => setPreviewFile(msg.attachment)}
                                     className="inline-flex items-center gap-3 bg-white/5 p-3 rounded-xl border border-slate-200 dark:border-white/10 hover:bg-white/10 transition-colors cursor-pointer"
                                   >
-                                    <FileText size={24} className="text-[#0A66C2] dark:text-[#00F0FF]" />
+                                    <FileText size={24} className="text-[#00F0FF]" />
                                     <span className="text-sm font-medium text-slate-800 dark:text-gray-200 truncate max-w-[200px]">{msg.attachment.name}</span>
                                     <button
                                       type="button"
@@ -1464,11 +1464,11 @@ const MessagesPage = () => {
                                       cancelEditing();
                                     }
                                   }}
-                                  className="w-full bg-black/40 border border-slate-200 dark:border-white/10 rounded-xl px-3 py-2 text-[15px] text-slate-800 dark:text-gray-200 resize-none focus:outline-none focus:border-[#0A66C2] dark:border-[#00F0FF]/50 custom-scrollbar"
+                                  className="w-full bg-black/40 border border-slate-200 dark:border-white/10 rounded-xl px-3 py-2 text-[15px] text-slate-800 dark:text-gray-200 resize-none focus:outline-none focus:border-[#00F0FF]/50 custom-scrollbar"
                                   rows={2}
                                 />
                                 <div className="flex items-center gap-3 mt-1 text-[11px] text-gray-500">
-                                  <button onClick={() => saveEdit(msg)} className="text-[#0A66C2] dark:text-[#00F0FF] hover:underline font-semibold">Save</button>
+                                  <button onClick={() => saveEdit(msg)} className="text-[#00F0FF] hover:underline font-semibold">Save</button>
                                   <button onClick={cancelEditing} className="hover:underline">Cancel</button>
                                   <span>Enter to save • Esc to cancel</span>
                                 </div>
@@ -1510,7 +1510,7 @@ const MessagesPage = () => {
                                         onClick={() => handleToggleReaction(msg._id, emoji)}
                                         className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] border transition-colors ${
                                           hasReacted
-                                            ? 'bg-[#0A66C2] dark:bg-[#00F0FF]/15 border-[#0A66C2] dark:border-[#00F0FF]/40 text-[#0A66C2] dark:text-[#00F0FF]'
+                                            ? 'bg-[#00F0FF]/15 border-[#00F0FF]/40 text-[#00F0FF]'
                                             : 'bg-white/5 border-slate-200 dark:border-white/10 text-gray-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/10'
                                         }`}
                                       >
@@ -1664,9 +1664,9 @@ const MessagesPage = () => {
                   >
                     <div className="bg-white dark:bg-[#111] border border-slate-200 dark:border-white/5 rounded-xl px-4 py-2 flex items-center gap-2.5 shadow-lg backdrop-blur-sm">
                       <div className="flex gap-1 items-center">
-                        <span className="w-1.5 h-1.5 bg-[#0A66C2] dark:bg-[#00F0FF] rounded-full animate-bounce" style={{ animationDelay: '0s' }}></span>
-                        <span className="w-1.5 h-1.5 bg-[#0A66C2] dark:bg-[#00F0FF] rounded-full animate-bounce" style={{ animationDelay: '0.15s' }}></span>
-                        <span className="w-1.5 h-1.5 bg-[#0A66C2] dark:bg-[#00F0FF] rounded-full animate-bounce" style={{ animationDelay: '0.3s' }}></span>
+                        <span className="w-1.5 h-1.5 bg-[#00F0FF] rounded-full animate-bounce" style={{ animationDelay: '0s' }}></span>
+                        <span className="w-1.5 h-1.5 bg-[#00F0FF] rounded-full animate-bounce" style={{ animationDelay: '0.15s' }}></span>
+                        <span className="w-1.5 h-1.5 bg-[#00F0FF] rounded-full animate-bounce" style={{ animationDelay: '0.3s' }}></span>
                       </div>
                       <span className="text-xs text-gray-400 font-medium">{selectedChat.name} is typing...</span>
                     </div>
@@ -1687,7 +1687,7 @@ const MessagesPage = () => {
                   <div className="min-w-0 flex-1 flex items-center justify-between gap-3">
                     <div className="min-w-0">
                       <div className="flex items-center gap-1.5 text-xs text-gray-400 font-medium">
-                        <CornerUpLeft size={12} className="text-[#0A66C2] dark:text-[#00F0FF]" />
+                        <CornerUpLeft size={12} className="text-[#00F0FF]" />
                         <span>Replying to </span>
                         <span className="font-bold text-white">
                           {replyingToMessage.sender?._id === currentUser?._id ? 'yourself' : replyingToMessage.sender?.name}
@@ -1732,7 +1732,7 @@ const MessagesPage = () => {
                     <img src={URL.createObjectURL(attachment)} alt="Preview" className="h-14 w-14 object-cover rounded-lg border border-slate-200 dark:border-white/10" />
                   ) : (
                     <div className="h-14 w-14 bg-black/20 rounded-lg border border-slate-200 dark:border-white/10 flex items-center justify-center">
-                      <FileText size={24} className="text-[#0A66C2] dark:text-[#00F0FF]" />
+                      <FileText size={24} className="text-[#00F0FF]" />
                     </div>
                   )}
                   <span className="text-sm text-slate-700 dark:text-gray-300 truncate max-w-[150px] font-medium">{attachment.name}</span>
@@ -1864,7 +1864,7 @@ const MessagesPage = () => {
                   <button 
                     type="submit"
                     disabled={(typeof newMessage === 'string' ? !newMessage.trim() : true) && !attachment || isUploading}
-                    className={`p-2.5 mb-1 rounded-full ${isDark ? "bg-[#0A66C2] dark:bg-[#00F0FF] text-black hover:bg-[#0A66C2] dark:bg-[#00F0FF]/90 shadow-[0_0_15px_rgba(0,240,255,0.4)]" : "bg-[#0A66C2] text-white hover:bg-[#004182] shadow-sm"} disabled:opacity-30 disabled:cursor-not-allowed transition-all cursor-pointer`}
+                    className={`p-2.5 mb-1 rounded-full ${isDark ? "bg-[#00F0FF] text-black hover:bg-[#00F0FF]/90 shadow-[0_0_15px_rgba(0,240,255,0.4)]" : "bg-[#0A66C2] text-white hover:bg-[#004182] shadow-sm"} disabled:opacity-30 disabled:cursor-not-allowed transition-all cursor-pointer`}
                   >
                     {isUploading ? <Loader2 size={18} className="animate-spin ml-0.5" /> : <Send size={18} className="ml-0.5" />}
                   </button>
@@ -1905,7 +1905,7 @@ const MessagesPage = () => {
                       <p className="text-gray-400 text-sm mt-1">{selectedChat.email}</p>
                     )}
                     <div className="flex items-center gap-1.5 mt-2">
-                      <span className={`w-2 h-2 rounded-full ${isUserOnline(selectedChat._id) ? 'bg-[#0A66C2] dark:bg-[#00F0FF]' : 'bg-gray-500'}`}></span>
+                      <span className={`w-2 h-2 rounded-full ${isUserOnline(selectedChat._id) ? 'bg-[#00F0FF]' : 'bg-gray-500'}`}></span>
                       <span className="text-xs text-gray-400">{isUserOnline(selectedChat._id) ? 'Active now' : 'Offline'}</span>
                     </div>
 
@@ -1953,8 +1953,8 @@ const MessagesPage = () => {
                           onClick={() => setPreviewFile(msg.attachment)} 
                           className="flex items-center gap-3 p-3 bg-white/5 border border-slate-200 dark:border-white/10 hover:bg-slate-100 dark:hover:bg-white/10 rounded-xl transition-colors cursor-pointer"
                         >
-                          <div className="p-2 bg-[#0A66C2] dark:bg-[#00F0FF]/10 rounded-lg">
-                            <FileText size={16} className="text-[#0A66C2] dark:text-[#00F0FF]" />
+                          <div className="p-2 bg-[#00F0FF]/10 rounded-lg">
+                            <FileText size={16} className="text-[#00F0FF]" />
                           </div>
                           <div className="flex-1 min-w-0">
                             <p className="text-sm text-slate-800 dark:text-gray-200 truncate font-medium">{msg.attachment.name}</p>
@@ -2038,7 +2038,7 @@ const MessagesPage = () => {
                             href={previewFile.url} 
                             target="_blank" 
                             rel="noopener noreferrer" 
-                            className="text-[#0A66C2] dark:text-[#00F0FF] hover:underline font-semibold flex items-center gap-1"
+                            className="text-[#00F0FF] hover:underline font-semibold flex items-center gap-1"
                           >
                             Open original <Link2 size={12} />
                           </a>
@@ -2070,7 +2070,7 @@ const MessagesPage = () => {
               if (previewFile.type === 'audio' || ['mp3', 'wav', 'ogg', 'm4a'].includes(ext)) {
                 return (
                   <div className="bg-[#111] p-8 rounded-3xl border border-white/10 w-full max-w-md flex flex-col items-center gap-4 text-center shadow-2xl">
-                    <div className="p-4 bg-[#0A66C2] dark:bg-[#00F0FF]/10 rounded-full border border-[#0A66C2] dark:border-[#00F0FF]/20 text-[#0A66C2] dark:text-[#00F0FF]">
+                    <div className="p-4 bg-[#00F0FF]/10 rounded-full border border-[#00F0FF]/20 text-[#00F0FF]">
                       <FileText size={40} />
                     </div>
                     <span className="text-sm text-white font-semibold truncate w-full">{previewFile.name}</span>
@@ -2087,7 +2087,7 @@ const MessagesPage = () => {
                   <div className="w-[90vw] max-w-5xl h-[80vh] rounded-2xl overflow-hidden shadow-2xl border border-white/10 flex flex-col bg-[#111]">
                     <div className="px-5 py-3 bg-[#181820] border-b border-white/10 flex items-center justify-between">
                       <span className="text-white text-xs font-semibold truncate">{previewFile.name}</span>
-                      <a href={previewFile.url} target="_blank" rel="noopener noreferrer" className="text-xs text-[#0A66C2] dark:text-[#00F0FF] hover:underline flex items-center gap-1">
+                      <a href={previewFile.url} target="_blank" rel="noopener noreferrer" className="text-xs text-[#00F0FF] hover:underline flex items-center gap-1">
                         Open <Link2 size={12} />
                       </a>
                     </div>
@@ -2112,7 +2112,7 @@ const MessagesPage = () => {
                   </div>
                   <button
                     onClick={() => handleDownloadFile(previewFile.url, previewFile.name)}
-                    className="w-full py-3 bg-[#0A66C2] dark:bg-[#00F0FF] hover:bg-[#00D0DF] text-black font-bold rounded-xl text-xs flex items-center justify-center gap-2 transition-all shadow-[0_0_20px_rgba(0,240,255,0.25)]"
+                    className="w-full py-3 bg-[#00F0FF] hover:bg-[#00D0DF] text-black font-bold rounded-xl text-xs flex items-center justify-center gap-2 transition-all shadow-[0_0_20px_rgba(0,240,255,0.25)]"
                   >
                     <Download size={16} /> Download File
                   </button>
@@ -2163,7 +2163,7 @@ const MessagesPage = () => {
                   placeholder="Search for person"
                   value={searchForwardQuery}
                   onChange={(e) => setSearchForwardQuery(e.target.value)}
-                  className={`w-full ${isDark ? "bg-[#161616] text-white border-white/10 placeholder:text-gray-600 focus:border-[#0A66C2] dark:border-[#00F0FF]/50" : "bg-slate-100 text-slate-900 border-slate-200 placeholder:text-slate-400 focus:border-[#0A66C2]"} border rounded-xl py-2 pl-9 pr-4 text-sm focus:outline-none transition-colors`}
+                  className={`w-full ${isDark ? "bg-[#161616] text-white border-white/10 placeholder:text-gray-600 focus:border-[#00F0FF]/50" : "bg-slate-100 text-slate-900 border-slate-200 placeholder:text-slate-400 focus:border-[#0A66C2]"} border rounded-xl py-2 pl-9 pr-4 text-sm focus:outline-none transition-colors`}
                 />
               </div>
 
@@ -2194,7 +2194,7 @@ const MessagesPage = () => {
                             setSelectedForwardTargets(prev => [...prev, conn.user._id]);
                           }
                         }}
-                        className="w-4 h-4 rounded border-gray-600 text-[#0A66C2] dark:text-[#00F0FF] focus:ring-[#0A66C2] dark:focus:ring-[#00F0FF]/50 bg-[#161616]"
+                        className="w-4 h-4 rounded border-gray-600 text-[#00F0FF] focus:ring-[#00F0FF]/50 bg-[#161616]"
                       />
                     </label>
                   );
@@ -2214,7 +2214,7 @@ const MessagesPage = () => {
                   onChange={(e) => setForwardComment(e.target.value)}
                   placeholder="Type a message..."
                   rows={3}
-                  className={`w-full ${isDark ? "bg-[#161616] text-white border-white/10 placeholder:text-gray-600 focus:border-[#0A66C2] dark:border-[#00F0FF]/50" : "bg-slate-100 text-slate-900 border-slate-200 placeholder:text-slate-400 focus:border-[#0A66C2]"} border rounded-xl px-4 py-3 text-sm focus:outline-none resize-none custom-scrollbar`}
+                  className={`w-full ${isDark ? "bg-[#161616] text-white border-white/10 placeholder:text-gray-600 focus:border-[#00F0FF]/50" : "bg-slate-100 text-slate-900 border-slate-200 placeholder:text-slate-400 focus:border-[#0A66C2]"} border rounded-xl px-4 py-3 text-sm focus:outline-none resize-none custom-scrollbar`}
                 />
               </div>
 
@@ -2228,7 +2228,7 @@ const MessagesPage = () => {
                         <img src={forwardTargetMessage.attachment.url} alt="" className="max-w-[150px] rounded-lg object-contain border border-slate-200 dark:border-white/10" />
                       ) : (
                         <div className="flex items-center gap-2 text-xs text-gray-400 bg-black/20 p-2 rounded-lg border border-slate-200 dark:border-white/5 w-fit max-w-full">
-                          <FileText size={16} className="text-[#0A66C2] dark:text-[#00F0FF] flex-shrink-0" />
+                          <FileText size={16} className="text-[#00F0FF] flex-shrink-0" />
                           <span className="truncate max-w-[180px]">{forwardTargetMessage.attachment.name}</span>
                         </div>
                       )}
@@ -2249,7 +2249,7 @@ const MessagesPage = () => {
               <button 
                 type="button"
                 onClick={handleCopyLink}
-                className="flex items-center gap-1.5 text-sm text-[#0A66C2] dark:text-[#00F0FF] hover:underline font-semibold"
+                className="flex items-center gap-1.5 text-sm text-[#00F0FF] hover:underline font-semibold"
               >
                 {copied ? <Check size={16} /> : <Link2 size={16} />}
                 <span>{copied ? 'Copied!' : 'Copy Link'}</span>
@@ -2272,7 +2272,7 @@ const MessagesPage = () => {
                   type="button"
                   onClick={handleForwardMessage}
                   disabled={selectedForwardTargets.length === 0 || forwardingInProgress}
-                  className={`px-5 py-2 ${isDark ? "bg-[#0A66C2] dark:bg-[#00F0FF] text-black hover:bg-[#00D0DF] shadow-[0_0_15px_rgba(0,240,255,0.3)]" : "bg-[#0A66C2] text-white hover:bg-[#004182] shadow-sm"} disabled:opacity-40 disabled:cursor-not-allowed rounded-xl text-sm font-bold transition-all`}
+                  className={`px-5 py-2 ${isDark ? "bg-[#00F0FF] text-black hover:bg-[#00D0DF] shadow-[0_0_15px_rgba(0,240,255,0.3)]" : "bg-[#0A66C2] text-white hover:bg-[#004182] shadow-sm"} disabled:opacity-40 disabled:cursor-not-allowed rounded-xl text-sm font-bold transition-all`}
                 >
                   {forwardingInProgress ? 'Forwarding...' : 'Forward'}
                 </button>

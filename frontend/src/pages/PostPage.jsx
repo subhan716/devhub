@@ -33,10 +33,10 @@ const PostPage = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-black text-white font-sans selection:bg-[#0A66C2] dark:bg-[#00F0FF] selection:text-black flex flex-col">
+      <div className="min-h-screen bg-black text-white font-sans selection:bg-[#00F0FF] selection:text-black flex flex-col">
         <Navbar />
         <div className="flex-1 flex justify-center mt-20">
-          <div className="w-8 h-8 border-4 border-[#0A66C2] dark:border-[#00F0FF] border-t-transparent rounded-full animate-spin"></div>
+          <div className="w-8 h-8 border-4 border-[#00F0FF] border-t-transparent rounded-full animate-spin"></div>
         </div>
       </div>
     );
@@ -44,7 +44,7 @@ const PostPage = () => {
 
   if (error || !post) {
     return (
-      <div className="min-h-screen bg-black text-white font-sans selection:bg-[#0A66C2] dark:bg-[#00F0FF] selection:text-black flex flex-col">
+      <div className="min-h-screen bg-black text-white font-sans selection:bg-[#00F0FF] selection:text-black flex flex-col">
         <Navbar />
         <div className="flex-1 max-w-2xl mx-auto w-full px-4 pt-24 text-center">
           <h2 className="text-2xl font-bold text-slate-600 dark:text-gray-400">{error || 'Post not found'}</h2>
@@ -60,7 +60,7 @@ const PostPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-black text-white font-sans selection:bg-[#0A66C2] dark:bg-[#00F0FF] selection:text-black flex flex-col">
+    <div className="min-h-screen bg-black text-white font-sans selection:bg-[#00F0FF] selection:text-black flex flex-col">
       <main className="flex-1 max-w-2xl mx-auto w-full px-4 pt-8 pb-12">
         <button 
           onClick={() => navigate(-1)} 

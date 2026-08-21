@@ -69,7 +69,7 @@ const ProfileConnectionsPage = () => {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="w-8 h-8 border-2 border-[#0A66C2] dark:border-[#00F0FF] border-t-transparent rounded-full animate-spin"></div>
+        <div className="w-8 h-8 border-2 border-[#00F0FF] border-t-transparent rounded-full animate-spin"></div>
       </div>
     );
   }
@@ -78,7 +78,7 @@ const ProfileConnectionsPage = () => {
     return (
       <div className="text-center py-20">
         <h2 className="text-xl font-bold text-white mb-2">Profile not found</h2>
-        <button onClick={() => navigate(-1)} className="text-[#0A66C2] dark:text-[#00F0FF] hover:underline">Go back</button>
+        <button onClick={() => navigate(-1)} className="text-[#00F0FF] hover:underline">Go back</button>
       </div>
     );
   }
@@ -118,7 +118,7 @@ const ProfileConnectionsPage = () => {
         </Link>
 
         <div className="min-w-0">
-          <Link to={`/profile/${id}`} className="text-xl font-bold text-white hover:text-[#0A66C2] dark:text-[#00F0FF] transition-colors block">
+          <Link to={`/profile/${id}`} className="text-xl font-bold text-white hover:text-[#00F0FF] transition-colors block">
             {profile.user?.name}&apos;s Connections
           </Link>
           {/* Headline below name */}
@@ -130,7 +130,7 @@ const ProfileConnectionsPage = () => {
               <MapPin size={11} /> {profile.location}
             </p>
           )}
-          <div className="text-[#0A66C2] dark:text-[#00F0FF] text-xs font-semibold mt-1">{connections.length} Connections</div>
+          <div className="text-[#00F0FF] text-xs font-semibold mt-1">{connections.length} Connections</div>
         </div>
       </div>
 
@@ -163,7 +163,7 @@ const ProfileConnectionsPage = () => {
                   <div className="flex flex-col overflow-hidden">
                     <Link
                       to={`/profile/${conn.user._id}`}
-                      className="text-white font-semibold text-base hover:text-[#0A66C2] dark:text-[#00F0FF] transition-colors truncate block"
+                      className="text-white font-semibold text-base hover:text-[#00F0FF] transition-colors truncate block"
                     >
                       {conn.user?.name}
                     </Link>

@@ -209,7 +209,7 @@ const PostCard = ({ post: rootPost, idx = 0, currentUser, onDelete, onEdit, auto
     const parts = text.split(/(@\w+)/g);
     return parts.map((part, i) => {
       if (part.startsWith('@')) {
-        return <span key={i} className="text-[#0A66C2] dark:text-[#00F0FF] font-medium">{part}</span>;
+        return <span key={i} className="text-[#00F0FF] font-medium">{part}</span>;
       }
       return part;
     });
@@ -335,7 +335,7 @@ const PostCard = ({ post: rootPost, idx = 0, currentUser, onDelete, onEdit, auto
               <button
                 onClick={handleFollowToggle}
                 disabled={followLoading}
-                className={`text-xs font-semibold px-3 py-1 rounded-full border transition-all cursor-pointer border-[#0A66C2] dark:border-[#00F0FF]/40 text-[#0A66C2] dark:text-[#00F0FF] hover:bg-[#0A66C2] dark:bg-[#00F0FF]/10 ${followLoading ? 'opacity-50' : ''}`}
+                className={`text-xs font-semibold px-3 py-1 rounded-full border transition-all cursor-pointer border-[#00F0FF]/40 text-[#00F0FF] hover:bg-[#00F0FF]/10 ${followLoading ? 'opacity-50' : ''}`}
               >
                 {followLoading ? '...' : '+ Follow'}
               </button>
@@ -487,12 +487,12 @@ const PostCard = ({ post: rootPost, idx = 0, currentUser, onDelete, onEdit, auto
           <span>{likes.length} Likes</span>
         </motion.button>
         
-        <button onClick={() => setShowComments(!showComments)} className="flex items-center gap-1.5 hover:text-[#0A66C2] dark:hover:text-[#0A66C2] dark:text-[#00F0FF] hover:bg-blue-50 dark:hover:bg-[#0A66C2] dark:bg-[#00F0FF]/10 px-3 py-1.5 rounded-full transition-colors cursor-pointer">
+        <button onClick={() => setShowComments(!showComments)} className="flex items-center gap-1.5 hover:text-[#0A66C2] dark:hover:text-[#00F0FF] hover:bg-blue-50 dark:hover:bg-[#00F0FF]/10 px-3 py-1.5 rounded-full transition-colors cursor-pointer">
           <MessageCircle size={18} />
           <span>{commentsCount}</span>
         </button>
         
-        <button onClick={handleRepostClick} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full transition-colors cursor-pointer ${isRepostedByMe ? 'text-[#0A66C2] dark:text-[#00F0FF] bg-[#0A66C2] dark:bg-[#00F0FF]/10' : 'hover:text-[#0A66C2] dark:hover:text-[#0A66C2] dark:text-[#00F0FF] hover:bg-blue-50 dark:hover:bg-[#0A66C2] dark:bg-[#00F0FF]/10'}`}>
+        <button onClick={handleRepostClick} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full transition-colors cursor-pointer ${isRepostedByMe ? 'text-[#00F0FF] bg-[#00F0FF]/10' : 'hover:text-[#0A66C2] dark:hover:text-[#00F0FF] hover:bg-blue-50 dark:hover:bg-[#00F0FF]/10'}`}>
           <Repeat2 size={18} />
           <span>{post?.repostsCount || 0}</span>
         </button>
@@ -518,7 +518,7 @@ const PostCard = ({ post: rootPost, idx = 0, currentUser, onDelete, onEdit, auto
               {/* Modal Header */}
               <div className="flex items-center justify-between p-4 sm:p-5 border-b border-slate-100 dark:border-white/5 bg-slate-50 dark:bg-[#181820]">
                 <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                  <MessageCircle className="text-[#0A66C2] dark:text-[#00F0FF]" size={20} />
+                  <MessageCircle className="text-[#00F0FF]" size={20} />
                   Comments
                 </h3>
                 <button 

@@ -219,7 +219,7 @@ const FloatingChat = ({ currentUser }) => {
                     className="w-full px-4 py-2.5 text-left text-sm text-slate-700 dark:text-gray-300 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white transition-colors flex justify-between items-center"
                   >
                     <span>Mute Sounds</span>
-                    <div className={`w-8 h-4 rounded-full transition-colors relative ${muteSounds ? 'bg-[#0A66C2] dark:bg-[#00F0FF]' : 'bg-gray-600'}`}>
+                    <div className={`w-8 h-4 rounded-full transition-colors relative ${muteSounds ? 'bg-[#00F0FF]' : 'bg-gray-600'}`}>
                       <div className={`absolute top-0.5 bottom-0.5 w-3 h-3 bg-white rounded-full transition-transform ${muteSounds ? 'translate-x-4' : 'translate-x-0.5'}`}></div>
                     </div>
                   </button>
@@ -233,7 +233,7 @@ const FloatingChat = ({ currentUser }) => {
                     className="w-full px-4 py-2.5 text-left text-sm text-slate-700 dark:text-gray-300 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white transition-colors flex justify-between items-center"
                   >
                     <span>Read Receipts</span>
-                    <div className={`w-8 h-4 rounded-full transition-colors relative ${readReceipts ? 'bg-[#0A66C2] dark:bg-[#00F0FF]' : 'bg-gray-600'}`}>
+                    <div className={`w-8 h-4 rounded-full transition-colors relative ${readReceipts ? 'bg-[#00F0FF]' : 'bg-gray-600'}`}>
                       <div className={`absolute top-0.5 bottom-0.5 w-3 h-3 bg-white rounded-full transition-transform ${readReceipts ? 'translate-x-4' : 'translate-x-0.5'}`}></div>
                     </div>
                   </button>
@@ -285,19 +285,19 @@ const FloatingChat = ({ currentUser }) => {
                     placeholder="Search messages" 
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className={`w-full ${isDark ? "bg-white/5 text-white border-white/10 placeholder:text-gray-500 focus:border-[#0A66C2] dark:border-[#00F0FF]" : "bg-slate-100 text-slate-900 border-slate-200 placeholder:text-slate-400 focus:border-[#0A66C2]"} border rounded-lg py-1.5 pl-9 pr-3 text-sm focus:outline-none transition-colors`}
+                    className={`w-full ${isDark ? "bg-white/5 text-white border-white/10 placeholder:text-gray-500 focus:border-[#00F0FF]" : "bg-slate-100 text-slate-900 border-slate-200 placeholder:text-slate-400 focus:border-[#0A66C2]"} border rounded-lg py-1.5 pl-9 pr-3 text-sm focus:outline-none transition-colors`}
                   />
                 </div>
                 <div className="flex gap-6 px-1">
                   <button 
                     onClick={() => setActiveTab('focused')}
-                    className={`text-sm font-semibold pb-2 px-1 transition-colors ${activeTab === 'focused' ? (isDark ? 'text-[#0A66C2] dark:text-[#00F0FF] border-b-2 border-[#0A66C2] dark:border-[#00F0FF]' : 'text-[#0A66C2] border-b-2 border-[#0A66C2]') : (isDark ? 'text-slate-500 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white' : 'text-slate-600 hover:text-slate-900')}`}
+                    className={`text-sm font-semibold pb-2 px-1 transition-colors ${activeTab === 'focused' ? (isDark ? 'text-[#00F0FF] border-b-2 border-[#00F0FF]' : 'text-[#0A66C2] border-b-2 border-[#0A66C2]') : (isDark ? 'text-slate-500 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white' : 'text-slate-600 hover:text-slate-900')}`}
                   >
                     Focused
                   </button>
                   <button 
                     onClick={() => setActiveTab('other')}
-                    className={`text-sm font-semibold pb-2 px-1 transition-colors ${activeTab === 'other' ? (isDark ? 'text-[#0A66C2] dark:text-[#00F0FF] border-b-2 border-[#0A66C2] dark:border-[#00F0FF]' : 'text-[#0A66C2] border-b-2 border-[#0A66C2]') : (isDark ? 'text-slate-500 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white' : 'text-slate-600 hover:text-slate-900')}`}
+                    className={`text-sm font-semibold pb-2 px-1 transition-colors ${activeTab === 'other' ? (isDark ? 'text-[#00F0FF] border-b-2 border-[#00F0FF]' : 'text-[#0A66C2] border-b-2 border-[#0A66C2]') : (isDark ? 'text-slate-500 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white' : 'text-slate-600 hover:text-slate-900')}`}
                   >
                     Other
                   </button>
@@ -585,7 +585,7 @@ const ChatWindow = ({ chat, messages = [], onClose, currentUser, socket, onlineU
                     </div>
                   ) : (
                   <div className={`max-w-[80%] px-3 py-2 rounded-2xl text-[13px] flex flex-col gap-1.5 ${
-                    isMe ? (isDark ? "bg-[#0A66C2] dark:bg-[#00F0FF] text-black rounded-br-sm font-medium shadow-sm" : "bg-[#0A66C2] text-white rounded-br-sm font-medium shadow-sm") : (isDark ? "bg-[#1a1a1a] text-gray-200 border border-white/10 rounded-bl-sm" : "bg-white text-slate-900 border border-slate-200 rounded-bl-sm shadow-xs")
+                    isMe ? (isDark ? "bg-[#00F0FF] text-black rounded-br-sm font-medium shadow-sm" : "bg-[#0A66C2] text-white rounded-br-sm font-medium shadow-sm") : (isDark ? "bg-[#1a1a1a] text-gray-200 border border-white/10 rounded-bl-sm" : "bg-white text-slate-900 border border-slate-200 rounded-bl-sm shadow-xs")
                   }`}>
                     {msg.attachment && (
                       <div>
@@ -601,7 +601,7 @@ const ChatWindow = ({ chat, messages = [], onClose, currentUser, socket, onlineU
                           </div>
                         ) : (
                           <a href={msg.attachment.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 bg-black/20 p-2 rounded-lg border border-slate-200 dark:border-white/10 hover:bg-black/40 transition-colors">
-                            <FileText size={18} className="text-[#0A66C2] dark:text-[#00F0FF]" />
+                            <FileText size={18} className="text-[#00F0FF]" />
                             <span className="text-[11px] font-medium truncate max-w-[120px]">{msg.attachment.name}</span>
                             <Download size={14} className="text-gray-400" />
                           </a>
@@ -614,7 +614,7 @@ const ChatWindow = ({ chat, messages = [], onClose, currentUser, socket, onlineU
                         {msg.pending ? (
                           <Check size={14} className="text-gray-500" />
                         ) : msg.read ? (
-                          <CheckCheck size={14} className="text-[#0A66C2] dark:text-[#00F0FF]" />
+                          <CheckCheck size={14} className="text-[#00F0FF]" />
                         ) : (
                           <CheckCheck size={14} className="text-gray-500" />
                         )}
@@ -641,7 +641,7 @@ const ChatWindow = ({ chat, messages = [], onClose, currentUser, socket, onlineU
                   <img src={URL.createObjectURL(attachment)} alt="Preview" className="h-10 w-10 object-cover rounded-md border border-slate-200 dark:border-white/10" />
                 ) : (
                   <div className="h-10 w-10 bg-black/20 rounded-md border border-slate-200 dark:border-white/10 flex items-center justify-center">
-                    <FileText size={18} className="text-[#0A66C2] dark:text-[#00F0FF]" />
+                    <FileText size={18} className="text-[#00F0FF]" />
                   </div>
                 )}
                 <span className="text-xs text-slate-700 dark:text-gray-300 truncate max-w-[100px] font-medium">{attachment.name}</span>
@@ -687,7 +687,7 @@ const ChatWindow = ({ chat, messages = [], onClose, currentUser, socket, onlineU
                 <button 
                   type="submit" 
                   disabled={(typeof text === 'string' ? !text.trim() : true) && !attachment || isUploading}
-                  className="bg-[#0A66C2] dark:bg-[#00F0FF] text-white dark:text-black p-1.5 rounded-full disabled:opacity-50 hover:bg-[#004182] dark:hover:bg-[#0A66C2] dark:bg-[#00F0FF]/90 transition-colors shadow-sm cursor-pointer"
+                  className="bg-[#0A66C2] dark:bg-[#00F0FF] text-white dark:text-black p-1.5 rounded-full disabled:opacity-50 hover:bg-[#004182] dark:hover:bg-[#00F0FF]/90 transition-colors shadow-sm cursor-pointer"
                 >
                   {isUploading ? <Loader2 size={14} className="animate-spin ml-0.5" /> : <Send size={14} className="ml-0.5" />}
                 </button>

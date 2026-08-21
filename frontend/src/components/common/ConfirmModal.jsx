@@ -27,7 +27,7 @@ const ConfirmModal = ({ isOpen, onClose, onConfirm, title, message, confirmText 
           >
             <div className="p-6">
               <div className="flex justify-between items-start mb-4">
-                <div className={`p-3 rounded-xl ${isDestructive ? 'bg-red-500/10 text-red-500' : 'bg-[#0A66C2] dark:bg-[#00F0FF]/10 text-[#0A66C2] dark:text-[#00F0FF]'}`}>
+                <div className={`p-3 rounded-xl ${isDestructive ? 'bg-red-500/10 text-red-500' : 'bg-[#00F0FF]/10 text-[#00F0FF]'}`}>
                   <AlertTriangle size={24} />
                 </div>
                 <button onClick={onClose} className="p-2 text-gray-400 hover:text-white transition-colors rounded-lg hover:bg-white/5 cursor-pointer">
@@ -53,7 +53,7 @@ const ConfirmModal = ({ isOpen, onClose, onConfirm, title, message, confirmText 
                   className={`px-5 py-2.5 rounded-xl font-medium transition-colors cursor-pointer ${
                     isDestructive 
                       ? 'bg-red-500 hover:bg-red-600 text-white' 
-                      : 'bg-[#0A66C2] dark:bg-[#00F0FF] text-white dark:text-black hover:bg-[#004182] dark:hover:bg-[#0A66C2] dark:bg-[#00F0FF]/80 font-bold shadow-sm'
+                      : 'bg-[#0A66C2] dark:bg-[#00F0FF] text-white dark:text-black hover:bg-[#004182] dark:hover:bg-[#00F0FF]/80 font-bold shadow-sm'
                   }`}
                 >
                   {confirmText}
