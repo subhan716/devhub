@@ -94,6 +94,8 @@ model User {
   otpResendTimeWindowStart DateTime?
   otpFailedAttempts       Int              @default(0)
   otpLockUntil            DateTime?
+  failedLoginAttempts     Int              @default(0)
+  lockUntil               DateTime?
   refreshToken            String?
   passwordResetToken      String?
   passwordResetExpires    DateTime?
