@@ -1,12 +1,12 @@
 import React from 'react';
 
-// Generic Shimmer Base
-export const Shimmer = ({ className }) => (
-  <div className={`animate-pulse bg-white/5 rounded ${className}`} />
+// Generic Shimmer Base (Adaptive Light Slate / Dark Obsidian)
+export const Shimmer = ({ className = '' }) => (
+  <div className={`animate-pulse bg-slate-200 dark:bg-white/5 rounded ${className}`} />
 );
 
 export const PostSkeleton = () => (
-  <div className="bg-[#111] rounded-2xl p-5 mb-6 border border-white/5">
+  <div className="bg-white dark:bg-[#111] rounded-2xl p-5 mb-6 border border-slate-200 dark:border-white/5 shadow-sm dark:shadow-none">
     <div className="flex justify-between items-start mb-4">
       <div className="flex gap-3 w-full">
         <Shimmer className="w-10 h-10 rounded-full" />
@@ -25,7 +25,7 @@ export const PostSkeleton = () => (
 
     <Shimmer className="h-48 w-full rounded-xl mb-4" />
 
-    <div className="flex items-center gap-6 pt-4 border-t border-white/5">
+    <div className="flex items-center gap-6 pt-4 border-t border-slate-100 dark:border-white/5">
       <Shimmer className="h-5 w-16 rounded-full" />
       <Shimmer className="h-5 w-16 rounded-full" />
       <Shimmer className="h-5 w-16 rounded-full" />
@@ -54,7 +54,7 @@ export const MessageSkeleton = ({ isOwn }) => (
 );
 
 export const ConnectionSkeleton = () => (
-  <div className="bg-[#111] rounded-2xl p-5 border border-white/5 flex flex-col items-center text-center">
+  <div className="bg-white dark:bg-[#111] rounded-2xl p-5 border border-slate-200 dark:border-white/5 shadow-sm dark:shadow-none flex flex-col items-center text-center">
     <Shimmer className="w-20 h-20 rounded-full mb-3" />
     <Shimmer className="h-4 w-3/4 mb-2" />
     <Shimmer className="h-3 w-1/2 mb-4" />
@@ -66,8 +66,8 @@ export const ProfileHeaderSkeleton = () => (
   <div className="relative">
     <Shimmer className="w-full h-48 md:h-64 rounded-b-3xl" />
     <div className="px-4 sm:px-8 max-w-5xl mx-auto -mt-16 sm:-mt-20 relative z-10">
-      <div className="bg-[#111] rounded-3xl p-6 sm:p-8 shadow-2xl border border-white/10 flex flex-col md:flex-row gap-6 md:gap-8 items-center md:items-start text-center md:text-left">
-        <Shimmer className="w-32 h-32 sm:w-40 sm:h-40 rounded-full border-4 border-[#111]" />
+      <div className="bg-white dark:bg-[#111] rounded-3xl p-6 sm:p-8 shadow-sm dark:shadow-2xl border border-slate-200 dark:border-white/10 flex flex-col md:flex-row gap-6 md:gap-8 items-center md:items-start text-center md:text-left">
+        <Shimmer className="w-32 h-32 sm:w-40 sm:h-40 rounded-full border-4 border-slate-100 dark:border-[#111]" />
         <div className="flex-1 mt-2 md:mt-6 w-full flex flex-col items-center md:items-start gap-3">
           <Shimmer className="h-8 w-1/2" />
           <Shimmer className="h-4 w-3/4" />
@@ -96,9 +96,9 @@ export const CommentSkeleton = () => (
 );
 
 export const PageSkeleton = () => (
-  <div className="bg-[#050505] min-h-[100dvh] text-white flex flex-col overflow-hidden w-full absolute inset-0 z-50">
+  <div className="bg-slate-50 dark:bg-[#050505] min-h-[100dvh] text-slate-900 dark:text-white flex flex-col overflow-hidden w-full absolute inset-0 z-50">
     {/* Navbar Skeleton */}
-    <div className="h-16 border-b border-white/5 flex items-center justify-between px-4 sm:px-6 lg:px-8 w-full bg-[#050505]">
+    <div className="h-16 border-b border-slate-200 dark:border-white/5 flex items-center justify-between px-4 sm:px-6 lg:px-8 w-full bg-white dark:bg-[#050505]">
       <div className="flex items-center gap-4">
         <Shimmer className="w-8 h-8 rounded-xl" />
         <Shimmer className="w-24 h-6 hidden sm:block" />
@@ -116,7 +116,7 @@ export const PageSkeleton = () => (
     {/* Main Body Skeleton */}
     <div className="flex-1 max-w-7xl mx-auto w-full flex">
       {/* Sidebar Skeleton (Hidden on mobile) */}
-      <div className="hidden lg:flex w-64 flex-col gap-4 py-6 pr-6 border-r border-white/5">
+      <div className="hidden lg:flex w-64 flex-col gap-4 py-6 pr-6 border-r border-slate-200 dark:border-white/5">
         {[1, 2, 3, 4, 5, 6].map(i => (
           <div key={i} className="flex items-center gap-4 p-3">
             <Shimmer className="w-6 h-6 rounded-md" />
@@ -127,7 +127,7 @@ export const PageSkeleton = () => (
 
       {/* Main Content Skeleton */}
       <div className="flex-1 w-full p-4 sm:p-6 flex flex-col gap-6">
-        <div className="bg-[#111] rounded-2xl p-5 mb-2 border border-white/5 flex gap-4">
+        <div className="bg-white dark:bg-[#111] rounded-2xl p-5 mb-2 border border-slate-200 dark:border-white/5 shadow-sm dark:shadow-none flex gap-4">
            <Shimmer className="w-12 h-12 rounded-full flex-shrink-0" />
            <Shimmer className="flex-1 h-12 rounded-xl" />
         </div>
@@ -137,8 +137,8 @@ export const PageSkeleton = () => (
       </div>
 
       {/* Right Sidebar Skeleton (Hidden on smaller screens) */}
-      <div className="hidden xl:flex w-80 flex-col gap-6 py-6 pl-6 border-l border-white/5">
-        <div className="bg-[#111] rounded-2xl p-5 border border-white/5 flex flex-col gap-4">
+      <div className="hidden xl:flex w-80 flex-col gap-6 py-6 pl-6 border-l border-slate-200 dark:border-white/5">
+        <div className="bg-white dark:bg-[#111] rounded-2xl p-5 border border-slate-200 dark:border-white/5 shadow-sm dark:shadow-none flex flex-col gap-4">
           <Shimmer className="h-4 w-1/2 mb-2" />
           {[1, 2, 3].map(i => (
             <div key={`sug-${i}`} className="flex items-center gap-3">

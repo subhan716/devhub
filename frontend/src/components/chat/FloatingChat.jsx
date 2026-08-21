@@ -4,11 +4,13 @@ import { MessageSquare, X, Minus, ChevronUp, ChevronDown, Send, Image as ImageIc
 import axios from 'axios';
 import { useSocket } from '../../context/SocketContext';
 import { useLocation } from 'react-router-dom';
+import { useTheme } from '../../context/ThemeContext';
 import EmojiPicker from 'emoji-picker-react';
 
 const FloatingChat = ({ currentUser }) => {
   const { socket, onlineUsers } = useSocket() || {};
   const location = useLocation();
+  const { isDark } = useTheme();
   
   const [isOpen, setIsOpen] = useState(false);
   const [isVisible, setIsVisible] = useState(true);
@@ -282,13 +284,13 @@ const FloatingChat = ({ currentUser }) => {
                 <div className="flex gap-6 px-1">
                   <button 
                     onClick={() => setActiveTab('focused')}
-                    className={`text-sm font-semibold pb-2 px-1 transition-colors ${activeTab === 'focused' ? 'text-[#00F0FF] border-b-2 border-[#00F0FF]' : 'text-gray-400 hover:text-white'}`}
+                    className={`text-sm font-semibold pb-2 px-1 transition-colors ${activeTab === 'focused' ? (isDark ? 'text-[#00F0FF] border-b-2 border-[#00F0FF]' : 'text-[#0A66C2] border-b-2 border-[#0A66C2]') : (isDark ? 'text-gray-400 hover:text-white' : 'text-slate-600 hover:text-slate-900')}`}
                   >
                     Focused
                   </button>
                   <button 
                     onClick={() => setActiveTab('other')}
-                    className={`text-sm font-semibold pb-2 px-1 transition-colors ${activeTab === 'other' ? 'text-[#00F0FF] border-b-2 border-[#00F0FF]' : 'text-gray-400 hover:text-white'}`}
+                    className={`text-sm font-semibold pb-2 px-1 transition-colors ${activeTab === 'other' ? (isDark ? 'text-[#00F0FF] border-b-2 border-[#00F0FF]' : 'text-[#0A66C2] border-b-2 border-[#0A66C2]') : (isDark ? 'text-gray-400 hover:text-white' : 'text-slate-600 hover:text-slate-900')}`}
                   >
                     Other
                   </button>
@@ -336,7 +338,7 @@ const FloatingChat = ({ currentUser }) => {
                         )}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <h4 className="font-semibold text-sm text-gray-100 truncate mb-0.5">{conv.user.name}</h4>
+                        <h4 className="font-semibold text-sm text-slate-900 dark:text-gray-100 truncate mb-0.5">{conv.user.name}</h4>
                         <p className="text-sm text-gray-400 truncate">{conv.latestMessage?.text}</p>
                       </div>
                     </div>
@@ -363,7 +365,7 @@ const FloatingChat = ({ currentUser }) => {
                         )}
                       </div>
                       <div className="flex-1 min-w-0 flex flex-col justify-center h-12">
-                        <h4 className="font-semibold text-sm text-gray-100 truncate">{conn.user?.name}</h4>
+                        <h4 className="font-semibold text-sm text-slate-900 dark:text-gray-100 truncate">{conn.user?.name}</h4>
                         <p className="text-sm text-gray-500 italic truncate mt-0.5">Start a conversation</p>
                       </div>
                     </div>
@@ -668,7 +670,7 @@ const ChatWindow = ({ chat, messages, onClose, currentUser, socket, onlineUsers,
                 <button 
                   type="submit" 
                   disabled={(typeof text === 'string' ? !text.trim() : true) && !attachment || isUploading}
-                  className="bg-[#0055FF] text-white p-1.5 rounded-full disabled:opacity-50 hover:bg-[#0044CC] transition-colors"
+                  className="bg-[#0A66C2] dark:bg-[#00F0FF] text-white dark:text-black p-1.5 rounded-full disabled:opacity-50 hover:bg-[#004182] dark:hover:bg-[#00F0FF]/90 transition-colors shadow-sm cursor-pointer"
                 >
                   {isUploading ? <Loader2 size={14} className="animate-spin ml-0.5" /> : <Send size={14} className="ml-0.5" />}
                 </button>

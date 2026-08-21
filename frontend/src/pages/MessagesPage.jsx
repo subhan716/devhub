@@ -5,6 +5,7 @@ import { Send, Search, Info, Check, CheckCheck, MessageSquare, Image as ImageIco
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import { useSocket } from '../context/SocketContext';
+import { useTheme } from '../context/ThemeContext';
 import { format } from 'date-fns';
 import EmojiPicker from 'emoji-picker-react';
 import { ChatListSkeleton, MessageSkeleton } from '../components/common/Skeletons';
@@ -12,6 +13,7 @@ import { ChatListSkeleton, MessageSkeleton } from '../components/common/Skeleton
 const MessagesPage = () => {
   const { currentUser } = useOutletContext();
   const { socket, onlineUsers } = useSocket() || {};
+  const { isDark } = useTheme();
   
   const [conversations, setConversations] = useState([]);
   const [connections, setConnections] = useState([]);
@@ -941,15 +943,15 @@ const MessagesPage = () => {
 
   return (
     <>
-    <div className="flex-1 flex bg-[#0a0a0c] overflow-hidden relative">
+    <div className={`flex-1 flex ${isDark ? "bg-[#0a0a0c]" : "bg-slate-100"} overflow-hidden relative`}>
       
       {/* Left Sidebar - Conversations */}
-      <div className={`w-full md:w-80 lg:w-96 flex-shrink-0 flex flex-col bg-[#0e0e11] shadow-[4px_0_24px_rgba(0,0,0,0.35)] z-10 ${selectedChat ? 'hidden md:flex' : 'flex'}`}>
+      <div className={`w-full md:w-80 lg:w-96 flex-shrink-0 flex flex-col ${isDark ? "bg-[#0e0e11] border-r border-white/5 shadow-[4px_0_24px_rgba(0,0,0,0.35)]" : "bg-white border-r border-slate-200 shadow-sm"} z-10 ${selectedChat ? "hidden md:flex" : "flex"}`}>
         
         {/* Header */}
-        <div className="p-6 relative z-10 bg-[#0e0e11]">
+        <div className={`p-6 relative z-10 ${isDark ? "bg-[#0e0e11]" : "bg-white"}`}>
           <div className="mb-4">
-            <h2 className="text-2xl font-black tracking-tight bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">Messages</h2>
+            <h2 className={`text-2xl font-black tracking-tight ${isDark ? "bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent" : "text-slate-900"}`}>Messages</h2>
           </div>
           <div className="relative group mt-2">
             <div className="absolute -inset-0.5 bg-gradient-to-r from-[#00F0FF] to-[#8A2BE2] rounded-xl opacity-0 group-hover:opacity-20 transition duration-500 blur"></div>
@@ -960,23 +962,23 @@ const MessagesPage = () => {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search messages"
-                className="w-full bg-[#050507] border border-slate-200 dark:border-white/5 rounded-xl py-2 pl-11 pr-4 text-sm text-white focus:outline-none focus:border-[#00F0FF]/30 transition-all placeholder:text-gray-600"
+                className={`w-full ${isDark ? "bg-[#050507] text-white border-white/5 placeholder:text-gray-600 focus:border-[#00F0FF]/30" : "bg-slate-100 text-slate-900 border-slate-200 placeholder:text-slate-400 focus:border-[#0A66C2]"} border rounded-xl py-2 pl-11 pr-4 text-sm focus:outline-none transition-all`}
               />
             </div>
           </div>
         </div>
 
         {/* Tabs - Sleek MacOS/Slack Pill Tabs */}
-        <div className="mx-4 mb-3 p-1 flex gap-1 bg-[#050507] rounded-xl border border-white/[0.02]">
+        <div className={`mx-4 mb-3 p-1 flex gap-1 ${isDark ? "bg-[#050507] border-white/[0.02]" : "bg-slate-100 border-slate-200"} rounded-xl border`}>
           <button 
             onClick={() => setActiveTab('Focused')}
-            className={`flex-1 py-1.5 text-xs font-bold transition-all rounded-lg ${activeTab === 'Focused' ? 'text-white bg-white/10 shadow-sm' : 'text-gray-400 hover:text-slate-800 dark:text-gray-200'}`}
+            className={`flex-1 py-1.5 text-xs font-bold transition-all rounded-lg ${activeTab === 'Focused' ? (isDark ? 'text-white bg-white/10 shadow-sm font-bold' : 'text-[#0A66C2] bg-white shadow-sm font-bold') : (isDark ? 'text-gray-400 hover:text-white' : 'text-slate-600 hover:text-slate-900')}`}
           >
             Focused
           </button>
           <button 
             onClick={() => setActiveTab('Other')}
-            className={`flex-1 py-1.5 text-xs font-bold transition-all rounded-lg ${activeTab === 'Other' ? 'text-white bg-white/10 shadow-sm' : 'text-gray-400 hover:text-slate-800 dark:text-gray-200'}`}
+            className={`flex-1 py-1.5 text-xs font-bold transition-all rounded-lg ${activeTab === 'Other' ? (isDark ? 'text-white bg-white/10 shadow-sm font-bold' : 'text-[#0A66C2] bg-white shadow-sm font-bold') : (isDark ? 'text-gray-400 hover:text-white' : 'text-slate-600 hover:text-slate-900')}`}
           >
             Other
           </button>
@@ -1204,7 +1206,7 @@ const MessagesPage = () => {
               <div className="w-28 h-28 bg-gradient-to-br from-[#00F0FF]/10 to-[#8A2BE2]/10 rounded-full flex items-center justify-center mb-8 mx-auto border border-slate-200 dark:border-white/5 shadow-[0_0_30px_rgba(0,240,255,0.1)]">
                 <Send size={44} className="text-[#00F0FF] opacity-90 ml-2 drop-shadow-[0_0_10px_rgba(0,240,255,0.5)]" />
               </div>
-              <h2 className="text-3xl font-black text-white mb-3 tracking-tight">Your Workspace</h2>
+              <h2 className={`text-3xl font-black ${isDark ? "text-white" : "text-slate-900"} mb-3 tracking-tight`}>Your Workspace</h2>
               <p className="max-w-md text-gray-400 leading-relaxed">Select a conversation from the sidebar or navigate to a developer's profile to start networking.</p>
             </motion.div>
           </div>
@@ -1213,7 +1215,7 @@ const MessagesPage = () => {
           <div className="flex-1 flex min-w-0 min-h-0">
             {/* Main chat column */}
             <div className={`flex-1 flex flex-col min-w-0 min-h-0 ${showChatDetails ? 'hidden lg:flex' : 'flex'}`}>
-            <div className="px-6 py-4 bg-[#131317]/80 backdrop-blur-md flex justify-between items-center z-10 shadow-[0_4px_30px_rgba(0,0,0,0.15)]">
+            <div className={`px-6 py-4 ${isDark ? "bg-[#131317]/80 border-b border-white/5" : "bg-white border-b border-slate-200 shadow-sm"} backdrop-blur-md flex justify-between items-center z-10`}>
               <div className="flex items-center gap-4">
                 <button 
                   className="md:hidden p-2 -ml-2 rounded-xl text-gray-400 hover:text-white hover:bg-white/5 transition-colors"
@@ -1353,7 +1355,8 @@ const MessagesPage = () => {
                             {/* Header: Name and Time (hidden when grouped) */}
                             {!isGrouped && (
                               <div className="flex items-baseline gap-2 mb-1">
-                                <span className="font-semibold text-[15px] text-white">
+                                <span className={`font-semibold text-[15px] ${isDark ? "text-white" : "text-slate-900"}`}>
+
                                   {isMe ? currentUser?.name : selectedChat.name}
                                 </span>
                                 <span className="text-[12px] text-gray-500 font-medium">
@@ -1839,7 +1842,7 @@ const MessagesPage = () => {
               ) : (
                 <form 
                   onSubmit={handleSendMessage}
-                  className="flex items-end gap-3 bg-[#181820] border border-slate-200 dark:border-white/5 rounded-2xl px-4 py-2.5 focus-within:border-[#0055FF]/30 transition-all duration-300 shadow-[0_10px_30px_rgba(0,0,0,0.4)] animate-in fade-in duration-200"
+                  className={`flex items-end gap-3 ${isDark ? "bg-[#181820] border-white/5 text-white" : "bg-slate-100 border-slate-200 text-slate-900"} border rounded-2xl px-4 py-2.5 transition-all duration-200 animate-in fade-in`}
                 >
                   <textarea 
                     ref={inputRef}
@@ -1860,7 +1863,7 @@ const MessagesPage = () => {
                   <button 
                     type="submit"
                     disabled={(typeof newMessage === 'string' ? !newMessage.trim() : true) && !attachment || isUploading}
-                    className="bg-[#0055FF] text-white p-2.5 mb-1 rounded-full hover:bg-[#0044CC] disabled:opacity-30 disabled:cursor-not-allowed transition-all shadow-[0_0_15px_rgba(0,85,255,0.4)] disabled:shadow-none"
+                    className={`p-2.5 mb-1 rounded-full ${isDark ? "bg-[#00F0FF] text-black hover:bg-[#00F0FF]/90 shadow-[0_0_15px_rgba(0,240,255,0.4)]" : "bg-[#0A66C2] text-white hover:bg-[#004182] shadow-sm"} disabled:opacity-30 disabled:cursor-not-allowed transition-all cursor-pointer`}
                   >
                     {isUploading ? <Loader2 size={18} className="animate-spin ml-0.5" /> : <Send size={18} className="ml-0.5" />}
                   </button>

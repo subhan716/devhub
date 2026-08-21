@@ -74,22 +74,22 @@ const ReportPostModal = ({ isOpen, onClose, post }) => {
 
   return (
     <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fadeIn text-white font-sans">
-      <div className="bg-[#141418] border border-white/10 rounded-2xl max-w-lg w-full shadow-2xl overflow-hidden">
+      <div className="bg-[#141418] border border-slate-200 dark:border-white/10 rounded-2xl max-w-lg w-full shadow-2xl overflow-hidden">
         {/* Header */}
-        <div className="p-4 border-b border-white/10 flex items-center justify-between bg-white/[0.02]">
+        <div className="p-4 border-b border-slate-200 dark:border-white/10 flex items-center justify-between bg-white/[0.02]">
           <div className="flex items-center gap-2.5">
             <div className="w-8 h-8 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400">
               <ShieldAlert size={16} />
             </div>
             <div>
               <h3 className="text-sm font-bold text-white">Report Content</h3>
-              <p className="text-[11px] text-gray-400">DevHub Trust & Safety Sentinel</p>
+              <p className="text-[11px] text-slate-600 dark:text-gray-400">DevHub Trust & Safety Sentinel</p>
             </div>
           </div>
 
           <button
             onClick={onClose}
-            className="p-1.5 text-gray-400 hover:text-white rounded-lg hover:bg-white/5 transition-colors cursor-pointer"
+            className="p-1.5 text-slate-600 dark:text-gray-400 hover:text-white rounded-lg hover:bg-white/5 transition-colors cursor-pointer"
           >
             <X size={16} />
           </button>
@@ -99,28 +99,28 @@ const ReportPostModal = ({ isOpen, onClose, post }) => {
           <div className="p-8 text-center space-y-3">
             <CheckCircle2 size={40} className="text-emerald-400 mx-auto animate-bounce" />
             <h4 className="text-base font-bold text-white">Report Received</h4>
-            <p className="text-xs text-gray-400 max-w-xs mx-auto leading-relaxed">
+            <p className="text-xs text-slate-600 dark:text-gray-400 max-w-xs mx-auto leading-relaxed">
               Our automated moderation filters and human Trust & Safety team are reviewing this content. Thank you for keeping DevHub secure.
             </p>
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="p-5 space-y-4">
             {/* Post Summary Preview */}
-            <div className="p-3 rounded-xl bg-white/[0.02] border border-white/5 flex items-center gap-3">
+            <div className="p-3 rounded-xl bg-white/[0.02] border border-slate-200 dark:border-white/5 flex items-center gap-3">
               <img
                 src={post?.author?.avatar?.url || 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png'}
                 alt={post?.author?.name}
-                className="w-8 h-8 rounded-full object-cover border border-white/10"
+                className="w-8 h-8 rounded-full object-cover border border-slate-200 dark:border-white/10"
               />
               <div className="overflow-hidden">
                 <p className="text-xs font-semibold text-white truncate">{post?.author?.name}</p>
-                <p className="text-[11px] text-gray-400 truncate line-clamp-1">{post?.content || 'Code snippet post'}</p>
+                <p className="text-[11px] text-slate-600 dark:text-gray-400 truncate line-clamp-1">{post?.content || 'Code snippet post'}</p>
               </div>
             </div>
 
             {/* Category Selector */}
             <div className="space-y-2">
-              <label className="block text-xs font-semibold text-gray-300">
+              <label className="block text-xs font-semibold text-slate-700 dark:text-gray-300">
                 Why are you reporting this post?
               </label>
               <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1">
@@ -130,7 +130,7 @@ const ReportPostModal = ({ isOpen, onClose, post }) => {
                     className={`flex items-start gap-3 p-2.5 rounded-xl border transition-all cursor-pointer ${
                       selectedCategory === cat.id
                         ? 'bg-[#00F0FF]/10 border-[#00F0FF]/40 text-white'
-                        : 'bg-white/[0.01] hover:bg-white/[0.03] border-white/5 text-gray-300'
+                        : 'bg-white/[0.01] hover:bg-white/[0.03] border-slate-200 dark:border-white/5 text-slate-700 dark:text-gray-300'
                     }`}
                   >
                     <input
@@ -143,7 +143,7 @@ const ReportPostModal = ({ isOpen, onClose, post }) => {
                     />
                     <div>
                       <p className="text-xs font-bold">{cat.label}</p>
-                      <p className="text-[10px] text-gray-400 leading-normal">{cat.description}</p>
+                      <p className="text-[10px] text-slate-600 dark:text-gray-400 leading-normal">{cat.description}</p>
                     </div>
                   </label>
                 ))}
@@ -152,7 +152,7 @@ const ReportPostModal = ({ isOpen, onClose, post }) => {
 
             {/* Additional details */}
             <div>
-              <label className="block text-xs font-semibold text-gray-300 mb-1">
+              <label className="block text-xs font-semibold text-slate-700 dark:text-gray-300 mb-1">
                 Additional Context or Explanations (Optional):
               </label>
               <textarea
@@ -160,17 +160,17 @@ const ReportPostModal = ({ isOpen, onClose, post }) => {
                 value={details}
                 onChange={(e) => setDetails(e.target.value)}
                 placeholder="Explain the violation or reference specific lines of code..."
-                className="w-full bg-[#181820] border border-white/10 rounded-xl p-2.5 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-[#00F0FF]/50 transition-colors"
+                className="w-full bg-slate-50 dark:bg-[#181820] border border-slate-200 dark:border-white/10 rounded-xl p-2.5 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-[#00F0FF]/50 transition-colors"
               />
             </div>
 
             {/* Footer Actions */}
-            <div className="flex items-center justify-end gap-2.5 pt-2 border-t border-white/5">
+            <div className="flex items-center justify-end gap-2.5 pt-2 border-t border-slate-200 dark:border-white/5">
               <button
                 type="button"
                 onClick={onClose}
                 disabled={loading}
-                className="px-4 py-2 rounded-xl text-xs font-medium text-gray-400 hover:text-white hover:bg-white/5 transition-colors cursor-pointer"
+                className="px-4 py-2 rounded-xl text-xs font-medium text-slate-600 dark:text-gray-400 hover:text-white hover:bg-white/5 transition-colors cursor-pointer"
               >
                 Cancel
               </button>
