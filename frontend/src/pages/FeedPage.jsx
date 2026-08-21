@@ -504,12 +504,12 @@ const FeedPage = () => {
                 <div className="flex items-center gap-3">
                   <img 
                     src={currentUser?.avatar?.url || 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y'} 
-                    alt={currentUser?.name}
-                    className="w-11 h-11 rounded-full object-cover border border-white/10"
+                    alt={currentUser?.name} 
+                    className="w-11 h-11 rounded-full object-cover border border-slate-200 dark:border-white/10"
                   />
                   <div>
                     <h4 className="text-slate-900 dark:text-white font-semibold text-sm leading-tight">{currentUser?.name}</h4>
-                    <div className="flex items-center gap-1 text-[11px] text-gray-500 mt-0.5 border border-white/10 rounded-full px-2 py-0.5 bg-white/[0.02] w-fit">
+                    <div className="flex items-center gap-1 text-[11px] text-slate-500 dark:text-gray-400 mt-0.5 border border-slate-200 dark:border-white/10 rounded-full px-2 py-0.5 bg-slate-50 dark:bg-white/[0.02] w-fit">
                       <Globe size={11} />
                       <span>Post to Anyone</span>
                     </div>
@@ -535,21 +535,21 @@ const FeedPage = () => {
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -6 }}
                         transition={{ duration: 0.15 }}
-                        className="absolute left-0 top-full z-50 w-full max-w-xs bg-[#1a1a1a] border border-white/10 rounded-xl shadow-2xl overflow-hidden"
+                        className="absolute left-0 top-full z-50 w-full max-w-xs bg-white dark:bg-[#1a1a1a] border border-slate-200 dark:border-white/10 rounded-xl shadow-2xl overflow-hidden py-1"
                       >
                         {mentionSuggestions.map((conn) => (
                           <button
                             key={conn.connectionId || conn.user?._id}
                             onMouseDown={(e) => { e.preventDefault(); handleMentionSelect(conn.user); }}
-                            className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-white/5 transition-colors text-left"
+                            className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-slate-100 dark:hover:bg-white/5 transition-colors text-left"
                           >
                             <img
                               src={conn.user?.avatar?.url || 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y'}
                               alt={conn.user?.name}
-                              className="w-7 h-7 rounded-full border border-white/10 object-cover"
+                              className="w-7 h-7 rounded-full border border-slate-200 dark:border-white/10 object-cover"
                             />
                             <div>
-                              <p className="text-sm text-white font-medium leading-tight">{conn.user?.name}</p>
+                              <p className="text-sm text-slate-900 dark:text-white font-medium leading-tight">{conn.user?.name}</p>
                             </div>
                           </button>
                         ))}
@@ -562,21 +562,21 @@ const FeedPage = () => {
                 {activeAttachmentType === 'image' && !imagePreview && (
                   <div 
                     onClick={() => fileInputRef.current?.click()}
-                    className="border-2 border-dashed border-white/10 hover:border-[#00F0FF]/30 rounded-xl p-8 flex flex-col items-center justify-center gap-3 cursor-pointer bg-white/[0.01] hover:bg-white/[0.03] transition-all group"
+                    className="border-2 border-dashed border-slate-300 dark:border-white/10 hover:border-[#0A66C2] dark:hover:border-[#00F0FF]/30 rounded-xl p-8 flex flex-col items-center justify-center gap-3 cursor-pointer bg-slate-50 dark:bg-white/[0.01] hover:bg-slate-100 dark:hover:bg-white/[0.03] transition-all group"
                   >
-                    <div className="p-3 bg-white/5 rounded-full text-gray-400 group-hover:text-[#00F0FF] group-hover:bg-[#00F0FF]/10 transition-all">
+                    <div className="p-3 bg-white dark:bg-white/5 rounded-full text-slate-500 dark:text-gray-400 group-hover:text-[#0A66C2] dark:group-hover:text-[#00F0FF] group-hover:bg-blue-50 dark:group-hover:bg-[#00F0FF]/10 transition-all shadow-xs">
                       <Image size={28} />
                     </div>
                     <div className="text-center">
-                      <p className="text-sm font-semibold text-white">Select image to share</p>
-                      <p className="text-xs text-gray-500 mt-1">Supports PNG, JPG, JPEG, GIF</p>
+                      <p className="text-sm font-semibold text-slate-900 dark:text-white">Select image to share</p>
+                      <p className="text-xs text-slate-500 dark:text-gray-500 mt-1">Supports PNG, JPG, JPEG, GIF</p>
                     </div>
                   </div>
                 )}
 
                 {/* Image Preview Container */}
                 {imagePreview && (
-                  <div className="relative rounded-xl overflow-hidden border border-white/10 group">
+                  <div className="relative rounded-xl overflow-hidden border border-slate-200 dark:border-white/10 group">
                     <img src={imagePreview} alt="Selected preview" className="w-full max-h-[300px] object-cover" />
                     <button 
                       type="button"
@@ -592,21 +592,21 @@ const FeedPage = () => {
                 {activeAttachmentType === 'video' && !videoPreview && (
                   <div 
                     onClick={() => videoInputRef.current?.click()}
-                    className="border-2 border-dashed border-white/10 hover:border-[#00F0FF]/30 rounded-xl p-8 flex flex-col items-center justify-center gap-3 cursor-pointer bg-white/[0.01] hover:bg-white/[0.03] transition-all group"
+                    className="border-2 border-dashed border-slate-300 dark:border-white/10 hover:border-[#0A66C2] dark:hover:border-[#00F0FF]/30 rounded-xl p-8 flex flex-col items-center justify-center gap-3 cursor-pointer bg-slate-50 dark:bg-white/[0.01] hover:bg-slate-100 dark:hover:bg-white/[0.03] transition-all group"
                   >
-                    <div className="p-3 bg-white/5 rounded-full text-gray-400 group-hover:text-[#00F0FF] group-hover:bg-[#00F0FF]/10 transition-all">
+                    <div className="p-3 bg-white dark:bg-white/5 rounded-full text-slate-500 dark:text-gray-400 group-hover:text-[#0A66C2] dark:group-hover:text-[#00F0FF] group-hover:bg-blue-50 dark:group-hover:bg-[#00F0FF]/10 transition-all shadow-xs">
                       <Video size={28} />
                     </div>
                     <div className="text-center">
-                      <p className="text-sm font-semibold text-white">Select video to share</p>
-                      <p className="text-xs text-gray-500 mt-1">Supports MP4, WebM, OGG</p>
+                      <p className="text-sm font-semibold text-slate-900 dark:text-white">Select video to share</p>
+                      <p className="text-xs text-slate-500 dark:text-gray-500 mt-1">Supports MP4, WebM, OGG</p>
                     </div>
                   </div>
                 )}
 
                 {/* Video Preview Container */}
                 {videoPreview && (
-                  <div className="relative rounded-xl overflow-hidden border border-white/10 bg-black group">
+                  <div className="relative rounded-xl overflow-hidden border border-slate-200 dark:border-white/10 bg-black group">
                     <video src={videoPreview} controls className="w-full max-h-[300px]" />
                     <button 
                       type="button"
@@ -624,7 +624,7 @@ const FeedPage = () => {
                     initial={{ opacity: 0, height: 0 }}
                     animate={{ opacity: 1, height: 'auto' }}
                     exit={{ opacity: 0, height: 0 }}
-                    className="relative rounded-xl overflow-hidden border border-white/10 bg-[#1e1e1e]"
+                    className="relative rounded-xl overflow-hidden border border-slate-300 dark:border-white/10 bg-[#1e1e1e]"
                   >
                     <div className="bg-[#2d2d2d] px-4 py-2.5 text-xs text-gray-400 font-mono border-b border-white/5 flex justify-between items-center">
                       <span className="font-semibold text-white">Code Snippet</span>
@@ -650,7 +650,7 @@ const FeedPage = () => {
               </div>
 
               {/* Footer */}
-              <div className="px-5 py-4 border-t border-t-white/5 bg-[#161616] flex justify-between items-center">
+              <div className="px-5 py-4 border-t border-slate-100 dark:border-white/5 bg-slate-50 dark:bg-[#161616] flex justify-between items-center">
                 <div className="flex gap-1.5">
                   {/* Photo Action */}
                   <button 
@@ -658,7 +658,7 @@ const FeedPage = () => {
                       setIsCodeMode(false);
                       setActiveAttachmentType('image');
                     }}
-                    className={`p-2.5 rounded-full hover:bg-white/5 transition-colors cursor-pointer ${activeAttachmentType === 'image' ? 'text-[#00F0FF] bg-[#00F0FF]/10' : 'text-gray-400 hover:text-white'}`}
+                    className={`p-2.5 rounded-full hover:bg-slate-200 dark:hover:bg-white/5 transition-colors cursor-pointer ${activeAttachmentType === 'image' ? 'text-[#0A66C2] bg-blue-100/60 dark:text-[#00F0FF] dark:bg-[#00F0FF]/10' : 'text-slate-600 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white'}`}
                     title="Add a photo"
                   >
                     <Image size={20} />
@@ -670,7 +670,7 @@ const FeedPage = () => {
                       setIsCodeMode(false);
                       setActiveAttachmentType('video');
                     }}
-                    className={`p-2.5 rounded-full hover:bg-white/5 transition-colors cursor-pointer ${activeAttachmentType === 'video' ? 'text-[#00F0FF] bg-[#00F0FF]/10' : 'text-gray-400 hover:text-white'}`}
+                    className={`p-2.5 rounded-full hover:bg-slate-200 dark:hover:bg-white/5 transition-colors cursor-pointer ${activeAttachmentType === 'video' ? 'text-[#0A66C2] bg-blue-100/60 dark:text-[#00F0FF] dark:bg-[#00F0FF]/10' : 'text-slate-600 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white'}`}
                     title="Add a video"
                   >
                     <Video size={20} />
@@ -682,7 +682,7 @@ const FeedPage = () => {
                       removeAllMedia();
                       setIsCodeMode(!isCodeMode);
                     }}
-                    className={`p-2.5 rounded-full hover:bg-white/5 transition-colors cursor-pointer ${isCodeMode ? 'text-[#00F0FF] bg-[#00F0FF]/10' : 'text-gray-400 hover:text-white'}`}
+                    className={`p-2.5 rounded-full hover:bg-slate-200 dark:hover:bg-white/5 transition-colors cursor-pointer ${isCodeMode ? 'text-[#0A66C2] bg-blue-100/60 dark:text-[#00F0FF] dark:bg-[#00F0FF]/10' : 'text-slate-600 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white'}`}
                     title="Add code snippet"
                   >
                     <Code2 size={20} />
@@ -691,14 +691,14 @@ const FeedPage = () => {
 
                 <div className="flex items-center gap-3">
                   {isUploading && (
-                    <span className="text-xs text-gray-500 flex items-center gap-1.5 animate-pulse">
+                    <span className="text-xs text-slate-500 dark:text-gray-400 flex items-center gap-1.5 animate-pulse">
                       <Loader2 size={12} className="animate-spin" /> Uploading media...
                     </span>
                   )}
                   <button 
                     onClick={handlePostSubmit}
                     disabled={isSubmitting || isUploading || (!postContent.trim() && !codeContent.trim() && !selectedImage && !selectedVideo)}
-                    className="px-5 py-2.5 bg-[#0A66C2] hover:bg-[#004182] text-white dark:bg-[#00F0FF] dark:hover:bg-[#00F0FF]/90 dark:text-black font-bold rounded-full transition-all text-sm flex items-center gap-2 disabled:opacity-30 cursor-pointer shadow-sm"
+                    className="px-5 py-2.5 bg-[#0A66C2] hover:bg-[#004182] text-white dark:bg-[#00F0FF] dark:hover:bg-[#00F0FF]/90 dark:text-black font-bold rounded-full transition-all text-sm flex items-center gap-2 disabled:opacity-40 cursor-pointer shadow-sm"
                   >
                     {isSubmitting ? (editingPostId ? 'Saving...' : 'Posting...') : (editingPostId ? 'Save' : 'Post')}
                   </button>
