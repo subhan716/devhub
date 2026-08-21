@@ -1191,7 +1191,7 @@ const MessagesPage = () => {
       </div>
 
       {/* Right Content - Chat Window */}
-      <div className={`flex-1 flex flex-col bg-transparent min-h-0 overflow-hidden ${!selectedChat ? 'hidden md:flex' : 'flex'}`}>
+      <div className={`flex-1 flex flex-col ${isDark ? "bg-[#0a0a0c]" : "bg-white"} min-h-0 overflow-hidden ${!selectedChat ? "hidden md:flex" : "flex"}`}>
         
         {!selectedChat ? (
           // Empty State
@@ -1253,7 +1253,7 @@ const MessagesPage = () => {
             </div>
 
             {/* Chat Messages Area */}
-            <div ref={scrollContainerRef} data-lenis-prevent="true" className={`flex-1 overflow-y-auto custom-scrollbar min-h-0 flex flex-col relative ${isDark ? "bg-[#131317] bg-[url('/grid.svg')] text-white" : "bg-slate-50 text-slate-900"} bg-[length:40px_40px] px-8 py-6`}>
+            <div ref={scrollContainerRef} data-lenis-prevent="true" className={`flex-1 overflow-y-auto custom-scrollbar min-h-0 flex flex-col relative ${isDark ? "bg-[#0a0a0c] text-white" : "bg-white text-slate-900"} px-8 py-6`}>
               {isLoadingMessages ? (
                 <div className="flex-1 flex flex-col justify-end w-full space-y-1">
                   <MessageSkeleton isOwn={false} />
@@ -1292,7 +1292,8 @@ const MessagesPage = () => {
                     <p className="text-sm">Say hi to {selectedChat.name}! 👋</p>
                   </motion.div>
                 ) : (
-                  messages.map((msg, index) => {
+                  (Array.isArray(messages) ? messages : []).map((msg, index) => {
+                    if (!msg) return null;
                     const isMe = msg.sender === currentUser?._id || msg.sender?._id === currentUser?._id;
 
                     const showTime = index === 0 ||

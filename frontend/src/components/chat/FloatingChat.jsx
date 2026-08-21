@@ -118,6 +118,7 @@ const FloatingChat = ({ currentUser }) => {
   }, [socket, activeChats, isOpen, muteSounds, currentUser, location.pathname]);
 
   const openChatHead = async (user) => {
+    if (!user || !user._id) return;
     // If already open, do nothing
     if (activeChats.find(c => c._id === user._id)) return;
     
@@ -129,13 +130,16 @@ const FloatingChat = ({ currentUser }) => {
     newChats.push(user);
     setActiveChats(newChats);
 
+    setChatMessages(prev => ({ ...prev, [user._id]: prev[user._id] || [] }));
+
     // Fetch messages for this chat
     try {
       const { data } = await axios.get(`${import.meta.env.VITE_API_URL}/api/messages/${user._id}`, { withCredentials: true });
-      const msgs = Array.isArray(data) ? data : data.messages;
+      const msgs = Array.isArray(data) ? data : (Array.isArray(data?.messages) ? data.messages : []);
       setChatMessages(prev => ({ ...prev, [user._id]: msgs }));
     } catch (e) {
-      console.error(e);
+      console.error('Failed to load floating chat messages', e);
+      setChatMessages(prev => ({ ...prev, [user._id]: [] }));
     }
   };
 
@@ -391,8 +395,10 @@ const FloatingChat = ({ currentUser }) => {
 };
 
 // Sub-component for individual chat window
-const ChatWindow = ({ chat, messages, onClose, currentUser, socket, onlineUsers, setChatMessages, setConversations }) => {
+const ChatWindow = ({ chat, messages = [], onClose, currentUser, socket, onlineUsers, setChatMessages, setConversations }) => {
   const { isDark } = useTheme();
+  if (!chat || !chat._id) return null;
+  const safeMessages = Array.isArray(messages) ? messages : [];
   const [isMinimized, setIsMinimized] = useState(false);
   const [text, setText] = useState('');
   
@@ -560,9 +566,10 @@ const ChatWindow = ({ chat, messages, onClose, currentUser, socket, onlineUsers,
 
       {/* Chat Body */}
       {!isMinimized && (
-        <div className={`h-[450px] flex flex-col ${isDark ? "bg-[#050505]" : "bg-slate-50"}`}>
+        <div className={`h-[450px] flex flex-col ${isDark ? "bg-[#050505]" : "bg-white"}`}>
           <div data-lenis-prevent="true" className="flex-1 overflow-y-auto p-4 custom-scrollbar flex flex-col gap-3 min-h-0">
-            {messages.map(msg => {
+            {safeMessages.map(msg => {
+              if (!msg) return null;
               const isMe = msg.sender === currentUser?._id || msg.sender?._id === currentUser?._id;
               return (
                 <div key={msg._id} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
