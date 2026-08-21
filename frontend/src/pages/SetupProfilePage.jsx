@@ -1,615 +1,595 @@
-import { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Briefcase, Code, GitBranch, TerminalSquare, Building, ArrowRight, UserCircle, X, ChevronDown, FileText } from 'lucide-react';
+import { 
+  Sparkles, 
+  User, 
+  Briefcase, 
+  Layers, 
+  Users, 
+  ArrowRight, 
+  CheckCircle2, 
+  Upload, 
+  MapPin, 
+  Globe, 
+  Plus, 
+  X, 
+  RefreshCw,
+  UserPlus,
+  Compass,
+  Zap
+} from 'lucide-react';
 import toast from 'react-hot-toast';
 import axios from 'axios';
 
-// Predefined Skills for Autocomplete
-const COMMON_SKILLS = [
-  'HTML', 'CSS', 'JavaScript', 'TypeScript', 'React', 'Next.js', 'Vue.js', 'Angular', 'Svelte',
-  'Node.js', 'Express', 'NestJS', 'Python', 'Django', 'Flask', 'FastAPI', 'Java', 'Spring Boot', 
-  'C++', 'C#', '.NET', 'Go', 'Rust', 'Ruby', 'Ruby on Rails', 'PHP', 'Laravel', 'Swift', 'Kotlin',
-  'MongoDB', 'PostgreSQL', 'MySQL', 'Redis', 'Cassandra', 'Elasticsearch', 'Firebase', 'Supabase',
-  'Docker', 'Kubernetes', 'Terraform', 'AWS', 'Azure', 'GCP', 'Jenkins', 'GitHub Actions',
-  'GraphQL', 'REST API', 'Tailwind CSS', 'Sass', 'Figma', 'Git', 'Linux', 'Bash', 'Web3', 'Solidity'
+const PRESET_AVATARS = [
+  'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80',
+  'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&auto=format&fit=crop&q=80',
+  'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&auto=format&fit=crop&q=80',
+  'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&auto=format&fit=crop&q=80'
 ];
 
-const MAX_SKILLS = 10;
-const MAX_HEADLINE_LENGTH = 220;
-const MAX_ABOUT_LENGTH = 2000;
+const SUGGESTED_SKILLS = [
+  'React', 'Next.js', 'Node.js', 'PostgreSQL', 'TypeScript', 
+  'Python', 'AI Systems', 'UI/UX Design', 'Product Strategy', 
+  'Cloud Architecture', 'GraphQL', 'TailwindCSS', 'Go', 'Web3'
+];
+
+const INDUSTRIES = [
+  'Tech & Engineering',
+  'Founders & Startups',
+  'Creative & UI/UX Design',
+  'AI & Data Science',
+  'Product & Leadership',
+  'Venture & Capital'
+];
 
 const SetupProfilePage = () => {
   const navigate = useNavigate();
-
-  useEffect(() => {
-    // If user already has an active profile, redirect straight to /feed
-    const checkExistingProfile = async () => {
-      try {
-        const { data } = await axios.get(`${import.meta.env.VITE_API_URL}/api/profile/me`, { withCredentials: true });
-        if (data && (data.status || data.bio || (data.skills && data.skills.length > 0))) {
-          navigate('/feed', { replace: true });
-        }
-      } catch (err) {
-        // No existing profile found, proceed with onboarding
-      }
-    };
-    checkExistingProfile();
-  }, [navigate]);
-  const [step, setStep] = useState(1);
+  const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [errors, setErrors] = useState({});
-  
+  const [suggestions, setSuggestions] = useState([]);
+  const [connectedIds, setConnectedIds] = useState(new Set());
+
   // Form State
   const [formData, setFormData] = useState({
+    name: '',
+    avatarUrl: PRESET_AVATARS[0],
     status: '',
     company: '',
-    githubusername: '',
+    location: '',
     bio: '',
-    about: ''
+    industry: 'Tech & Engineering',
+    skills: ['React', 'TypeScript', 'Node.js'],
+    openToWork: true,
+    targetRole: 'Full Stack Architect'
   });
 
-  // Custom State for Skills (Tags)
-  const [selectedSkills, setSelectedSkills] = useState([]);
   const [skillInput, setSkillInput] = useState('');
-  const [skillSuggestions, setSkillSuggestions] = useState([]);
 
-  // Custom State for Status
-  const [statusInput, setStatusInput] = useState('');
-  const [statusSuggestions, setStatusSuggestions] = useState([]);
-  const [isStatusFocused, setIsStatusFocused] = useState(false);
-  const statusOptions = [
-    'Software Engineer', 'Frontend Developer', 'Backend Developer', 'Mobile Developer',
-    'Product Manager', 'Project Manager', 'Scrum Master',
-    'Graphic Designer', 'UI/UX Designer', 'Art Director',
-    'Data Scientist', 'Machine Learning Engineer', 'Data Analyst',
-    'Digital Marketer', 'SEO Specialist', 'Content Creator', 'Writer / Editor',
-    'CEO / Founder', 'Entrepreneur', 'Business Owner',
-    'Sales / Business Dev', 'Human Resources (HR)', 'Recruiter',
-    'Finance / Accounting', 'Operations Manager',
-    'Cybersecurity Analyst', 'DevOps Engineer', 'Cloud Architect',
-    'QA Engineer', 'Student / Learner', 'Educator / Teacher', 'Other'
-  ];
-
-  // Clearbit Autocomplete State
-  const [suggestions, setSuggestions] = useState([]);
-  const [isSearchingCompany, setIsSearchingCompany] = useState(false);
-  const [isCompanyFocused, setIsCompanyFocused] = useState(false);
-  const [selectedCompanyDomain, setSelectedCompanyDomain] = useState(null);
-
-  // Handle outside clicks is handled by onBlur with timeout now, so removing statusDropdownRef logic
-
-  // Fetch from Clearbit
+  // Fetch initial profile & suggestions
   useEffect(() => {
-    const fetchCompanies = async () => {
-      if (formData.company.length < 2) {
-        setSuggestions([]);
-        return;
-      }
-      setIsSearchingCompany(true);
+    const initOnboarding = async () => {
       try {
-        const response = await fetch(`https://autocomplete.clearbit.com/v1/companies/suggest?query=${formData.company}`);
-        const data = await response.json();
-        setSuggestions(data);
+        const apiUrl = import.meta.env.VITE_API_URL || 'https://devhub-api-node.onrender.com';
+        const { data: user } = await axios.get(`${apiUrl}/api/auth/me`, { withCredentials: true });
+        if (user?.name) {
+          setFormData((prev) => ({
+            ...prev,
+            name: user.name,
+            avatarUrl: user.avatarUrl || prev.avatarUrl
+          }));
+        }
+
+        // Fetch recommendations
+        const res = await axios.get(`${apiUrl}/api/profile/suggestions/onboarding`, { withCredentials: true });
+        if (res.data?.suggestions) {
+          setSuggestions(res.data.suggestions);
+        }
       } catch (err) {
-        setSuggestions([]);
-      } finally {
-        setIsSearchingCompany(false);
+        console.warn('Onboarding init notice:', err.message);
       }
     };
+    initOnboarding();
+  }, []);
 
-    const debounce = setTimeout(() => {
-      fetchCompanies();
-    }, 300);
-
-    return () => clearTimeout(debounce);
-  }, [formData.company]);
-
-  // Handle Skills Filtering
-  useEffect(() => {
-    if (skillInput.trim().length > 0) {
-      const filtered = COMMON_SKILLS.filter(
-        skill => skill.toLowerCase().includes(skillInput.toLowerCase()) && !selectedSkills.includes(skill)
-      );
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-      setSkillSuggestions(filtered.slice(0, 5)); // Show top 5
-    } else {
-      setSkillSuggestions([]);
-    }
-  }, [skillInput, selectedSkills]);
-
-  // Handle Status Filtering
-  useEffect(() => {
-    if (statusInput.trim().length > 0 && isStatusFocused) {
-      const filtered = statusOptions.filter(
-        status => status.toLowerCase().includes(statusInput.toLowerCase())
-      );
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-      setStatusSuggestions(filtered.slice(0, 5)); // Show top 5
-    } else {
-      setStatusSuggestions([]);
-    }
-  }, [statusInput, isStatusFocused]);
-
-  const handleChange = (e) => {
-    let value = e.target.value;
-
-    // Smart formatting for GitHub Username (Extracts username from URL or @handle)
-    if (e.target.name === 'githubusername') {
-      // Extract from https://github.com/username or github.com/username/repo
-      value = value.replace(/^(?:https?:\/\/)?(?:www\.)?github\.com\/([^/]+).*$/i, '$1');
-      // Remove @ symbol if present
-      value = value.replace(/^@/, '');
-      // Remove spaces
-      value = value.trim();
-    }
-
-    // Clear selected company logo if user starts editing the name again
-    if (e.target.name === 'company') {
-      setSelectedCompanyDomain(null);
-    }
-    
-    // Headline and About character limit logic
-    if (e.target.name === 'bio' && value.length > MAX_HEADLINE_LENGTH) {
-      return;
-    }
-    if (e.target.name === 'about' && value.length > MAX_ABOUT_LENGTH) {
-      return;
-    }
-    
-    setFormData({ ...formData, [e.target.name]: value });
-    if (errors[e.target.name]) setErrors({ ...errors, [e.target.name]: null });
-  };
-
-  const handleCompanySelect = (companyName, domain) => {
-    setFormData({ ...formData, company: companyName });
-    setSelectedCompanyDomain(domain);
-    setSuggestions([]);
-    setIsCompanyFocused(false);
-  };
-
-  const addSkill = (skill) => {
-    if (selectedSkills.length >= MAX_SKILLS) {
-      toast.error(`You can only add up to ${MAX_SKILLS} skills.`);
-      setErrors({ ...errors, skills: `Maximum ${MAX_SKILLS} skills allowed.` });
-      return;
-    }
-    
-    if (!selectedSkills.includes(skill)) {
-      setSelectedSkills([...selectedSkills, skill]);
-      setErrors({ ...errors, skills: null });
-    }
-    setSkillInput('');
-    setSkillSuggestions([]);
-  };
-
-  const removeSkill = (skillToRemove) => {
-    setSelectedSkills(selectedSkills.filter(skill => skill !== skillToRemove));
-    if (errors.skills) setErrors({ ...errors, skills: null });
-  };
-
-  const handleSkillKeyDown = (e) => {
-    if (e.key === 'Enter' && skillInput.trim()) {
-      e.preventDefault();
-      
-      const typedSkill = skillInput.trim().toLowerCase();
-      const exactMatch = COMMON_SKILLS.find(s => s.toLowerCase() === typedSkill);
-      
-      if (exactMatch) {
-        addSkill(exactMatch);
-      } else if (skillSuggestions.length > 0) {
-        addSkill(skillSuggestions[0]);
-      } else {
-        toast.error('Please select a valid technical skill from the list.');
-      }
+  const handleAddSkill = (skillToAdd) => {
+    const s = (skillToAdd || skillInput).trim();
+    if (s && !formData.skills.includes(s) && formData.skills.length < 10) {
+      setFormData((prev) => ({ ...prev, skills: [...prev.skills, s] }));
+      setSkillInput('');
     }
   };
 
-  const validateStep1 = () => {
-    const newErrors = {};
-    if (!formData.status) newErrors.status = 'Professional status is required to join the network.';
-    if (selectedSkills.length === 0) newErrors.skills = 'Please add at least one technical skill.';
-    
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+  const handleRemoveSkill = (skillToRemove) => {
+    setFormData((prev) => ({
+      ...prev,
+      skills: prev.skills.filter((s) => s !== skillToRemove)
+    }));
   };
 
-  const validateStep2 = () => {
-    const newErrors = {};
-    // Optional Github username validation (no spaces, standard github format)
-    if (formData.githubusername && !/^[a-z\d](?:[a-z\d]|-(?=[a-z\d])){0,38}$/i.test(formData.githubusername)) {
-      newErrors.githubusername = 'Invalid GitHub username format';
-    }
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+  const handleConnectToggle = (userId) => {
+    setConnectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(userId)) next.delete(userId);
+      else next.add(userId);
+      return next;
+    });
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    
-    if (step === 1) {
-      if (!validateStep1()) return;
-      setStep(2);
-      return;
-    }
-
-    if (!validateStep2()) {
-      toast.error("Please fix the validation errors before deploying.");
-      return;
-    }
-
-    submitProfile({ ...formData, skills: selectedSkills.join(', ') });
-  };
-
-  const handleSkipStep1 = () => {
-    // Submit completely empty profile
-    submitProfile({ status: '', skills: '' });
-  };
-
-  const handleSkipStep2 = () => {
-    // Submit with only Step 1 data
-    submitProfile({ status: formData.status, skills: selectedSkills.join(', ') });
-  };
-
-  const submitProfile = async (submissionData) => {
+  const handleFinalSubmit = async () => {
     setIsSubmitting(true);
     try {
-      await axios.post(`${import.meta.env.VITE_API_URL}/api/profile`, submissionData);
-      toast.success('Profile deployed successfully!');
-      navigate('/feed'); 
-    } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to deploy profile');
+      const apiUrl = import.meta.env.VITE_API_URL || 'https://devhub-api-node.onrender.com';
+      await axios.post(
+        `${apiUrl}/api/profile`,
+        {
+          name: formData.name,
+          avatarUrl: formData.avatarUrl,
+          status: formData.status || `${formData.industry} Specialist`,
+          company: formData.company,
+          location: formData.location,
+          bio: formData.bio,
+          skills: formData.skills,
+          openToWork: {
+            isLooking: formData.openToWork,
+            jobTitles: [formData.targetRole || 'Full Stack Engineer'],
+            workplaces: ['Remote', 'Hybrid'],
+            locations: ['Worldwide']
+          }
+        },
+        { withCredentials: true }
+      );
+
+      toast.success('Your professional identity is ready! Welcome aboard.');
+      navigate('/feed', { replace: true });
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to complete profile');
     } finally {
       setIsSubmitting(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-[#0A0A0A] flex flex-col justify-center py-12 sm:px-6 lg:px-8 relative overflow-y-auto overflow-x-hidden scrollbar-thin scrollbar-thumb-[#00F0FF]/30 scrollbar-track-transparent">
-      {/* Background Effects */}
-      <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
-        <div className="absolute -top-[10%] left-[10%] w-[30%] h-[30%] rounded-full bg-[#00F0FF]/10 blur-[100px]" />
-        <div className="absolute bottom-[10%] right-[10%] w-[30%] h-[30%] rounded-full bg-[#8A2BE2]/10 blur-[100px]" />
-      </div>
-
-      <div className="sm:mx-auto sm:w-full sm:max-w-2xl relative z-10">
-        <div className="flex justify-center items-center gap-2 mb-6">
-          <TerminalSquare className="text-[#00F0FF]" size={32} />
-          <span className="text-3xl font-bold text-white tracking-tight">
+    <div className="min-h-screen bg-[#070709] text-white flex flex-col justify-between p-4 sm:p-8 font-sans selection:bg-[#00F0FF]/30">
+      {/* Top Header */}
+      <div className="max-w-4xl mx-auto w-full flex items-center justify-between py-4">
+        <div className="flex items-center gap-3">
+          <img src="/images/logo.png" alt="DevHub Logo" className="w-8 h-8 object-contain rounded-xl drop-shadow-[0_0_10px_rgba(0,240,255,0.5)]" />
+          <span className="text-xl font-extrabold text-white">
             Dev<span className="text-[#00F0FF]">Hub</span>
           </span>
         </div>
 
-        {/* Progress Bar */}
-        <div className="mb-8">
-          <div className="flex justify-between text-sm font-medium text-gray-400 mb-2 px-1">
-            <span className={step >= 1 ? 'text-[#00F0FF]' : ''}>1. Developer Identity</span>
-            <span className={step >= 2 ? 'text-[#00F0FF]' : ''}>2. Background & Social</span>
-          </div>
-          <div className="w-full bg-white/10 rounded-full h-2">
-            <div 
-              className="bg-[#00F0FF] shadow-[0_0_10px_rgba(0,240,255,0.5)] h-2 rounded-full transition-all duration-500"
-              style={{ width: step === 1 ? '50%' : '100%' }}
-            />
-          </div>
+        {/* Progress Step Pills */}
+        <div className="flex items-center gap-2 text-xs font-mono">
+          {[1, 2, 3, 4].map((stepNum) => (
+            <div
+              key={stepNum}
+              className={`flex items-center gap-1 px-3 py-1 rounded-full border transition-all ${
+                currentStep === stepNum
+                  ? 'bg-[#00F0FF]/15 text-[#00F0FF] border-[#00F0FF]/40 font-bold shadow-[0_0_15px_rgba(0,240,255,0.2)]'
+                  : currentStep > stepNum
+                  ? 'bg-emerald-950/40 text-emerald-400 border-emerald-500/30'
+                  : 'bg-zinc-900 text-zinc-600 border-zinc-800'
+              }`}
+            >
+              <span>Step 0{stepNum}</span>
+              {currentStep > stepNum && <CheckCircle2 size={12} />}
+            </div>
+          ))}
         </div>
+      </div>
 
-        <motion.div 
-          key={step}
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          exit={{ opacity: 0, x: -20 }}
-          className="bg-white/[0.02] py-8 px-4 shadow-[0_0_40px_rgba(0,0,0,0.5)] border border-white/10 sm:rounded-2xl sm:px-10 backdrop-blur-xl min-h-[450px]"
-        >
-          <div className="mb-8 text-center">
-            <h2 className="text-2xl font-bold text-white mb-2">
-              {step === 1 ? 'Initialize Your Workspace' : 'Link Your Environment'}
-            </h2>
-            <p className="text-gray-400 text-sm">
-              {step === 1 ? "Let's get some basic information to set up your developer profile." : "Add some optional details to make your profile stand out."}
-            </p>
-          </div>
-
-          <form onSubmit={handleSubmit} className="space-y-8" noValidate>
-            {step === 1 && (
-              <>
-                {/* Searchable Custom Status Input */}
-                <div className="relative z-50">
-                  <label className="block text-sm font-medium text-gray-300 mb-1">
-                    Professional Status <span className="text-[#00F0FF]">*</span>
-                  </label>
-                  <div className={`relative rounded-md shadow-sm ${errors.status ? 'ring-1 ring-red-500 rounded-lg' : ''}`}>
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <Briefcase className={errors.status ? "text-red-500" : "text-gray-500"} size={18} />
-                    </div>
-                    <input
-                      type="text"
-                      name="status"
-                      value={statusInput}
-                      onChange={(e) => {
-                        setStatusInput(e.target.value);
-                        setFormData({ ...formData, status: e.target.value });
-                        setErrors({ ...errors, status: null });
-                      }}
-                      onFocus={() => setIsStatusFocused(true)}
-                      onBlur={() => setTimeout(() => setIsStatusFocused(false), 200)}
-                      className={`block w-full pl-10 pr-3 py-3 border ${errors.status ? 'border-red-500 bg-red-500/5' : 'border-white/10 focus:border-[#00F0FF]/50 focus:ring-1 focus:ring-[#00F0FF]/50'} rounded-lg bg-black/50 text-white placeholder-gray-600 outline-none transition-all sm:text-sm`}
-                      placeholder="e.g. Software Engineer"
-                      required
-                      autoComplete="off"
-                    />
-                  </div>
-                  {errors.status && <p className="mt-1 text-xs text-red-500">{errors.status}</p>}
-
-                  <AnimatePresence>
-                    {statusSuggestions.length > 0 && isStatusFocused && (
-                      <motion.div
-                        initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}
-                        className="absolute z-50 w-full mt-2 bg-[#111] border border-white/10 rounded-lg shadow-2xl py-1 max-h-48 overflow-y-auto scrollbar-thin scrollbar-thumb-[#00F0FF]/30 scrollbar-track-transparent"
-                      >
-                        {statusSuggestions.map((status) => (
-                          <div
-                            key={status}
-                            onClick={() => {
-                              setStatusInput(status);
-                              setFormData({ ...formData, status });
-                              setIsStatusFocused(false);
-                            }}
-                            className="px-4 py-3 hover:bg-white/5 cursor-pointer transition-colors border-b border-white/5 last:border-0 text-white text-sm"
-                          >
-                            {status}
-                          </div>
-                        ))}
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
+      {/* Main Wizard Stage */}
+      <div className="max-w-3xl mx-auto w-full my-8">
+        <AnimatePresence mode="wait">
+          {/* STEP 1: Visual Identity & Avatar */}
+          {currentStep === 1 && (
+            <motion.div
+              key="step1"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              className="bg-[#0D0D12] border border-white/10 rounded-3xl p-6 sm:p-10 shadow-2xl relative overflow-hidden"
+            >
+              <div className="text-center mb-8">
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#00F0FF]/10 text-[#00F0FF] text-xs font-semibold mb-3">
+                  <User size={13} />
+                  <span>Step 1 of 4: Visual Identity</span>
                 </div>
+                <h2 className="text-2xl sm:text-3xl font-extrabold text-white">Choose Your Profile Avatar</h2>
+                <p className="text-xs sm:text-sm text-zinc-400 mt-1.5">
+                  Select a preset high-resolution avatar or enter an image URL to represent your digital authority.
+                </p>
+              </div>
 
-                {/* Custom Tags Input */}
-                <div>
-                  <div className="flex justify-between items-end mb-1">
-                    <label className="block text-sm font-medium text-gray-300">
-                      Tech Stack (Skills) <span className="text-[#00F0FF]">*</span>
-                    </label>
-                    <span className={`text-xs ${selectedSkills.length >= MAX_SKILLS ? 'text-red-500 font-bold' : 'text-gray-500'}`}>
-                      {selectedSkills.length}/{MAX_SKILLS} Added
-                    </span>
-                  </div>
-                  
-                  {/* Selected Tags Display */}
-                  <div className="flex flex-wrap gap-2 mb-3">
-                    {selectedSkills.map((skill) => (
-                      <motion.div 
-                        initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
-                        key={skill} 
-                        className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-gradient-to-r from-[#00F0FF]/20 to-[#8A2BE2]/20 border border-white/10 text-white text-sm"
-                      >
-                        {skill}
-                        <button type="button" onClick={() => removeSkill(skill)} className="hover:text-[#FF0055] transition-colors ml-1">
-                          <X size={14} />
-                        </button>
-                      </motion.div>
-                    ))}
-                  </div>
-
-                  <div className={`relative rounded-md shadow-sm ${errors.skills ? 'ring-1 ring-red-500 rounded-lg' : ''}`}>
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <Code className={errors.skills ? "text-red-500" : "text-gray-500"} size={18} />
-                    </div>
-                    <input
-                      type="text"
-                      value={skillInput}
-                      onChange={(e) => setSkillInput(e.target.value)}
-                      onKeyDown={handleSkillKeyDown}
-                      disabled={selectedSkills.length >= MAX_SKILLS}
-                      className={`block w-full pl-10 pr-3 py-3 border ${errors.skills ? 'border-red-500 bg-red-500/5' : 'border-white/10'} rounded-lg bg-black/50 text-white placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-[#00F0FF]/50 transition-all sm:text-sm disabled:opacity-50`}
-                      placeholder={selectedSkills.length >= MAX_SKILLS ? "Skill limit reached" : "Type a skill and press Enter (e.g. React, Node.js)"}
-                      autoComplete="off"
-                    />
-
-                    {/* Skill Suggestions Dropdown */}
-                    <AnimatePresence>
-                      {skillSuggestions.length > 0 && selectedSkills.length < MAX_SKILLS && (
-                        <motion.div 
-                          initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
-                          className="absolute z-40 w-full mt-2 bg-[#111] border border-white/10 rounded-lg shadow-2xl max-h-48 overflow-y-auto scrollbar-thin scrollbar-thumb-[#00F0FF]/30 scrollbar-track-transparent"
-                        >
-                          {skillSuggestions.map((skill) => (
-                            <div
-                              key={skill}
-                              onClick={() => addSkill(skill)}
-                              className="px-4 py-3 hover:bg-white/5 cursor-pointer transition-colors border-b border-white/5 last:border-0 text-white text-sm"
-                            >
-                              Add <span className="font-bold text-[#00F0FF]">{skill}</span>
-                            </div>
-                          ))}
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  </div>
-                  {errors.skills && <p className="mt-1 text-xs text-red-500">{errors.skills}</p>}
-                </div>
-              </>
-            )}
-
-            {step === 2 && (
-              <>
-                {/* Organization with Clearbit Autocomplete */}
-                <div className="relative z-30">
-                  <label className="block text-sm font-medium text-gray-300 mb-1">Current Workspace</label>
-                  <div className="relative rounded-md shadow-sm">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      {selectedCompanyDomain ? (
-                        <img 
-                          src={`https://t3.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=http://${selectedCompanyDomain}&size=128`} 
-                          alt="Company Logo" 
-                          className="w-5 h-5 rounded object-contain bg-white/10 p-0.5" 
-                        />
-                      ) : (
-                        <Building className="text-gray-500" size={18} />
-                      )}
-                    </div>
-                    <input
-                      name="company"
-                      type="text"
-                      value={formData.company}
-                      onChange={handleChange}
-                      onFocus={() => setIsCompanyFocused(true)}
-                      onBlur={() => setTimeout(() => setIsCompanyFocused(false), 200)}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') {
-                          e.preventDefault();
-                          setIsCompanyFocused(false);
-                        }
-                      }}
-                      className="block w-full pl-10 pr-3 py-3 border border-white/10 rounded-lg bg-black/50 text-white placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-[#00F0FF]/50 transition-all sm:text-sm"
-                      placeholder="e.g. Google, MIT, or Freelance"
-                      autoComplete="off"
-                    />
-                  </div>
-                  
-                  {/* Autocomplete Dropdown */}
-                  <AnimatePresence>
-                    {isCompanyFocused && formData.company.length > 1 && (suggestions.length > 0 || !isSearchingCompany) && (
-                      <motion.div 
-                        initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
-                        className="absolute w-full mt-2 bg-[#111] border border-white/10 rounded-lg shadow-2xl max-h-60 overflow-y-auto scrollbar-thin scrollbar-thumb-[#00F0FF]/30 scrollbar-track-transparent"
-                      >
-                        {suggestions.length > 0 ? (
-                          suggestions.map((suggestion) => (
-                            <div
-                              key={suggestion.domain}
-                              onClick={() => handleCompanySelect(suggestion.name, suggestion.domain)}
-                              className="flex items-center gap-3 p-3 hover:bg-white/5 cursor-pointer transition-colors border-b border-white/5 last:border-0"
-                            >
-                              <img 
-                                src={`https://t3.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=http://${suggestion.domain}&size=128`} 
-                                alt={suggestion.name} 
-                                className="w-6 h-6 rounded object-contain bg-white/10 p-0.5" 
-                              />
-                              <div>
-                                <div className="text-white text-sm font-medium">{suggestion.name}</div>
-                                <div className="text-gray-500 text-xs">{suggestion.domain}</div>
-                              </div>
-                            </div>
-                          ))
-                        ) : (
-                          <div 
-                            className="p-4 text-sm text-gray-400 text-center cursor-pointer hover:bg-white/5 transition-colors"
-                            onClick={() => setSuggestions([])}
-                          >
-                            <span className="block mb-1">Company not found in global directory.</span>
-                            <span className="text-white font-medium">Press <kbd className="bg-white/10 px-2 py-0.5 rounded text-[#00F0FF]">Enter</kbd> to keep "{formData.company}"</span>
-                          </div>
-                        )}
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </div>
-
-                <div className="relative z-20">
-                  <label className="block text-sm font-medium text-gray-300 mb-1">GitHub Username</label>
-                  <div className="relative rounded-md shadow-sm">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <GitBranch className={errors.githubusername ? "text-red-500" : "text-gray-500"} size={18} />
-                    </div>
-                    <input
-                      name="githubusername"
-                      type="text"
-                      value={formData.githubusername}
-                      onChange={handleChange}
-                      className={`block w-full pl-10 pr-3 py-3 border ${errors.githubusername ? 'border-red-500 focus:ring-red-500' : 'border-white/10 focus:ring-[#00F0FF]/50'} rounded-lg bg-black/50 text-white placeholder-gray-600 focus:outline-none focus:ring-2 transition-all sm:text-sm`}
-                      placeholder="e.g. torvalds or https://github.com/..."
-                    />
-                  </div>
-                  {errors.githubusername && <p className="mt-1 text-xs text-red-500">{errors.githubusername}</p>}
-                </div>
-
-                <div className="space-y-6">
-                  {/* Headline */}
-                  <div className="relative group">
-                    <div className="flex justify-between items-center mb-2">
-                      <label className="block text-sm font-medium text-gray-300">Headline</label>
-                      <span className="text-xs text-gray-500">{formData.bio.length}/{MAX_HEADLINE_LENGTH}</span>
-                    </div>
-                    <div className="relative">
-                      <div className="absolute top-3 left-4 text-gray-400 group-focus-within:text-[#00F0FF] transition-colors">
-                        <FileText size={20} />
-                      </div>
-                      <textarea
-                        name="bio"
-                        value={formData.bio}
-                        onChange={handleChange}
-                        className="w-full bg-[#0a0a0a] border border-white/10 rounded-xl py-3 pl-11 pr-4 text-white focus:border-[#00F0FF]/50 outline-none resize-none transition-colors h-24"
-                        placeholder="e.g. Flutter Developer | Building Real-Time Mobile Apps | Riverpod"
-                      />
-                    </div>
-                  </div>
-
-                  {/* About */}
-                  <div className="relative group">
-                    <div className="flex justify-between items-center mb-2">
-                      <label className="block text-sm font-medium text-gray-300">About</label>
-                      <span className="text-xs text-gray-500">{formData.about.length}/{MAX_ABOUT_LENGTH}</span>
-                    </div>
-                    <div className="relative">
-                      <div className="absolute top-3 left-4 text-gray-400 group-focus-within:text-[#00F0FF] transition-colors">
-                        <FileText size={20} />
-                      </div>
-                      <textarea
-                        name="about"
-                        value={formData.about}
-                        onChange={handleChange}
-                        className="w-full bg-[#0a0a0a] border border-white/10 rounded-xl py-3 pl-11 pr-4 text-white focus:border-[#00F0FF]/50 outline-none resize-none transition-colors h-32"
-                        placeholder="Tell us a detailed story about yourself, your career, and your interests..."
-                      />
-                    </div>
+              {/* Active Avatar Showcase */}
+              <div className="flex flex-col items-center justify-center mb-8">
+                <div className="relative">
+                  <img
+                    src={formData.avatarUrl}
+                    alt="Preview"
+                    className="w-28 h-28 sm:w-32 sm:h-32 rounded-3xl object-cover ring-4 ring-[#00F0FF]/50 shadow-[0_0_30px_rgba(0,240,255,0.3)]"
+                  />
+                  <div className="absolute -bottom-2 -right-2 w-8 h-8 rounded-full bg-[#0A66C2] flex items-center justify-center text-white text-xs font-bold ring-2 ring-[#0D0D12]">
+                    ✓
                   </div>
                 </div>
-              </>
-            )}
+              </div>
 
-            <div className="flex gap-4 pt-4 mt-auto">
-              {step === 1 && (
+              {/* Preset Selection */}
+              <div className="mb-6">
+                <label className="block text-xs font-semibold text-zinc-400 mb-3 text-center">
+                  Quick Select Verified Presets
+                </label>
+                <div className="flex items-center justify-center gap-4">
+                  {PRESET_AVATARS.map((url, idx) => (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => setFormData({ ...formData, avatarUrl: url })}
+                      className={`rounded-2xl overflow-hidden p-1 transition-all cursor-pointer ${
+                        formData.avatarUrl === url
+                          ? 'ring-2 ring-[#00F0FF] scale-105 shadow-md'
+                          : 'opacity-60 hover:opacity-100 hover:scale-105'
+                      }`}
+                    >
+                      <img src={url} alt="Preset" className="w-12 h-12 rounded-xl object-cover" />
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Custom URL Input */}
+              <div className="max-w-md mx-auto mb-8">
+                <label className="block text-xs font-semibold text-zinc-300 mb-1.5">Or Paste Custom Image URL</label>
+                <input
+                  type="url"
+                  value={formData.avatarUrl}
+                  onChange={(e) => setFormData({ ...formData, avatarUrl: e.target.value })}
+                  placeholder="https://images.unsplash.com/..."
+                  className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-2.5 text-xs text-white placeholder-zinc-500 focus:border-[#00F0FF] focus:outline-none"
+                />
+              </div>
+
+              {/* Action */}
+              <div className="flex justify-end pt-4 border-t border-zinc-800">
                 <button
                   type="button"
-                  onClick={handleSkipStep1}
-                  className="flex-1 py-3 px-4 border border-white/10 rounded-lg text-sm font-bold text-gray-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5 transition-all cursor-pointer"
+                  onClick={() => setCurrentStep(2)}
+                  className="px-6 py-3 rounded-xl bg-gradient-to-r from-[#00F0FF] to-[#0A66C2] text-black font-extrabold text-xs flex items-center gap-2 hover:opacity-95 transition-all shadow-[0_0_20px_rgba(0,240,255,0.3)] cursor-pointer"
                 >
-                  Skip Onboarding
+                  <span>Next: Professional Persona</span>
+                  <ArrowRight size={15} />
                 </button>
-              )}
-              {step === 2 && (
-                <>
+              </div>
+            </motion.div>
+          )}
+
+          {/* STEP 2: Professional Persona */}
+          {currentStep === 2 && (
+            <motion.div
+              key="step2"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              className="bg-[#0D0D12] border border-white/10 rounded-3xl p-6 sm:p-10 shadow-2xl relative overflow-hidden"
+            >
+              <div className="text-center mb-8">
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-500/10 text-purple-400 text-xs font-semibold mb-3">
+                  <Briefcase size={13} />
+                  <span>Step 2 of 4: Professional Persona</span>
+                </div>
+                <h2 className="text-2xl sm:text-3xl font-extrabold text-white">Headline & Domain Focus</h2>
+                <p className="text-xs sm:text-sm text-zinc-400 mt-1.5">
+                  Define your primary role, company/organization, and industry focus.
+                </p>
+              </div>
+
+              <div className="space-y-4 max-w-xl mx-auto mb-8">
+                <div>
+                  <label className="block text-xs font-semibold text-zinc-300 mb-1.5">Professional Headline</label>
+                  <input
+                    type="text"
+                    value={formData.status}
+                    onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+                    placeholder="e.g. Lead AI Architect & Systems Engineer | Ex-Stripe"
+                    className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-3 text-xs text-white placeholder-zinc-500 focus:border-[#00F0FF] focus:outline-none"
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-semibold text-zinc-300 mb-1.5">Current Company / Organization</label>
+                    <input
+                      type="text"
+                      value={formData.company}
+                      onChange={(e) => setFormData({ ...formData, company: e.target.value })}
+                      placeholder="e.g. Horizon AI Labs"
+                      className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-2.5 text-xs text-white placeholder-zinc-500 focus:border-[#00F0FF] focus:outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-zinc-300 mb-1.5">Location</label>
+                    <input
+                      type="text"
+                      value={formData.location}
+                      onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                      placeholder="e.g. San Francisco, CA / Remote"
+                      className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-2.5 text-xs text-white placeholder-zinc-500 focus:border-[#00F0FF] focus:outline-none"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-zinc-300 mb-1.5">Primary Industry Domain</label>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                    {INDUSTRIES.map((ind, idx) => (
+                      <button
+                        key={idx}
+                        type="button"
+                        onClick={() => setFormData({ ...formData, industry: ind })}
+                        className={`p-2.5 rounded-xl text-xs font-semibold border transition-all text-left cursor-pointer ${
+                          formData.industry === ind
+                            ? 'bg-[#00F0FF]/15 border-[#00F0FF]/40 text-[#00F0FF] shadow-sm'
+                            : 'bg-zinc-950 border-zinc-800 text-zinc-400 hover:text-white'
+                        }`}
+                      >
+                        {ind}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-zinc-300 mb-1.5">Short Bio</label>
+                  <textarea
+                    rows={2}
+                    value={formData.bio}
+                    onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
+                    placeholder="Building next-gen distributed systems and developer tooling."
+                    className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-2.5 text-xs text-white placeholder-zinc-500 focus:border-[#00F0FF] focus:outline-none leading-relaxed"
+                  />
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex justify-between items-center pt-4 border-t border-zinc-800">
+                <button
+                  type="button"
+                  onClick={() => setCurrentStep(1)}
+                  className="text-xs text-zinc-400 hover:text-white cursor-pointer"
+                >
+                  ← Back
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setCurrentStep(3)}
+                  className="px-6 py-3 rounded-xl bg-gradient-to-r from-purple-500 to-[#FF0055] text-white font-extrabold text-xs flex items-center gap-2 hover:opacity-95 transition-all shadow-[0_0_20px_rgba(255,0,85,0.3)] cursor-pointer"
+                >
+                  <span>Next: Skill Matrix</span>
+                  <ArrowRight size={15} />
+                </button>
+              </div>
+            </motion.div>
+          )}
+
+          {/* STEP 3: Skill Matrix & OpenToWork */}
+          {currentStep === 3 && (
+            <motion.div
+              key="step3"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              className="bg-[#0D0D12] border border-white/10 rounded-3xl p-6 sm:p-10 shadow-2xl relative overflow-hidden"
+            >
+              <div className="text-center mb-8">
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 text-xs font-semibold mb-3">
+                  <Layers size={13} />
+                  <span>Step 3 of 4: Skill Matrix & Opportunities</span>
+                </div>
+                <h2 className="text-2xl sm:text-3xl font-extrabold text-white">Your Skill Graph</h2>
+                <p className="text-xs sm:text-sm text-zinc-400 mt-1.5">
+                  Add up to 10 verified skills to boost smart peer matching and venture recommendations.
+                </p>
+              </div>
+
+              <div className="max-w-xl mx-auto space-y-6 mb-8">
+                {/* Active Skills Chips */}
+                <div>
+                  <label className="block text-xs font-semibold text-zinc-300 mb-2">Selected Skills ({formData.skills.length}/10)</label>
+                  <div className="flex flex-wrap gap-2 p-3 bg-zinc-950 border border-zinc-800 rounded-2xl min-h-[52px]">
+                    {formData.skills.map((skill, idx) => (
+                      <span
+                        key={idx}
+                        className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-[#00F0FF]/15 text-[#00F0FF] border border-[#00F0FF]/30 text-xs font-bold"
+                      >
+                        <span>{skill}</span>
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveSkill(skill)}
+                          className="hover:text-red-400 cursor-pointer"
+                        >
+                          <X size={12} />
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Add Custom Skill */}
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={skillInput}
+                    onChange={(e) => setSkillInput(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddSkill())}
+                    placeholder="Type a skill and press Enter..."
+                    className="flex-1 bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-2.5 text-xs text-white placeholder-zinc-500 focus:border-[#00F0FF] focus:outline-none"
+                  />
                   <button
                     type="button"
-                    onClick={() => setStep(1)}
-                    className="flex-1 py-3 px-4 border border-white/20 rounded-lg text-sm font-bold text-white hover:bg-white/5 transition-all cursor-pointer"
+                    onClick={() => handleAddSkill()}
+                    className="px-4 py-2.5 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-white text-xs font-semibold flex items-center gap-1 cursor-pointer border border-zinc-700"
                   >
-                    Back
+                    <Plus size={14} /> Add
                   </button>
-                  <button
-                    type="button"
-                    onClick={handleSkipStep2}
-                    className="flex-1 py-3 px-4 border border-white/10 rounded-lg text-sm font-bold text-gray-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5 transition-all cursor-pointer"
-                  >
-                    Skip for now
-                  </button>
-                </>
-              )}
-              <button
-                type="submit"
-                className={`${step === 1 ? 'flex-[2]' : 'flex-[2]'} flex justify-center items-center gap-2 py-3 px-4 border border-transparent rounded-lg shadow-[0_0_15px_rgba(0,240,255,0.3)] hover:shadow-[0_0_20px_rgba(0,240,255,0.4)] text-sm font-bold text-black bg-[#00F0FF] hover:opacity-90 focus:outline-none transition-all disabled:opacity-50 cursor-pointer`}
-              >
-                {step === 1 ? (
-                  <>Continue <ArrowRight size={18} /></>
+                </div>
+
+                {/* Suggested Quick Add */}
+                <div>
+                  <label className="block text-[11px] font-semibold text-zinc-400 mb-2">Recommended Suggestions</label>
+                  <div className="flex flex-wrap gap-1.5">
+                    {SUGGESTED_SKILLS.filter((s) => !formData.skills.includes(s)).slice(0, 8).map((skill, idx) => (
+                      <button
+                        key={idx}
+                        type="button"
+                        onClick={() => handleAddSkill(skill)}
+                        className="px-2.5 py-1 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-zinc-300 text-[11px] border border-zinc-800 transition-colors cursor-pointer flex items-center gap-1"
+                      >
+                        <Plus size={10} />
+                        <span>{skill}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Open To Opportunities Toggle */}
+                <div className="p-4 rounded-2xl bg-zinc-950 border border-zinc-800 flex items-center justify-between">
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <Zap size={15} className="text-emerald-400" />
+                      <span className="text-xs font-bold text-white">Open to High-Impact Opportunities</span>
+                    </div>
+                    <p className="text-[11px] text-zinc-400 mt-0.5">Let venture partners and co-founders discover your profile directly.</p>
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={formData.openToWork}
+                    onChange={(e) => setFormData({ ...formData, openToWork: e.target.checked })}
+                    className="w-5 h-5 accent-emerald-400 cursor-pointer rounded"
+                  />
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex justify-between items-center pt-4 border-t border-zinc-800">
+                <button
+                  type="button"
+                  onClick={() => setCurrentStep(2)}
+                  className="text-xs text-zinc-400 hover:text-white cursor-pointer"
+                >
+                  ← Back
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setCurrentStep(4)}
+                  className="px-6 py-3 rounded-xl bg-gradient-to-r from-[#00F0FF] to-[#0A66C2] text-black font-extrabold text-xs flex items-center gap-2 hover:opacity-95 transition-all shadow-[0_0_20px_rgba(0,240,255,0.3)] cursor-pointer"
+                >
+                  <span>Next: Suggested Peers</span>
+                  <ArrowRight size={15} />
+                </button>
+              </div>
+            </motion.div>
+          )}
+
+          {/* STEP 4: Suggested Peer Connections & Launch */}
+          {currentStep === 4 && (
+            <motion.div
+              key="step4"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              className="bg-[#0D0D12] border border-white/10 rounded-3xl p-6 sm:p-10 shadow-2xl relative overflow-hidden"
+            >
+              <div className="text-center mb-8">
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 text-xs font-semibold mb-3">
+                  <Users size={13} />
+                  <span>Step 4 of 4: Peer Connections</span>
+                </div>
+                <h2 className="text-2xl sm:text-3xl font-extrabold text-white">Connect with Top Innovators</h2>
+                <p className="text-xs sm:text-sm text-zinc-400 mt-1.5">
+                  Follow leading creators and founders to kickstart your personalized DevHub feed.
+                </p>
+              </div>
+
+              {/* Suggestions Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-xl mx-auto mb-8">
+                {suggestions.length > 0 ? (
+                  suggestions.map((peer) => {
+                    const isConnected = connectedIds.has(peer.id);
+                    return (
+                      <div
+                        key={peer.id}
+                        className="p-3.5 rounded-2xl bg-zinc-950 border border-zinc-800 flex items-center justify-between gap-3"
+                      >
+                        <div className="flex items-center gap-3 min-w-0">
+                          <img
+                            src={peer.avatarUrl || PRESET_AVATARS[0]}
+                            alt={peer.name}
+                            className="w-10 h-10 rounded-xl object-cover flex-shrink-0"
+                          />
+                          <div className="min-w-0">
+                            <h4 className="text-xs font-bold text-white truncate">{peer.name}</h4>
+                            <p className="text-[10px] text-zinc-400 truncate">
+                              {peer.profile?.status || peer.profile?.company || 'Ecosystem Innovator'}
+                            </p>
+                          </div>
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={() => handleConnectToggle(peer.id)}
+                          className={`px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1 transition-all flex-shrink-0 cursor-pointer ${
+                            isConnected
+                              ? 'bg-zinc-800 text-zinc-300 border border-zinc-700'
+                              : 'bg-[#00F0FF]/15 text-[#00F0FF] border border-[#00F0FF]/30 hover:bg-[#00F0FF]/25'
+                          }`}
+                        >
+                          <UserPlus size={12} />
+                          <span>{isConnected ? 'Connected' : 'Connect'}</span>
+                        </button>
+                      </div>
+                    );
+                  })
                 ) : (
-                  <>{isSubmitting ? 'Deploying Profile...' : 'Complete Setup'} <ArrowRight size={18} /></>
+                  <div className="col-span-2 text-center py-6 text-xs text-zinc-500">
+                    <Compass className="mx-auto mb-2 text-zinc-600 animate-spin" size={24} />
+                    <span>Discovering global peers in your domain...</span>
+                  </div>
                 )}
-              </button>
-            </div>
-          </form>
-        </motion.div>
+              </div>
+
+              {/* Launch Action */}
+              <div className="text-center pt-4 border-t border-zinc-800">
+                <button
+                  type="button"
+                  onClick={handleFinalSubmit}
+                  disabled={isSubmitting}
+                  className="w-full max-w-md mx-auto py-4 rounded-2xl bg-gradient-to-r from-[#00F0FF] via-[#8A2BE2] to-[#FF0055] text-white font-extrabold text-sm flex items-center justify-center gap-2 hover:opacity-95 transition-all shadow-[0_0_30px_rgba(0,240,255,0.4)] hover:scale-102 cursor-pointer disabled:opacity-50"
+                >
+                  {isSubmitting ? (
+                    <>
+                      <RefreshCw size={16} className="animate-spin" />
+                      <span>Configuring Your Workspace...</span>
+                    </>
+                  ) : (
+                    <>
+                      <span>Launch My DevHub Workspace</span>
+                      <Sparkles size={16} />
+                    </>
+                  )}
+                </button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+
+      {/* Footer */}
+      <div className="text-center text-xs text-zinc-600 py-4">
+        DevHub Universal Identity Framework • Powered by Supabase PostgreSQL
       </div>
     </div>
   );

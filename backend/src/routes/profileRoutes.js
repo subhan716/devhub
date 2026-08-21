@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { 
+  getOnboardingSuggestions,
   createOrUpdateProfile, 
   getCurrentProfile,
   getProfileByUserId,
@@ -27,6 +28,7 @@ router.get('/export-data', protect, exportSelfData);
 router.get('/analytics', protect, getProfileAnalytics);
 router.get('/search', protect, searchProfiles);
 router.get('/suggestions', protect, getNetworkSuggestions);
+router.get('/suggestions/onboarding', protect, getOnboardingSuggestions);
 router.get('/followers', protect, getFollowers);
 router.get('/following', protect, getFollowing);
 router.get('/user/:user_id', protectOptional, getProfileByUserId); // Public route with optional auth
