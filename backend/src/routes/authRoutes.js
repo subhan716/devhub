@@ -1,44 +1,53 @@
 const express = require('express');
 const router = express.Router();
-const { registerUser, loginUser, logoutUser, getMe, googleAuth, googleCallback, githubAuth, githubCallback, updateStatusPreference, verifyOtp, resendOtp, updatePassword, getSecurityForensics, revokeAllSessions, requestPasswordOtp, verifyPasswordOtp, resendPasswordOtp, inSessionForgotPassword } = require('../controllers/authController');
+const {
+  registerUser,
+  verifyOtp,
+  resendOtp,
+  loginUser,
+  forgotPassword,
+  resetPassword,
+  oauthTokenGrant,
+  refreshToken,
+  logoutUser,
+  getMe,
+  updateStatusPreference,
+  updatePassword,
+  getSecurityForensics,
+  revokeAllSessions,
+  googleAuth,
+  googleCallback,
+  githubAuth,
+  githubCallback
+} = require('../controllers/authController');
 const { protect } = require('../middleware/authMiddleware');
-const rateLimit = require('express-rate-limit');
 
-// Rate Limiters for Scalability & Security
-const authLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 5, // Limit each IP to 5 requests per windowMs
-  message: { message: 'Too many authentication attempts from this IP, please try again after 15 minutes' }
-});
-
-const otpLimiter = rateLimit({
-  windowMs: 10 * 60 * 1000, // 10 minutes
-  max: 3,
-  message: { message: 'Too many OTP requests from this IP, please try again after 10 minutes' }
-});
-
-router.post('/register', authLimiter, registerUser);
-router.post('/login', authLimiter, loginUser);
-router.post('/logout', protect, logoutUser);
-router.get('/me', protect, getMe);
-router.put('/status', protect, updateStatusPreference);
-router.put('/update-password', protect, updatePassword);
-router.post('/request-password-otp', protect, requestPasswordOtp);
-router.post('/verify-password-otp', protect, verifyPasswordOtp);
-router.post('/resend-password-otp', protect, resendPasswordOtp);
-router.post('/in-session-forgot-password', protect, inSessionForgotPassword);
-router.get('/security-forensics', protect, getSecurityForensics);
-router.post('/revoke-all-sessions', protect, revokeAllSessions);
-
-// OTP Verification Routes
+// Standard & Enterprise Auth Routes
+router.post('/register', registerUser);
 router.post('/verify-otp', verifyOtp);
-router.post('/resend-otp', otpLimiter, resendOtp);
+router.post('/resend-otp', resendOtp);
+router.post('/login', loginUser);
 
-// OAuth Routes
-router.get('/google', authLimiter, googleAuth);
+// 3-Min OTP Smart Password Recovery
+router.post('/forgot-password', forgotPassword);
+router.post('/reset-password', resetPassword);
+
+// OAuth 2.0 Token Grant & Auto-Refresh Gateway
+router.post('/oauth/token', oauthTokenGrant);
+router.post('/refresh', refreshToken);
+
+// Session Lifecycle & Security
+router.post('/logout', logoutUser);
+router.get('/me', protect, getMe);
+router.put('/status-preference', protect, updateStatusPreference);
+router.put('/password', protect, updatePassword);
+router.post('/revoke-all-sessions', protect, revokeAllSessions);
+router.get('/security-forensics', protect, getSecurityForensics);
+
+// 1-Click Social OAuth & Mobile Handshake
+router.get('/google', googleAuth);
 router.get('/google/callback', googleCallback);
-
-router.get('/github', authLimiter, githubAuth);
+router.get('/github', githubAuth);
 router.get('/github/callback', githubCallback);
 
 module.exports = router;

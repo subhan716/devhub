@@ -10,15 +10,16 @@ import {
   ShieldCheck, 
   RefreshCw,
   Eye,
-  EyeOff
+  EyeOff,
+  KeyRound
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import axios from 'axios';
 
 const AuthModal = ({ isOpen, onClose, initialMode = 'login' }) => {
-  const [mode, setMode] = useState(initialMode); // 'login' | 'register' | 'otp'
-  const [formData, setFormData] = useState({ name: '', email: '', password: '' });
+  const [mode, setMode] = useState(initialMode); // 'login' | 'register' | 'otp' | 'forgot-email' | 'forgot-otp-reset'
+  const [formData, setFormData] = useState({ name: '', email: '', password: '', newPassword: '' });
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -32,9 +33,10 @@ const AuthModal = ({ isOpen, onClose, initialMode = 'login' }) => {
     setErrors({});
   }, [initialMode, isOpen]);
 
+  // Countdown timer for OTP
   useEffect(() => {
     let timer;
-    if (mode === 'otp' && otpTimer > 0) {
+    if ((mode === 'otp' || mode === 'forgot-otp-reset') && otpTimer > 0) {
       timer = setInterval(() => setOtpTimer((prev) => prev - 1), 1000);
     }
     return () => clearInterval(timer);
@@ -77,14 +79,14 @@ const AuthModal = ({ isOpen, onClose, initialMode = 'login' }) => {
     }
   };
 
-  const getPasswordStrength = () => {
-    const pwd = formData.password || '';
-    if (!pwd) return { score: 0, label: '', color: 'bg-zinc-800' };
+  const getPasswordStrength = (pwd) => {
+    const p = pwd || '';
+    if (!p) return { score: 0, label: '', color: 'bg-zinc-800' };
     let score = 0;
-    if (pwd.length >= 8) score += 1;
-    if (/[A-Z]/.test(pwd)) score += 1;
-    if (/[0-9]/.test(pwd)) score += 1;
-    if (/[^A-Za-z0-9]/.test(pwd)) score += 1;
+    if (p.length >= 8) score += 1;
+    if (/[A-Z]/.test(p)) score += 1;
+    if (/[0-9]/.test(p)) score += 1;
+    if (/[^A-Za-z0-9]/.test(p)) score += 1;
 
     if (score === 1) return { score: 25, label: 'Weak', color: 'bg-red-500' };
     if (score === 2) return { score: 50, label: 'Fair', color: 'bg-amber-500' };
@@ -92,7 +94,7 @@ const AuthModal = ({ isOpen, onClose, initialMode = 'login' }) => {
     return { score: 100, label: 'Enterprise Grade', color: 'bg-emerald-400' };
   };
 
-  const strength = getPasswordStrength();
+  const strength = getPasswordStrength(mode === 'forgot-otp-reset' ? formData.newPassword : formData.password);
 
   const handleGoogleAuth = () => {
     window.location.href = `${import.meta.env.VITE_API_URL || 'https://devhub-api-node.onrender.com'}/api/auth/google`;
@@ -198,11 +200,92 @@ const AuthModal = ({ isOpen, onClose, initialMode = 'login' }) => {
     }
   };
 
+  // SMART FORGOT PASSWORD INITIATOR (Auto-prefills email if already typed)
+  const handleInitiateForgotPassword = async () => {
+    const cleanEmail = (formData.email || '').trim();
+    if (!cleanEmail) {
+      setMode('forgot-email');
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const apiUrl = import.meta.env.VITE_API_URL || 'https://devhub-api-node.onrender.com';
+      await axios.post(`${apiUrl}/api/auth/forgot-password`, { email: cleanEmail });
+      toast.success(`3-minute reset code sent to ${cleanEmail}`);
+      setMode('forgot-otp-reset');
+      setOtpTimer(180);
+      setOtp(['', '', '', '', '', '']);
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to send reset code');
+      setMode('forgot-email');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // FORGOT PASSWORD EMAIL FORM SUBMIT
+  const handleForgotEmailSubmit = async (e) => {
+    e.preventDefault();
+    if (!formData.email) {
+      setErrors({ email: 'Please enter your registered email' });
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const apiUrl = import.meta.env.VITE_API_URL || 'https://devhub-api-node.onrender.com';
+      await axios.post(`${apiUrl}/api/auth/forgot-password`, { email: formData.email });
+      toast.success(`Reset code sent to ${formData.email}`);
+      setMode('forgot-otp-reset');
+      setOtpTimer(180);
+      setOtp(['', '', '', '', '', '']);
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to dispatch reset code');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // RESET PASSWORD FORM SUBMIT
+  const handleResetPasswordSubmit = async (e) => {
+    e.preventDefault();
+    const fullOtp = otp.join('');
+    if (fullOtp.length !== 6) {
+      toast.error('Please enter the 6-digit verification code');
+      return;
+    }
+    if (!formData.newPassword || formData.newPassword.length < 8) {
+      setErrors({ newPassword: 'New password must be at least 8 characters' });
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const apiUrl = import.meta.env.VITE_API_URL || 'https://devhub-api-node.onrender.com';
+      await axios.post(`${apiUrl}/api/auth/reset-password`, {
+        email: formData.email,
+        otp: fullOtp,
+        newPassword: formData.newPassword
+      });
+
+      toast.success('Password updated successfully! Welcome back.');
+      localStorage.setItem('isAuthenticated', 'true');
+      onClose();
+      navigate('/feed');
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to reset password');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleResendOtp = async () => {
     try {
       const apiUrl = import.meta.env.VITE_API_URL || 'https://devhub-api-node.onrender.com';
-      await axios.post(`${apiUrl}/api/auth/resend-otp`, { email: formData.email });
-      toast.success('New verification code sent');
+      const endpoint = mode === 'forgot-otp-reset' ? '/api/auth/forgot-password' : '/api/auth/resend-otp';
+      await axios.post(`${apiUrl}${endpoint}`, { email: formData.email });
+      toast.success('New 3-minute code sent to your email');
       setOtpTimer(180);
       setOtp(['', '', '', '', '', '']);
       otpInputRefs.current[0]?.focus();
@@ -250,7 +333,7 @@ const AuthModal = ({ isOpen, onClose, initialMode = 'login' }) => {
               <p className="text-xs text-zinc-400 mt-1">Sign in to your verified professional network</p>
             </div>
 
-            {/* Social Auth Buttons (Clean, Solid Dark Slate) */}
+            {/* Social Auth Buttons */}
             <div className="grid grid-cols-2 gap-3 mb-5">
               <button
                 type="button"
@@ -303,7 +386,16 @@ const AuthModal = ({ isOpen, onClose, initialMode = 'login' }) => {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-zinc-300 mb-1">Password</label>
+                <div className="flex justify-between items-center mb-1">
+                  <label className="block text-xs font-semibold text-zinc-300">Password</label>
+                  <button
+                    type="button"
+                    onClick={handleInitiateForgotPassword}
+                    className="text-[11px] text-zinc-400 hover:text-white transition-colors cursor-pointer"
+                  >
+                    Forgot Password?
+                  </button>
+                </div>
                 <div className="relative">
                   <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-500" size={15} />
                   <input
@@ -510,7 +602,7 @@ const AuthModal = ({ isOpen, onClose, initialMode = 'login' }) => {
           </div>
         )}
 
-        {/* 3. OTP VERIFICATION MODE */}
+        {/* 3. SIGN UP OTP VERIFICATION MODE */}
         {mode === 'otp' && (
           <div>
             <div className="text-center mb-6">
@@ -540,7 +632,6 @@ const AuthModal = ({ isOpen, onClose, initialMode = 'login' }) => {
                 ))}
               </div>
 
-              {/* Clean Solid White Primary Button */}
               <button
                 type="submit"
                 disabled={isLoading || otp.join('').length !== 6}
@@ -566,13 +657,184 @@ const AuthModal = ({ isOpen, onClose, initialMode = 'login' }) => {
                 onClick={() => setMode('login')}
                 className="hover:text-white cursor-pointer"
               >
-                ← Back
+                ← Back to Login
               </button>
 
               <button
                 type="button"
                 onClick={handleResendOtp}
-                disabled={otpTimer > 120} // 60s cooldown from 180s
+                disabled={otpTimer > 120}
+                className="font-medium text-zinc-300 hover:text-white cursor-pointer"
+              >
+                {otpTimer > 120 ? `Resend in ${otpTimer - 120}s` : 'Resend Code'}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* 4. FORGOT PASSWORD EMAIL ENTRY MODE */}
+        {mode === 'forgot-email' && (
+          <div>
+            <div className="text-center mb-6">
+              <div className="w-10 h-10 rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-center mx-auto mb-3 text-[#0A66C2]">
+                <KeyRound size={20} />
+              </div>
+              <h3 className="text-2xl font-bold text-white tracking-tight">Reset Password</h3>
+              <p className="text-xs text-zinc-400 mt-1 max-w-xs mx-auto">
+                Enter your registered email address to receive a 3-minute password reset code.
+              </p>
+            </div>
+
+            <form onSubmit={handleForgotEmailSubmit} className="space-y-4">
+              <div>
+                <label className="block text-xs font-semibold text-zinc-300 mb-1">Registered Email</label>
+                <div className="relative">
+                  <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-500" size={15} />
+                  <input
+                    type="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleChange}
+                    placeholder="name@company.com"
+                    className="w-full bg-zinc-950 border border-zinc-800 rounded-xl pl-10 pr-4 py-2.5 text-xs text-white placeholder-zinc-500 focus:border-zinc-500 focus:outline-none transition-colors"
+                  />
+                </div>
+                {errors.email && <p className="text-red-400 text-[11px] mt-1">{errors.email}</p>}
+              </div>
+
+              <button
+                type="submit"
+                disabled={isLoading}
+                className="w-full py-2.5 sm:py-3 rounded-xl bg-white hover:bg-zinc-200 text-zinc-950 font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition-colors cursor-pointer disabled:opacity-50 shadow-sm"
+              >
+                {isLoading ? (
+                  <>
+                    <RefreshCw size={14} className="animate-spin" />
+                    <span>Dispatching Code...</span>
+                  </>
+                ) : (
+                  <>
+                    <span>Send Reset Code</span>
+                    <ArrowRight size={15} />
+                  </>
+                )}
+              </button>
+            </form>
+
+            <div className="text-center mt-6 pt-4 border-t border-zinc-800/80">
+              <button
+                type="button"
+                onClick={() => setMode('login')}
+                className="text-xs text-zinc-400 hover:text-white cursor-pointer"
+              >
+                ← Back to Sign In
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* 5. FORGOT PASSWORD 6-DIGIT OTP & NEW PASSWORD RESET MODE */}
+        {mode === 'forgot-otp-reset' && (
+          <div>
+            <div className="text-center mb-6">
+              <div className="w-10 h-10 rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-center mx-auto mb-3 text-emerald-400">
+                <KeyRound size={20} />
+              </div>
+              <h3 className="text-2xl font-bold text-white tracking-tight">Set New Password</h3>
+              <p className="text-xs text-zinc-400 mt-1 max-w-xs mx-auto">
+                Enter the 6-digit code sent to <strong className="text-white">{formData.email}</strong> and choose your new password.
+              </p>
+            </div>
+
+            <form onSubmit={handleResetPasswordSubmit} className="space-y-4">
+              {/* 6-Digit OTP Cells */}
+              <div>
+                <label className="block text-xs font-semibold text-zinc-300 mb-2 text-center">6-Digit Reset Code</label>
+                <div className="flex justify-center gap-2 sm:gap-2.5">
+                  {otp.map((digit, idx) => (
+                    <input
+                      key={idx}
+                      ref={(el) => (otpInputRefs.current[idx] = el)}
+                      type="text"
+                      inputMode="numeric"
+                      maxLength={6}
+                      value={digit}
+                      onChange={(e) => handleOtpChange(idx, e.target.value)}
+                      onKeyDown={(e) => handleOtpKeyDown(idx, e.target.value ? null : e)}
+                      className="w-10 h-11 sm:w-11 sm:h-12 text-center font-mono text-base font-bold text-white bg-zinc-950 border border-zinc-800 rounded-xl focus:border-zinc-500 focus:outline-none transition-colors"
+                    />
+                  ))}
+                </div>
+              </div>
+
+              {/* New Password Input */}
+              <div>
+                <label className="block text-xs font-semibold text-zinc-300 mb-1">New Password</label>
+                <div className="relative">
+                  <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-500" size={15} />
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    name="newPassword"
+                    value={formData.newPassword}
+                    onChange={handleChange}
+                    placeholder="At least 8 characters"
+                    className="w-full bg-zinc-950 border border-zinc-800 rounded-xl pl-10 pr-10 py-2.5 text-xs text-white placeholder-zinc-500 focus:border-zinc-500 focus:outline-none transition-colors"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-white"
+                  >
+                    {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
+                  </button>
+                </div>
+
+                {formData.newPassword && (
+                  <div className="mt-2 space-y-1">
+                    <div className="flex justify-between items-center text-[10px]">
+                      <span className="text-zinc-400">Strength:</span>
+                      <span className="font-bold text-white">{strength.label}</span>
+                    </div>
+                    <div className="w-full h-1 bg-zinc-800 rounded-full overflow-hidden">
+                      <div className={`h-full ${strength.color} transition-all duration-300`} style={{ width: `${strength.score}%` }} />
+                    </div>
+                  </div>
+                )}
+                {errors.newPassword && <p className="text-red-400 text-[11px] mt-1">{errors.newPassword}</p>}
+              </div>
+
+              <button
+                type="submit"
+                disabled={isLoading || otp.join('').length !== 6 || !formData.newPassword}
+                className="w-full py-2.5 sm:py-3 rounded-xl bg-white hover:bg-zinc-200 text-zinc-950 font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition-colors cursor-pointer disabled:opacity-50 shadow-sm mt-2"
+              >
+                {isLoading ? (
+                  <>
+                    <RefreshCw size={14} className="animate-spin" />
+                    <span>Updating Password...</span>
+                  </>
+                ) : (
+                  <>
+                    <span>Reset Password & Sign In</span>
+                    <ArrowRight size={15} />
+                  </>
+                )}
+              </button>
+            </form>
+
+            <div className="text-center mt-6 pt-4 border-t border-zinc-800/80 flex items-center justify-between text-xs text-zinc-400">
+              <button
+                type="button"
+                onClick={() => setMode('login')}
+                className="hover:text-white cursor-pointer"
+              >
+                ← Back to Login
+              </button>
+
+              <button
+                type="button"
+                onClick={handleResendOtp}
+                disabled={otpTimer > 120}
                 className="font-medium text-zinc-300 hover:text-white cursor-pointer"
               >
                 {otpTimer > 120 ? `Resend in ${otpTimer - 120}s` : 'Resend Code'}
