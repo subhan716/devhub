@@ -155,9 +155,9 @@ const LegalCenterPage = ({ initialTab = 'guidelines' }) => {
       </header>
 
       {/* Hero Banner */}
-      <section className="border-b border-slate-200 dark:border-white/5 bg-gradient-to-b from-[#0D0D14] to-[#050508] py-12 px-4">
+      <section className="border-b border-slate-200 dark:border-white/5 bg-slate-50 dark:bg-gradient-to-b dark:from-[#0D0D14] dark:to-[#050508] py-12 px-4">
         <div className="max-w-6xl mx-auto text-center space-y-3">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#00F0FF]/10 border border-[#00F0FF]/20 text-[#00F0FF] text-xs font-mono font-semibold">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#0A66C2]/10 border border-[#0A66C2]/20 text-[#0A66C2] dark:bg-[#00F0FF]/10 dark:border-[#00F0FF]/20 dark:text-[#00F0FF] text-xs font-mono font-semibold">
             <ShieldCheck size={13} />
             <span>DEVHUB TRUST, INTEGRITY & DEVELOPER RIGHTS</span>
           </div>
@@ -176,7 +176,7 @@ const LegalCenterPage = ({ initialTab = 'guidelines' }) => {
           {/* Left Navigation Tabs (4 cols) */}
           <div className="lg:col-span-4">
             <div className="sticky top-24 space-y-4">
-              <div className="bg-[#0C0C12] border border-slate-200 dark:border-white/10 rounded-2xl p-3 shadow-xl space-y-1.5">
+              <div className="bg-white dark:bg-[#0C0C12] border border-slate-200 dark:border-white/10 rounded-2xl p-3 shadow-xl space-y-1.5">
                 <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider px-3 py-1 block">
                   Policy Documents
                 </span>
@@ -189,8 +189,8 @@ const LegalCenterPage = ({ initialTab = 'guidelines' }) => {
                       onClick={() => handleTabChange(tab.id)}
                       className={`w-full flex items-center justify-between px-3.5 py-3 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
                         isActive
-                          ? 'bg-[#00F0FF]/10 border border-[#00F0FF]/40 text-[#00F0FF] shadow-lg shadow-[#00F0FF]/5'
-                          : 'text-slate-600 dark:text-gray-400 hover:text-slate-900 dark:text-white hover:bg-white/5 border border-transparent'
+                          ? 'bg-[#0A66C2]/10 border border-[#0A66C2]/40 text-[#0A66C2] font-bold dark:bg-[#00F0FF]/10 dark:border-[#00F0FF]/40 dark:text-[#00F0FF] shadow-xs'
+                          : 'text-slate-600 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5 border border-transparent'
                       }`}
                     >
                       <div className="flex items-center gap-2.5">

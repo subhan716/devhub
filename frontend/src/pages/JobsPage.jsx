@@ -57,7 +57,7 @@ const JobsPage = () => {
       {/* Header & Search */}
       <div className="bg-white dark:bg-[#111] border border-slate-200 dark:border-slate-200 dark:border-white/5 rounded-2xl p-6 shadow-sm dark:shadow-lg">
         <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-2 flex items-center gap-2">
-          <Briefcase className="text-[#00F0FF]" /> Developer Jobs
+          <Briefcase className="text-[#0A66C2] dark:text-[#00F0FF]" /> Developer Jobs
         </h1>
         <p className="text-gray-400 mb-6 text-sm">Find your next role at top tech companies.</p>
         
@@ -71,7 +71,7 @@ const JobsPage = () => {
               placeholder="Search by job title, skill, or company..." 
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-slate-50 dark:bg-[#0a0a0a] border border-slate-200 dark:border-white/10 rounded-xl py-3 pl-12 pr-4 text-slate-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-[#00F0FF]/50 focus:ring-1 focus:ring-[#00F0FF]/50 transition-all"
+              className="w-full bg-slate-50 dark:bg-[#0a0a0a] border border-slate-200 dark:border-white/10 rounded-xl py-3 pl-12 pr-4 text-slate-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-[#0A66C2] dark:focus:border-[#00F0FF]/50 focus:ring-1 focus:ring-[#0A66C2] dark:focus:ring-[#00F0FF]/50 transition-all"
             />
           </div>
           <button className="px-8 py-3 bg-[#0A66C2] hover:bg-[#004182] text-white dark:bg-[#00F0FF] dark:text-black font-bold rounded-xl transition-all cursor-pointer shadow-sm">
@@ -100,7 +100,7 @@ const JobsPage = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.1 }}
-            className="bg-white dark:bg-[#111] border border-slate-200 dark:border-slate-200 dark:border-white/5 rounded-2xl p-5 shadow-sm dark:shadow-lg hover:border-[#00F0FF]/30 hover:shadow-[0_0_20px_rgba(0,240,255,0.05)] transition-all group"
+            className="bg-white dark:bg-[#111] border border-slate-200 dark:border-slate-200 dark:border-white/5 rounded-2xl p-5 shadow-sm dark:shadow-lg hover:border-[#0A66C2]/40 dark:hover:border-[#00F0FF]/30 transition-all group"
           >
             <div className="flex items-start gap-4">
               <img 
@@ -111,7 +111,7 @@ const JobsPage = () => {
               />
               <div className="flex-1">
                 <div className="flex justify-between items-start mb-1">
-                  <h3 className="text-lg font-bold text-slate-900 dark:text-white group-hover:text-[#00F0FF] transition-colors cursor-pointer">
+                  <h3 className="text-lg font-bold text-slate-900 dark:text-white group-hover:text-[#0A66C2] dark:group-hover:text-[#00F0FF] transition-colors cursor-pointer">
                     {job.title}
                   </h3>
                   <button className="text-gray-500 hover:text-white transition-colors cursor-pointer p-1">

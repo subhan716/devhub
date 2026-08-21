@@ -201,8 +201,8 @@ const NetworkPage = () => {
               onClick={() => setActiveTab(tab.id)}
               className={`flex-1 flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 p-2 sm:px-4 py-2 sm:py-3 rounded-xl font-medium sm:font-semibold transition-all duration-300 ${
                 activeTab === tab.id 
-                  ? 'bg-[#00F0FF]/10 text-[#00F0FF]' 
-                  : 'text-gray-400 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white'
+                  ? 'bg-[#0A66C2]/10 text-[#0A66C2] font-semibold dark:bg-[#00F0FF]/10 dark:text-[#00F0FF]' 
+                  : 'text-slate-600 dark:text-gray-400 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white'
               }`}
             >
               <div className="flex items-center gap-1 sm:gap-2">
@@ -211,7 +211,7 @@ const NetworkPage = () => {
                 <span className="text-[10px] sm:text-xs lg:hidden">{tab.label.substring(0, 4)}..</span>
               </div>
               <span className={`px-1.5 sm:px-2 py-0.5 rounded-full text-[10px] sm:text-xs ${
-                activeTab === tab.id ? 'bg-[#00F0FF]/20 text-[#00F0FF]' : 'bg-white/10 text-gray-400'
+                activeTab === tab.id ? 'bg-[#0A66C2]/20 text-[#0A66C2] dark:bg-[#00F0FF]/20 dark:text-[#00F0FF]' : 'bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-gray-400'
               }`}>
                 {tab.count}
               </span>

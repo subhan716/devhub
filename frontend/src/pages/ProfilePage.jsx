@@ -1092,7 +1092,7 @@ const ProfilePage = () => {
                     <>
                       {(showAllExp ? profile.experience : profile.experience.slice(0, 3)).map(exp => (
                         <div key={exp._id} className="relative group border-l-2 border-slate-200 dark:border-white/10 pl-4 pb-2">
-                          <div className="absolute w-3 h-3 bg-white dark:bg-[#111] border-2 border-[#00F0FF] rounded-full -left-[7px] top-1.5"></div>
+                          <div className="absolute w-3 h-3 bg-white dark:bg-[#111] border-2 border-[#0A66C2] dark:border-[#00F0FF] rounded-full -left-[7px] top-1.5"></div>
                           <div className="flex justify-between items-start">
                             <div>
                               <h4 className="text-slate-900 dark:text-white font-semibold">{exp.title}</h4>
@@ -1209,7 +1209,7 @@ const ProfilePage = () => {
                     <>
                       {(showAllCert ? profile.certifications : profile.certifications.slice(0, 3)).map(cert => (
                         <div key={cert._id} className="relative group border-l-2 border-slate-200 dark:border-white/10 pl-4 pb-2">
-                          <div className="absolute w-3 h-3 bg-white dark:bg-[#111] border-2 border-[#00F0FF] rounded-full -left-[7px] top-1.5"></div>
+                          <div className="absolute w-3 h-3 bg-white dark:bg-[#111] border-2 border-[#0A66C2] dark:border-[#00F0FF] rounded-full -left-[7px] top-1.5"></div>
                           <div className="flex justify-between items-start">
                             <div>
                               <h4 className="text-slate-900 dark:text-white font-semibold">{cert.title}</h4>
@@ -1218,7 +1218,7 @@ const ProfilePage = () => {
                                 Issued {new Date(cert.issueDate).toLocaleDateString()}
                               </p>
                               {cert.credentialUrl && (
-                                <a href={cert.credentialUrl} target="_blank" rel="noreferrer" className="text-[#00F0FF] text-xs hover:underline mt-2 inline-block">
+                                <a href={cert.credentialUrl} target="_blank" rel="noreferrer" className="text-[#0A66C2] dark:text-[#00F0FF] text-xs hover:underline mt-2 inline-block font-semibold">
                                   View Credential
                                 </a>
                               )}
