@@ -113,7 +113,8 @@ const SecuritySettingsTab = () => {
   const handlePasswordFormSubmit = async (e) => {
     e.preventDefault();
 
-    if (forensics?.hasPasswordSet && !currentPassword && !isInSessionForgotMode) {
+    const userHasPassword = forensics?.hasPassword !== undefined ? forensics?.hasPassword : forensics?.hasPasswordSet;
+    if (userHasPassword && !currentPassword && !isInSessionForgotMode) {
       toast.error('Please enter your current password');
       return;
     }
@@ -272,7 +273,7 @@ const SecuritySettingsTab = () => {
         )}
 
         <form onSubmit={handlePasswordFormSubmit} className="space-y-4 max-w-lg">
-          {forensics?.hasPasswordSet && (
+          {(forensics?.hasPassword || forensics?.hasPasswordSet) && !isInSessionForgotMode && (
             <div className="space-y-1.5">
               <div className="flex items-center justify-between">
                 <label className="text-xs font-medium text-slate-700 dark:text-gray-300">Current Password</label>
@@ -306,7 +307,7 @@ const SecuritySettingsTab = () => {
 
           <div className="space-y-1.5">
             <label className="text-xs font-medium text-slate-700 dark:text-gray-300">
-              {forensics?.hasPasswordSet ? 'New Password' : 'Set Password'}
+              {(forensics?.hasPassword || forensics?.hasPasswordSet) ? 'New Password' : 'Set Password'}
             </label>
             <div className="relative">
               <input

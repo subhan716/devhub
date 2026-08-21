@@ -442,22 +442,24 @@ const resetPassword = async (req, res) => {
       include: { profile: true }
     });
 
-    // Write to AuditLog for security tracking
+    // Write to AuditLog
     try {
       await prisma.auditLog.create({
         data: {
-          userId: updatedUser.id,
-          action: 'USER_PASSWORD_RESET',
-          category: 'SECURITY',
+          actor: { id: updatedUser.id, email: updatedUser.email, name: updatedUser.name },
+          action: 'USER_PASSWORD_CHANGE_SUCCESS',
+          target: { entity: 'User', id: updatedUser.id, email: updatedUser.email },
           details: {
-            logoutOtherDevices: shouldLogoutOthers,
-            ip: req.ip || req.headers['x-forwarded-for'] || 'unknown',
-            userAgent: req.headers['user-agent'] || 'unknown',
-            newVersion: updatedUser.tokenVersion
-          }
+            logoutOtherDevices: logoutOtherDevices !== false,
+            newTokenVersion: updatedUser.tokenVersion
+          },
+          ipAddress: req.ip || req.headers['x-forwarded-for'] || '127.0.0.1',
+          userAgent: req.headers['user-agent'] || 'DevHub-Client'
         }
       });
-    } catch (aErr) {}
+    } catch (aErr) {
+      console.warn('Audit log write error:', aErr.message);
+    }
 
     const accessToken = generateAccessToken(updatedUser);
     const refreshToken = generateRefreshToken(updatedUser);
@@ -678,11 +680,301 @@ const updateStatusPreference = async (req, res) => {
   }
 };
 
-const getSecurityForensics = async (req, res) => res.status(200).json({ success: true, forensics: [] });
-const requestPasswordOtp = async (req, res) => forgotPassword(req, res);
-const verifyPasswordOtp = async (req, res) => resetPassword(req, res);
-const resendPasswordOtp = async (req, res) => forgotPassword(req, res);
-const inSessionForgotPassword = async (req, res) => forgotPassword(req, res);
+
+// ==========================================
+// 10. GET SECURITY FORENSICS (In-App Status)
+// ==========================================
+const getSecurityForensics = async (req, res) => {
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id: req.user.id },
+      select: {
+        id: true,
+        email: true,
+        passwordHash: true,
+        googleId: true,
+        githubId: true,
+        tokenVersion: true,
+        updatedAt: true,
+        createdAt: true
+      }
+    });
+
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    let auditLogs = [];
+    try {
+      auditLogs = await prisma.auditLog.findMany({
+        where: { userId: req.user.id },
+        orderBy: { createdAt: 'desc' },
+        take: 5
+      });
+    } catch (e) {}
+
+    const hasPassword = !!user.passwordHash;
+    const isOAuthUser = !hasPassword && (!!user.googleId || !!user.githubId);
+
+    res.status(200).json({
+      success: true,
+      hasPassword,
+      isOAuthUser,
+      authProvider: user.googleId ? 'Google' : user.githubId ? 'GitHub' : 'Email/Password',
+      tokenVersion: user.tokenVersion,
+      lastPasswordChangeAt: user.updatedAt,
+      recentActivity: auditLogs
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message || 'Failed to fetch security status' });
+  }
+};
+
+// ==========================================
+// 11. STEP-UP OTP REQUEST (NIST SP 800-63B)
+// ==========================================
+const requestPasswordOtp = async (req, res) => {
+  try {
+    const { currentPassword, newPassword, logoutOtherDevices = true } = req.body;
+    const user = await prisma.user.findUnique({ where: { id: req.user.id } });
+
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    const hasPassword = !!user.passwordHash;
+    const isOAuthUser = !hasPassword && (!!user.googleId || !!user.githubId);
+
+    // If user already has a password, verify current password
+    if (hasPassword) {
+      if (!currentPassword) {
+        return res.status(400).json({ message: 'Current password is required to change credentials.' });
+      }
+      const isMatch = await bcrypt.compare(currentPassword, user.passwordHash);
+      if (!isMatch) {
+        return res.status(400).json({ message: 'Incorrect current password. Please try again.' });
+      }
+    }
+
+    if (!newPassword || newPassword.length < 8) {
+      return res.status(400).json({ message: 'New password must be at least 8 characters long.' });
+    }
+
+    // Generate 6-Digit Step-Up OTP (Valid for 3 Minutes)
+    const stepUpOtp = Math.floor(100000 + Math.random() * 900000).toString();
+    const otpExpires = new Date(Date.now() + 3 * 60 * 1000); // 3 mins
+
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        passwordResetToken: stepUpOtp,
+        passwordResetExpires: otpExpires,
+        otpResendTimeWindowStart: new Date()
+      }
+    });
+
+    console.log(`[DEV STEP-UP OTP] Security Code for ${user.email}: ${stepUpOtp}`);
+
+    // Mask email (e.g. s***h@horizon.ai)
+    const [namePart, domainPart] = user.email.split('@');
+    const maskedName = namePart.length > 2 
+      ? `${namePart[0]}${'*'.repeat(namePart.length - 2)}${namePart[namePart.length - 1]}`
+      : `${namePart[0]}*`;
+    const maskedEmail = `${maskedName}@${domainPart}`;
+
+    try {
+      await sendEmail({
+        to: user.email,
+        subject: 'DevHub Security Verification Code (Step-Up Challenge)',
+        html: `
+          <div style="font-family: Arial, sans-serif; background-color: #0d0d12; color: #ffffff; padding: 30px; border-radius: 12px; max-width: 500px; margin: auto;">
+            <h2 style="color: #00F0FF; text-align: center;">Security Verification Code</h2>
+            <p style="color: #b3b3b3;">You requested to update your account password. Enter the 6-digit security code below to confirm this transaction:</p>
+            <div style="background-color: #1a1a26; border: 1px solid #00F0FF; border-radius: 8px; padding: 15px; text-align: center; margin: 20px 0;">
+              <span style="font-size: 34px; font-weight: bold; letter-spacing: 6px; color: #00F0FF;">${stepUpOtp}</span>
+            </div>
+            <p style="font-size: 12px; color: #ef4444; text-align: center; font-weight: bold;">⚠️ Code expires in exactly 3 minutes.</p>
+            <p style="font-size: 11px; color: #666; text-align: center;">If you did not initiate this change, your credentials may be compromised. Please revoke all sessions immediately.</p>
+          </div>
+        `
+      });
+    } catch (mErr) {}
+
+    res.status(200).json({
+      success: true,
+      message: 'Verification code dispatched to your verified email (valid for 3 minutes).',
+      emailMasked: maskedEmail,
+      expiresInSeconds: 180,
+      isOAuthUser
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message || 'Failed to initiate password update challenge' });
+  }
+};
+
+// ==========================================
+// 12. STEP-UP OTP VERIFICATION & COMMIT
+// ==========================================
+const verifyPasswordOtp = async (req, res) => {
+  try {
+    const { otp, newPassword, logoutOtherDevices = true } = req.body;
+
+    if (!otp) {
+      return res.status(400).json({ message: '6-digit verification code is required.' });
+    }
+
+    if (!newPassword || newPassword.length < 8) {
+      return res.status(400).json({ message: 'New password must be at least 8 characters long.' });
+    }
+
+    const cleanOtp = otp.trim();
+    const user = await prisma.user.findUnique({
+      where: { id: req.user.id },
+      include: { profile: true }
+    });
+
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    if (!user.passwordResetExpires || new Date() > new Date(user.passwordResetExpires)) {
+      return res.status(400).json({ message: 'Verification code has expired. Please request a new code.', code: 'OTP_EXPIRED' });
+    }
+
+    if (user.passwordResetToken !== cleanOtp) {
+      return res.status(400).json({ message: 'Invalid verification code. Please check your email.' });
+    }
+
+    const salt = await bcrypt.genSalt(12);
+    const passwordHash = await bcrypt.hash(newPassword, salt);
+
+    const updateData = {
+      passwordHash,
+      passwordResetToken: null,
+      passwordResetExpires: null,
+      failedLoginAttempts: 0,
+      lockUntil: null
+    };
+
+    if (logoutOtherDevices !== false) {
+      updateData.tokenVersion = { increment: 1 };
+    }
+
+    const updatedUser = await prisma.user.update({
+      where: { id: user.id },
+      data: updateData,
+      include: { profile: true }
+    });
+
+    // Write to AuditLog
+    try {
+      await prisma.auditLog.create({
+        data: {
+          userId: updatedUser.id,
+          action: 'USER_PASSWORD_CHANGE_SUCCESS',
+          category: 'SECURITY',
+          details: {
+            logoutOtherDevices: logoutOtherDevices !== false,
+            ip: req.ip || req.headers['x-forwarded-for'] || 'unknown',
+            userAgent: req.headers['user-agent'] || 'unknown',
+            newTokenVersion: updatedUser.tokenVersion
+          }
+        }
+      });
+    } catch (aErr) {}
+
+    // Dispatch Confirmation Alert
+    try {
+      await sendEmail({
+        to: user.email,
+        subject: 'Security Alert: Your DevHub Password Was Changed',
+        html: `
+          <div style="font-family: Arial, sans-serif; background-color: #0d0d12; color: #ffffff; padding: 30px; border-radius: 12px; max-width: 500px; margin: auto;">
+            <h3 style="color: #22c55e; text-align: center;">Password Updated Successfully</h3>
+            <p style="color: #b3b3b3;">Your DevHub account password was recently changed.</p>
+            <p style="color: #b3b3b3; font-size: 12px;"><strong>Time:</strong> ${new Date().toUTCString()}</p>
+            ${logoutOtherDevices !== false ? '<p style="color: #00F0FF; font-size: 12px;">All other mobile apps and web browser sessions have been logged out for your protection.</p>' : ''}
+            <p style="font-size: 11px; color: #666; text-align: center; margin-top: 20px;">If this wasn't you, please secure your account immediately.</p>
+          </div>
+        `
+      });
+    } catch (mErr) {}
+
+    const accessToken = generateAccessToken(updatedUser);
+    const refreshToken = generateRefreshToken(updatedUser);
+    res.cookie('devhub_token', accessToken, COOKIE_OPTIONS);
+
+    const { passwordHash: _, ...safeUser } = updatedUser;
+
+    res.status(200).json({
+      success: true,
+      message: logoutOtherDevices !== false
+        ? 'Password successfully updated! All other active sessions have been rotated.'
+        : 'Password successfully updated!',
+      accessToken,
+      refreshToken,
+      user: safeUser
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message || 'Failed to verify OTP and update password' });
+  }
+};
+
+// ==========================================
+// 13. IN-SESSION FORGOT PASSWORD (Logged-in Reset)
+// ==========================================
+const inSessionForgotPassword = async (req, res) => {
+  try {
+    const user = await prisma.user.findUnique({ where: { id: req.user.id } });
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    if (user.otpResendTimeWindowStart) {
+      const diffMs = Date.now() - new Date(user.otpResendTimeWindowStart).getTime();
+      if (diffMs < 60 * 1000) {
+        const remainingSeconds = Math.ceil((60 * 1000 - diffMs) / 1000);
+        return res.status(429).json({
+          message: `Please wait ${remainingSeconds} seconds before requesting another code.`,
+          remainingSeconds
+        });
+      }
+    }
+
+    const resetOtp = Math.floor(100000 + Math.random() * 900000).toString();
+    const resetExpires = new Date(Date.now() + 3 * 60 * 1000); // 3 mins
+
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        passwordResetToken: resetOtp,
+        passwordResetExpires: resetExpires,
+        otpResendTimeWindowStart: new Date()
+      }
+    });
+
+    console.log(`[DEV IN-SESSION FORGOT OTP] 3-Minute Reset Code for ${user.email}: ${resetOtp}`);
+
+    try {
+      await sendEmail({
+        to: user.email,
+        subject: 'DevHub Password Reset Code (In-Session Recovery)',
+        html: `
+          <div style="font-family: Arial, sans-serif; background-color: #0d0d12; color: #ffffff; padding: 30px; border-radius: 12px; max-width: 500px; margin: auto;">
+            <h2 style="color: #00F0FF; text-align: center;">Reset Your DevHub Password</h2>
+            <p style="color: #b3b3b3;">You requested to reset your password from your active session. Use the 6-digit code below:</p>
+            <div style="background-color: #1a1a26; border: 1px solid #00F0FF; border-radius: 8px; padding: 15px; text-align: center; margin: 20px 0;">
+              <span style="font-size: 34px; font-weight: bold; letter-spacing: 6px; color: #00F0FF;">${resetOtp}</span>
+            </div>
+            <p style="font-size: 12px; color: #ef4444; text-align: center; font-weight: bold;">⚠️ Code expires in exactly 3 minutes.</p>
+          </div>
+        `
+      });
+    } catch (mErr) {}
+
+    res.status(200).json({
+      success: true,
+      message: 'Password reset code sent to your verified email address (valid for 3 minutes).',
+      email: user.email,
+      otpExpiresInSeconds: 180
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message || 'Failed to dispatch in-session reset code' });
+  }
+};
+
 
 // ==========================================
 // 13. GOOGLE OAUTH 2.0 PKCE & IDENTITY LINKING
