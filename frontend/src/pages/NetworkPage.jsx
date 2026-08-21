@@ -353,7 +353,7 @@ const NetworkPage = () => {
                       <img 
                         src={user.avatar?.url || 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y'} 
                         alt={user.name} 
-                        className="w-20 h-20 rounded-full object-cover border-2 border-[#111] shadow-lg mb-4"
+                        className="w-20 h-20 rounded-full object-cover border-2 border-white dark:border-[#111] shadow-lg mb-4"
                       />
                       <h3 className="text-white font-semibold truncate w-full">{user.name}</h3>
                       <p className="text-gray-400 text-sm mb-4 capitalize line-clamp-1">{user.role || 'Developer'}</p>

@@ -1025,7 +1025,7 @@ const MessagesPage = () => {
                         className="w-12 h-12 rounded-full object-cover"
                       />
                       {isUserOnline(chat.user._id) && (
-                        <div className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 border-2 border-[#111] rounded-full"></div>
+                        <div className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 border-2 border-white dark:border-[#111] rounded-full"></div>
                       )}
                     </div>
                     
@@ -1154,7 +1154,7 @@ const MessagesPage = () => {
                         className="w-12 h-12 rounded-full object-cover"
                       />
                       {isUserOnline(conn.user._id) && (
-                        <div className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 border-2 border-[#111] rounded-full"></div>
+                        <div className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 border-2 border-white dark:border-[#111] rounded-full"></div>
                       )}
                     </div>
                     
@@ -1230,7 +1230,7 @@ const MessagesPage = () => {
                     className="w-11 h-11 rounded-full object-cover border border-slate-200 dark:border-white/10 hover:opacity-80 transition-opacity"
                   />
                   {isUserOnline(selectedChat._id) && (
-                    <div className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-[#00F0FF] border-2 border-[#111] rounded-full shadow-[0_0_8px_rgba(0,240,255,0.5)]"></div>
+                    <div className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-[#00F0FF] border-2 border-white dark:border-[#111] rounded-full shadow-[0_0_8px_rgba(0,240,255,0.5)]"></div>
                   )}
                 </div>
                 <div>
@@ -1897,7 +1897,7 @@ const MessagesPage = () => {
                     <img
                       src={selectedChat.avatar?.url || 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y'}
                       alt={selectedChat.name}
-                      className="w-32 h-32 rounded-full object-cover border-4 border-[#111] shadow-2xl mb-4 cursor-zoom-in"
+                      className="w-32 h-32 rounded-full object-cover border-4 border-white dark:border-[#111] shadow-2xl mb-4 cursor-zoom-in"
                       onClick={() => selectedChat.avatar?.url && setPreviewFile({ url: selectedChat.avatar.url, name: `${selectedChat.name}'s Profile Picture`, type: 'image', isProfilePicture: true })}
                     />
                     <h3 className={`text-xl font-bold ${isDark ? "text-white" : "text-slate-900"} text-center`}>{selectedChat.name}</h3>

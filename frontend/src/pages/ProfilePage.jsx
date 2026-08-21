@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, cloneElement } from 'react';
 import { createPortal } from 'react-dom';
 import { Flag, MapPin, Briefcase, Calendar, Link as LinkIcon, Heart, MessageCircle, Repeat2, GraduationCap, FolderGit2, FileText, Trash2, Plus, Edit3, Image, Copy, MoreHorizontal, Users, Eye, Activity, Award, X, ChevronDown, ChevronLeft, ChevronRight, Share2 } from 'lucide-react';
 import { useNavigate, useParams, useSearchParams, Link } from 'react-router-dom';
+import { useTheme } from '../context/ThemeContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
 import toast from 'react-hot-toast';
@@ -29,6 +30,7 @@ import { vs2015 } from 'react-syntax-highlighter/dist/esm/styles/hljs';
 SyntaxHighlighter.registerLanguage('javascript', js);
 
 const ProfilePage = () => {
+  const { isDark } = useTheme();
   const [profile, setProfile] = useState(null);
   const [currentUserProfile, setCurrentUserProfile] = useState(null);
   const [userPosts, setUserPosts] = useState([]);
@@ -440,20 +442,20 @@ const ProfilePage = () => {
                 animate={{ x: 0 }}
                 exit={{ x: '100%' }}
                 transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-                className="fixed top-0 right-0 h-[100dvh] w-full max-w-md bg-[#0f0f0f] border-l border-slate-200 dark:border-white/10 z-[9999] overflow-y-auto shadow-2xl"
+                className="fixed top-0 right-0 h-[100dvh] w-full max-w-md bg-white dark:bg-[#0f0f0f] border-l border-slate-200 dark:border-white/10 z-[9999] overflow-y-auto shadow-2xl"
                 data-lenis-prevent="true"
               >
                 <div className="p-6 pb-[100px] lg:pb-6">
                   {/* Header */}
                   <div className="flex items-center justify-between mb-6">
-                    <h2 className="text-xl font-bold text-white">Edit Profile</h2>
+                    <h2 className="text-xl font-bold text-slate-900 dark:text-white">Edit Profile</h2>
                     <button onClick={() => setIsEditProfileOpen(false)} className="p-2 text-gray-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors cursor-pointer">
                       <X size={18} />
                     </button>
                   </div>
 
                   {/* Avatar Section */}
-                  <div className="flex flex-col items-center gap-3 mb-8 p-5 bg-[#1a1a1a] rounded-2xl border border-slate-200 dark:border-white/10">
+                  <div className="flex flex-col items-center gap-3 mb-8 p-5 bg-slate-50 dark:bg-[#1a1a1a] rounded-2xl border border-slate-200 dark:border-white/10">
                     <div className="relative">
                       <img
                         src={profile.user?.avatar?.url || 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y'}
@@ -566,7 +568,7 @@ const ProfilePage = () => {
               <img
                 src={profile.user?.avatar?.url || 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y'}
                 alt="Profile"
-                className="w-[152px] h-[152px] rounded-full border-[4px] border-[#111] object-cover bg-white dark:bg-[#111] cursor-pointer hover:opacity-80 transition-opacity shadow-lg relative z-10"
+                className="w-[152px] h-[152px] rounded-full border-[4px] border-white dark:border-[#111] object-cover bg-white dark:bg-[#111] cursor-pointer hover:opacity-80 transition-opacity shadow-lg relative z-10"
                 onClick={() => setIsPreviewOpen(true)}
               />
 
@@ -628,7 +630,7 @@ const ProfilePage = () => {
 
           <div className="mb-4">
             <div className="flex items-center gap-3">
-              <h1 className="text-2xl font-bold text-white leading-tight">
+              <h1 className="text-2xl font-bold text-slate-900 dark:text-white leading-tight">
                 {profile.user?.name}
               </h1>
               {isOwner && (
@@ -638,7 +640,7 @@ const ProfilePage = () => {
               )}
             </div>
             
-            <p className="text-white text-base mt-1 max-w-2xl">
+            <p className="text-slate-700 dark:text-gray-200 text-base mt-1 max-w-2xl">
               {profile.bio || 'No headline provided'}
             </p>
 
@@ -665,7 +667,7 @@ const ProfilePage = () => {
               <span>{profile.location || 'Location not specified'}</span>
             </div>
 
-            <Link to={`/profile/${profile.user?._id}/connections`} className="inline-block mt-2 text-sm font-semibold text-[#00F0FF] hover:underline">
+            <Link to={`/profile/${profile.user?._id}/connections`} className="inline-block mt-2 text-sm font-semibold text-[#0A66C2] dark:text-[#00F0FF] hover:underline">
               {profile.connectionCount || 0} Connections
             </Link>
           </div>
@@ -711,7 +713,7 @@ const ProfilePage = () => {
                       setIsOpenToDropdownOpen(false);
                       setIsMoreDropdownOpen(false);
                     }}
-                    className="bg-transparent border border-white hover:bg-white/10 hover:border-2 text-white px-4 py-1.5 rounded-full font-bold transition-all text-sm cursor-pointer"
+                    className="bg-white dark:bg-transparent border border-slate-400 dark:border-white hover:bg-slate-50 dark:hover:bg-white/10 text-slate-800 dark:text-white px-4 py-1.5 rounded-full font-bold transition-all text-sm cursor-pointer shadow-xs"
                   >
                     Add section
                   </button>
@@ -743,7 +745,7 @@ const ProfilePage = () => {
                       setIsOpenToDropdownOpen(false);
                       setIsAddSectionDropdownOpen(false);
                     }}
-                    className="bg-transparent border border-gray-400 hover:bg-white/10 hover:border-gray-200 text-slate-800 dark:text-gray-200 px-3 py-1.5 rounded-full font-bold transition-all text-sm cursor-pointer flex items-center justify-center"
+                    className="bg-white dark:bg-transparent border border-slate-300 dark:border-gray-400 hover:bg-slate-50 dark:hover:bg-white/10 text-slate-700 dark:text-gray-200 px-3 py-1.5 rounded-full font-bold transition-all text-sm cursor-pointer flex items-center justify-center shadow-xs"
                   >
                     <MoreHorizontal size={18} />
                   </button>
@@ -847,7 +849,7 @@ const ProfilePage = () => {
               onClick={() => navigate(`/profile/${profile.user?._id}/connections`)}
               className="flex items-baseline gap-1.5 hover:opacity-80 transition-opacity cursor-pointer group"
             >
-              <span className="text-white font-semibold text-sm">
+              <span className="text-slate-900 dark:text-white font-semibold text-sm">
                 {profile.followersCount ?? profile.followers?.length ?? 0}
               </span>
               <span className="text-gray-500 text-sm group-hover:text-gray-400 transition-colors">Followers</span>
@@ -859,7 +861,7 @@ const ProfilePage = () => {
               onClick={() => navigate(`/profile/${profile.user?._id}/connections`)}
               className="flex items-baseline gap-1.5 hover:opacity-80 transition-opacity cursor-pointer group"
             >
-              <span className="text-white font-semibold text-sm">
+              <span className="text-slate-900 dark:text-white font-semibold text-sm">
                 {profile.followingCount ?? profile.following?.length ?? 0}
               </span>
               <span className="text-gray-500 text-sm group-hover:text-gray-400 transition-colors">Following</span>
@@ -871,14 +873,14 @@ const ProfilePage = () => {
               onClick={() => navigate(`/profile/${profile.user?._id}/posts`)}
               className="flex items-baseline gap-1.5 hover:opacity-80 transition-opacity cursor-pointer group"
             >
-              <span className="text-white font-semibold text-sm">{userPosts.length}</span>
+              <span className="text-slate-900 dark:text-white font-semibold text-sm">{userPosts.length}</span>
               <span className="text-gray-500 text-sm group-hover:text-gray-400 transition-colors">Posts</span>
             </button>
 
             <span className="text-white/10 text-sm select-none">·</span>
 
             <div className="flex items-baseline gap-1.5">
-              <span className="text-white font-semibold text-sm">{profile.views || 0}</span>
+              <span className="text-slate-900 dark:text-white font-semibold text-sm">{profile.views || 0}</span>
               <span className="text-gray-500 text-sm">Profile views</span>
             </div>
           </div>
@@ -928,7 +930,7 @@ const ProfilePage = () => {
                 </h3>
 
                 {/* Year Switcher (Arrow Navigation: Current & Previous Year) */}
-                <div className="flex items-center gap-2 bg-[#1a1a1a] border border-slate-200 dark:border-white/10 rounded-xl p-1 self-start sm:self-auto shadow-inner">
+                <div className="flex items-center gap-2 bg-slate-100 dark:bg-[#1a1a1a] border border-slate-200 dark:border-white/10 rounded-xl p-1 self-start sm:self-auto shadow-xs">
                   <button
                     type="button"
                     onClick={() => setIsCurrentYearSelected(false)}
@@ -970,7 +972,7 @@ const ProfilePage = () => {
                   key={selectedGithubYear}
                   username={profile.githubusername}
                   year={selectedGithubYear}
-                  colorScheme="dark"
+                  colorScheme={isDark ? "dark" : "light"}
                   theme={{
                     light: ['#ebedf0', '#9be9a8', '#40c463', '#30a14e', '#216e39'],
                     dark: ['#1a1a1a', '#004d4d', '#008080', '#00b3b3', '#00F0FF']
@@ -1093,7 +1095,7 @@ const ProfilePage = () => {
                           <div className="absolute w-3 h-3 bg-white dark:bg-[#111] border-2 border-[#00F0FF] rounded-full -left-[7px] top-1.5"></div>
                           <div className="flex justify-between items-start">
                             <div>
-                              <h4 className="text-white font-semibold">{exp.title}</h4>
+                              <h4 className="text-slate-900 dark:text-white font-semibold">{exp.title}</h4>
                               <p className="text-gray-400 text-sm">{exp.company}</p>
                               <p className="text-xs text-gray-500 mt-1">
                                 {new Date(exp.from).toLocaleDateString()} - {exp.current ? 'Present' : (exp.to ? new Date(exp.to).toLocaleDateString() : '')}
