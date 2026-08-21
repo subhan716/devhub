@@ -1983,26 +1983,26 @@ const MessagesPage = () => {
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
-            className="w-full max-w-5xl h-[85vh] bg-[#0c0c0c] border border-slate-200 dark:border-white/10 rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200"
+            className={`w-full max-w-5xl h-[85vh] ${isDark ? "bg-[#0c0c0c] border-white/10" : "bg-white border-slate-200 shadow-2xl"} border rounded-2xl flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200`}
           >
             {/* Header */}
-            <div className="px-6 py-4 border-b border-slate-200 dark:border-white/5 flex justify-between items-center bg-white dark:bg-[#111]">
+            <div className={`px-6 py-4 border-b ${isDark ? "bg-[#111] border-white/5" : "bg-slate-50 border-slate-200"} flex justify-between items-center`}>
               <div className="min-w-0 flex-1 flex items-center gap-3">
                 <FileText className="text-[#00F0FF] flex-shrink-0" size={20} />
-                <h3 className="text-white text-sm font-semibold truncate max-w-[50vw]">{previewFile.name}</h3>
+                <h3 className={`text-sm font-semibold truncate max-w-[50vw] ${isDark ? "text-white" : "text-slate-900"}`}>{previewFile.name}</h3>
               </div>
               <div className="flex items-center gap-3">
                 <button
                   type="button"
                   onClick={() => handleDownloadFile(previewFile.url, previewFile.name)}
-                  className="bg-white/5 hover:bg-white/10 text-white rounded-xl px-4 py-2 text-xs font-semibold border border-slate-200 dark:border-white/10 flex items-center gap-1.5 transition-colors"
+                  className={`px-4 py-2 text-xs font-semibold rounded-xl border flex items-center gap-1.5 transition-colors ${isDark ? "bg-white/5 hover:bg-white/10 text-white border-white/10" : "bg-[#0A66C2] hover:bg-[#004182] text-white border-[#0A66C2] shadow-sm"}`}
                 >
                   <Download size={14} /> Download
                 </button>
                 <button 
                   type="button"
                   onClick={() => setPreviewFile(null)}
-                  className="text-gray-400 hover:text-white p-2 hover:bg-white/5 rounded-lg transition-colors"
+                  className={`p-2 rounded-lg transition-colors ${isDark ? "text-gray-400 hover:text-white hover:bg-white/5" : "text-slate-500 hover:text-slate-900 hover:bg-slate-200"}`}
                 >
                   <X size={20} />
                 </button>
@@ -2010,7 +2010,7 @@ const MessagesPage = () => {
             </div>
 
             {/* Content Area */}
-            <div className="flex-1 bg-[#050505] p-6 flex items-center justify-center overflow-hidden relative">
+            <div className={`flex-1 ${isDark ? "bg-[#050505]" : "bg-slate-100/70"} p-6 flex items-center justify-center overflow-hidden relative`}>
               {(() => {
                 const ext = getFileExtension(previewFile.name);
                 
@@ -2114,11 +2114,11 @@ const MessagesPage = () => {
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            className="w-full max-w-lg bg-[#0e0e0e] border border-slate-200 dark:border-white/10 rounded-2xl shadow-2xl flex flex-col max-h-[90vh] overflow-hidden"
+            className={`w-full max-w-lg ${isDark ? "bg-[#0e0e0e] border-white/10 text-white" : "bg-white border-slate-200 text-slate-900 shadow-2xl"} border rounded-2xl flex flex-col max-h-[90vh] overflow-hidden`}
           >
             {/* Header */}
-            <div className="px-6 py-4 border-b border-slate-200 dark:border-white/5 flex justify-between items-center bg-white/[0.01]">
-              <h3 className="text-white text-lg font-bold">Share message</h3>
+            <div className={`px-6 py-4 border-b ${isDark ? "bg-white/[0.01] border-white/5" : "bg-slate-50 border-slate-200"} flex justify-between items-center`}>
+              <h3 className={`text-lg font-bold ${isDark ? "text-white" : "text-slate-900"}`}>Share message</h3>
               <button 
                 type="button"
                 onClick={() => {
@@ -2144,12 +2144,12 @@ const MessagesPage = () => {
                   placeholder="Search for person"
                   value={searchForwardQuery}
                   onChange={(e) => setSearchForwardQuery(e.target.value)}
-                  className="w-full bg-[#161616] border border-slate-200 dark:border-white/10 rounded-xl py-2 pl-9 pr-4 text-sm text-white focus:outline-none focus:border-[#00F0FF]/50 transition-colors placeholder:text-gray-600"
+                  className={`w-full ${isDark ? "bg-[#161616] text-white border-white/10 placeholder:text-gray-600 focus:border-[#00F0FF]/50" : "bg-slate-100 text-slate-900 border-slate-200 placeholder:text-slate-400 focus:border-[#0A66C2]"} border rounded-xl py-2 pl-9 pr-4 text-sm focus:outline-none transition-colors`}
                 />
               </div>
 
               {/* Contacts checklist list */}
-              <div className="max-h-36 overflow-y-auto custom-scrollbar border border-slate-200 dark:border-white/5 bg-[#161616]/30 rounded-xl p-2 flex flex-col gap-1.5">
+              <div className={`max-h-36 overflow-y-auto custom-scrollbar border ${isDark ? "border-white/5 bg-[#161616]/30" : "border-slate-200 bg-slate-50"} rounded-xl p-2 flex flex-col gap-1.5`}>
                 {forwardDisplayList.map((conn) => {
                   const isSelected = selectedForwardTargets.includes(conn.user._id);
                   return (
@@ -2163,7 +2163,7 @@ const MessagesPage = () => {
                           alt="" 
                           className="w-8 h-8 rounded-full object-cover border border-slate-200 dark:border-white/10"
                         />
-                        <span className="text-sm font-medium text-white">{conn.user.name}</span>
+                        <span className={`text-sm font-medium ${isDark ? "text-white" : "text-slate-900"}`}>{conn.user.name}</span>
                       </div>
                       <input 
                         type="checkbox"
@@ -2195,14 +2195,14 @@ const MessagesPage = () => {
                   onChange={(e) => setForwardComment(e.target.value)}
                   placeholder="Type a message..."
                   rows={3}
-                  className="w-full bg-[#161616] border border-slate-200 dark:border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[#00F0FF]/50 resize-none custom-scrollbar"
+                  className={`w-full ${isDark ? "bg-[#161616] text-white border-white/10 placeholder:text-gray-600 focus:border-[#00F0FF]/50" : "bg-slate-100 text-slate-900 border-slate-200 placeholder:text-slate-400 focus:border-[#0A66C2]"} border rounded-xl px-4 py-3 text-sm focus:outline-none resize-none custom-scrollbar`}
                 />
               </div>
 
               {/* Message preview block */}
               <div className="flex flex-col gap-1.5">
                 <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">Preview</label>
-                <div className="p-4 bg-white/5 border border-slate-200 dark:border-white/5 rounded-xl max-w-full min-w-0">
+                <div className={`p-4 ${isDark ? "bg-white/5 border-white/5 text-gray-300" : "bg-slate-100 border-slate-200 text-slate-800"} border rounded-xl max-w-full min-w-0`}>
                   {forwardTargetMessage.attachment && (
                     <div className="mb-2">
                       {forwardTargetMessage.attachment.type === 'image' ? (
@@ -2226,7 +2226,7 @@ const MessagesPage = () => {
             </div>
 
             {/* Footer */}
-            <div className="px-6 py-4 border-t border-slate-200 dark:border-white/5 flex justify-between items-center bg-white/[0.01]">
+            <div className={`px-6 py-4 border-t ${isDark ? "border-white/5 bg-white/[0.01]" : "border-slate-200 bg-slate-50"} flex justify-between items-center`}>
               <button 
                 type="button"
                 onClick={handleCopyLink}
@@ -2253,7 +2253,7 @@ const MessagesPage = () => {
                   type="button"
                   onClick={handleForwardMessage}
                   disabled={selectedForwardTargets.length === 0 || forwardingInProgress}
-                  className="px-5 py-2 bg-[#00F0FF] text-black hover:bg-[#00D0DF] disabled:opacity-40 disabled:cursor-not-allowed rounded-xl text-sm font-bold transition-all shadow-[0_0_15px_rgba(0,240,255,0.3)] disabled:shadow-none"
+                  className={`px-5 py-2 ${isDark ? "bg-[#00F0FF] text-black hover:bg-[#00D0DF] shadow-[0_0_15px_rgba(0,240,255,0.3)]" : "bg-[#0A66C2] text-white hover:bg-[#004182] shadow-sm"} disabled:opacity-40 disabled:cursor-not-allowed rounded-xl text-sm font-bold transition-all`}
                 >
                   {forwardingInProgress ? 'Forwarding...' : 'Forward'}
                 </button>
