@@ -14,21 +14,21 @@ The DevHub Theme Engine establishes two distinct, state-of-the-art visual experi
    - Surface Cards: `#111116` with `border: rgba(255, 255, 255, 0.08)`
    - Subsurfaces & Inputs: `#050508`
    - Primary Buttons: **Electric Cyan `#00F0FF` with `#000000` text**
+   - Secondary Buttons: `bg-white/5 text-gray-200 border-white/10 hover:bg-white/10`
    - Typography: `#FFFFFF` (Primary) / `#9CA3AF` (Secondary)
 
 2. **☀️ Light Studio (LinkedIn / Meta / Stripe Enterprise White Mode):**
    - Background: `#F8FAFC` (Clean Slate 50)
    - Surface Cards: `#FFFFFF` (Pure White) with subtle `#E2E8F0` borders & gentle elevation shadow
    - Subsurfaces & Inputs: `#F1F5F9` (Slate 100)
-   - Primary Buttons: **LinkedIn / Meta Deep Tech Royal Blue `#0A66C2` (or Deep Cobalt `#0284C7`) with `#FFFFFF` crisp white text!**
+   - Primary Action Buttons: **LinkedIn / Meta Deep Tech Royal Blue `#0A66C2` with `#FFFFFF` crisp white text!**
+   - Secondary Outline Buttons: **`bg-white text-[#0A66C2] border border-[#0A66C2] hover:bg-blue-50/70`**
+   - Secondary Neutral Buttons: **`bg-[#E4E6EB] hover:bg-[#D8DADF] text-[#050505] font-semibold`** (Meta Standard) or **`bg-white hover:bg-slate-50 text-slate-800 border border-slate-300 shadow-sm`** (LinkedIn Standard)
    - Typography: `#0F172A` (Slate 900) / `#475569` (Slate 600)
 
 ---
 
-## 2. Industrial Button & Accent Matrix (Dark Mode vs Light Mode)
-
-> [!IMPORTANT]
-> **Light Mode Rule:** In Light Mode, neon/electric cyan (`#00F0FF`) with black text is strictly forbidden because it looks washed out on white backgrounds. Following **LinkedIn, Facebook, and Stripe**, all primary buttons in Light Mode switch to **Deep Tech Royal Blue (`#0A66C2`) with Pure White text (`#FFFFFF`)**.
+## 2. Authentic Industrial Button & Accent Matrix (LinkedIn / Meta Standard)
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
@@ -36,18 +36,27 @@ The DevHub Theme Engine establishes two distinct, state-of-the-art visual experi
 ├───────────────────────────┬──────────────────────────────────────────┬──────────────────────────────────────┤
 │ ELEMENT / BUTTON TYPE     │ 🌙 DARK OBSIDIAN MODE                    │ ☀️ LIGHT STUDIO MODE (LINKEDIN/META) │
 ├───────────────────────────┼──────────────────────────────────────────┼──────────────────────────────────────┤
-│ 🔵 Primary Action Button   │ `bg-[#00F0FF]` (Electric Cyan)           │ `bg-[#0A66C2]` (Deep Tech Blue)      │
-│    (Save, Post, Connect)  │ `text-black font-semibold`               │ `text-white font-semibold shadow-sm` │
+│ 🔵 Primary Action Button   │ `bg-[#00F0FF]` (Electric Cyan)           │ `bg-[#0A66C2]` (LinkedIn Royal Blue) │
+│    (Save, Post, Apply)    │ `text-black font-semibold`               │ `text-white font-semibold shadow-sm` │
 │                           │ Hover: `bg-[#00D5E4]`                    │ Hover: `bg-[#004182]`                │
 ├───────────────────────────┼──────────────────────────────────────────┼──────────────────────────────────────┤
-│ ⚪ Secondary Action Button │ `bg-white/5 text-gray-200 border-white/10`│ `bg-slate-100 text-slate-800 border` │
-│    (Cancel, Edit, Filter) │ Hover: `bg-white/10 text-white`          │ Hover: `bg-slate-200 border-slate-300`│
+│ 🔷 Secondary Outline      │ `bg-transparent text-[#00F0FF]`          │ `bg-white text-[#0A66C2]`            │
+│    (Message, Connect,     │ `border border-[#00F0FF]/40`             │ `border-2 border-[#0A66C2]`          │
+│     View Profile)         │ Hover: `bg-[#00F0FF]/10`                 │ Hover: `bg-blue-50 text-[#004182]`   │
 ├───────────────────────────┼──────────────────────────────────────────┼──────────────────────────────────────┤
-│ 🔴 Destructive Button     │ `bg-red-500/10 text-red-400 border-red`  │ `bg-red-600 text-white hover:bg-red7`│
-│    (Delete, Sign Out)     │ Hover: `bg-red-500/20 text-red-300`      │ `shadow-sm font-semibold`            │
+│ ⚪ Secondary Neutral       │ `bg-white/5 text-gray-200`               │ `bg-[#E4E6EB]` (Meta standard) OR    │
+│    (Cancel, Edit, Filter) │ `border border-white/10`                 │ `bg-white text-slate-800 border`     │
+│                           │ Hover: `bg-white/10 text-white`          │ `border-slate-300 shadow-sm`         │
+├───────────────────────────┼──────────────────────────────────────────┼──────────────────────────────────────┤
+│ 🔴 Destructive Button     │ `bg-red-500/10 text-red-400`             │ `bg-[#DC2626]` (Solid Crimson)       │
+│    (Delete, Sign Out)     │ `border border-red-500/20`               │ `text-white font-semibold shadow-sm` │
+│                           │ Hover: `bg-red-500/20`                   │ Hover: `bg-[#B91C1C]`                │
 ├───────────────────────────┼──────────────────────────────────────────┼──────────────────────────────────────┤
 │ 🟢 Success / Work Badges  │ `bg-emerald-500/10 text-emerald-400`     │ `bg-emerald-50 text-emerald-700`     │
-│    (#OpenToWork, Verified)│ `border-emerald-500/20`                  │ `border border-emerald-200`          │
+│    (#OpenToWork, Verified)│ `border border-emerald-500/20`           │ `border border-emerald-200 font-bold`│
+├───────────────────────────┼──────────────────────────────────────────┼──────────────────────────────────────┤
+│ 🏷️ Filter & Category Tabs │ `bg-[#00F0FF]/15 text-[#00F0FF]`         │ `bg-[#0A66C2] text-white font-bold`  │
+│    (Active State)         │ `border border-[#00F0FF]/30`             │ `shadow-sm`                          │
 └───────────────────────────┴──────────────────────────────────────────┴──────────────────────────────────────┘
 ```
 
@@ -88,7 +97,9 @@ The DevHub Theme Engine establishes two distinct, state-of-the-art visual experi
 └─────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
 ```
 
-### 3.1 CSS Design Tokens Implementation (`frontend/src/index.css`)
+---
+
+## 4. Global CSS Design Tokens (`frontend/src/index.css`)
 
 ```css
 :root {
@@ -105,12 +116,28 @@ The DevHub Theme Engine establishes two distinct, state-of-the-art visual experi
   --text-secondary: #475569;
   --text-muted: #94A3B8;
   
-  /* Primary Button Tokens (LinkedIn Tech Blue) */
+  /* Primary Action Button (LinkedIn Royal Blue) */
   --btn-primary-bg: #0A66C2;
   --btn-primary-hover: #004182;
   --btn-primary-text: #FFFFFF;
   
-  --card-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px -1px rgba(0, 0, 0, 0.05);
+  /* Secondary Outline Button (LinkedIn Outline) */
+  --btn-secondary-outline-bg: #FFFFFF;
+  --btn-secondary-outline-text: #0A66C2;
+  --btn-secondary-outline-border: #0A66C2;
+  --btn-secondary-outline-hover: #EFF6FF;
+  
+  /* Secondary Neutral Button (Meta / Stripe Flat Gray) */
+  --btn-secondary-bg: #E4E6EB;
+  --btn-secondary-hover: #D8DADF;
+  --btn-secondary-text: #050505;
+  
+  /* Destructive Button */
+  --btn-destructive-bg: #DC2626;
+  --btn-destructive-hover: #B91C1C;
+  --btn-destructive-text: #FFFFFF;
+  
+  --card-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.06), 0 1px 2px -1px rgba(0, 0, 0, 0.04);
 }
 
 html.dark, [data-theme='dark'] {
@@ -132,22 +159,25 @@ html.dark, [data-theme='dark'] {
   --btn-primary-hover: rgba(0, 240, 255, 0.85);
   --btn-primary-text: #000000;
   
+  /* Secondary Outline Button */
+  --btn-secondary-outline-bg: transparent;
+  --btn-secondary-outline-text: #00F0FF;
+  --btn-secondary-outline-border: rgba(0, 240, 255, 0.4);
+  --btn-secondary-outline-hover: rgba(0, 240, 255, 0.1);
+  
+  /* Secondary Neutral Button */
+  --btn-secondary-bg: rgba(255, 255, 255, 0.07);
+  --btn-secondary-hover: rgba(255, 255, 255, 0.12);
+  --btn-secondary-text: #FFFFFF;
+  
+  /* Destructive Button */
+  --btn-destructive-bg: rgba(239, 68, 68, 0.15);
+  --btn-destructive-hover: rgba(239, 68, 68, 0.25);
+  --btn-destructive-text: #F87171;
+  
   --card-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.6);
 }
 ```
-
----
-
-## 4. UI Toggle Placement Across App Shell
-
-1. **Top Navbar Header (`TopNavbar.jsx`):**
-   - 1-Click Sun ☀️ / Moon 🌙 Icon button positioned next to Search and Notifications.
-2. **Profile Avatar Dropdown Menu (`TopNavbar.jsx`):**
-   - Menu item: `[ 🌙 Dark Mode / ☀️ Light Mode ]` with animated switch.
-3. **Mobile Drawer (`MobileNav.jsx` / `Sidebar.jsx`):**
-   - Bottom quick switch for mobile phone users.
-4. **Settings Page:**
-   - Appearance section with radio cards (`Dark Obsidian`, `Light Studio`).
 
 ---
 
@@ -156,11 +186,11 @@ html.dark, [data-theme='dark'] {
 | Page / Route | Dark Mode Behavior | Light Mode Behavior (LinkedIn / Meta Palette) |
 | :--- | :--- | :--- |
 | **1. Feed Page (`/`)** | Obsidian feed, cyan post button, dark post cards | Clean slate feed, LinkedIn blue post button, white cards |
-| **2. Profile Page (`/profile`)** | Dark banner, obsidian cards, cyan action pills | White banner, crisp white cards, deep blue buttons |
+| **2. Profile Page (`/profile`)** | Dark banner, obsidian cards, cyan action pills | White banner, crisp white cards, LinkedIn blue outline buttons |
 | **3. Messages Page (`/messages`)** | `#111` chat list, `#050508` conversation thread | Pure white chat list, slate-50 active chat thread |
 | **4. Jobs Page (`/jobs`)** | Dark job cards, cyan "Apply" buttons | Crisp white job cards, LinkedIn blue "Apply" buttons |
-| **5. Network Page (`/network`)** | Dark developer cards, cyan "Connect" pills | White developer cards, LinkedIn blue "Connect" pills |
-| **6. Settings Page (`/settings`)** | Obsidian cards, dark inputs, cyan save button | Pure white cards, slate inputs, blue save button |
+| **5. Network Page (`/network`)** | Dark developer cards, cyan "Connect" pills | White developer cards, LinkedIn blue outline "Connect" pills |
+| **6. Settings Page (`/settings`)** | Obsidian cards, dark inputs, cyan save button | Pure white cards, slate inputs, LinkedIn blue save button |
 | **7. Legal Center (`/guidelines`..)** | Dark markdown policy reader | Crisp white document reader with slate typography |
 | **8. Notifications (`/notifications`)** | Dark notification stream | Pure white notification stream with unread blue dots |
 | **9. Search Page (`/search`)** | Dark search results | White search results with highlighted blue terms |
