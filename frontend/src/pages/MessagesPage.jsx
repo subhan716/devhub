@@ -972,13 +972,13 @@ const MessagesPage = () => {
         <div className={`mx-4 mb-3 p-1 flex gap-1 ${isDark ? "bg-[#050507] border-white/[0.02]" : "bg-slate-100 border-slate-200"} rounded-xl border`}>
           <button 
             onClick={() => setActiveTab('Focused')}
-            className={`flex-1 py-1.5 text-xs font-bold transition-all rounded-lg ${activeTab === 'Focused' ? (isDark ? 'text-white bg-white/10 shadow-sm font-bold' : 'text-[#0A66C2] bg-white shadow-sm font-bold') : (isDark ? 'text-gray-400 hover:text-white' : 'text-slate-600 hover:text-slate-900')}`}
+            className={`flex-1 py-1.5 text-xs font-bold transition-all rounded-lg ${activeTab === 'Focused' ? (isDark ? 'text-white bg-white/10 shadow-sm font-bold' : 'text-[#0A66C2] bg-white shadow-sm font-bold') : (isDark ? 'text-slate-500 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white' : 'text-slate-600 hover:text-slate-900')}`}
           >
             Focused
           </button>
           <button 
             onClick={() => setActiveTab('Other')}
-            className={`flex-1 py-1.5 text-xs font-bold transition-all rounded-lg ${activeTab === 'Other' ? (isDark ? 'text-white bg-white/10 shadow-sm font-bold' : 'text-[#0A66C2] bg-white shadow-sm font-bold') : (isDark ? 'text-gray-400 hover:text-white' : 'text-slate-600 hover:text-slate-900')}`}
+            className={`flex-1 py-1.5 text-xs font-bold transition-all rounded-lg ${activeTab === 'Other' ? (isDark ? 'text-white bg-white/10 shadow-sm font-bold' : 'text-[#0A66C2] bg-white shadow-sm font-bold') : (isDark ? 'text-slate-500 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white' : 'text-slate-600 hover:text-slate-900')}`}
           >
             Other
           </button>
@@ -1070,7 +1070,7 @@ const MessagesPage = () => {
                           e.stopPropagation();
                           setActiveSidebarMenuChatId(activeSidebarMenuChatId === chat.user._id ? null : chat.user._id);
                         }}
-                        className={`p-1 hover:bg-white/10 rounded text-gray-400 hover:text-white transition-colors ${activeSidebarMenuChatId === chat.user._id ? 'block' : 'hidden group-hover:block'}`}
+                        className={`p-1 hover:bg-slate-100 dark:hover:bg-white/10 rounded text-slate-500 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white transition-colors ${activeSidebarMenuChatId === chat.user._id ? 'block' : 'hidden group-hover:block'}`}
                       >
                         <MoreVertical size={16} />
                       </button>
@@ -1218,7 +1218,7 @@ const MessagesPage = () => {
             <div className={`px-6 py-4 ${isDark ? "bg-[#131317]/80 border-b border-white/5" : "bg-white border-b border-slate-200 shadow-sm"} backdrop-blur-md flex justify-between items-center z-10`}>
               <div className="flex items-center gap-4">
                 <button 
-                  className="md:hidden p-2 -ml-2 rounded-xl text-gray-400 hover:text-white hover:bg-white/5 transition-colors"
+                  className="md:hidden p-2 -ml-2 rounded-xl text-gray-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5 transition-colors"
                   onClick={() => setSelectedChat(null)}
                 >
                   ←
@@ -1246,7 +1246,7 @@ const MessagesPage = () => {
               <button
                 onClick={() => setShowChatDetails(v => !v)}
                 title="Contact info"
-                className={`p-2 rounded-xl transition-colors ${showChatDetails ? 'bg-white/10 text-[#00F0FF]' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}
+                className={`p-2 rounded-xl transition-colors ${showChatDetails ? 'bg-white/10 text-[#00F0FF]' : 'text-gray-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5'}`}
               >
                 <Info size={20} />
               </button>
@@ -1439,7 +1439,7 @@ const MessagesPage = () => {
                                         e.stopPropagation();
                                         handleDownloadFile(msg.attachment.url, msg.attachment.name);
                                       }}
-                                      className="p-1 text-gray-400 hover:text-white hover:bg-white/10 rounded transition-colors ml-2"
+                                      className="p-1 text-gray-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-100 dark:hover:bg-white/10 rounded transition-colors ml-2"
                                       title="Download File"
                                     >
                                       <Download size={16} />
@@ -1511,7 +1511,7 @@ const MessagesPage = () => {
                                         className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] border transition-colors ${
                                           hasReacted
                                             ? 'bg-[#00F0FF]/15 border-[#00F0FF]/40 text-[#00F0FF]'
-                                            : 'bg-white/5 border-slate-200 dark:border-white/10 text-gray-400 hover:text-white hover:bg-white/10'
+                                            : 'bg-white/5 border-slate-200 dark:border-white/10 text-gray-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/10'
                                         }`}
                                       >
                                         <span>{emoji}</span>
@@ -1536,7 +1536,7 @@ const MessagesPage = () => {
                                 <button
                                   key={emoji}
                                   onClick={() => handleToggleReaction(msg._id, emoji)}
-                                  className="p-1 text-sm hover:bg-white/10 rounded transition-colors"
+                                  className="p-1 text-sm hover:bg-slate-100 dark:hover:bg-white/10 rounded transition-colors"
                                 >
                                   {emoji}
                                 </button>
@@ -1552,7 +1552,7 @@ const MessagesPage = () => {
                                     setActiveReactionMenuId(activeReactionMenuId === msg._id ? null : msg._id); 
                                     setOpenMenuId(null);
                                   }}
-                                  className={`p-1 text-gray-400 hover:text-white hover:bg-white/10 rounded transition-colors ${activeReactionMenuId === msg._id ? 'text-white bg-white/10' : ''}`}
+                                  className={`p-1 text-gray-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-100 dark:hover:bg-white/10 rounded transition-colors ${activeReactionMenuId === msg._id ? 'text-white bg-white/10' : ''}`}
                                   title="Add reaction"
                                 >
                                   <SmilePlus size={16} />
@@ -1587,7 +1587,7 @@ const MessagesPage = () => {
                               {/* Reply Button */}
                               <button
                                 onClick={() => handleInitiateReply(msg)}
-                                className="p-1 text-gray-400 hover:text-white hover:bg-white/10 rounded transition-colors"
+                                className="p-1 text-gray-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-100 dark:hover:bg-white/10 rounded transition-colors"
                                 title="Reply"
                               >
                                 <CornerUpLeft size={16} />
@@ -1599,7 +1599,7 @@ const MessagesPage = () => {
                                   setForwardTargetMessage(msg);
                                   setShowForwardModal(true);
                                 }}
-                                className="p-1 text-gray-400 hover:text-white hover:bg-white/10 rounded transition-colors"
+                                className="p-1 text-gray-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-100 dark:hover:bg-white/10 rounded transition-colors"
                                 title="Forward"
                               >
                                 <CornerUpRight size={16} />
@@ -1613,7 +1613,7 @@ const MessagesPage = () => {
                                     setOpenMenuId(openMenuId === msg._id ? null : msg._id); 
                                     setActiveReactionMenuId(null);
                                   }}
-                                  className="p-1 text-gray-400 hover:text-white hover:bg-white/10 rounded transition-colors"
+                                  className="p-1 text-gray-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-100 dark:hover:bg-white/10 rounded transition-colors"
                                   title="More actions"
                                 >
                                   <MoreVertical size={16} />
@@ -1715,7 +1715,7 @@ const MessagesPage = () => {
                   <button 
                     type="button"
                     onClick={() => setReplyingToMessage(null)} 
-                    className="p-1 text-gray-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors flex-shrink-0"
+                    className="p-1 text-gray-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-100 dark:hover:bg-white/10 rounded-lg transition-colors flex-shrink-0"
                   >
                     <X size={16} />
                   </button>
@@ -1747,10 +1747,10 @@ const MessagesPage = () => {
                   className="hidden" 
                   accept="image/*,.pdf,.doc,.docx,.zip,.txt"
                 />
-                <button type="button" onClick={() => fileInputRef.current?.click()} className="p-2 text-gray-400 hover:text-white hover:bg-white/10 rounded-full transition-colors" title="Attach File/Image">
+                <button type="button" onClick={() => fileInputRef.current?.click()} className="p-2 text-gray-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-100 dark:hover:bg-white/10 rounded-full transition-colors" title="Attach File/Image">
                   <Paperclip size={20} />
                 </button>
-                <button type="button" onClick={() => setShowEmojiPicker(!showEmojiPicker)} className="p-2 text-gray-400 hover:text-white hover:bg-white/10 rounded-full transition-colors" title="Emoji">
+                <button type="button" onClick={() => setShowEmojiPicker(!showEmojiPicker)} className="p-2 text-gray-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-100 dark:hover:bg-white/10 rounded-full transition-colors" title="Emoji">
                   <Smile size={20} />
                 </button>
                 
@@ -1758,7 +1758,7 @@ const MessagesPage = () => {
                 <button 
                   type="button" 
                   onClick={handleAtButtonClick} 
-                  className="p-2 text-gray-400 hover:text-white hover:bg-white/10 rounded-full transition-colors" 
+                  className="p-2 text-gray-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-100 dark:hover:bg-white/10 rounded-full transition-colors" 
                   title="Mention user"
                 >
                   <AtSign size={20} />
@@ -1768,7 +1768,7 @@ const MessagesPage = () => {
                 <button 
                   type="button" 
                   onClick={startRecording} 
-                  className="p-2 text-gray-400 hover:text-white hover:bg-white/10 rounded-full transition-colors" 
+                  className="p-2 text-gray-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-100 dark:hover:bg-white/10 rounded-full transition-colors" 
                   title="Record voice note"
                 >
                   <Mic size={20} />
@@ -1825,7 +1825,7 @@ const MessagesPage = () => {
                     <button
                       type="button"
                       onClick={cancelRecording}
-                      className="p-2 text-gray-400 hover:text-red-500 hover:bg-white/5 rounded-full transition-colors"
+                      className="p-2 text-gray-400 hover:text-red-500 hover:bg-slate-100 dark:hover:bg-white/5 rounded-full transition-colors"
                       title="Cancel Recording"
                     >
                       <Trash2 size={20} />
@@ -1886,7 +1886,7 @@ const MessagesPage = () => {
                 >
                   {/* Header */}
                   <div className={`h-[73px] flex items-center px-6 sticky top-0 ${isDark ? "bg-[#0e0e11]/90 border-b border-white/5" : "bg-white border-b border-slate-200"} backdrop-blur-md z-10 gap-3`}>
-                    <button onClick={() => setShowChatDetails(false)} className="p-2 -ml-2 text-gray-400 hover:text-white rounded-lg transition-colors">
+                    <button onClick={() => setShowChatDetails(false)} className="p-2 -ml-2 text-slate-500 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white rounded-lg transition-colors">
                       <X size={20} />
                     </button>
                     <h2 className="text-slate-900 dark:text-white font-bold text-lg">Contact Info</h2>
@@ -1951,7 +1951,7 @@ const MessagesPage = () => {
                         <div 
                           key={idx} 
                           onClick={() => setPreviewFile(msg.attachment)} 
-                          className="flex items-center gap-3 p-3 bg-white/5 border border-slate-200 dark:border-white/10 hover:bg-white/10 rounded-xl transition-colors cursor-pointer"
+                          className="flex items-center gap-3 p-3 bg-white/5 border border-slate-200 dark:border-white/10 hover:bg-slate-100 dark:hover:bg-white/10 rounded-xl transition-colors cursor-pointer"
                         >
                           <div className="p-2 bg-[#00F0FF]/10 rounded-lg">
                             <FileText size={16} className="text-[#00F0FF]" />
@@ -2146,7 +2146,7 @@ const MessagesPage = () => {
                   setSelectedForwardTargets([]);
                   setForwardComment('');
                 }}
-                className="text-gray-400 hover:text-white p-1 hover:bg-white/5 rounded-lg transition-colors"
+                className="text-slate-500 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white p-1 hover:bg-slate-100 dark:hover:bg-white/5 rounded-lg transition-colors"
               >
                 <X size={20} />
               </button>
@@ -2264,7 +2264,7 @@ const MessagesPage = () => {
                     setSelectedForwardTargets([]);
                     setForwardComment('');
                   }}
-                  className="px-4 py-2 bg-transparent text-gray-400 hover:text-white rounded-xl text-sm font-semibold transition-colors"
+                  className="px-4 py-2 bg-transparent text-slate-500 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white rounded-xl text-sm font-semibold transition-colors"
                 >
                   Cancel
                 </button>

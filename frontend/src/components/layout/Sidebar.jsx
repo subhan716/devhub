@@ -80,7 +80,7 @@ const Sidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
                       ? 'bg-gradient-to-r from-[#00F0FF]/10 to-transparent text-white border-l-2 border-[#00F0FF]' 
                       : 'bg-blue-50 text-[#0A66C2] border-l-2 border-[#0A66C2] font-semibold'
                     : isDark
-                      ? 'text-gray-400 hover:bg-white/5 hover:text-white border-l-2 border-transparent'
+                      ? 'text-gray-400 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white border-l-2 border-transparent'
                       : 'text-gray-600 hover:bg-slate-100 hover:text-black border-l-2 border-transparent'
                 }`}
               >

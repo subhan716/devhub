@@ -104,7 +104,7 @@ const ProfileConnectionsPage = () => {
       <div className="bg-white dark:bg-[#111] border border-slate-200 dark:border-white/10 rounded-2xl p-6 mb-4 flex items-center gap-5">
         <button
           onClick={() => navigate(-1)}
-          className="p-2 text-slate-600 dark:text-gray-400 hover:text-white rounded-full hover:bg-white/10 transition-colors flex-shrink-0"
+          className="p-2 text-slate-600 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white rounded-full hover:bg-white/10 transition-colors flex-shrink-0"
         >
           <ArrowLeft size={22} />
         </button>
@@ -199,7 +199,7 @@ const ProfileConnectionsPage = () => {
                   <div className="relative">
                     <button
                       onClick={() => setActiveDropdown(activeDropdown === conn.connectionId ? null : conn.connectionId)}
-                      className="p-2 text-slate-600 dark:text-gray-400 hover:text-white hover:bg-white/10 rounded-full transition-colors flex-shrink-0"
+                      className="p-2 text-slate-600 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/10 rounded-full transition-colors flex-shrink-0"
                     >
                       <MoreHorizontal size={20} />
                     </button>

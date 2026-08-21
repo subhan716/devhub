@@ -117,7 +117,7 @@ const CommentItem = ({ comment, postId, onReply, onDelete, depth = 0, isTarget, 
                 <>
                   <button 
                     onClick={() => setIsEditing(true)} 
-                    className="p-1.5 text-gray-500 hover:text-white hover:bg-white/10 rounded-full transition-colors"
+                    className="p-1.5 text-gray-500 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/10 rounded-full transition-colors"
                     title="Edit Comment"
                   >
                     <Edit3 size={14} />
@@ -133,7 +133,7 @@ const CommentItem = ({ comment, postId, onReply, onDelete, depth = 0, isTarget, 
               )}
               <button 
                 onClick={copyToClipboard} 
-                className="p-1.5 text-gray-500 hover:text-white hover:bg-white/10 rounded-full transition-colors"
+                className="p-1.5 text-gray-500 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/10 rounded-full transition-colors"
                 title="Copy Text"
               >
                 <Copy size={14} />
@@ -406,7 +406,7 @@ const CommentsList = ({ postId, targetCommentId, onUpdateCount, currentUser }) =
                     className={`w-full text-left px-4 py-2 text-xs font-medium transition-colors ${
                       sort === option.value 
                         ? 'text-[#00F0FF] bg-[#00F0FF]/10' 
-                        : 'text-gray-300 hover:text-white hover:bg-white/5'
+                        : 'text-gray-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5'
                     }`}
                   >
                     {option.label}

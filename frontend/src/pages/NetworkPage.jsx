@@ -202,7 +202,7 @@ const NetworkPage = () => {
               className={`flex-1 flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 p-2 sm:px-4 py-2 sm:py-3 rounded-xl font-medium sm:font-semibold transition-all duration-300 ${
                 activeTab === tab.id 
                   ? 'bg-[#00F0FF]/10 text-[#00F0FF]' 
-                  : 'text-gray-400 hover:bg-white/5 hover:text-white'
+                  : 'text-gray-400 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white'
               }`}
             >
               <div className="flex items-center gap-1 sm:gap-2">
@@ -321,7 +321,7 @@ const NetworkPage = () => {
                                 handleRemoveConnection(req.recipient._id);
                               }}
                               disabled={actionLoading === `remove-${req.recipient._id}`}
-                              className="flex-1 sm:flex-none px-6 py-2 text-gray-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors border border-slate-200 dark:border-white/10 disabled:opacity-50"
+                              className="flex-1 sm:flex-none px-6 py-2 text-gray-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/10 rounded-lg transition-colors border border-slate-200 dark:border-white/10 disabled:opacity-50"
                             >
                               Withdraw
                             </button>
@@ -419,7 +419,7 @@ const NetworkPage = () => {
                         <div className="relative">
                           <button 
                             onClick={() => setActiveDropdown(activeDropdown === conn.connectionId ? null : conn.connectionId)}
-                            className="p-2 text-gray-400 hover:text-white hover:bg-white/10 rounded-full transition-colors flex-shrink-0"
+                            className="p-2 text-gray-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/10 rounded-full transition-colors flex-shrink-0"
                           >
                             <MoreHorizontal size={20} />
                           </button>

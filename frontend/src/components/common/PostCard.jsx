@@ -384,7 +384,7 @@ const PostCard = ({ post: rootPost, idx = 0, currentUser, onDelete, onEdit, auto
                         onEdit(post);
                         setIsMenuOpen(false);
                       }}
-                      className="w-full px-4 py-2.5 text-left text-sm text-gray-200 hover:bg-white/5 hover:text-white transition-colors flex items-center gap-2 cursor-pointer"
+                      className="w-full px-4 py-2.5 text-left text-sm text-gray-200 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white transition-colors flex items-center gap-2 cursor-pointer"
                     >
                       <Edit3 size={15} className="text-gray-400" />
                       <span>Edit Post</span>
@@ -405,7 +405,7 @@ const PostCard = ({ post: rootPost, idx = 0, currentUser, onDelete, onEdit, auto
 
                 <button 
                   onClick={handleCopyLink}
-                  className="w-full px-4 py-2.5 text-left text-sm text-gray-200 hover:bg-white/5 hover:text-white transition-colors flex items-center gap-2 cursor-pointer"
+                  className="w-full px-4 py-2.5 text-left text-sm text-gray-200 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white transition-colors flex items-center gap-2 cursor-pointer"
                 >
                   <Link2 size={15} className="text-gray-400" />
                   <span>Copy Link</span>
@@ -413,7 +413,7 @@ const PostCard = ({ post: rootPost, idx = 0, currentUser, onDelete, onEdit, auto
                 
                 <button 
                   onClick={handleSavePost}
-                  className="w-full px-4 py-2.5 text-left text-sm text-gray-200 hover:bg-white/5 hover:text-white transition-colors flex items-center gap-2 cursor-pointer"
+                  className="w-full px-4 py-2.5 text-left text-sm text-gray-200 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white transition-colors flex items-center gap-2 cursor-pointer"
                 >
                   <Bookmark size={15} className="text-gray-400" />
                   <span>Save Post</span>
@@ -487,12 +487,12 @@ const PostCard = ({ post: rootPost, idx = 0, currentUser, onDelete, onEdit, auto
           <span>{likes.length} Likes</span>
         </motion.button>
         
-        <button onClick={() => setShowComments(!showComments)} className="flex items-center gap-1.5 hover:text-[#00F0FF] hover:bg-[#00F0FF]/10 px-3 py-1.5 rounded-full transition-colors cursor-pointer">
+        <button onClick={() => setShowComments(!showComments)} className="flex items-center gap-1.5 hover:text-[#0A66C2] dark:hover:text-[#00F0FF] hover:bg-blue-50 dark:hover:bg-[#00F0FF]/10 px-3 py-1.5 rounded-full transition-colors cursor-pointer">
           <MessageCircle size={18} />
           <span>{commentsCount}</span>
         </button>
         
-        <button onClick={handleRepostClick} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full transition-colors cursor-pointer ${isRepostedByMe ? 'text-[#00F0FF] bg-[#00F0FF]/10' : 'hover:text-[#00F0FF] hover:bg-[#00F0FF]/10'}`}>
+        <button onClick={handleRepostClick} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full transition-colors cursor-pointer ${isRepostedByMe ? 'text-[#00F0FF] bg-[#00F0FF]/10' : 'hover:text-[#0A66C2] dark:hover:text-[#00F0FF] hover:bg-blue-50 dark:hover:bg-[#00F0FF]/10'}`}>
           <Repeat2 size={18} />
           <span>{post?.repostsCount || 0}</span>
         </button>

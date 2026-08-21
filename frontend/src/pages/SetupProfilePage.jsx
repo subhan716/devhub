@@ -574,7 +574,7 @@ const SetupProfilePage = () => {
                 <button
                   type="button"
                   onClick={handleSkipStep1}
-                  className="flex-1 py-3 px-4 border border-white/10 rounded-lg text-sm font-bold text-gray-400 hover:text-white hover:bg-white/5 transition-all cursor-pointer"
+                  className="flex-1 py-3 px-4 border border-white/10 rounded-lg text-sm font-bold text-gray-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5 transition-all cursor-pointer"
                 >
                   Skip Onboarding
                 </button>
@@ -591,7 +591,7 @@ const SetupProfilePage = () => {
                   <button
                     type="button"
                     onClick={handleSkipStep2}
-                    className="flex-1 py-3 px-4 border border-white/10 rounded-lg text-sm font-bold text-gray-400 hover:text-white hover:bg-white/5 transition-all cursor-pointer"
+                    className="flex-1 py-3 px-4 border border-white/10 rounded-lg text-sm font-bold text-gray-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5 transition-all cursor-pointer"
                   >
                     Skip for now
                   </button>

@@ -155,9 +155,9 @@ const LandingPage = () => {
           </div>
           <p className="text-gray-500 text-sm">© 2026 DevHub. Built for the developer community.</p>
           <div className="flex gap-4 text-sm text-gray-500">
-            <a href="#" className="hover:text-white transition-colors">Privacy</a>
-            <a href="#" className="hover:text-white transition-colors">Terms</a>
-            <a href="#" className="hover:text-white transition-colors">GitHub</a>
+            <a href="#" className="hover:text-slate-900 dark:hover:text-white transition-colors">Privacy</a>
+            <a href="#" className="hover:text-slate-900 dark:hover:text-white transition-colors">Terms</a>
+            <a href="#" className="hover:text-slate-900 dark:hover:text-white transition-colors">GitHub</a>
           </div>
         </div>
       </footer>

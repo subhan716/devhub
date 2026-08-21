@@ -492,7 +492,7 @@ const FeedPage = () => {
                 <h3 className="text-lg font-bold text-slate-900 dark:text-white">{editingPostId ? 'Edit post' : 'Create a post'}</h3>
                 <button 
                   onClick={handleCloseModal}
-                  className="p-1.5 text-gray-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors cursor-pointer"
+                  className="p-1.5 text-gray-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/10 rounded-lg transition-colors cursor-pointer"
                 >
                   <X size={20} />
                 </button>

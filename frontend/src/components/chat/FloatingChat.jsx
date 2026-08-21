@@ -216,7 +216,7 @@ const FloatingChat = ({ currentUser }) => {
                       setMuteSounds(newVal);
                       localStorage.setItem('muteMessageSounds', newVal);
                     }}
-                    className="w-full px-4 py-2.5 text-left text-sm text-slate-700 dark:text-gray-300 hover:bg-white/5 hover:text-white transition-colors flex justify-between items-center"
+                    className="w-full px-4 py-2.5 text-left text-sm text-slate-700 dark:text-gray-300 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white transition-colors flex justify-between items-center"
                   >
                     <span>Mute Sounds</span>
                     <div className={`w-8 h-4 rounded-full transition-colors relative ${muteSounds ? 'bg-[#00F0FF]' : 'bg-gray-600'}`}>
@@ -230,7 +230,7 @@ const FloatingChat = ({ currentUser }) => {
                       setReadReceipts(newVal);
                       localStorage.setItem('disableReadReceipts', !newVal);
                     }}
-                    className="w-full px-4 py-2.5 text-left text-sm text-slate-700 dark:text-gray-300 hover:bg-white/5 hover:text-white transition-colors flex justify-between items-center"
+                    className="w-full px-4 py-2.5 text-left text-sm text-slate-700 dark:text-gray-300 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white transition-colors flex justify-between items-center"
                   >
                     <span>Read Receipts</span>
                     <div className={`w-8 h-4 rounded-full transition-colors relative ${readReceipts ? 'bg-[#00F0FF]' : 'bg-gray-600'}`}>
@@ -291,13 +291,13 @@ const FloatingChat = ({ currentUser }) => {
                 <div className="flex gap-6 px-1">
                   <button 
                     onClick={() => setActiveTab('focused')}
-                    className={`text-sm font-semibold pb-2 px-1 transition-colors ${activeTab === 'focused' ? (isDark ? 'text-[#00F0FF] border-b-2 border-[#00F0FF]' : 'text-[#0A66C2] border-b-2 border-[#0A66C2]') : (isDark ? 'text-gray-400 hover:text-white' : 'text-slate-600 hover:text-slate-900')}`}
+                    className={`text-sm font-semibold pb-2 px-1 transition-colors ${activeTab === 'focused' ? (isDark ? 'text-[#00F0FF] border-b-2 border-[#00F0FF]' : 'text-[#0A66C2] border-b-2 border-[#0A66C2]') : (isDark ? 'text-slate-500 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white' : 'text-slate-600 hover:text-slate-900')}`}
                   >
                     Focused
                   </button>
                   <button 
                     onClick={() => setActiveTab('other')}
-                    className={`text-sm font-semibold pb-2 px-1 transition-colors ${activeTab === 'other' ? (isDark ? 'text-[#00F0FF] border-b-2 border-[#00F0FF]' : 'text-[#0A66C2] border-b-2 border-[#0A66C2]') : (isDark ? 'text-gray-400 hover:text-white' : 'text-slate-600 hover:text-slate-900')}`}
+                    className={`text-sm font-semibold pb-2 px-1 transition-colors ${activeTab === 'other' ? (isDark ? 'text-[#00F0FF] border-b-2 border-[#00F0FF]' : 'text-[#0A66C2] border-b-2 border-[#0A66C2]') : (isDark ? 'text-slate-500 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white' : 'text-slate-600 hover:text-slate-900')}`}
                   >
                     Other
                   </button>
@@ -672,10 +672,10 @@ const ChatWindow = ({ chat, messages = [], onClose, currentUser, socket, onlineU
                     className="hidden" 
                     accept="image/*,.pdf,.doc,.docx,.zip,.txt"
                   />
-                  <button type="button" onClick={() => fileInputRef.current?.click()} className="text-gray-400 hover:text-white p-1.5 rounded transition-colors" title="Attach File/Image"><Paperclip size={18} /></button>
+                  <button type="button" onClick={() => fileInputRef.current?.click()} className="text-slate-500 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white p-1.5 rounded transition-colors" title="Attach File/Image"><Paperclip size={18} /></button>
                   
                   <div ref={emojiPickerContainerRef} className="relative">
-                    <button type="button" onClick={() => setShowEmojiPicker(!showEmojiPicker)} className="text-gray-400 hover:text-white p-1.5 rounded transition-colors" title="Emoji"><Smile size={18} /></button>
+                    <button type="button" onClick={() => setShowEmojiPicker(!showEmojiPicker)} className="text-slate-500 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white p-1.5 rounded transition-colors" title="Emoji"><Smile size={18} /></button>
                     {/* Emoji Picker Popover */}
                     {showEmojiPicker && (
                       <div className="absolute bottom-full left-0 mb-2 z-50 shadow-2xl scale-90 origin-bottom-left">

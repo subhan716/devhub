@@ -77,7 +77,7 @@ const SearchPage = () => {
               className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-medium transition-all whitespace-nowrap ${
                 activeTab === tab.id 
                   ? 'bg-white/10 text-white shadow-md border border-slate-200 dark:border-white/10' 
-                  : 'text-gray-400 hover:text-white hover:bg-white/5'
+                  : 'text-gray-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5'
               }`}
             >
               {tab.icon}
