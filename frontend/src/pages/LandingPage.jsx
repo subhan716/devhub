@@ -149,14 +149,13 @@ const LandingPage = () => {
             </p>
 
             <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4">
-              <button
-                type="button"
-                onClick={() => openAuth('register')}
-                className="w-full sm:w-auto px-8 py-3.5 rounded-xl bg-white hover:bg-zinc-100 text-zinc-950 font-bold text-sm sm:text-base transition-all hover:scale-102 flex items-center justify-center gap-2 cursor-pointer shadow-md"
+              <Link
+                to="/register"
+                className="w-full sm:w-auto px-8 py-3.5 rounded-xl bg-white hover:bg-zinc-100 text-zinc-950 font-bold text-sm sm:text-base transition-all hover:scale-102 flex items-center justify-center gap-2 shadow-md"
               >
                 <span>{config.ctaPrimaryText || 'Start Networking'}</span>
                 <ArrowRight size={17} />
-              </button>
+              </Link>
               <a
                 href={config.ctaSecondaryLink || '#features'}
                 className="w-full sm:w-auto px-8 py-3.5 rounded-xl border border-zinc-800 bg-zinc-900/80 hover:bg-zinc-800 text-zinc-200 hover:text-white font-semibold text-sm sm:text-base backdrop-blur-md transition-colors text-center"
@@ -185,7 +184,7 @@ const LandingPage = () => {
             transition={{ duration: 1.0, delay: 0.2 }}
             className="w-full lg:w-1/2 min-h-[440px] sm:min-h-[520px] relative flex items-center justify-center"
           >
-            <ThreeDNetwork onActionClick={() => openAuth('register')} />
+            <ThreeDNetwork onActionClick={() => window.location.href = '/register'} />
           </motion.div>
         </div>
       </section>
@@ -338,14 +337,13 @@ const LandingPage = () => {
           <p className="text-base sm:text-lg text-zinc-300 mb-10 max-w-xl mx-auto leading-relaxed">
             Join the universal network of digital innovators, founders, engineers, and creators.
           </p>
-          <button
-            type="button"
-            onClick={() => openAuth('register')}
-            className="inline-flex items-center gap-2.5 px-8 py-4 rounded-xl bg-white hover:bg-zinc-100 text-zinc-950 font-bold text-base transition-all hover:scale-102 shadow-md cursor-pointer"
-          >
-            <span>Create Your Free Profile</span>
-            <ArrowRight size={18} />
-          </button>
+          <Link
+              to="/register"
+              className="px-8 py-3.5 rounded-xl bg-white hover:bg-zinc-100 text-zinc-950 font-bold text-sm sm:text-base transition-all hover:scale-105 inline-flex items-center gap-2 shadow-xl"
+            >
+              <span>Create Your Free Account</span>
+              <ArrowRight size={17} />
+            </Link>
         </div>
       </section>
 

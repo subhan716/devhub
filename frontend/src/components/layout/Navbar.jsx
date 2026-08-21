@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 
-const Navbar = ({ onOpenAuth }) => {
+const Navbar = () => {
   return (
     <nav className="fixed w-full z-40 top-0 border-b border-white/10 bg-[#08080A]/85 backdrop-blur-md transition-colors duration-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -20,22 +20,20 @@ const Navbar = ({ onOpenAuth }) => {
             <a href="#how-it-works" className="hover:text-white transition-colors">How It Works</a>
           </div>
 
-          {/* Auth Action Buttons */}
+          {/* Direct Link to Dedicated Split-Screen Pages */}
           <div className="flex items-center gap-3 sm:gap-4">
-            <button
-              type="button"
-              onClick={() => onOpenAuth ? onOpenAuth('login') : null}
-              className="text-zinc-300 hover:text-white font-semibold text-xs sm:text-sm transition-colors px-3 py-2 cursor-pointer"
+            <Link
+              to="/login"
+              className="text-zinc-300 hover:text-white font-semibold text-xs sm:text-sm transition-colors px-3 py-2"
             >
               Sign In
-            </button>
-            <button
-              type="button"
-              onClick={() => onOpenAuth ? onOpenAuth('register') : null}
-              className="bg-white hover:bg-zinc-100 text-zinc-950 px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all shadow-sm hover:scale-102 cursor-pointer"
+            </Link>
+            <Link
+              to="/register"
+              className="bg-white hover:bg-zinc-100 text-zinc-950 px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all shadow-sm hover:scale-102"
             >
               Join the Hub
-            </button>
+            </Link>
           </div>
         </div>
       </div>

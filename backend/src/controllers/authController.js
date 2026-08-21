@@ -1185,6 +1185,8 @@ const githubCallback = async (req, res) => {
   }
 };
 
+const resendPasswordOtp = async (req, res) => inSessionForgotPassword(req, res);
+
 module.exports = {
   registerUser,
   verifyOtp,
