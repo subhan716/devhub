@@ -162,12 +162,12 @@ const FloatingChat = ({ currentUser }) => {
       </AnimatePresence>
 
       {/* Main Messaging Drawer */}
-      <div className="w-[340px] bg-[#111] border border-white/10 rounded-t-xl shadow-2xl pointer-events-auto flex flex-col transition-all duration-300">
+      <div className="w-[340px] bg-white dark:bg-[#111] border border-slate-200 dark:border-white/10 rounded-t-xl shadow-2xl pointer-events-auto flex flex-col transition-all duration-300">
         
         {/* Drawer Header */}
         <div 
           onClick={() => setIsOpen(!isOpen)}
-          className="px-4 py-3 bg-[#1a1a1a] border-b border-white/10 flex justify-between items-center cursor-pointer rounded-t-xl hover:bg-white/5 transition-colors"
+          className="px-4 py-3 bg-slate-100 dark:bg-[#1a1a1a] border-b border-slate-200 dark:border-white/10 flex justify-between items-center cursor-pointer rounded-t-xl hover:bg-white/5 transition-colors"
         >
           <div className="flex items-center gap-2">
             <img 
@@ -195,9 +195,9 @@ const FloatingChat = ({ currentUser }) => {
                   exit={{ opacity: 0, scale: 0.95, y: 5 }}
                   transition={{ duration: 0.15 }}
                   onClick={(e) => e.stopPropagation()}
-                  className="absolute bottom-full right-0 mb-2 w-56 bg-[#1a1a1a] border border-white/10 rounded-xl shadow-2xl py-2 z-50 overflow-hidden origin-bottom-right"
+                  className="absolute bottom-full right-0 mb-2 w-56 bg-slate-100 dark:bg-[#1a1a1a] border border-slate-200 dark:border-white/10 rounded-xl shadow-2xl py-2 z-50 overflow-hidden origin-bottom-right"
                 >
-                  <div className="px-3 py-2 border-b border-white/5">
+                  <div className="px-3 py-2 border-b border-slate-200 dark:border-white/5">
                     <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Chat Settings</span>
                   </div>
                   
@@ -207,7 +207,7 @@ const FloatingChat = ({ currentUser }) => {
                       setMuteSounds(newVal);
                       localStorage.setItem('muteMessageSounds', newVal);
                     }}
-                    className="w-full px-4 py-2.5 text-left text-sm text-gray-300 hover:bg-white/5 hover:text-white transition-colors flex justify-between items-center"
+                    className="w-full px-4 py-2.5 text-left text-sm text-slate-700 dark:text-gray-300 hover:bg-white/5 hover:text-white transition-colors flex justify-between items-center"
                   >
                     <span>Mute Sounds</span>
                     <div className={`w-8 h-4 rounded-full transition-colors relative ${muteSounds ? 'bg-[#00F0FF]' : 'bg-gray-600'}`}>
@@ -221,7 +221,7 @@ const FloatingChat = ({ currentUser }) => {
                       setReadReceipts(newVal);
                       localStorage.setItem('disableReadReceipts', !newVal);
                     }}
-                    className="w-full px-4 py-2.5 text-left text-sm text-gray-300 hover:bg-white/5 hover:text-white transition-colors flex justify-between items-center"
+                    className="w-full px-4 py-2.5 text-left text-sm text-slate-700 dark:text-gray-300 hover:bg-white/5 hover:text-white transition-colors flex justify-between items-center"
                   >
                     <span>Read Receipts</span>
                     <div className={`w-8 h-4 rounded-full transition-colors relative ${readReceipts ? 'bg-[#00F0FF]' : 'bg-gray-600'}`}>
@@ -265,10 +265,10 @@ const FloatingChat = ({ currentUser }) => {
               animate={{ height: 450 }}
               exit={{ height: 0 }}
               data-lenis-prevent="true"
-              className="bg-[#111] overflow-y-auto custom-scrollbar flex flex-col min-h-0"
+              className="bg-white dark:bg-[#111] overflow-y-auto custom-scrollbar flex flex-col min-h-0"
             >
               {/* Search Bar & Tabs */}
-              <div className="p-3 border-b border-white/10">
+              <div className="p-3 border-b border-slate-200 dark:border-white/10">
                 <div className="relative mb-3">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
                   <input 
@@ -276,7 +276,7 @@ const FloatingChat = ({ currentUser }) => {
                     placeholder="Search messages" 
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full bg-white/5 border border-white/10 rounded-lg py-1.5 pl-9 pr-3 text-sm text-white focus:outline-none focus:border-[#00F0FF] transition-colors"
+                    className="w-full bg-white/5 border border-slate-200 dark:border-white/10 rounded-lg py-1.5 pl-9 pr-3 text-sm text-white focus:outline-none focus:border-[#00F0FF] transition-colors"
                   />
                 </div>
                 <div className="flex gap-6 px-1">
@@ -327,7 +327,7 @@ const FloatingChat = ({ currentUser }) => {
                     <div 
                       key={conv.user._id}
                       onClick={() => openChatHead(conv.user)}
-                      className="px-4 py-3 flex items-start gap-3 hover:bg-white/5 cursor-pointer border-b border-white/5 transition-colors animate-fadeIn"
+                      className="px-4 py-3 flex items-start gap-3 hover:bg-white/5 cursor-pointer border-b border-slate-200 dark:border-white/5 transition-colors animate-fadeIn"
                     >
                       <div className="relative flex-shrink-0">
                         <img src={conv.user.avatar?.url || 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y'} className="w-12 h-12 rounded-full object-cover" alt="" />
@@ -354,7 +354,7 @@ const FloatingChat = ({ currentUser }) => {
                     <div 
                       key={`conn-${conn.user._id}`}
                       onClick={() => openChatHead(conn.user)}
-                      className="px-4 py-3 flex items-start gap-3 hover:bg-white/5 cursor-pointer border-b border-white/5 transition-colors animate-fadeIn"
+                      className="px-4 py-3 flex items-start gap-3 hover:bg-white/5 cursor-pointer border-b border-slate-200 dark:border-white/5 transition-colors animate-fadeIn"
                     >
                       <div className="relative flex-shrink-0">
                         <img src={conn.user?.avatar?.url || 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y'} className="w-12 h-12 rounded-full object-cover" alt="" />
@@ -520,12 +520,12 @@ const ChatWindow = ({ chat, messages, onClose, currentUser, socket, onlineUsers,
       initial={{ opacity: 0, y: 50 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: 50, scale: 0.9 }}
-      className="w-[420px] bg-[#111] border border-white/10 rounded-t-xl shadow-2xl pointer-events-auto flex flex-col"
+      className="w-[420px] bg-white dark:bg-[#111] border border-slate-200 dark:border-white/10 rounded-t-xl shadow-2xl pointer-events-auto flex flex-col"
     >
       {/* Chat Header */}
       <div 
         onClick={() => setIsMinimized(!isMinimized)}
-        className="px-3 py-2 bg-[#1a1a1a] text-white border-b border-white/10 flex justify-between items-center cursor-pointer rounded-t-xl hover:bg-white/5 transition-colors"
+        className="px-3 py-2 bg-slate-100 dark:bg-[#1a1a1a] text-white border-b border-slate-200 dark:border-white/10 flex justify-between items-center cursor-pointer rounded-t-xl hover:bg-white/5 transition-colors"
       >
         <div className="flex items-center gap-2">
           <div className="relative">
@@ -566,22 +566,22 @@ const ChatWindow = ({ chat, messages, onClose, currentUser, socket, onlineUsers,
                     </div>
                   ) : (
                   <div className={`max-w-[80%] px-3 py-2 rounded-2xl text-[13px] flex flex-col gap-1.5 ${
-                    isMe ? 'bg-[#1a1a1a] text-gray-200 border border-white/10 rounded-br-sm' : 'bg-white/5 text-gray-200 border border-white/5 rounded-bl-sm'
+                    isMe ? 'bg-slate-100 dark:bg-[#1a1a1a] text-gray-200 border border-slate-200 dark:border-white/10 rounded-br-sm' : 'bg-white/5 text-gray-200 border border-slate-200 dark:border-white/5 rounded-bl-sm'
                   }`}>
                     {msg.attachment && (
                       <div>
                         {msg.attachment.type === 'image' ? (
                           <img src={msg.attachment.url} alt="attachment" className="max-w-full rounded-lg object-contain" />
                         ) : msg.attachment.type === 'video' ? (
-                          <div className="max-w-full rounded-lg overflow-hidden shadow-lg border border-white/5 bg-black/40">
+                          <div className="max-w-full rounded-lg overflow-hidden shadow-lg border border-slate-200 dark:border-white/5 bg-black/40">
                             <video src={msg.attachment.url} controls className="w-full h-auto max-h-[150px] object-cover" />
                           </div>
                         ) : msg.attachment.type === 'audio' ? (
-                          <div className="w-full bg-white/5 p-1 rounded-lg border border-white/5 flex items-center">
+                          <div className="w-full bg-white/5 p-1 rounded-lg border border-slate-200 dark:border-white/5 flex items-center">
                             <audio src={msg.attachment.url} controls className="w-full h-8 accent-[#00F0FF]" />
                           </div>
                         ) : (
-                          <a href={msg.attachment.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 bg-black/20 p-2 rounded-lg border border-white/10 hover:bg-black/40 transition-colors">
+                          <a href={msg.attachment.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 bg-black/20 p-2 rounded-lg border border-slate-200 dark:border-white/10 hover:bg-black/40 transition-colors">
                             <FileText size={18} className="text-[#00F0FF]" />
                             <span className="text-[11px] font-medium truncate max-w-[120px]">{msg.attachment.name}</span>
                             <Download size={14} className="text-gray-400" />
@@ -610,22 +610,22 @@ const ChatWindow = ({ chat, messages, onClose, currentUser, socket, onlineUsers,
           </div>
 
           {/* Input Area */}
-          <div className="p-3 bg-[#111] border-t border-white/10 relative">
+          <div className="p-3 bg-white dark:bg-[#111] border-t border-slate-200 dark:border-white/10 relative">
             
             {/* Attachment Preview */}
             {attachment && (
-              <div className="mb-2 p-2 bg-white/5 border border-white/10 rounded-lg relative flex items-center gap-2 w-fit">
+              <div className="mb-2 p-2 bg-white/5 border border-slate-200 dark:border-white/10 rounded-lg relative flex items-center gap-2 w-fit">
                 <button type="button" onClick={() => setAttachment(null)} className="absolute -top-2 -right-2 bg-red-500 rounded-full p-0.5 shadow-lg hover:bg-red-600 transition-colors z-10">
                   <X size={12} className="text-white" />
                 </button>
                 {attachment.type.startsWith('image/') ? (
-                  <img src={URL.createObjectURL(attachment)} alt="Preview" className="h-10 w-10 object-cover rounded-md border border-white/10" />
+                  <img src={URL.createObjectURL(attachment)} alt="Preview" className="h-10 w-10 object-cover rounded-md border border-slate-200 dark:border-white/10" />
                 ) : (
-                  <div className="h-10 w-10 bg-black/20 rounded-md border border-white/10 flex items-center justify-center">
+                  <div className="h-10 w-10 bg-black/20 rounded-md border border-slate-200 dark:border-white/10 flex items-center justify-center">
                     <FileText size={18} className="text-[#00F0FF]" />
                   </div>
                 )}
-                <span className="text-xs text-gray-300 truncate max-w-[100px] font-medium">{attachment.name}</span>
+                <span className="text-xs text-slate-700 dark:text-gray-300 truncate max-w-[100px] font-medium">{attachment.name}</span>
               </div>
             )}
 
@@ -636,7 +636,7 @@ const ChatWindow = ({ chat, messages, onClose, currentUser, socket, onlineUsers,
                 onChange={(e) => setText(e.target.value)}
                 data-lenis-prevent="true"
                 placeholder="Write a message..."
-                className="w-full bg-[#1a1a1a] border border-white/10 rounded-xl px-4 py-3 text-[14px] text-white focus:outline-none focus:border-white/20 resize-none h-[60px] custom-scrollbar"
+                className="w-full bg-slate-100 dark:bg-[#1a1a1a] border border-slate-200 dark:border-white/10 rounded-xl px-4 py-3 text-[14px] text-white focus:outline-none focus:border-white/20 resize-none h-[60px] custom-scrollbar"
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' && !e.shiftKey) {
                     e.preventDefault();
@@ -691,7 +691,7 @@ const ChatWindow = ({ chat, messages, onClose, currentUser, socket, onlineUsers,
         >
           <button
             onClick={() => setPreviewImage(null)}
-            className="absolute top-4 right-4 bg-white/10 hover:bg-white/20 text-white rounded-full p-2 transition-colors border border-white/10 z-10"
+            className="absolute top-4 right-4 bg-white/10 hover:bg-white/20 text-white rounded-full p-2 transition-colors border border-slate-200 dark:border-white/10 z-10"
           >
             <X size={20} />
           </button>
@@ -701,7 +701,7 @@ const ChatWindow = ({ chat, messages, onClose, currentUser, socket, onlineUsers,
             target="_blank"
             rel="noopener noreferrer"
             onClick={(e) => e.stopPropagation()}
-            className="absolute top-4 right-16 bg-white/10 hover:bg-white/20 text-white rounded-full p-2 transition-colors border border-white/10 z-10"
+            className="absolute top-4 right-16 bg-white/10 hover:bg-white/20 text-white rounded-full p-2 transition-colors border border-slate-200 dark:border-white/10 z-10"
           >
             <Download size={20} />
           </a>
@@ -713,7 +713,7 @@ const ChatWindow = ({ chat, messages, onClose, currentUser, socket, onlineUsers,
             src={previewImage}
             alt="Preview"
             onClick={(e) => e.stopPropagation()}
-            className="max-w-full max-h-[90vh] rounded-2xl object-contain shadow-2xl border border-white/10"
+            className="max-w-full max-h-[90vh] rounded-2xl object-contain shadow-2xl border border-slate-200 dark:border-white/10"
           />
         </motion.div>
       )}
