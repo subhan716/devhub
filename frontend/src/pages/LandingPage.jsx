@@ -18,6 +18,7 @@ import {
   Cpu
 } from 'lucide-react';
 import Navbar from '../components/layout/Navbar';
+import AuthModal from '../components/auth/AuthModal';
 import axios from 'axios';
 
 // Lazy load the 3D Holographic Core component for optimal performance
@@ -87,6 +88,9 @@ const DEFAULT_CONFIG = {
 
 const LandingPage = () => {
   const [config, setConfig] = useState(DEFAULT_CONFIG);
+  const [authModal, setAuthModal] = useState({ isOpen: false, mode: 'login' });
+  const openAuth = (mode = 'login') => setAuthModal({ isOpen: true, mode });
+  const closeAuth = () => setAuthModal({ isOpen: false, mode: 'login' });
 
   useEffect(() => {
     const fetchLandingConfig = async () => {
@@ -108,7 +112,7 @@ const LandingPage = () => {
 
   return (
     <main className="min-h-screen bg-[#0A0A0A] text-white overflow-x-hidden font-sans selection:bg-[#00F0FF]/30">
-      <Navbar />
+      <Navbar onOpenAuth={openAuth} />
 
       {/* 1. Hero Section */}
       <section className="relative pt-32 pb-20 lg:pt-40 lg:pb-28 overflow-hidden">
@@ -141,13 +145,14 @@ const LandingPage = () => {
             </p>
 
             <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4">
-              <Link 
-                to={config.ctaPrimaryLink || '/register'} 
-                className="w-full sm:w-auto px-8 py-4 rounded-xl bg-gradient-to-r from-[#00F0FF] to-[#0A66C2] hover:opacity-90 text-black font-extrabold text-base transition-all hover:scale-105 shadow-[0_0_25px_rgba(0,240,255,0.4)] flex items-center justify-center gap-2"
+              <button 
+                type="button"
+                onClick={() => openAuth('register')}
+                className="w-full sm:w-auto px-8 py-4 rounded-xl bg-gradient-to-r from-[#00F0FF] to-[#0A66C2] hover:opacity-90 text-black font-extrabold text-base transition-all hover:scale-105 shadow-[0_0_25px_rgba(0,240,255,0.4)] flex items-center justify-center gap-2 cursor-pointer"
               >
                 <span>{config.ctaPrimaryText || 'Start Networking'}</span>
                 <ArrowRight size={18} />
-              </Link>
+              </button>
               <a 
                 href={config.ctaSecondaryLink || '#features'} 
                 className="w-full sm:w-auto px-8 py-4 rounded-xl border border-white/15 bg-white/5 hover:bg-white/10 text-white font-bold text-base backdrop-blur-md transition-all hover:border-white/30 text-center"
@@ -337,13 +342,14 @@ const LandingPage = () => {
           <p className="text-lg sm:text-xl text-gray-300 mb-10 max-w-2xl mx-auto leading-relaxed">
             Join the universal network of digital innovators, founders, engineers, and creators.
           </p>
-          <Link
-            to="/register"
-            className="inline-flex items-center gap-3 px-10 py-5 rounded-2xl bg-white hover:bg-gray-100 text-black font-extrabold text-lg transition-transform hover:scale-105 shadow-[0_0_40px_rgba(255,255,255,0.3)]"
+          <button
+            type="button"
+            onClick={() => openAuth('register')}
+            className="inline-flex items-center gap-3 px-10 py-5 rounded-2xl bg-white hover:bg-gray-100 text-black font-extrabold text-lg transition-transform hover:scale-105 shadow-[0_0_40px_rgba(255,255,255,0.3)] cursor-pointer"
           >
             <span>Create Your Free Profile</span>
             <ArrowRight size={20} />
-          </Link>
+          </button>
         </div>
       </section>
 
@@ -362,6 +368,11 @@ const LandingPage = () => {
           </div>
         </div>
       </footer>
+      <AuthModal 
+        isOpen={authModal.isOpen} 
+        onClose={closeAuth} 
+        initialMode={authModal.mode} 
+      />
     </main>
   );
 };
