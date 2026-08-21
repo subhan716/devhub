@@ -3,9 +3,11 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import { motion } from 'framer-motion';
-import { ShieldCheck, ArrowRight, Loader2 } from 'lucide-react';
+import { ShieldCheck, ArrowRight, Loader2, Sun, Moon } from 'lucide-react';
+import { useTheme } from '../context/ThemeContext';
 
 const VerifyOtpPage = () => {
+  const { isDark, toggleTheme } = useTheme();
   const navigate = useNavigate();
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
@@ -141,7 +143,7 @@ const VerifyOtpPage = () => {
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.1, duration: 0.5 }}
-          className="bg-white/[0.02] py-8 px-4 shadow-[0_0_40px_rgba(0,0,0,0.5)] border border-white/10 sm:rounded-2xl sm:px-10 backdrop-blur-xl"
+          className="bg-white dark:bg-white/[0.02] py-8 px-4 shadow-2xl border border-slate-200 dark:border-white/10 sm:rounded-2xl sm:px-10 backdrop-blur-xl"
         >
           <form className="space-y-6" onSubmit={handleVerify}>
             <div className="space-y-2">

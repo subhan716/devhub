@@ -9,7 +9,7 @@ const ThreeDNetwork = lazy(() => import('../components/ui/ThreeDNetwork'));
 
 const LandingPage = () => {
   return (
-    <main className="min-h-screen bg-[#0A0A0A] text-white overflow-x-hidden font-sans selection:bg-[#00F0FF]/30">
+    <main className="min-h-screen bg-slate-50 dark:bg-[#0A0A0A] text-slate-900 dark:text-white overflow-x-hidden font-sans selection:bg-[#00F0FF]/30 transition-colors duration-200">
       <Navbar />
 
       {/* 1. Hero Section */}
@@ -21,23 +21,23 @@ const LandingPage = () => {
             initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }}
             className="w-full lg:w-1/2 pt-10 text-center lg:text-left z-20"
           >
-            <div className="inline-block px-4 py-1.5 rounded-full border border-[#00F0FF]/30 bg-[#00F0FF]/10 text-[#00F0FF] text-sm font-semibold mb-6">
+            <div className="inline-block px-4 py-1.5 rounded-full border border-[#0A66C2]/20 dark:border-[#00F0FF]/30 bg-[#0A66C2]/10 dark:bg-[#00F0FF]/10 text-[#0A66C2] dark:text-[#00F0FF] text-sm font-semibold mb-6 shadow-xs">
               v1.0 is now live 🚀
             </div>
             <h1 className="text-5xl md:text-7xl font-bold tracking-tighter mb-6 leading-[1.1]">
               The Network for <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#00F0FF] via-[#8A2BE2] to-[#FF0055]">
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#0A66C2] via-[#8A2BE2] to-[#FF0055] dark:from-[#00F0FF] dark:via-[#8A2BE2] dark:to-[#FF0055]">
                 Those Who Build.
               </span>
             </h1>
-            <p className="text-lg md:text-xl text-gray-300 mb-10 max-w-2xl mx-auto lg:mx-0 leading-relaxed">
+            <p className="text-lg md:text-xl text-slate-600 dark:text-gray-300 mb-10 max-w-2xl mx-auto lg:mx-0 leading-relaxed">
               Connect with elite developers, showcase your code, and build your professional portfolio in an ecosystem designed exclusively for engineers.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4">
-              <Link to="/register" className="w-full sm:w-auto px-8 py-4 rounded-lg bg-[#00F0FF] hover:bg-[#00F0FF]/90 text-black font-bold text-lg transition-transform hover:scale-105 shadow-[0_0_20px_rgba(0,240,255,0.4)]">
+              <Link to="/register" className="w-full sm:w-auto px-8 py-4 rounded-xl bg-[#0A66C2] hover:bg-[#004182] text-white dark:bg-[#00F0FF] dark:hover:bg-[#00F0FF]/90 dark:text-black font-bold text-lg transition-transform hover:scale-105 shadow-lg shadow-blue-500/20 dark:shadow-[0_0_20px_rgba(0,240,255,0.4)] text-center">
                 Start Networking
               </Link>
-              <a href="#features" className="w-full sm:w-auto px-8 py-4 rounded-lg border border-white/20 bg-white/5 hover:bg-white/10 text-white font-bold text-lg backdrop-blur-md transition-all">
+              <a href="#features" className="w-full sm:w-auto px-8 py-4 rounded-xl border border-slate-300 dark:border-white/20 bg-white dark:bg-white/5 hover:bg-slate-50 dark:hover:bg-white/10 text-slate-800 dark:text-white font-bold text-lg backdrop-blur-md transition-all shadow-xs text-center">
                 Explore Features
               </a>
             </div>
@@ -56,9 +56,9 @@ const LandingPage = () => {
       </section>
 
       {/* 2. Tech Stack Marquee (Trust Banner) */}
-      <section className="py-10 border-y border-white/5 bg-white/[0.01] overflow-hidden relative">
-        <div className="absolute left-0 top-0 bottom-0 w-32 bg-gradient-to-r from-[#0A0A0A] to-transparent z-10" />
-        <div className="absolute right-0 top-0 bottom-0 w-32 bg-gradient-to-l from-[#0A0A0A] to-transparent z-10" />
+      <section className="py-10 border-y border-slate-200 dark:border-white/5 bg-slate-100/50 dark:bg-white/[0.01] overflow-hidden relative">
+        <div className="absolute left-0 top-0 bottom-0 w-32 bg-gradient-to-r from-slate-50 dark:from-[#0A0A0A] to-transparent z-10" />
+        <div className="absolute right-0 top-0 bottom-0 w-32 bg-gradient-to-l from-slate-50 dark:from-[#0A0A0A] to-transparent z-10" />
         <div className="flex w-[200%] animate-[marquee_20s_linear_infinite]">
           {[...Array(2)].map((_, index) => (
             <div key={index} className="flex justify-around w-1/2 items-center text-gray-500 font-mono text-xl md:text-2xl font-bold opacity-50">
@@ -88,7 +88,7 @@ const LandingPage = () => {
             }, {
               icon: Rocket, color: '#8A2BE2', title: 'Career Growth', desc: 'Discover opportunities or let recruiters find you based on your actual work, not just your resume keywords.'
             }].map((feature, i) => (
-              <motion.div key={i} whileHover={{ y: -10 }} className="p-8 rounded-2xl border border-white/10 bg-white/[0.02] backdrop-blur-xl relative overflow-hidden group">
+              <motion.div key={i} whileHover={{ y: -10 }} className="p-8 rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-white/[0.02] backdrop-blur-xl relative overflow-hidden group shadow-xl dark:shadow-none">
                 <div className={`absolute top-0 right-0 w-32 h-32 blur-3xl transition-all opacity-10 group-hover:opacity-20`} style={{ backgroundColor: feature.color }} />
                 <div className="w-14 h-14 rounded-lg flex items-center justify-center mb-6 border" style={{ backgroundColor: `${feature.color}20`, borderColor: `${feature.color}30` }}>
                   <feature.icon color={feature.color} size={28} />
@@ -102,7 +102,7 @@ const LandingPage = () => {
       </section>
 
       {/* 4. How It Works (Steps) */}
-      <section className="py-24 bg-[#050505] relative border-y border-white/5">
+      <section id="how-it-works" className="py-24 bg-white dark:bg-[#050505] relative border-y border-slate-200 dark:border-white/5">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-5xl font-bold mb-4">How It Works</h2>
@@ -120,7 +120,7 @@ const LandingPage = () => {
               icon: Rocket, step: "03", title: 'Get Discovered', desc: 'Collaborate on new ventures, find co-founders, or land your next big role.'
             }].map((item, i) => (
               <div key={i} className="relative flex flex-col items-center text-center">
-                <div className="w-24 h-24 rounded-full bg-[#0A0A0A] border border-white/10 flex items-center justify-center mb-6 relative z-10 shadow-[0_0_30px_rgba(0,0,0,0.5)]">
+                <div className="w-24 h-24 rounded-full bg-slate-50 dark:bg-[#0A0A0A] border border-slate-200 dark:border-white/10 flex items-center justify-center mb-6 relative z-10 shadow-lg">
                   <item.icon className="text-gray-300" size={40} />
                   <div className="absolute -top-3 -right-3 w-8 h-8 rounded-full bg-gradient-to-br from-[#00F0FF] to-[#8A2BE2] flex items-center justify-center text-xs font-bold">
                     {item.step}
@@ -147,11 +147,11 @@ const LandingPage = () => {
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-white/10 py-12 bg-[#050505]">
+      <footer className="border-t border-slate-200 dark:border-white/10 py-12 bg-white dark:bg-[#050505]">
         <div className="max-w-7xl mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-4">
           <div className="flex items-center gap-3">
             <img src="/images/logo.png" alt="DevHub Logo" className="w-8 h-8 object-contain rounded-xl drop-shadow-[0_0_10px_rgba(0,240,255,0.5)]" />
-            <span className="text-xl font-bold">Dev<span className="text-[#00F0FF]">Hub</span></span>
+            <span className="text-xl font-bold text-slate-900 dark:text-white">Dev<span className="text-[#0A66C2] dark:text-[#00F0FF]">Hub</span></span>
           </div>
           <p className="text-gray-500 text-sm">© 2026 DevHub. Built for the developer community.</p>
           <div className="flex gap-4 text-sm text-gray-500">
