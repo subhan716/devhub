@@ -386,11 +386,13 @@ const forgotPassword = async (req, res) => {
 };
 
 // ==========================================
-// 6. RESET PASSWORD (Validate OTP & Auto-Login)
+// 6. RESET PASSWORD (Validate OTP, Auto-Login & Cross-Fleet Session Invalidation)
 // ==========================================
 const resetPassword = async (req, res) => {
   try {
-    const { email, otp, newPassword } = req.body;
+    const { email, otp, newPassword, logoutOtherDevices = true, logoutAllDevices = true } = req.body;
+    const shouldLogoutOthers = logoutOtherDevices !== false && logoutAllDevices !== false;
+
     if (!email || !otp || !newPassword) {
       return res.status(400).json({ message: 'Email, 6-digit code, and new password are required' });
     }
@@ -422,18 +424,40 @@ const resetPassword = async (req, res) => {
     const salt = await bcrypt.genSalt(12);
     const passwordHash = await bcrypt.hash(newPassword, salt);
 
+    const updateData = {
+      passwordHash,
+      passwordResetToken: null,
+      passwordResetExpires: null,
+      failedLoginAttempts: 0,
+      lockUntil: null
+    };
+
+    if (shouldLogoutOthers) {
+      updateData.tokenVersion = { increment: 1 };
+    }
+
     const updatedUser = await prisma.user.update({
       where: { id: user.id },
-      data: {
-        passwordHash,
-        passwordResetToken: null,
-        passwordResetExpires: null,
-        failedLoginAttempts: 0,
-        lockUntil: null,
-        tokenVersion: { increment: 1 }
-      },
+      data: updateData,
       include: { profile: true }
     });
+
+    // Write to AuditLog for security tracking
+    try {
+      await prisma.auditLog.create({
+        data: {
+          userId: updatedUser.id,
+          action: 'USER_PASSWORD_RESET',
+          category: 'SECURITY',
+          details: {
+            logoutOtherDevices: shouldLogoutOthers,
+            ip: req.ip || req.headers['x-forwarded-for'] || 'unknown',
+            userAgent: req.headers['user-agent'] || 'unknown',
+            newVersion: updatedUser.tokenVersion
+          }
+        }
+      });
+    } catch (aErr) {}
 
     const accessToken = generateAccessToken(updatedUser);
     const refreshToken = generateRefreshToken(updatedUser);
@@ -443,7 +467,9 @@ const resetPassword = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      message: 'Password reset successfully! All other device sessions have been revoked for your security.',
+      message: shouldLogoutOthers 
+        ? 'Password reset successfully! All other active mobile and web sessions have been logged out.' 
+        : 'Password reset successfully!',
       accessToken,
       refreshToken,
       user: safeUser

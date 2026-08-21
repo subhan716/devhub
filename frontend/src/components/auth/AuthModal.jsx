@@ -22,6 +22,7 @@ const AuthModal = ({ isOpen, onClose, initialMode = 'login' }) => {
   const [formData, setFormData] = useState({ name: '', email: '', password: '', newPassword: '' });
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
   const [showPassword, setShowPassword] = useState(false);
+  const [logoutOtherDevices, setLogoutOtherDevices] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [otpTimer, setOtpTimer] = useState(180); // 3-Minute TTL
   const [errors, setErrors] = useState({});
@@ -266,7 +267,8 @@ const AuthModal = ({ isOpen, onClose, initialMode = 'login' }) => {
       await axios.post(`${apiUrl}/api/auth/reset-password`, {
         email: formData.email,
         otp: fullOtp,
-        newPassword: formData.newPassword
+        newPassword: formData.newPassword,
+        logoutOtherDevices
       });
 
       toast.success('Password updated successfully! Welcome back.');
@@ -802,6 +804,21 @@ const AuthModal = ({ isOpen, onClose, initialMode = 'login' }) => {
                 )}
                 {errors.newPassword && <p className="text-red-400 text-[11px] mt-1">{errors.newPassword}</p>}
               </div>
+
+                {/* Logout Other Devices Checkbox */}
+                <label className="flex items-start gap-2.5 cursor-pointer py-1.5 px-2.5 rounded-xl bg-zinc-900/60 border border-zinc-800/80 hover:border-zinc-700 transition-colors select-none">
+                  <input
+                    type="checkbox"
+                    checked={logoutOtherDevices}
+                    onChange={(e) => setLogoutOtherDevices(e.target.checked)}
+                    className="w-4 h-4 mt-0.5 rounded bg-zinc-950 border-zinc-700 text-white accent-white cursor-pointer"
+                  />
+                  <div className="text-[11px] leading-tight">
+                    <p className="font-semibold text-zinc-200">Log out of all other devices</p>
+                    <p className="text-zinc-500 text-[10px] mt-0.5">Terminates active sessions on mobile apps, tablets & other browsers</p>
+                  </div>
+                </label>
+
 
               <button
                 type="submit"

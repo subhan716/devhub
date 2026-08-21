@@ -2,16 +2,16 @@ import React, { useState, useEffect } from 'react';
 import ThreeDNetwork from '../components/ui/ThreeDNetwork';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { 
-  Users, 
-  Briefcase, 
-  Rocket, 
-  Sparkles, 
-  Globe2, 
-  ShieldCheck, 
-  TrendingUp, 
-  Layers, 
-  Code2, 
+import {
+  Users,
+  Briefcase,
+  Rocket,
+  Sparkles,
+  Globe2,
+  ShieldCheck,
+  TrendingUp,
+  Layers,
+  Code2,
   Compass,
   ArrowRight,
   CheckCircle2,
@@ -119,7 +119,7 @@ const LandingPage = () => {
         {/* Subtle Ambient Tech Glows */}
         <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-[#00F0FF]/10 blur-[130px] rounded-full pointer-events-none" />
         <div className="absolute top-1/3 right-1/4 w-96 h-96 bg-[#818CF8]/10 blur-[140px] rounded-full pointer-events-none" />
-        
+
         {/* Ambient Grid Background */}
         <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff05_1px,transparent_1px),linear-gradient(to_bottom,#ffffff05_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] pointer-events-none" />
 
@@ -134,7 +134,7 @@ const LandingPage = () => {
             {/* Tasteful Accent Badge */}
             <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-[#00F0FF]/30 bg-[#00F0FF]/10 text-[#00F0FF] text-xs sm:text-sm font-semibold mb-6 shadow-[0_0_15px_rgba(0,240,255,0.12)]">
               <Sparkles size={14} className="animate-spin duration-3000" />
-              <span>{config.badgeText || 'The Universal Professional & Creator Network 🚀'}</span>
+              <span>{config.badgeText || 'The Universal Professional & Creator Network'}</span>
             </div>
 
             <h1 className="text-5xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight mb-6 leading-[1.08] text-white">
@@ -149,7 +149,7 @@ const LandingPage = () => {
             </p>
 
             <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4">
-              <button 
+              <button
                 type="button"
                 onClick={() => openAuth('register')}
                 className="w-full sm:w-auto px-8 py-3.5 rounded-xl bg-white hover:bg-zinc-100 text-zinc-950 font-bold text-sm sm:text-base transition-all hover:scale-102 flex items-center justify-center gap-2 cursor-pointer shadow-md"
@@ -157,8 +157,8 @@ const LandingPage = () => {
                 <span>{config.ctaPrimaryText || 'Start Networking'}</span>
                 <ArrowRight size={17} />
               </button>
-              <a 
-                href={config.ctaSecondaryLink || '#features'} 
+              <a
+                href={config.ctaSecondaryLink || '#features'}
                 className="w-full sm:w-auto px-8 py-3.5 rounded-xl border border-zinc-800 bg-zinc-900/80 hover:bg-zinc-800 text-zinc-200 hover:text-white font-semibold text-sm sm:text-base backdrop-blur-md transition-colors text-center"
               >
                 {config.ctaSecondaryText || 'Explore Ecosystem'}
@@ -262,7 +262,7 @@ const LandingPage = () => {
                     className="absolute -top-12 -right-12 w-32 h-32 blur-3xl opacity-15 group-hover:opacity-30 transition-opacity rounded-full pointer-events-none"
                     style={{ backgroundColor: cardColor }}
                   />
-                  <div 
+                  <div
                     className="w-12 h-12 rounded-xl flex items-center justify-center mb-6 border transition-colors"
                     style={{
                       backgroundColor: `${cardColor}15`,
@@ -366,10 +366,10 @@ const LandingPage = () => {
       </footer>
 
       {/* Interactive In-Context Auth Modal */}
-      <AuthModal 
-        isOpen={authModal.isOpen} 
-        onClose={closeAuth} 
-        initialMode={authModal.mode} 
+      <AuthModal
+        isOpen={authModal.isOpen}
+        onClose={closeAuth}
+        initialMode={authModal.mode}
       />
     </main>
   );
