@@ -236,17 +236,17 @@ const NetworkPage = () => {
               <div className="flex gap-4 border-b border-slate-200 dark:border-white/5 pb-2">
                 <button
                   onClick={() => setInvitationTab('received')}
-                  className={`pb-2 px-2 text-sm font-semibold transition-colors relative ${invitationTab === 'received' ? 'text-white' : 'text-gray-500 hover:text-slate-700 dark:text-gray-300'}`}
+                  className={`pb-2 px-2 text-sm font-semibold transition-colors relative ${invitationTab === 'received' ? 'text-[#0A66C2] dark:text-white font-bold' : 'text-slate-500 dark:text-gray-400 hover:text-slate-900 dark:hover:text-gray-300'}`}
                 >
                   Received ({pendingRequests.received.length})
-                  {invitationTab === 'received' && <div className="absolute bottom-0 left-0 w-full h-0.5 bg-[#00F0FF] rounded-t-full"></div>}
+                  {invitationTab === 'received' && <div className="absolute bottom-0 left-0 w-full h-0.5 bg-[#0A66C2] dark:bg-[#00F0FF] rounded-t-full"></div>}
                 </button>
                 <button
                   onClick={() => setInvitationTab('sent')}
-                  className={`pb-2 px-2 text-sm font-semibold transition-colors relative ${invitationTab === 'sent' ? 'text-white' : 'text-gray-500 hover:text-slate-700 dark:text-gray-300'}`}
+                  className={`pb-2 px-2 text-sm font-semibold transition-colors relative ${invitationTab === 'sent' ? 'text-[#0A66C2] dark:text-white font-bold' : 'text-slate-500 dark:text-gray-400 hover:text-slate-900 dark:hover:text-gray-300'}`}
                 >
                   Sent ({pendingRequests.sent.length})
-                  {invitationTab === 'sent' && <div className="absolute bottom-0 left-0 w-full h-0.5 bg-[#00F0FF] rounded-t-full"></div>}
+                  {invitationTab === 'sent' && <div className="absolute bottom-0 left-0 w-full h-0.5 bg-[#0A66C2] dark:bg-[#00F0FF] rounded-t-full"></div>}
                 </button>
               </div>
 
@@ -255,7 +255,7 @@ const NetworkPage = () => {
                   <section className="bg-white dark:bg-[#111] border border-slate-200 dark:border-white/5 rounded-2xl p-6">
                     <div className="space-y-4">
                       {pendingRequests.received.map((req) => (
-                        <div key={req._id} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-white/[0.02] rounded-xl border border-slate-200 dark:border-white/5 gap-4">
+                        <div key={req._id} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-slate-50 dark:bg-white/[0.02] rounded-xl border border-slate-200 dark:border-white/5 gap-4">
                           <div className="flex items-center gap-4 cursor-pointer">
                             <img 
                               src={req.requester.avatar?.url || 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y'} 
@@ -263,22 +263,22 @@ const NetworkPage = () => {
                               className="w-12 h-12 rounded-full object-cover border border-slate-200 dark:border-white/10"
                             />
                             <div>
-                              <h3 className="text-white font-semibold">{req.requester.name}</h3>
-                              <p className="text-gray-400 text-sm">Wants to connect</p>
+                              <h3 className="text-slate-900 dark:text-white font-semibold">{req.requester.name}</h3>
+                              <p className="text-slate-600 dark:text-gray-400 text-sm">Wants to connect</p>
                             </div>
                           </div>
                           <div className="flex gap-2">
                             <button
                               onClick={() => handleReject(req._id)}
                               disabled={actionLoading === `reject-${req._id}`}
-                              className="flex-1 sm:flex-none px-4 py-2 text-gray-400 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-colors border border-slate-200 dark:border-white/10 sm:border-transparent disabled:opacity-50"
+                              className="flex-1 sm:flex-none px-4 py-2 text-slate-600 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-400/10 rounded-lg transition-colors border border-slate-200 dark:border-white/10 sm:border-transparent disabled:opacity-50"
                             >
                               Ignore
                             </button>
                             <button
                               onClick={() => handleAccept(req._id)}
                               disabled={actionLoading === `accept-${req._id}`}
-                              className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-2 bg-[#00F0FF]/10 text-[#00F0FF] hover:bg-[#00F0FF]/20 rounded-lg font-medium transition-all duration-300 disabled:opacity-50"
+                              className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-2 bg-[#0A66C2] hover:bg-[#004182] text-white dark:bg-[#00F0FF]/10 dark:text-[#00F0FF] dark:hover:bg-[#00F0FF]/20 rounded-lg font-semibold transition-all duration-300 disabled:opacity-50 shadow-xs"
                             >
                               {actionLoading === `accept-${req._id}` ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check size={18} />}
                               Accept
@@ -290,9 +290,9 @@ const NetworkPage = () => {
                   </section>
                 ) : (
                   <div className="bg-white dark:bg-[#111] border border-slate-200 dark:border-white/5 rounded-2xl p-12 text-center">
-                    <Users size={48} className="mx-auto text-gray-600 mb-4" />
+                    <Users size={48} className="mx-auto text-gray-400 dark:text-gray-600 mb-4" />
                     <h3 className="text-slate-900 dark:text-white font-bold text-lg mb-2">No received invitations</h3>
-                    <p className="text-gray-400 text-sm">When someone wants to connect with you, it will appear here.</p>
+                    <p className="text-slate-600 dark:text-gray-400 text-sm">When someone wants to connect with you, it will appear here.</p>
                   </div>
                 )
               )}
@@ -302,7 +302,7 @@ const NetworkPage = () => {
                   <section className="bg-white dark:bg-[#111] border border-slate-200 dark:border-white/5 rounded-2xl p-6">
                     <div className="space-y-4">
                       {pendingRequests.sent.map((req) => (
-                        <div key={req._id} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-white/[0.02] rounded-xl border border-slate-200 dark:border-white/5 gap-4">
+                        <div key={req._id} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-slate-50 dark:bg-white/[0.02] rounded-xl border border-slate-200 dark:border-white/5 gap-4">
                           <div className="flex items-center gap-4 cursor-pointer">
                             <img 
                               src={req.recipient.avatar?.url || 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y'} 
@@ -310,18 +310,17 @@ const NetworkPage = () => {
                               className="w-12 h-12 rounded-full object-cover border border-slate-200 dark:border-white/10"
                             />
                             <div>
-                              <h3 className="text-white font-semibold">{req.recipient.name}</h3>
-                              <p className="text-gray-400 text-sm">Request sent</p>
+                              <h3 className="text-slate-900 dark:text-white font-semibold">{req.recipient.name}</h3>
+                              <p className="text-slate-600 dark:text-gray-400 text-sm">Request sent</p>
                             </div>
                           </div>
                           <div className="flex gap-2">
                             <button
                               onClick={() => {
-                                // Since req.recipient._id is what removeConnection expects:
                                 handleRemoveConnection(req.recipient._id);
                               }}
                               disabled={actionLoading === `remove-${req.recipient._id}`}
-                              className="flex-1 sm:flex-none px-6 py-2 text-gray-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/10 rounded-lg transition-colors border border-slate-200 dark:border-white/10 disabled:opacity-50"
+                              className="flex-1 sm:flex-none px-6 py-2 text-slate-600 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/10 rounded-lg transition-colors border border-slate-200 dark:border-white/10 disabled:opacity-50"
                             >
                               Withdraw
                             </button>
@@ -332,16 +331,16 @@ const NetworkPage = () => {
                   </section>
                 ) : (
                   <div className="bg-white dark:bg-[#111] border border-slate-200 dark:border-white/5 rounded-2xl p-12 text-center">
-                    <Users size={48} className="mx-auto text-gray-600 mb-4" />
+                    <Users size={48} className="mx-auto text-gray-400 dark:text-gray-600 mb-4" />
                     <h3 className="text-slate-900 dark:text-white font-bold text-lg mb-2">No sent invitations</h3>
-                    <p className="text-gray-400 text-sm">Requests you send to others will appear here.</p>
+                    <p className="text-slate-600 dark:text-gray-400 text-sm">Requests you send to others will appear here.</p>
                   </div>
                 )
               )}
 
               {/* Suggestions for connections */}
               <section className="bg-white dark:bg-[#111] border border-slate-200 dark:border-white/5 rounded-2xl p-6">
-                <h2 className="text-xl font-bold text-white mb-6">Suggested Connections</h2>
+                <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-6">Suggested Connections</h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                   {connectionSuggestions.filter(u => {
                     const currentUserId = currentUser?._id || currentUser?.user?._id;
@@ -349,18 +348,18 @@ const NetworkPage = () => {
                     const isSelfName = currentUser?.name && u.name.toLowerCase() === currentUser.name.toLowerCase();
                     return !isSelfId && !isSelfName;
                   }).map((user) => (
-                    <div key={user._id} className="bg-white/[0.02] border border-slate-200 dark:border-white/5 rounded-xl p-5 flex flex-col items-center text-center">
+                    <div key={user._id} className="bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/5 rounded-xl p-5 flex flex-col items-center text-center shadow-xs">
                       <img 
                         src={user.avatar?.url || 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y'} 
                         alt={user.name} 
-                        className="w-20 h-20 rounded-full object-cover border-2 border-white dark:border-[#111] shadow-lg mb-4"
+                        className="w-20 h-20 rounded-full object-cover border-2 border-white dark:border-[#111] shadow-md mb-4"
                       />
-                      <h3 className="text-white font-semibold truncate w-full">{user.name}</h3>
-                      <p className="text-gray-400 text-sm mb-4 capitalize line-clamp-1">{user.role || 'Developer'}</p>
+                      <h3 className="text-slate-900 dark:text-white font-semibold truncate w-full">{user.name}</h3>
+                      <p className="text-slate-600 dark:text-gray-400 text-sm mb-4 capitalize line-clamp-1">{user.role || 'Developer'}</p>
                       <button
                         onClick={() => handleConnect(user._id)}
                         disabled={actionLoading === `connect-${user._id}` || pendingRequests.sent.some(req => req.recipient._id === user._id)}
-                        className="w-full flex items-center justify-center gap-2 py-2 rounded-lg border border-[#00F0FF]/50 text-[#00F0FF] hover:bg-[#00F0FF] hover:text-black font-medium transition-all duration-300 disabled:opacity-50"
+                        className="w-full flex items-center justify-center gap-2 py-2 rounded-xl border border-[#0A66C2] text-[#0A66C2] hover:bg-[#0A66C2] hover:text-white dark:border-[#00F0FF]/50 dark:text-[#00F0FF] dark:hover:bg-[#00F0FF] dark:hover:text-black font-semibold transition-all duration-300 disabled:opacity-50 cursor-pointer shadow-xs"
                       >
                         {actionLoading === `connect-${user._id}` ? (
                           <Loader2 className="w-5 h-5 animate-spin" />
@@ -382,19 +381,19 @@ const NetworkPage = () => {
           {/* CONNECTIONS TAB */}
           {activeTab === 'connections' && (
             <div className="bg-white dark:bg-[#111] border border-slate-200 dark:border-white/5 rounded-2xl p-6">
-              <h2 className="text-xl font-bold text-white mb-2">{connections.length} Connections</h2>
-              <div className="text-gray-400 text-sm mb-6 pb-4 border-b border-slate-200 dark:border-white/5">Sort by: Recently added</div>
+              <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-2">{connections.length} Connections</h2>
+              <div className="text-slate-500 dark:text-gray-400 text-sm mb-6 pb-4 border-b border-slate-200 dark:border-white/5">Sort by: Recently added</div>
               
               {connections.length === 0 ? (
                 <div className="text-center py-12">
-                  <UserCheck size={48} className="mx-auto text-gray-600 mb-4" />
+                  <UserCheck size={48} className="mx-auto text-gray-400 dark:text-gray-600 mb-4" />
                   <h3 className="text-slate-900 dark:text-white font-bold text-lg mb-2">No connections yet</h3>
-                  <p className="text-gray-400 text-sm">Start connecting with other developers to build your network.</p>
+                  <p className="text-slate-600 dark:text-gray-400 text-sm">Start connecting with other developers to build your network.</p>
                 </div>
               ) : (
                 <div className="flex flex-col">
                   {connections.map((conn) => (
-                    <div key={conn.connectionId} className="flex flex-col sm:flex-row sm:items-start justify-between py-5 border-b border-slate-200 dark:border-white/5 gap-4 hover:bg-white/[0.02] transition-colors -mx-6 px-6">
+                    <div key={conn.connectionId} className="flex flex-col sm:flex-row sm:items-start justify-between py-5 border-b border-slate-200 dark:border-white/5 gap-4 hover:bg-slate-50 dark:hover:bg-white/[0.02] transition-colors -mx-6 px-6">
                       <div className="flex gap-4 items-start w-full sm:w-2/3">
                         <img 
                           src={conn.user.avatar?.url || 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y'} 
@@ -402,24 +401,24 @@ const NetworkPage = () => {
                           className="w-16 h-16 rounded-full object-cover flex-shrink-0 border border-slate-200 dark:border-white/10"
                         />
                         <div className="flex flex-col overflow-hidden">
-                          <Link to={`/profile/${conn.user._id}`} className="text-white font-semibold text-base hover:text-[#00F0FF] transition-colors truncate block">
+                          <Link to={`/profile/${conn.user._id}`} className="text-slate-900 dark:text-white font-semibold text-base hover:text-[#0A66C2] dark:hover:text-[#00F0FF] transition-colors truncate block">
                             {conn.user.name}
                           </Link>
-                          <p className="text-gray-400 text-sm line-clamp-2 mt-0.5 leading-relaxed">{conn.user.bio || conn.user.role || 'Software Engineer | Developer'}</p>
-                          <p className="text-gray-500 text-xs mt-2">
+                          <p className="text-slate-600 dark:text-gray-400 text-sm line-clamp-2 mt-0.5 leading-relaxed">{conn.user.bio || conn.user.role || 'Software Engineer | Developer'}</p>
+                          <p className="text-slate-500 dark:text-gray-500 text-xs mt-2">
                             Connected on {conn.connectedAt ? new Date(conn.connectedAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : 'recently'}
                           </p>
                         </div>
                       </div>
                       
                       <div className="flex items-center gap-3 sm:pl-4">
-                        <button className="px-5 py-1.5 border border-white/20 text-white font-medium rounded-full hover:bg-white/10 hover:border-white/40 transition-all text-sm">
+                        <button className="px-5 py-1.5 border border-slate-300 dark:border-white/20 text-slate-800 dark:text-white font-semibold rounded-full hover:bg-slate-100 dark:hover:bg-white/10 hover:border-slate-400 dark:hover:border-white/40 transition-all text-sm shadow-xs cursor-pointer">
                           Message
                         </button>
                         <div className="relative">
                           <button 
                             onClick={() => setActiveDropdown(activeDropdown === conn.connectionId ? null : conn.connectionId)}
-                            className="p-2 text-gray-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/10 rounded-full transition-colors flex-shrink-0"
+                            className="p-2 text-slate-500 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/10 rounded-full transition-colors flex-shrink-0 cursor-pointer"
                           >
                             <MoreHorizontal size={20} />
                           </button>
@@ -433,7 +432,7 @@ const NetworkPage = () => {
                                   animate={{ opacity: 1, scale: 1, y: 0 }}
                                   exit={{ opacity: 0, scale: 0.95, y: -10 }}
                                   transition={{ duration: 0.15 }}
-                                  className="absolute right-0 top-full mt-2 w-48 bg-[#1A1A1A] border border-slate-200 dark:border-white/10 rounded-xl shadow-xl z-20 py-2"
+                                  className="absolute right-0 top-full mt-2 w-48 bg-white dark:bg-[#1A1A1A] border border-slate-200 dark:border-white/10 rounded-xl shadow-xl z-20 py-2"
                                 >
                                   <button
                                     onClick={() => {
@@ -441,7 +440,7 @@ const NetworkPage = () => {
                                       handleRemoveConnection(conn.user._id);
                                     }}
                                     disabled={actionLoading === `remove-${conn.user._id}`}
-                                    className="w-full text-left px-4 py-2.5 text-sm text-slate-700 dark:text-gray-300 hover:text-red-400 hover:bg-white/5 transition-colors flex items-center gap-3"
+                                    className="w-full text-left px-4 py-2.5 text-sm text-slate-700 dark:text-gray-300 hover:text-red-600 dark:hover:text-red-400 hover:bg-slate-100 dark:hover:bg-white/5 transition-colors flex items-center gap-3 cursor-pointer"
                                   >
                                     {actionLoading === `remove-${conn.user._id}` ? <Loader2 className="w-4 h-4 animate-spin" /> : <UserMinus size={16} />}
                                     Remove connection
@@ -462,17 +461,17 @@ const NetworkPage = () => {
           {/* FOLLOWING TAB */}
           {activeTab === 'following' && (
             <div className="bg-white dark:bg-[#111] border border-slate-200 dark:border-white/5 rounded-2xl p-6">
-              <h2 className="text-xl font-bold text-white mb-2">{following.length} Following</h2>
-              <div className="text-gray-400 text-sm mb-6 pb-4 border-b border-slate-200 dark:border-white/5">People you follow</div>
+              <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-2">{following.length} Following</h2>
+              <div className="text-slate-500 dark:text-gray-400 text-sm mb-6 pb-4 border-b border-slate-200 dark:border-white/5">People you follow</div>
               
               {following.length === 0 ? (
                 <div className="text-center py-12">
-                  <p className="text-gray-400">You are not following anyone yet.</p>
+                  <p className="text-slate-500 dark:text-gray-400">You are not following anyone yet.</p>
                 </div>
               ) : (
                 <div className="flex flex-col">
                   {following.map((profile) => (
-                    <div key={profile._id} className="flex flex-col sm:flex-row sm:items-start justify-between py-5 border-b border-slate-200 dark:border-white/5 gap-4 hover:bg-white/[0.02] transition-colors -mx-6 px-6">
+                    <div key={profile._id} className="flex flex-col sm:flex-row sm:items-start justify-between py-5 border-b border-slate-200 dark:border-white/5 gap-4 hover:bg-slate-50 dark:hover:bg-white/[0.02] transition-colors -mx-6 px-6">
                       <div className="flex gap-4 items-start w-full sm:w-2/3">
                         <img 
                           src={profile.user?.avatar?.url || 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y'} 
@@ -480,20 +479,20 @@ const NetworkPage = () => {
                           className="w-16 h-16 rounded-full object-cover flex-shrink-0 border border-slate-200 dark:border-white/10"
                         />
                         <div className="flex flex-col overflow-hidden">
-                          <Link to={`/profile/${profile.user._id}`} className="text-white font-semibold text-base hover:text-[#00F0FF] transition-colors truncate block">
+                          <Link to={`/profile/${profile.user._id}`} className="text-slate-900 dark:text-white font-semibold text-base hover:text-[#0A66C2] dark:hover:text-[#00F0FF] transition-colors truncate block">
                             {profile.user?.name}
                           </Link>
-                          <p className="text-gray-400 text-sm line-clamp-2 mt-0.5 leading-relaxed">{profile.bio || profile.user?.role || 'Software Engineer'}</p>
+                          <p className="text-slate-600 dark:text-gray-400 text-sm line-clamp-2 mt-0.5 leading-relaxed">{profile.bio || profile.user?.role || 'Software Engineer'}</p>
                         </div>
                       </div>
                       
                       <div className="flex items-center gap-3 sm:pl-4">
-                        <button className="px-5 py-1.5 border border-white/20 text-white font-medium rounded-full hover:bg-white/10 hover:border-white/40 transition-all text-sm">
+                        <button className="px-5 py-1.5 border border-slate-300 dark:border-white/20 text-slate-800 dark:text-white font-semibold rounded-full hover:bg-slate-100 dark:hover:bg-white/10 hover:border-slate-400 dark:hover:border-white/40 transition-all text-sm shadow-xs cursor-pointer">
                           Message
                         </button>
                         <button 
                           onClick={() => handleFollowToggle(profile.user._id, true)}
-                          className="px-5 py-1.5 border border-slate-200 dark:border-white/10 text-white hover:bg-white/5 rounded-full transition-colors text-sm"
+                          className="px-5 py-1.5 border border-slate-300 dark:border-white/10 text-slate-700 dark:text-white hover:bg-slate-100 dark:hover:bg-white/5 rounded-full transition-colors text-sm font-semibold cursor-pointer shadow-xs"
                         >
                           {actionLoading === `follow-${profile.user._id}` ? <Loader2 className="w-4 h-4 animate-spin mx-auto" /> : 'Following'}
                         </button>
@@ -508,19 +507,19 @@ const NetworkPage = () => {
           {/* FOLLOWERS TAB */}
           {activeTab === 'followers' && (
             <div className="bg-white dark:bg-[#111] border border-slate-200 dark:border-white/5 rounded-2xl p-6">
-              <h2 className="text-xl font-bold text-white mb-2">{followers.length} Followers</h2>
-              <div className="text-gray-400 text-sm mb-6 pb-4 border-b border-slate-200 dark:border-white/5">People following you</div>
+              <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-2">{followers.length} Followers</h2>
+              <div className="text-slate-500 dark:text-gray-400 text-sm mb-6 pb-4 border-b border-slate-200 dark:border-white/5">People following you</div>
               
               {followers.length === 0 ? (
                 <div className="text-center py-12">
-                  <p className="text-gray-400">You don't have any followers yet.</p>
+                  <p className="text-slate-500 dark:text-gray-400">You don't have any followers yet.</p>
                 </div>
               ) : (
                 <div className="flex flex-col">
                   {followers.map((profile) => {
                     const isFollowingUser = following.some(f => f.user._id === profile.user._id);
                     return (
-                      <div key={profile._id} className="flex flex-col sm:flex-row sm:items-start justify-between py-5 border-b border-slate-200 dark:border-white/5 gap-4 hover:bg-white/[0.02] transition-colors -mx-6 px-6">
+                      <div key={profile._id} className="flex flex-col sm:flex-row sm:items-start justify-between py-5 border-b border-slate-200 dark:border-white/5 gap-4 hover:bg-slate-50 dark:hover:bg-white/[0.02] transition-colors -mx-6 px-6">
                         <div className="flex gap-4 items-start w-full sm:w-2/3">
                           <img 
                             src={profile.user?.avatar?.url || 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y'} 
@@ -528,20 +527,20 @@ const NetworkPage = () => {
                             className="w-16 h-16 rounded-full object-cover flex-shrink-0 border border-slate-200 dark:border-white/10"
                           />
                           <div className="flex flex-col overflow-hidden">
-                            <Link to={`/profile/${profile.user._id}`} className="text-white font-semibold text-base hover:text-[#00F0FF] transition-colors truncate block">
+                            <Link to={`/profile/${profile.user._id}`} className="text-slate-900 dark:text-white font-semibold text-base hover:text-[#0A66C2] dark:hover:text-[#00F0FF] transition-colors truncate block">
                               {profile.user?.name}
                             </Link>
-                            <p className="text-gray-400 text-sm line-clamp-2 mt-0.5 leading-relaxed">{profile.bio || profile.user?.role || 'Software Engineer'}</p>
+                            <p className="text-slate-600 dark:text-gray-400 text-sm line-clamp-2 mt-0.5 leading-relaxed">{profile.bio || profile.user?.role || 'Software Engineer'}</p>
                           </div>
                         </div>
                         
                         <div className="flex items-center gap-3 sm:pl-4">
-                          <button className="px-5 py-1.5 border border-white/20 text-white font-medium rounded-full hover:bg-white/10 hover:border-white/40 transition-all text-sm">
+                          <button className="px-5 py-1.5 border border-slate-300 dark:border-white/20 text-slate-800 dark:text-white font-semibold rounded-full hover:bg-slate-100 dark:hover:bg-white/10 hover:border-slate-400 dark:hover:border-white/40 transition-all text-sm shadow-xs cursor-pointer">
                             Message
                           </button>
                           <button 
                             onClick={() => handleFollowToggle(profile.user._id, isFollowingUser)}
-                            className={`px-5 py-1.5 rounded-full text-sm font-medium transition-colors ${isFollowingUser ? 'border border-slate-200 dark:border-white/10 text-white hover:bg-white/5' : 'bg-[#00F0FF] text-black hover:bg-[#00F0FF]/90 shadow-[0_0_10px_rgba(0,240,255,0.2)]'}`}
+                            className={`px-5 py-1.5 rounded-full text-sm font-semibold transition-colors cursor-pointer shadow-xs ${isFollowingUser ? 'border border-slate-300 dark:border-white/10 text-slate-700 dark:text-white hover:bg-slate-100 dark:hover:bg-white/5' : 'bg-[#0A66C2] hover:bg-[#004182] text-white dark:bg-[#00F0FF] dark:text-black dark:hover:bg-[#00F0FF]/90'}`}
                           >
                             {actionLoading === `follow-${profile.user._id}` ? <Loader2 className="w-4 h-4 animate-spin mx-auto" /> : (isFollowingUser ? 'Following' : 'Follow Back')}
                           </button>
