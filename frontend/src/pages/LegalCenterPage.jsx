@@ -85,8 +85,8 @@ const LegalCenterPage = ({ initialTab = 'guidelines' }) => {
       }
       if (line.startsWith('### ')) {
         return (
-          <h3 key={idx} className="text-sm font-bold text-[#00F0FF] mt-4 mb-1.5 flex items-center gap-1.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#00F0FF]" />
+          <h3 key={idx} className="text-sm font-bold text-[#0A66C2] dark:text-[#00F0FF] mt-4 mb-1.5 flex items-center gap-1.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#0A66C2] dark:bg-[#00F0FF]" />
             {line.replace('### ', '')}
           </h3>
         );
@@ -122,30 +122,30 @@ const LegalCenterPage = ({ initialTab = 'guidelines' }) => {
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-[#050508] text-slate-900 dark:text-white font-sans selection:bg-[#00F0FF]/30">
       {/* Top Navigation Bar */}
-      <header className="border-b border-slate-200 dark:border-white/5 bg-[#09090D]/80 backdrop-blur-md sticky top-0 z-50">
+      <header className="border-b border-slate-200 dark:border-white/5 bg-white/90 dark:bg-[#09090D]/80 backdrop-blur-md sticky top-0 z-50 transition-colors">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <Link
               to="/feed"
-              className="flex items-center gap-2 text-xs font-semibold text-slate-600 dark:text-gray-400 hover:text-slate-900 dark:text-white transition-colors bg-white/5 hover:bg-white/10 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-white/10"
+              className="flex items-center gap-2 text-xs font-semibold text-slate-700 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white transition-colors bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-white/10 shadow-xs"
             >
               <ArrowLeft size={14} />
               <span>Back to App</span>
             </Link>
-            <div className="h-4 w-px bg-white/10" />
+            <div className="h-4 w-px bg-slate-200 dark:bg-white/10" />
             <div className="flex items-center gap-2">
-              <Scale size={18} className="text-[#00F0FF]" />
+              <Scale size={18} className="text-[#0A66C2] dark:text-[#00F0FF]" />
               <h1 className="text-sm font-bold text-slate-900 dark:text-white tracking-wide">DevHub Trust & Legal Center</h1>
             </div>
           </div>
 
           <div className="flex items-center gap-3 text-xs text-slate-600 dark:text-gray-400">
-            <span className="hidden sm:inline font-mono text-[11px] bg-white/5 px-2.5 py-1 rounded-md border border-slate-200 dark:border-white/5">
+            <span className="hidden sm:inline font-mono text-[11px] bg-slate-100 dark:bg-white/5 px-2.5 py-1 rounded-md border border-slate-200 dark:border-white/5 text-slate-600 dark:text-gray-400">
               Standard: ISO/IEC 27001 & GDPR Aligned
             </span>
             <button
               onClick={() => window.print()}
-              className="p-2 text-slate-600 dark:text-gray-400 hover:text-slate-900 dark:text-white bg-white/5 hover:bg-white/10 rounded-lg border border-slate-200 dark:border-white/10 transition-colors cursor-pointer"
+              className="p-2 text-slate-600 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 rounded-lg border border-slate-200 dark:border-white/10 transition-colors cursor-pointer shadow-xs"
               title="Print Document"
             >
               <Printer size={14} />
@@ -228,10 +228,10 @@ const LegalCenterPage = ({ initialTab = 'guidelines' }) => {
 
           {/* Right Document Canvas (8 cols) */}
           <div className="lg:col-span-8">
-            <div className="bg-[#0C0C12] border border-slate-200 dark:border-white/10 rounded-2xl p-6 sm:p-10 shadow-xl space-y-6 leading-relaxed">
+            <div className="bg-white dark:bg-[#0C0C12] border border-slate-200 dark:border-white/10 rounded-2xl p-6 sm:p-10 shadow-xl space-y-6 leading-relaxed">
               {loading ? (
                 <div className="py-20 flex flex-col items-center justify-center gap-3 text-gray-500 font-mono text-xs">
-                  <RefreshCw size={24} className="animate-spin text-[#00F0FF]" />
+                  <RefreshCw size={24} className="animate-spin text-[#0A66C2] dark:text-[#00F0FF]" />
                   <span>Loading official policy document...</span>
                 </div>
               ) : (
