@@ -65,10 +65,17 @@ This document provides a comprehensive and detailed catalog of all external libr
 | Package Name | Version | Purpose & Usage in DevHub |
 | :--- | :--- | :--- |
 | `express` | `^5.2.1` | Fast, robust Node.js web server framework powering all API routes. |
-| `mongoose` | `^9.7.3` | MongoDB Object Data Modeling (ODM) with indexes and schemas. |
 | `dotenv` | `^17.4.2` | Zero-dependency module loading environment variables from `.env`. |
 | `cors` | `^2.8.6` | Cross-Origin Resource Sharing middleware enabling secure frontend communication. |
 | `cookie-parser` | `^1.4.7` | Parse HTTP request cookie headers for JWT session handling. |
+
+### 🗄️ Database & ORM (Supabase PostgreSQL)
+| Package Name | Version | Purpose & Usage in DevHub |
+| :--- | :--- | :--- |
+| `prisma` | `^7.9.1` | Next-generation ORM and schema migration engine for Supabase PostgreSQL. |
+| `@prisma/client` | `^7.9.1` | Auto-generated type-safe database query builder for all DevHub models. |
+| `@prisma/adapter-pg` | `^7.9.1` | High-performance PostgreSQL driver adapter connecting Prisma with Supabase connection poolers. |
+| `pg` | `^8.16.0` | Non-blocking PostgreSQL client for Node.js powering connection pools and queries. |
 
 ### Real-Time & Communications
 | Package Name | Version | Purpose & Usage in DevHub |
@@ -99,26 +106,3 @@ This document provides a comprehensive and detailed catalog of all external libr
 | `morgan` | `^1.11.0` | HTTP request logger middleware for monitoring incoming requests. |
 | `winston` | `^3.19.0` | Logging library with configurable log levels, transports, and formatting. |
 | `nodemon` | `^3.1.14` | *(DevDependency)* Auto-restarting development server on backend file edits. |
-
----
-
-## 🛡️ Admin Operations Stack (`admin/package.json`)
-
-### Core & Framework
-| Package Name | Version | Purpose & Usage in DevHub Admin |
-| :--- | :--- | :--- |
-| `react` | `^19.2.7` | Core UI library for isolated operations dashboard. |
-| `react-dom` | `^19.2.7` | React DOM rendering for admin portal. |
-| `react-router-dom` | `^7.18.1` | Protected routing for login and operations control views. |
-| `vite` | `^8.1.1` | Ultra-fast build tool for admin deployment. |
-
-### Styling, Icons & UI
-| Package Name | Version | Purpose & Usage in DevHub Admin |
-| :--- | :--- | :--- |
-| `tailwindcss` | `^4.3.2` | Dark neon UI theme for control room. |
-| `@tailwindcss/vite` | `^4.3.2` | Tailwind CSS v4 Vite integration. |
-| `lucide-react` | `^1.23.0` | Icon set for admin statistics, badges, and moderation actions. |
-| `framer-motion` | `^12.42.2` | Smooth layout and modal transitions in admin triage queues. |
-| `react-hot-toast` | `^2.6.0` | Feedback toasts for ban, unban, badge, and broadcast operations. |
-| `axios` | `^1.18.1` | Cookie-authenticated HTTP client connecting to `/api/admin` endpoints. |
-

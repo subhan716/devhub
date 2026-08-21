@@ -1,0 +1,386 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  user
+  moderator
+  admin
+  super_admin
+}
+
+enum BadgeType {
+  none
+  verified_developer
+  top_creator
+  partner_org
+}
+
+enum ConnectionStatus {
+  pending
+  accepted
+  rejected
+}
+
+enum NotificationType {
+  like
+  comment
+  follow
+  connection_request
+  connection_accepted
+  admin_notice
+  warning
+  system
+}
+
+enum AdminRole {
+  super_admin
+  ops_manager
+  safety_officer
+  moderator
+  support_agent
+  analyst
+}
+
+enum BroadcastType {
+  announcement
+  maintenance
+  security_alert
+  critical_emergency
+}
+
+enum Priority {
+  low
+  medium
+  high
+  critical
+}
+
+enum PolicySlug {
+  guidelines
+  terms
+  privacy
+}
+
+model User {
+  id                      String           @id @default(uuid())
+  name                    String
+  email                   String           @unique
+  passwordHash            String?
+  avatarUrl               String?          @default("https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png")
+  statusPreference        String           @default("online")
+  googleId                String?          @unique
+  githubId                String?          @unique
+  role                    Role             @default(user)
+  isVerified              Boolean          @default(false)
+  isVerifiedBadge         Boolean          @default(false)
+  badgeType               BadgeType        @default(none)
+  isSuspended             Boolean          @default(false)
+  isShadowBanned          Boolean          @default(false)
+  suspendedReason         String?
+  suspendedAt             DateTime?
+  tokenVersion            Int              @default(0)
+  strikesCount            Int              @default(0)
+  reportsCount            Int              @default(0)
+  reports                 Json?            @default("[]")
+  warnings                Json?            @default("[]")
+  otp                     String?
+  otpExpire               DateTime?
+  otpResendAttempts       Int              @default(0)
+  otpResendTimeWindowStart DateTime?
+  otpFailedAttempts       Int              @default(0)
+  otpLockUntil            DateTime?
+  refreshToken            String?
+  passwordResetToken      String?
+  passwordResetExpires    DateTime?
+  passwordChangeOtp       String?
+  passwordChangeOtpExpire DateTime?
+  pendingNewPassword      String?
+  createdAt               DateTime         @default(now())
+  updatedAt               DateTime         @updatedAt
+
+  // Relations
+  profile                 Profile?
+  posts                   Post[]
+  comments                Comment[]
+  sentConnections         Connection[]     @relation("SentConnections")
+  receivedConnections     Connection[]     @relation("ReceivedConnections")
+  followers               Follow[]         @relation("UserFollowers")
+  following               Follow[]         @relation("UserFollowing")
+  sentMessages            Message[]        @relation("SentMessages")
+  receivedMessages        Message[]        @relation("ReceivedMessages")
+  notificationsReceived   Notification[]   @relation("RecipientNotifications")
+  notificationsSent       Notification[]   @relation("SenderNotifications")
+
+  @@index([name])
+}
+
+model Profile {
+  id                String       @id @default(uuid())
+  userId            String       @unique
+  user              User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  avatarUrl         String?      @default("https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png")
+  avatarPublicId    String?
+  coverImageUrl     String?
+  bio               String?
+  about             String?
+  location          String?
+  status            String?
+  company           String?
+  githubusername    String?
+  skills            String[]     @default([])
+  openToWork        Json?        @default("{\"isLooking\": false, \"jobTitles\": [], \"workplaces\": [], \"locations\": []}")
+  providingServices Json?        @default("{\"isProviding\": false, \"services\": [], \"details\": \"\"}")
+  experience        Json?        @default("[]")
+  education         Json?        @default("[]")
+  certifications    Json?        @default("[]")
+  resume            Json?
+  socialLinks       Json?        @default("{\"github\": \"\", \"linkedin\": \"\", \"twitter\": \"\", \"website\": \"\"}")
+  views             Int          @default(0)
+  profileViews      Json?        @default("[]")
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+
+  @@index([status, company, location])
+}
+
+model Post {
+  id               String         @id @default(uuid())
+  authorId         String
+  author           User           @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  content          String?
+  imageUrl         String?
+  imagePublicId    String?
+  codeSnippet      Json?
+  likes            String[]       @default([])
+  likesCount       Int            @default(0)
+  commentsCount    Int            @default(0)
+  reposts          String[]       @default([])
+  repostsCount     Int            @default(0)
+  isRepost         Boolean        @default(false)
+  originalPostId   String?
+  originalPost     Post?          @relation("Reposts", fields: [originalPostId], references: [id], onDelete: SetNull)
+  repostInstances  Post[]         @relation("Reposts")
+  isReported       Boolean        @default(false)
+  isFlagged        Boolean        @default(false)
+  isShadowFiltered Boolean        @default(false)
+  reports          Json?          @default("[]")
+  reportsCount     Int            @default(0)
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+
+  // Relations
+  comments         Comment[]
+  notifications    Notification[]
+
+  @@index([authorId, createdAt(sort: Desc)])
+}
+
+model Comment {
+  id              String         @id @default(uuid())
+  postId          String
+  post            Post           @relation(fields: [postId], references: [id], onDelete: Cascade)
+  userId          String
+  user            User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  text            String
+  parentCommentId String?
+  parentComment   Comment?       @relation("CommentReplies", fields: [parentCommentId], references: [id], onDelete: Cascade)
+  replies         Comment[]      @relation("CommentReplies")
+  likes           String[]       @default([])
+  likesCount      Int            @default(0)
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  notifications   Notification[]
+
+  @@index([postId, createdAt(sort: Desc)])
+}
+
+model Connection {
+  id          String           @id @default(uuid())
+  requesterId String
+  requester   User             @relation("SentConnections", fields: [requesterId], references: [id], onDelete: Cascade)
+  recipientId String
+  recipient   User             @relation("ReceivedConnections", fields: [recipientId], references: [id], onDelete: Cascade)
+  status      ConnectionStatus @default(pending)
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  @@unique([requesterId, recipientId])
+  @@index([recipientId, status])
+  @@index([requesterId, status])
+}
+
+model Follow {
+  id          String   @id @default(uuid())
+  followerId  String
+  follower    User     @relation("UserFollowers", fields: [followerId], references: [id], onDelete: Cascade)
+  followingId String
+  following   User     @relation("UserFollowing", fields: [followingId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([followerId, followingId])
+}
+
+model Message {
+  id          String    @id @default(uuid())
+  senderId    String
+  sender      User      @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
+  receiverId  String
+  receiver    User      @relation("ReceivedMessages", fields: [receiverId], references: [id], onDelete: Cascade)
+  text        String?
+  attachment  Json?
+  forwarded   Boolean   @default(false)
+  replyToId   String?
+  replyTo     Message?  @relation("MessageReplies", fields: [replyToId], references: [id], onDelete: SetNull)
+  replies     Message[] @relation("MessageReplies")
+  reactions   Json?     @default("[]")
+  read        Boolean   @default(false)
+  edited      Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([senderId, receiverId, createdAt(sort: Desc)])
+}
+
+model Notification {
+  id               String           @id @default(uuid())
+  recipientId      String
+  recipient        User             @relation("RecipientNotifications", fields: [recipientId], references: [id], onDelete: Cascade)
+  senderId         String
+  sender           User             @relation("SenderNotifications", fields: [senderId], references: [id], onDelete: Cascade)
+  type             NotificationType
+  relatedPostId    String?
+  relatedPost      Post?            @relation(fields: [relatedPostId], references: [id], onDelete: Cascade)
+  relatedCommentId String?
+  relatedComment   Comment?         @relation(fields: [relatedCommentId], references: [id], onDelete: Cascade)
+  message          String
+  read             Boolean          @default(false)
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+
+  @@index([recipientId, read, createdAt(sort: Desc)])
+}
+
+model AdminUser {
+  id                 String    @id @default(uuid())
+  name               String
+  email              String    @unique
+  passwordHash       String
+  role               AdminRole @default(super_admin)
+  scopes             String[]  @default([])
+  isActive           Boolean   @default(true)
+  twoFactorEnabled   Boolean   @default(false)
+  twoFactorSecret    String?
+  lastLoginAt        DateTime?
+  lastLoginIp        String?
+  failedLoginAttempts Int      @default(0)
+  lockUntil          DateTime?
+  maxDailyActions    Int       @default(2000)
+  dailyActionsCount  Int       @default(0)
+  refreshToken       String?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  broadcasts         Broadcast[]
+
+  @@index([role, isActive])
+}
+
+model Policy {
+  id            String     @id @default(uuid())
+  slug          PolicySlug @unique
+  title         String
+  version       String     @default("1.0.0")
+  content       String     @db.Text
+  effectiveDate DateTime   @default(now())
+  isPublished   Boolean    @default(true)
+  lastUpdatedBy Json?
+  changelog     Json?      @default("[]")
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  actor     Json
+  action    String
+  target    Json
+  details   Json?
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([action, createdAt(sort: Desc)])
+}
+
+model Broadcast {
+  id                 String        @id @default(uuid())
+  title              String
+  message            String
+  type               BroadcastType @default(announcement)
+  priority           Priority      @default(medium)
+  targetAudience     String        @default("all")
+  link               String?
+  linkText           String?       @default("Learn More")
+  isPersistentBanner Boolean       @default(true)
+  isActive           Boolean       @default(true)
+  expiresAt          DateTime?
+  authorId           String?
+  author             AdminUser?    @relation(fields: [authorId], references: [id], onDelete: SetNull)
+  authorName         String        @default("Security Operations")
+  authorEmail        String        @default("")
+  stats              Json?         @default("{\"sentCount\": 0, \"clickedCount\": 0}")
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+
+  @@index([isActive, isPersistentBanner, expiresAt, createdAt(sort: Desc)])
+}
+
+model AppConfig {
+  id               String   @id @default(uuid())
+  key              String   @unique @default("global_config")
+  android          Json     @default("{\"minVersion\": \"1.0.0\", \"latestVersion\": \"1.0.0\", \"forceUpdate\": false, \"storeUrl\": \"https://play.google.com/store/apps/details?id=com.devhub.app\", \"releaseNotes\": \"Latest performance optimizations and developer network improvements.\"}")
+  ios              Json     @default("{\"minVersion\": \"1.0.0\", \"latestVersion\": \"1.0.0\", \"forceUpdate\": false, \"storeUrl\": \"https://apps.apple.com/app/devhub/id123456789\", \"releaseNotes\": \"iOS stability enhancements and code syntax rendering upgrades.\"}")
+  maintenanceMode  Json     @default("{\"enabled\": false, \"title\": \"System Under Scheduled Maintenance\", \"message\": \"DevHub backend infrastructure is undergoing scheduled database upgrades. All services will resume shortly.\", \"estimatedEndTime\": null, \"allowAdminBypass\": true}")
+  featureFlags     Json     @default("{\"codeSharing\": true, \"videoUploads\": true, \"directMessaging\": true, \"jobBoard\": true, \"threeDNetwork\": true, \"userRegistration\": true, \"aiAssistant\": false}")
+  lastUpdatedBy    String?
+  lastUpdatedEmail String   @default("")
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
+
+model PendingUser {
+  id                       String    @id @default(uuid())
+  name                     String
+  email                    String    @unique
+  passwordHash             String?
+  googleId                 String?
+  githubId                 String?
+  otp                      String?
+  otpExpire                DateTime?
+  otpResendAttempts        Int       @default(0)
+  otpResendTimeWindowStart DateTime?
+  otpFailedAttempts        Int       @default(0)
+  otpLockUntil             DateTime?
+  createdAt                DateTime  @default(now())
+  updatedAt                DateTime  @updatedAt
+}
+
+model SuggestionCache {
+  id               String   @id @default(uuid())
+  userId           String   @unique
+  suggestions      Json     @default("[]")
+  lastCalculatedAt DateTime @default(now())
+  expiresAt        DateTime
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@index([expiresAt])
+}

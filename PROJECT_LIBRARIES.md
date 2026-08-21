@@ -1,4 +1,4 @@
-﻿# 📦 DevHub Project Libraries & Dependencies
+# 📦 DevHub Project Libraries & Dependencies
 
 This document provides a comprehensive and detailed catalog of all external libraries, frameworks, tools, and packages integrated across the **DevHub** frontend and backend ecosystems.
 
@@ -65,10 +65,17 @@ This document provides a comprehensive and detailed catalog of all external libr
 | Package Name | Version | Purpose & Usage in DevHub |
 | :--- | :--- | :--- |
 | `express` | `^5.2.1` | Fast, robust Node.js web server framework powering all API routes. |
-| `mongoose` | `^9.7.3` | MongoDB Object Data Modeling (ODM) with indexes and schemas. |
 | `dotenv` | `^17.4.2` | Zero-dependency module loading environment variables from `.env`. |
 | `cors` | `^2.8.6` | Cross-Origin Resource Sharing middleware enabling secure frontend communication. |
 | `cookie-parser` | `^1.4.7` | Parse HTTP request cookie headers for JWT session handling. |
+
+### 🗄️ Database & ORM (Supabase PostgreSQL)
+| Package Name | Version | Purpose & Usage in DevHub |
+| :--- | :--- | :--- |
+| `prisma` | `^7.9.1` | Next-generation ORM and schema migration engine for Supabase PostgreSQL. |
+| `@prisma/client` | `^7.9.1` | Auto-generated type-safe database query builder for all DevHub models. |
+| `@prisma/adapter-pg` | `^7.9.1` | High-performance PostgreSQL driver adapter connecting Prisma with Supabase connection poolers. |
+| `pg` | `^8.16.0` | Non-blocking PostgreSQL client for Node.js powering connection pools and queries. |
 
 ### Real-Time & Communications
 | Package Name | Version | Purpose & Usage in DevHub |
