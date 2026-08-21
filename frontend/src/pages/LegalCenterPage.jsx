@@ -139,18 +139,7 @@ const LegalCenterPage = ({ initialTab = 'guidelines' }) => {
             </div>
           </div>
 
-          <div className="flex items-center gap-3 text-xs text-slate-600 dark:text-gray-400">
-            <span className="hidden sm:inline font-mono text-[11px] bg-slate-100 dark:bg-white/5 px-2.5 py-1 rounded-md border border-slate-200 dark:border-white/5 text-slate-600 dark:text-gray-400">
-              Standard: ISO/IEC 27001 & GDPR Aligned
-            </span>
-            <button
-              onClick={() => window.print()}
-              className="p-2 text-slate-600 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 rounded-lg border border-slate-200 dark:border-white/10 transition-colors cursor-pointer shadow-xs"
-              title="Print Document"
-            >
-              <Printer size={14} />
-            </button>
-          </div>
+
         </div>
       </header>
 
@@ -201,27 +190,6 @@ const LegalCenterPage = ({ initialTab = 'guidelines' }) => {
                     </button>
                   );
                 })}
-              </div>
-
-              {/* Version & Sentinel Telemetry Card */}
-              <div className="p-4 rounded-2xl bg-blue-50/60 dark:bg-gradient-to-br dark:from-cyan-950/20 dark:to-black/40 border border-blue-200 dark:border-cyan-500/20 text-xs space-y-2">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2 text-[#0A66C2] dark:text-[#00F0FF] font-bold">
-                    <Terminal size={14} />
-                    <span>Dynamic Policy Sync</span>
-                  </div>
-                  {policyData?.version && (
-                    <span className="px-2 py-0.5 rounded bg-[#0A66C2]/10 border border-[#0A66C2]/30 text-[#0A66C2] dark:bg-[#00F0FF]/10 dark:border-[#00F0FF]/30 dark:text-[#00F0FF] font-mono text-[10px] font-bold">
-                      v{policyData.version}
-                    </span>
-                  )}
-                </div>
-                <p className="text-[11px] text-slate-600 dark:text-gray-400 leading-relaxed">
-                  DevHub legal agreements are backed by cryptographic version control and audited under ISO/IEC 27001 data compliance.
-                </p>
-                <div className="pt-1 text-[10px] font-mono text-gray-500">
-                  {policyData?.updatedAt ? `Last Synced: ${new Date(policyData.updatedAt).toLocaleDateString()}` : 'Live Production'}
-                </div>
               </div>
             </div>
           </div>
