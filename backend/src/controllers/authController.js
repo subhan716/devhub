@@ -764,9 +764,10 @@ const getSecurityForensics = async (req, res) => {
 
     const clientIp = req.ip || req.connection?.remoteAddress || req.headers['x-forwarded-for'] || '127.0.0.1';
 
+    const isOAuth = Boolean(user.googleId || user.githubId);
     res.status(200).json({
-      hasPasswordSet: Boolean(user.passwordHash),
-      isOAuthUser: Boolean(user.googleId || user.githubId),
+      hasPasswordSet: Boolean(user.passwordHash) && !isOAuth,
+      isOAuthUser: isOAuth,
       tokenVersion: user.tokenVersion || 0,
       lastUpdated: user.updatedAt,
       currentSession: {
@@ -847,8 +848,9 @@ const requestPasswordOtp = async (req, res) => {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    // Verify current password if user already has one
-    if (user.passwordHash) {
+    // If pure email/password user (non-OAuth), verify current password
+    const isOAuth = Boolean(user.googleId || user.githubId);
+    if (user.passwordHash && !isOAuth) {
       if (!currentPassword) {
         return res.status(400).json({ message: 'Current password is required.' });
       }
