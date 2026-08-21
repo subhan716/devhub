@@ -1,6 +1,7 @@
 const User = require('../models/User');
 const AdminUser = require('../models/AdminUser');
 const PendingUser = require('../models/PendingUser');
+const Profile = require('../models/Profile');
 const { generateAccessToken, generateRefreshToken } = require('../utils/generateToken');
 const axios = require('axios');
 const sendEmail = require('../utils/sendEmail');
@@ -532,8 +533,12 @@ const googleCallback = async (req, res) => {
       maxAge: 30 * 24 * 60 * 60 * 1000,
     });
 
-    const isFirstTimeLogin = isNewUser || (!user.bio && !user.title && !user.avatar?.public_id);
-    const targetUrl = isFirstTimeLogin ? `${process.env.CLIENT_URL}/setup-profile` : `${process.env.CLIENT_URL}/feed`;
+    // Check if user already has a Profile created in DB
+    const existingProfile = await Profile.findOne({ user: user._id });
+    const isFirstTimeLogin = isNewUser || !existingProfile;
+    const targetUrl = isFirstTimeLogin 
+      ? `${process.env.CLIENT_URL}/setup-profile?oauth=success` 
+      : `${process.env.CLIENT_URL}/feed?oauth=success`;
 
     res.redirect(targetUrl);
   } catch (error) {
@@ -658,8 +663,12 @@ const githubCallback = async (req, res) => {
       maxAge: 30 * 24 * 60 * 60 * 1000,
     });
 
-    const isFirstTimeLogin = isNewUser || (!user.bio && !user.title && !user.avatar?.public_id);
-    const targetUrl = isFirstTimeLogin ? `${process.env.CLIENT_URL}/setup-profile` : `${process.env.CLIENT_URL}/feed`;
+    // Check if user already has a Profile created in DB
+    const existingProfile = await Profile.findOne({ user: user._id });
+    const isFirstTimeLogin = isNewUser || !existingProfile;
+    const targetUrl = isFirstTimeLogin 
+      ? `${process.env.CLIENT_URL}/setup-profile?oauth=success` 
+      : `${process.env.CLIENT_URL}/feed?oauth=success`;
 
     res.redirect(targetUrl);
   } catch (error) {

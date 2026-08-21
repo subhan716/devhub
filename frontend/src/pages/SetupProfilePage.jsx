@@ -21,6 +21,21 @@ const MAX_ABOUT_LENGTH = 2000;
 
 const SetupProfilePage = () => {
   const navigate = useNavigate();
+
+  useEffect(() => {
+    // If user already has an active profile, redirect straight to /feed
+    const checkExistingProfile = async () => {
+      try {
+        const { data } = await axios.get(`${import.meta.env.VITE_API_URL}/api/profile/me`, { withCredentials: true });
+        if (data && (data.status || data.bio || (data.skills && data.skills.length > 0))) {
+          navigate('/feed', { replace: true });
+        }
+      } catch (err) {
+        // No existing profile found, proceed with onboarding
+      }
+    };
+    checkExistingProfile();
+  }, [navigate]);
   const [step, setStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState({});
