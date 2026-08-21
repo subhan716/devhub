@@ -9,7 +9,7 @@ import MainLayout from './components/layout/MainLayout';
 import MaintenanceScreen from './components/common/MaintenanceScreen';
 
 // Lazy loading all pages for Code Splitting (Performance Optimization)
-const LandingPage = lazy(() => import('./pages/LandingPage'));
+import LandingPage from './pages/LandingPage';
 const RegisterPage = lazy(() => import('./pages/RegisterPage'));
 const LoginPage = lazy(() => import('./pages/LoginPage'));
 const VerifyOtpPage = lazy(() => import('./pages/VerifyOtpPage'));
