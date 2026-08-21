@@ -8,12 +8,14 @@ import BottomNavbar from './BottomNavbar';
 import FloatingChat from '../chat/FloatingChat';
 import GlobalAlertBanner from '../common/GlobalAlertBanner';
 import { SocketProvider } from '../../context/SocketContext';
+import { useTheme } from '../../context/ThemeContext';
 
 const MainLayout = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
   const location = useLocation();
   const isMessagesPage = location.pathname.startsWith('/messages');
+  const { isDark } = useTheme();
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -29,7 +31,7 @@ const MainLayout = () => {
 
   return (
     <SocketProvider currentUser={currentUser}>
-      <div className={`bg-slate-50 dark:bg-[#050505] text-slate-900 dark:text-white selection:bg-[#0A66C2]/20 dark:selection:bg-[#00F0FF]/30 ${isMessagesPage ? 'h-[100dvh] overflow-hidden fixed inset-0 w-full' : 'min-h-[100dvh]'} transition-colors duration-200 font-sans`}>
+      <div className={`${isDark ? 'bg-[#050505] text-white selection:bg-[#00F0FF]/30' : 'bg-slate-50 text-slate-900 selection:bg-[#0A66C2]/20'} ${isMessagesPage ? 'h-[100dvh] overflow-hidden fixed inset-0 w-full' : 'min-h-[100dvh]'} transition-colors duration-200 font-sans`}>
         {/* 3-Column Layout structure */}
         <Sidebar isMobileMenuOpen={isMobileMenuOpen} setIsMobileMenuOpen={setIsMobileMenuOpen} />
         {!isMessagesPage && <RightSidebar currentUser={currentUser} />}

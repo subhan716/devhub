@@ -1,6 +1,8 @@
 @import "tailwindcss";
 @plugin "tailwind-scrollbar";
 
+@custom-variant dark (&:where(.dark, .dark *, [data-theme="dark"], [data-theme="dark"] *));
+
 @theme {
   --animate-marquee: marquee 20s linear infinite;
 
@@ -51,8 +53,8 @@
 }
 
 html.dark, [data-theme='dark'] {
-  /* DARK OBSIDIAN MODE (Developer Dark Mode) */
-  --bg-app: #0A0A0A;
+  /* DARK OBSIDIAN MODE (Developer Dark Mode - Exact Pristine Palette) */
+  --bg-app: #050505;
   --bg-surface: #111116;
   --bg-surface-secondary: #050508;
   --bg-surface-hover: rgba(255, 255, 255, 0.05);
@@ -88,7 +90,6 @@ body {
   background-color: var(--bg-app);
   color: var(--text-primary);
   min-height: 100vh;
-  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 /* Custom Scrollbar (Theme Adaptive) */
