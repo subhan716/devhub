@@ -894,8 +894,8 @@ const ProfilePage = () => {
             key={tab}
             onClick={() => setActiveTab(tab)}
             className={`px-8 py-4 font-bold text-sm capitalize transition-all border-b-2 whitespace-nowrap cursor-pointer ${activeTab === tab
-                ? 'border-[#00F0FF] text-[#00F0FF]'
-                : 'border-transparent text-gray-500 hover:text-white hover:border-white/30'
+                ? 'border-[#0A66C2] text-[#0A66C2] dark:border-[#00F0FF] dark:text-[#00F0FF]'
+                : 'border-transparent text-slate-500 hover:text-slate-900 hover:border-slate-300 dark:text-gray-400 dark:hover:text-white dark:hover:border-white/30'
               }`}
           >
             {tab === 'overview' && 'Overview'}
@@ -911,7 +911,7 @@ const ProfilePage = () => {
           {profile.about && (
             <div className="bg-white dark:bg-[#111] border border-slate-200 dark:border-white/5 rounded-2xl p-6 shadow-lg mb-6">
               <h3 className="text-slate-900 dark:text-white font-bold text-lg mb-4 flex items-center gap-2">
-                <FileText size={20} className="text-[#00F0FF]" />
+                <FileText size={20} className="text-[#0A66C2] dark:text-[#00F0FF]" />
                 About
               </h3>
               <p className="text-slate-700 dark:text-gray-300 text-sm leading-relaxed whitespace-pre-wrap">
@@ -925,7 +925,7 @@ const ProfilePage = () => {
             <div className="bg-white dark:bg-[#111] border border-slate-200 dark:border-white/5 rounded-2xl p-6 shadow-lg mb-6 overflow-hidden">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
                 <h3 className="text-slate-900 dark:text-white font-bold text-lg flex items-center gap-2">
-                  <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" className="text-[#00F0FF]"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg>
+                  <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" className="text-slate-900 dark:text-[#00F0FF]"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg>
                   GitHub Contributions
                 </h3>
 
@@ -1044,10 +1044,10 @@ const ProfilePage = () => {
                 <div className="bg-white dark:bg-[#111] border border-slate-200 dark:border-white/5 rounded-2xl p-5 shadow-lg">
                   <div className="flex justify-between items-center mb-4">
                     <h3 className="text-slate-900 dark:text-white font-bold flex items-center gap-2">
-                      <FileText size={18} className="text-[#00F0FF]" /> Resume
+                      <FileText size={18} className="text-[#0A66C2] dark:text-[#00F0FF]" /> Resume
                     </h3>
                     <div>
-                      <button onClick={() => resumeInputRef.current?.click()} disabled={uploadingResume} className="text-xs text-[#00F0FF] hover:underline cursor-pointer disabled:opacity-50">
+                      <button onClick={() => resumeInputRef.current?.click()} disabled={uploadingResume} className="text-xs text-[#0A66C2] dark:text-[#00F0FF] font-semibold hover:underline cursor-pointer disabled:opacity-50">
                         {uploadingResume ? 'Uploading...' : 'Update'}
                       </button>
                       <input type="file" ref={resumeInputRef} onChange={handleResumeUpload} accept=".pdf,.doc,.docx" className="hidden" />
@@ -1074,7 +1074,7 @@ const ProfilePage = () => {
                 <div className="bg-white dark:bg-[#111] border border-slate-200 dark:border-white/5 rounded-2xl p-6 shadow-lg">
                 <div className="flex justify-between items-center mb-6">
                   <h3 className="text-slate-900 dark:text-white font-bold text-lg flex items-center gap-2">
-                    <Briefcase size={20} className="text-[#00F0FF]" /> Experience
+                    <Briefcase size={20} className="text-[#0A66C2] dark:text-[#00F0FF]" /> Experience
                   </h3>
                   {isOwner && (
                     <button onClick={() => setIsAddExpOpen(!isAddExpOpen)} className={`p-1.5 rounded-lg transition-colors cursor-pointer ${isAddExpOpen ? 'bg-white/10 text-white' : 'bg-white/5 hover:bg-white/10 text-slate-700 dark:text-gray-300 hover:text-white'}`}>
@@ -1191,7 +1191,7 @@ const ProfilePage = () => {
                 <div className="bg-white dark:bg-[#111] border border-slate-200 dark:border-white/5 rounded-2xl p-6 shadow-lg">
                 <div className="flex justify-between items-center mb-6">
                   <h3 className="text-slate-900 dark:text-white font-bold text-lg flex items-center gap-2">
-                    <Award size={20} className="text-[#00F0FF]" /> Certifications
+                    <Award size={20} className="text-[#0A66C2] dark:text-[#00F0FF]" /> Certifications
                   </h3>
                   {isOwner && (
                     <button onClick={() => setIsAddCertOpen(!isAddCertOpen)} className={`p-1.5 rounded-lg transition-colors cursor-pointer ${isAddCertOpen ? 'bg-white/10 text-white' : 'bg-white/5 hover:bg-white/10 text-slate-700 dark:text-gray-300 hover:text-white'}`}>
