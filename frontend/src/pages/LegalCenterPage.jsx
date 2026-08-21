@@ -204,14 +204,14 @@ const LegalCenterPage = ({ initialTab = 'guidelines' }) => {
               </div>
 
               {/* Version & Sentinel Telemetry Card */}
-              <div className="p-4 rounded-2xl bg-gradient-to-br from-cyan-950/20 to-black/40 border border-cyan-500/20 text-xs space-y-2">
+              <div className="p-4 rounded-2xl bg-blue-50/60 dark:bg-gradient-to-br dark:from-cyan-950/20 dark:to-black/40 border border-blue-200 dark:border-cyan-500/20 text-xs space-y-2">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2 text-[#00F0FF] font-bold">
+                  <div className="flex items-center gap-2 text-[#0A66C2] dark:text-[#00F0FF] font-bold">
                     <Terminal size={14} />
                     <span>Dynamic Policy Sync</span>
                   </div>
                   {policyData?.version && (
-                    <span className="px-2 py-0.5 rounded bg-[#00F0FF]/10 border border-[#00F0FF]/30 text-[#00F0FF] font-mono text-[10px] font-bold">
+                    <span className="px-2 py-0.5 rounded bg-[#0A66C2]/10 border border-[#0A66C2]/30 text-[#0A66C2] dark:bg-[#00F0FF]/10 dark:border-[#00F0FF]/30 dark:text-[#00F0FF] font-mono text-[10px] font-bold">
                       v{policyData.version}
                     </span>
                   )}
