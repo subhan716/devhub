@@ -1,86 +1,99 @@
 # 🌓 DevHub Enterprise Unified Theme System Specification
-### Universal Dark Obsidian & Light Studio Theme Engine with Zero-Flicker Multi-Page Persistence
-**Standard:** Linear / GitHub / Vercel Enterprise Token Architecture  
-**Target:** 100% Seamless Real-Time Theme Switching Across Every Single Page, Modal, and Component in DevHub.
+### Universal Dark Obsidian & Light Studio Theme Engine with Multi-Page 0ms Sync & Industrial Button Architecture
+**Standard:** LinkedIn, Meta (Instagram/Facebook), Stripe, GitHub, Linear Enterprise Token Architecture  
+**Scope:** 100% Real-Time Synchronized Theme Switching Across Every Single Page, Modal, and Component in DevHub.
 
 ---
 
 ## 1. Executive Summary & Design System Philosophy
 
-The DevHub Theme Engine provides two first-class visual experiences:
-1. **Dark Obsidian (Default):** Premium deep `#0A0A0A` background, `#111116` surface cards, `#00F0FF` electric cyan accents, and high-contrast typography.
-2. **Light Studio (New):** Clean `#F8FAFC` slate background, `#FFFFFF` crisp elevated cards, `#0284C7` / `#0088CC` deep ocean cyan accents, `#0F172A` deep typography, and subtle border shadows.
+The DevHub Theme Engine establishes two distinct, state-of-the-art visual experiences tailored to their respective color spaces:
+
+1. **🌙 Dark Obsidian (Developer Dark Mode):**
+   - Background: `#0A0A0A`
+   - Surface Cards: `#111116` with `border: rgba(255, 255, 255, 0.08)`
+   - Subsurfaces & Inputs: `#050508`
+   - Primary Buttons: **Electric Cyan `#00F0FF` with `#000000` text**
+   - Typography: `#FFFFFF` (Primary) / `#9CA3AF` (Secondary)
+
+2. **☀️ Light Studio (LinkedIn / Meta / Stripe Enterprise White Mode):**
+   - Background: `#F8FAFC` (Clean Slate 50)
+   - Surface Cards: `#FFFFFF` (Pure White) with subtle `#E2E8F0` borders & gentle elevation shadow
+   - Subsurfaces & Inputs: `#F1F5F9` (Slate 100)
+   - Primary Buttons: **LinkedIn / Meta Deep Tech Royal Blue `#0A66C2` (or Deep Cobalt `#0284C7`) with `#FFFFFF` crisp white text!**
+   - Typography: `#0F172A` (Slate 900) / `#475569` (Slate 600)
+
+---
+
+## 2. Industrial Button & Accent Matrix (Dark Mode vs Light Mode)
+
+> [!IMPORTANT]
+> **Light Mode Rule:** In Light Mode, neon/electric cyan (`#00F0FF`) with black text is strictly forbidden because it looks washed out on white backgrounds. Following **LinkedIn, Facebook, and Stripe**, all primary buttons in Light Mode switch to **Deep Tech Royal Blue (`#0A66C2`) with Pure White text (`#FFFFFF`)**.
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
-│                            DEVHUB UNIFIED THEME ENGINE ARCHITECTURE                                         │
-├───────────────────────────────────────┬─────────────────────────────────────────────────────────────────────┤
-│ THEME MODE                            │ COLOR PALETTE & DESIGN TOKENS                                       │
-├───────────────────────────────────────┼─────────────────────────────────────────────────────────────────────┤
-│ 🌙 Dark Obsidian (Default)            │ • Background: `#0A0A0A`                                             │
-│                                       │ • Surface / Cards: `#111116`                                        │
-│                                       │ • Inner Subsurfaces: `#050508`                                      │
-│                                       │ • Borders: `rgba(255, 255, 255, 0.08)`                              │
-│                                       │ • Primary Text: `#FFFFFF`                                           │
-│                                       │ • Secondary Text: `#9CA3AF`                                         │
-│                                       │ • Brand Accent: `#00F0FF` (Electric Cyan)                           │
-│                                       │ • Button Contrast: `#000000` text on `#00F0FF`                      │
-├───────────────────────────────────────┼─────────────────────────────────────────────────────────────────────┤
-│ ☀️ Light Studio (Clean Enterprise)    │ • Background: `#F8FAFC` (Slate 50)                                  │
-│                                       │ • Surface / Cards: `#FFFFFF` (Pure White)                           │
-│                                       │ • Inner Subsurfaces: `#F1F5F9` (Slate 100)                          │
-│                                       │ • Borders: `#E2E8F0` / `rgba(0, 0, 0, 0.08)`                        │
-│                                       │ • Primary Text: `#0F172A` (Slate 900)                               │
-│                                       │ • Secondary Text: `#475569` (Slate 600)                             │
-│                                       │ • Brand Accent: `#0284C7` (Ocean Cyan / Tech Blue)                  │
-│                                       │ • Button Contrast: `#FFFFFF` text on `#0284C7`                      │
-└───────────────────────────────────────┴─────────────────────────────────────────────────────────────────────┘
+│                            INDUSTRIAL BUTTON & ACCENT MATRIX                                                │
+├───────────────────────────┬──────────────────────────────────────────┬──────────────────────────────────────┤
+│ ELEMENT / BUTTON TYPE     │ 🌙 DARK OBSIDIAN MODE                    │ ☀️ LIGHT STUDIO MODE (LINKEDIN/META) │
+├───────────────────────────┼──────────────────────────────────────────┼──────────────────────────────────────┤
+│ 🔵 Primary Action Button   │ `bg-[#00F0FF]` (Electric Cyan)           │ `bg-[#0A66C2]` (Deep Tech Blue)      │
+│    (Save, Post, Connect)  │ `text-black font-semibold`               │ `text-white font-semibold shadow-sm` │
+│                           │ Hover: `bg-[#00D5E4]`                    │ Hover: `bg-[#004182]`                │
+├───────────────────────────┼──────────────────────────────────────────┼──────────────────────────────────────┤
+│ ⚪ Secondary Action Button │ `bg-white/5 text-gray-200 border-white/10`│ `bg-slate-100 text-slate-800 border` │
+│    (Cancel, Edit, Filter) │ Hover: `bg-white/10 text-white`          │ Hover: `bg-slate-200 border-slate-300`│
+├───────────────────────────┼──────────────────────────────────────────┼──────────────────────────────────────┤
+│ 🔴 Destructive Button     │ `bg-red-500/10 text-red-400 border-red`  │ `bg-red-600 text-white hover:bg-red7`│
+│    (Delete, Sign Out)     │ Hover: `bg-red-500/20 text-red-300`      │ `shadow-sm font-semibold`            │
+├───────────────────────────┼──────────────────────────────────────────┼──────────────────────────────────────┤
+│ 🟢 Success / Work Badges  │ `bg-emerald-500/10 text-emerald-400`     │ `bg-emerald-50 text-emerald-700`     │
+│    (#OpenToWork, Verified)│ `border-emerald-500/20`                  │ `border border-emerald-200`          │
+└───────────────────────────┴──────────────────────────────────────────┴──────────────────────────────────────┘
 ```
 
 ---
 
-## 2. Technical Architecture & State Machine
+## 3. How Every Single Page Stays 100% Synchronized (Technical Mechanism)
 
-```mermaid
-graph TD
-    A[User Clicks Sun/Moon Toggle] --> B[ThemeContext: toggleTheme]
-    B --> C[Update State: 'dark' <-> 'light']
-    C --> D[localStorage.setItem: 'devhub_theme']
-    C --> E[document.documentElement.classList: add/remove 'dark']
-    C --> F[document.documentElement.setAttribute: data-theme]
-    E --> G[CSS Variable Tokens Update in 0ms]
-    G --> H[All 11 Pages & Modals Update Instantly Without Reload]
+```
+                            ┌──────────────────────────────────────────────┐
+                            │    User Clicks Sun / Moon Toggle Button      │
+                            │        (Top Navbar or Avatar Dropdown)       │
+                            └──────────────────────┬───────────────────────┘
+                                                   │
+                                                   ▼
+                            ┌──────────────────────────────────────────────┐
+                            │         ThemeContext / Root Handler          │
+                            │   1. document.documentElement.classList      │
+                            │   2. localStorage.setItem('devhub_theme')    │
+                            │   3. BroadcastChannel.postMessage('theme')   │
+                            └──────────────────────┬───────────────────────┘
+                                                   │
+                                                   ▼
+            ┌──────────────────────────────────────┴──────────────────────────────────────┐
+            │                                                                             │
+            ▼                                                                             ▼
+┌───────────────────────────────────────┐                     ┌───────────────────────────────────────┐
+│     Global CSS Tokens Repaint (0ms)   │                     │    Multi-Tab Real-Time Sync (0ms)     │
+│  `--bg-app`, `--btn-primary-bg`, etc. │                     │ All open browser tabs update together │
+└───────────────────┬───────────────────┘                     └───────────────────────────────────────┘
+                    │
+                    ▼
+┌─────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+│                       EVERY SINGLE PAGE & MODAL IN DEVHUB UPDATES INSTANTLY                                 │
+│  • Feed Page (`/`)                 • Profile Page (`/profile`)        • Jobs Page (`/jobs`)                 │
+│  • Messages Page (`/messages`)     • Network Page (`/network`)        • Settings Page (`/settings`)         │
+│  • Legal Center (`/guidelines`)    • Notifications (`/notifications`) • Search Page (`/search`)             │
+│  • Shells (`Sidebar`, `TopNavbar`, `MobileNav`, `ConfirmModal`, `ImageViewerModal`, `MessagingPopup`)       │
+└─────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
 ```
 
-### 2.1 Zero-Flicker HTML Head Bootstrap (`index.html`)
-To prevent the "white flash" or "dark flash" on page reload, an inline script in `index.html` head evaluates the saved theme before the first DOM paint:
-
-```html
-<script>
-  (function() {
-    try {
-      var saved = localStorage.getItem('devhub_theme');
-      var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-      if (saved === 'dark' || (!saved && prefersDark)) {
-        document.documentElement.classList.add('dark');
-        document.documentElement.setAttribute('data-theme', 'dark');
-      } else {
-        document.documentElement.classList.remove('dark');
-        document.documentElement.setAttribute('data-theme', 'light');
-      }
-    } catch (e) {}
-  })();
-</script>
-```
-
----
-
-## 3. Global CSS Design Tokens (`index.css`)
+### 3.1 CSS Design Tokens Implementation (`frontend/src/index.css`)
 
 ```css
 :root {
-  /* Light Studio Tokens */
-  --bg-primary: #F8FAFC;
+  /* LIGHT STUDIO MODE (LinkedIn / Meta / Stripe Standard) */
+  --bg-app: #F8FAFC;
   --bg-surface: #FFFFFF;
   --bg-surface-secondary: #F1F5F9;
   --bg-surface-hover: #E2E8F0;
@@ -92,16 +105,17 @@ To prevent the "white flash" or "dark flash" on page reload, an inline script in
   --text-secondary: #475569;
   --text-muted: #94A3B8;
   
-  --accent-primary: #0284C7;
-  --accent-primary-hover: #0369A1;
-  --accent-text: #FFFFFF;
+  /* Primary Button Tokens (LinkedIn Tech Blue) */
+  --btn-primary-bg: #0A66C2;
+  --btn-primary-hover: #004182;
+  --btn-primary-text: #FFFFFF;
   
   --card-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px -1px rgba(0, 0, 0, 0.05);
 }
 
 html.dark, [data-theme='dark'] {
-  /* Dark Obsidian Tokens */
-  --bg-primary: #0A0A0A;
+  /* DARK OBSIDIAN MODE (Current High-End Mode) */
+  --bg-app: #0A0A0A;
   --bg-surface: #111116;
   --bg-surface-secondary: #050508;
   --bg-surface-hover: rgba(255, 255, 255, 0.05);
@@ -113,9 +127,10 @@ html.dark, [data-theme='dark'] {
   --text-secondary: #9CA3AF;
   --text-muted: #6B7280;
   
-  --accent-primary: #00F0FF;
-  --accent-primary-hover: rgba(0, 240, 255, 0.85);
-  --accent-text: #000000;
+  /* Primary Button Tokens (Electric Cyan) */
+  --btn-primary-bg: #00F0FF;
+  --btn-primary-hover: rgba(0, 240, 255, 0.85);
+  --btn-primary-text: #000000;
   
   --card-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.6);
 }
@@ -123,53 +138,34 @@ html.dark, [data-theme='dark'] {
 
 ---
 
-## 4. Toggle Placements (Accessible on Every Single Page)
+## 4. UI Toggle Placement Across App Shell
 
 1. **Top Navbar Header (`TopNavbar.jsx`):**
-   - Quick 1-Click Sun / Moon Icon Button right next to Notifications icon!
-   - Tooltip: `"Switch to Light Mode"` / `"Switch to Dark Mode"`.
+   - 1-Click Sun ☀️ / Moon 🌙 Icon button positioned next to Search and Notifications.
 2. **Profile Avatar Dropdown Menu (`TopNavbar.jsx`):**
-   - Row: `[ 🌙 Dark Mode / ☀️ Light Mode ]` with live toggle switch.
-3. **Mobile Drawer Menu (`MobileNav.jsx` / `Sidebar.jsx`):**
-   - Quick theme toggle in footer.
+   - Menu item: `[ 🌙 Dark Mode / ☀️ Light Mode ]` with animated switch.
+3. **Mobile Drawer (`MobileNav.jsx` / `Sidebar.jsx`):**
+   - Bottom quick switch for mobile phone users.
 4. **Settings Page:**
-   - Appearance section to select `Dark Obsidian`, `Light Studio`, or `Sync with System`.
+   - Appearance section with radio cards (`Dark Obsidian`, `Light Studio`).
 
 ---
 
-## 5. Scope: Every Single Page & Component
+## 5. Scope: Every Single Page in DevHub (100% Coverage)
 
-| Page / Component | Dark Mode Style | Light Mode Style |
+| Page / Route | Dark Mode Behavior | Light Mode Behavior (LinkedIn / Meta Palette) |
 | :--- | :--- | :--- |
-| **1. Feed Page (`/`)** | `#0A0A0A` bg, `#111` cards, cyan badges | `#F8FAFC` bg, `#FFFFFF` cards, `#0284C7` badges |
-| **2. Profile Page (`/profile`)** | Dark banner, obsidian cards, `#111` boxes | Clean white banner, white cards, slate borders |
-| **3. Messages Page (`/messages`)** | `#111` chat list, `#050508` chat thread | `#FFF` chat list, `#F8FAFC` chat thread |
-| **4. Jobs Page (`/jobs`)** | Dark job cards, obsidian filters | Clean white job cards, slate pill filters |
-| **5. Network Page (`/network`)** | Dark connection grid & 3D network | White developer cards, crisp typography |
-| **6. Settings Page (`/settings`)** | `#111` forms, dark inputs | `#FFF` forms, `#F8FAFC` crisp inputs |
-| **7. Legal Center (`/guidelines`..)** | Dark markdown reader | Crisp white legal doc reader |
-| **8. Notifications Page (`/notifications`)** | Dark alert stream | White alert stream with subtle borders |
-| **9. Search Page (`/search`)** | Dark search results | White search results with highlighted matches |
-| **10. TopNavbar & Sidebar** | `#0A0A0A` / `#111` glass blur | `#FFFFFF` frosted glass blur with border |
-| **11. Modals & Popups** | `#111` modal overlays | `#FFFFFF` clean elevated modals |
-
----
-
-## 6. Execution Roadmap
-
-1. **Phase 1: Foundation & Context**:
-   - Create `frontend/src/context/ThemeContext.jsx` with `theme`, `toggleTheme`, `setThemeMode`.
-   - Update `frontend/src/main.jsx` / `App.jsx` to wrap with `ThemeProvider`.
-   - Update `frontend/src/index.css` with unified CSS variables and Tailwind dark variants.
-2. **Phase 2: Global Shell Toggles**:
-   - Add Sun/Moon 1-click toggle to `TopNavbar.jsx`.
-   - Add Theme switch to Avatar Dropdown and Sidebar.
-3. **Phase 3: Page-by-Page Styling Pass**:
-   - Ensure every page uses `bg-surface`, `text-primary`, `border-subtle` or `dark:` Tailwind classes so both themes look state-of-the-art!
-4. **Phase 4: Verification & Git Deploy**:
-   - Test toggle on all 11 pages.
-   - Build frontend (`npm run build`).
-   - Push to GitHub for live Vercel deploy!
+| **1. Feed Page (`/`)** | Obsidian feed, cyan post button, dark post cards | Clean slate feed, LinkedIn blue post button, white cards |
+| **2. Profile Page (`/profile`)** | Dark banner, obsidian cards, cyan action pills | White banner, crisp white cards, deep blue buttons |
+| **3. Messages Page (`/messages`)** | `#111` chat list, `#050508` conversation thread | Pure white chat list, slate-50 active chat thread |
+| **4. Jobs Page (`/jobs`)** | Dark job cards, cyan "Apply" buttons | Crisp white job cards, LinkedIn blue "Apply" buttons |
+| **5. Network Page (`/network`)** | Dark developer cards, cyan "Connect" pills | White developer cards, LinkedIn blue "Connect" pills |
+| **6. Settings Page (`/settings`)** | Obsidian cards, dark inputs, cyan save button | Pure white cards, slate inputs, blue save button |
+| **7. Legal Center (`/guidelines`..)** | Dark markdown policy reader | Crisp white document reader with slate typography |
+| **8. Notifications (`/notifications`)** | Dark notification stream | Pure white notification stream with unread blue dots |
+| **9. Search Page (`/search`)** | Dark search results | White search results with highlighted blue terms |
+| **10. TopNavbar & Sidebars** | Obsidian glass blur with subtle white border | White frosted glass blur with subtle slate border |
+| **11. All Modals & Popups** | Dark overlays with obsidian cards | Clean backdrop blur with pure white elevated modals |
 
 ---
 
