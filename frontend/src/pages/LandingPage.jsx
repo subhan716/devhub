@@ -86,6 +86,13 @@ const LandingPage = () => {
   const closeAuth = () => setAuthModal({ isOpen: false, mode: 'login' });
 
   useEffect(() => {
+    if (typeof window !== 'undefined') {
+      if ('scrollRestoration' in window.history) {
+        window.history.scrollRestoration = 'manual';
+      }
+      window.scrollTo(0, 0);
+      if (window.lenis) window.lenis.scrollTo(0, { immediate: true });
+    }
     const fetchLandingConfig = async () => {
       try {
         const apiUrl = import.meta.env.VITE_API_URL || 'https://devhub-api-node.onrender.com';

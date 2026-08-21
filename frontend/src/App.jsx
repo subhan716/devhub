@@ -7,6 +7,7 @@ import { lazy, Suspense } from 'react';
 import axios from 'axios';
 import MainLayout from './components/layout/MainLayout';
 import MaintenanceScreen from './components/common/MaintenanceScreen';
+import ScrollToTop from './components/common/ScrollToTop';
 
 // Lazy loading all pages for Code Splitting (Performance Optimization)
 import LandingPage from './pages/LandingPage';
@@ -45,6 +46,10 @@ const GuestRoute = ({ children }) => {
   }
   return children;
 };
+
+if (typeof window !== 'undefined' && 'scrollRestoration' in window.history) {
+  window.history.scrollRestoration = 'manual';
+}
 
 function App() {
   const [appConfig, setAppConfig] = useState(null);
@@ -145,6 +150,7 @@ function App() {
         }} 
       />
       <Router>
+        <ScrollToTop />
         <Suspense fallback={<PageSkeleton />}>
           <Routes>
             {/* Public Routes */}
