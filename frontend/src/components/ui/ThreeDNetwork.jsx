@@ -1,23 +1,74 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion, useMotionValue, useTransform, useSpring } from 'framer-motion';
 import { 
-  ThumbsUp, 
-  MessageSquare, 
-  Repeat2, 
-  Send, 
-  UserPlus, 
-  TrendingUp, 
+  Sparkles, 
+  Globe, 
+  Zap, 
+  Cpu, 
+  Share2, 
+  Layers,
+  ArrowUpRight,
+  ShieldCheck,
   Code2
 } from 'lucide-react';
 
+const NODES = [
+  {
+    id: 'node-1',
+    name: 'Sarah Jenkins',
+    role: 'AI Systems Architect',
+    company: 'Horizon AI',
+    avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
+    color: '#00F0FF',
+    x: -160,
+    y: -90,
+    delay: 0
+  },
+  {
+    id: 'node-2',
+    name: 'David Kim',
+    role: 'Venture Partner',
+    company: 'Apex Capital',
+    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
+    color: '#818CF8',
+    x: 160,
+    y: -80,
+    delay: 0.2
+  },
+  {
+    id: 'node-3',
+    name: 'Elena Rostova',
+    role: 'Lead UI/UX Designer',
+    company: 'Studio Form',
+    avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80',
+    color: '#34D399',
+    x: 140,
+    y: 110,
+    delay: 0.4
+  },
+  {
+    id: 'node-4',
+    name: 'Marcus Chen',
+    role: 'Founding Engineer',
+    company: 'NexusDB',
+    avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80',
+    color: '#38BDF8',
+    x: -150,
+    y: 100,
+    delay: 0.6
+  }
+];
+
 const ThreeDNetwork = ({ onActionClick }) => {
+  const [hoveredNode, setHoveredNode] = useState(null);
+
   // Mouse Parallax 3D Spring Physics
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
 
-  const springConfig = { damping: 25, stiffness: 150 };
-  const rotateX = useSpring(useTransform(mouseY, [-200, 200], [6, -6]), springConfig);
-  const rotateY = useSpring(useTransform(mouseX, [-200, 200], [-6, 6]), springConfig);
+  const springConfig = { damping: 20, stiffness: 120 };
+  const rotateX = useSpring(useTransform(mouseY, [-200, 200], [8, -8]), springConfig);
+  const rotateY = useSpring(useTransform(mouseX, [-200, 200], [-8, 8]), springConfig);
 
   const handleMouseMove = (e) => {
     const rect = e.currentTarget.getBoundingClientRect();
@@ -30,186 +81,172 @@ const ThreeDNetwork = ({ onActionClick }) => {
   const handleMouseLeave = () => {
     mouseX.set(0);
     mouseY.set(0);
+    setHoveredNode(null);
   };
 
   return (
     <div 
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
-      className="w-full h-full relative flex items-center justify-center p-2 sm:p-6 perspective-1000 select-none"
+      className="w-full h-[460px] sm:h-[520px] relative flex items-center justify-center select-none perspective-1000"
     >
-      {/* Subtle Ambient Halo */}
-      <div className="absolute inset-0 bg-gradient-to-tr from-[#00F0FF]/10 via-[#818CF8]/10 to-transparent blur-[120px] rounded-full pointer-events-none" />
+      {/* Background Soft Glow Halos */}
+      <div className="absolute w-80 h-80 bg-[#00F0FF]/10 blur-[120px] rounded-full pointer-events-none" />
+      <div className="absolute w-72 h-72 bg-[#818CF8]/10 blur-[130px] rounded-full pointer-events-none" />
 
       {/* 3D Motion Container */}
       <motion.div
         style={{ rotateX, rotateY, transformStyle: "preserve-3d" }}
-        className="w-full max-w-[520px] relative transition-transform duration-150 ease-out"
+        className="relative w-full max-w-[480px] h-[400px] flex items-center justify-center"
       >
-        {/* 1. TOP FLOATING NOTIFICATION PILL */}
-        <motion.div 
-          initial={{ y: -15, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.2, duration: 0.5 }}
-          style={{ transform: "translateZ(40px)" }}
-          className="absolute -top-5 left-6 right-6 sm:left-10 sm:right-10 z-30 flex items-center justify-between px-4 py-2 rounded-2xl bg-[#0E0E14]/95 border border-white/10 backdrop-blur-xl shadow-2xl"
+        {/* SVG Synapse Connection Lines */}
+        <svg className="absolute inset-0 w-full h-full pointer-events-none overflow-visible">
+          <defs>
+            <linearGradient id="cyanLine" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="#00F0FF" stopOpacity="0.6" />
+              <stop offset="100%" stopColor="#00F0FF" stopOpacity="0.1" />
+            </linearGradient>
+            <linearGradient id="indigoLine" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="#818CF8" stopOpacity="0.6" />
+              <stop offset="100%" stopColor="#818CF8" stopOpacity="0.1" />
+            </linearGradient>
+            <linearGradient id="emeraldLine" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="#34D399" stopOpacity="0.6" />
+              <stop offset="100%" stopColor="#34D399" stopOpacity="0.1" />
+            </linearGradient>
+            <linearGradient id="skyLine" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="#38BDF8" stopOpacity="0.6" />
+              <stop offset="100%" stopColor="#38BDF8" stopOpacity="0.1" />
+            </linearGradient>
+          </defs>
+
+          {/* Lines from Center Hub (240, 200) to Outer Nodes */}
+          {/* Node 1 (80, 110) */}
+          <line 
+            x1="240" y1="200" x2="80" y2="110" 
+            stroke="url(#cyanLine)" 
+            strokeWidth={hoveredNode === 'node-1' ? "2.5" : "1.5"} 
+            strokeDasharray="4 4" 
+            className="transition-all duration-300"
+          />
+          {/* Node 2 (400, 120) */}
+          <line 
+            x1="240" y1="200" x2="400" y2="120" 
+            stroke="url(#indigoLine)" 
+            strokeWidth={hoveredNode === 'node-2' ? "2.5" : "1.5"} 
+            strokeDasharray="4 4" 
+            className="transition-all duration-300"
+          />
+          {/* Node 3 (380, 310) */}
+          <line 
+            x1="240" y1="200" x2="380" y2="310" 
+            stroke="url(#emeraldLine)" 
+            strokeWidth={hoveredNode === 'node-3' ? "2.5" : "1.5"} 
+            strokeDasharray="4 4" 
+            className="transition-all duration-300"
+          />
+          {/* Node 4 (90, 300) */}
+          <line 
+            x1="240" y1="200" x2="90" y2="300" 
+            stroke="url(#skyLine)" 
+            strokeWidth={hoveredNode === 'node-4' ? "2.5" : "1.5"} 
+            strokeDasharray="4 4" 
+            className="transition-all duration-300"
+          />
+          {/* Cross Mesh Links */}
+          <line x1="80" y1="110" x2="400" y2="120" stroke="#ffffff" strokeOpacity="0.07" strokeWidth="1" strokeDasharray="3 3" />
+          <line x1="400" y1="120" x2="380" y2="310" stroke="#ffffff" strokeOpacity="0.07" strokeWidth="1" strokeDasharray="3 3" />
+          <line x1="380" y1="310" x2="90" y2="300" stroke="#ffffff" strokeOpacity="0.07" strokeWidth="1" strokeDasharray="3 3" />
+          <line x1="90" y1="300" x2="80" y2="110" stroke="#ffffff" strokeOpacity="0.07" strokeWidth="1" strokeDasharray="3 3" />
+        </svg>
+
+        {/* ===================================================
+            CENTERPIECE: DEVHUB NEURAL HUB (Central Nexus)
+           =================================================== */}
+        <motion.div
+          animate={{ scale: [1, 1.04, 1] }}
+          transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+          style={{ transform: "translateZ(30px)" }}
+          onClick={onActionClick}
+          className="w-24 h-24 rounded-3xl bg-[#0D0D12] border border-[#00F0FF]/40 shadow-[0_0_40px_rgba(0,240,255,0.25)] flex flex-col items-center justify-center relative cursor-pointer group z-20 hover:border-[#00F0FF] transition-all"
         >
-          <div className="flex items-center gap-2 text-xs">
-            <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-            <span className="text-zinc-300 font-medium">
-              <strong className="text-white font-semibold">48 professionals</strong> viewed your profile
-            </span>
-          </div>
-          <div className="flex items-center gap-1 text-[11px] font-bold text-[#00F0FF]">
-            <TrendingUp size={13} />
-            <span>+24% this week</span>
-          </div>
+          {/* Concentric Pulse Ring */}
+          <div className="absolute -inset-2 rounded-3xl border border-[#00F0FF]/20 animate-ping pointer-events-none" />
+          
+          <img src="/images/logo.png" alt="DevHub" className="w-10 h-10 object-contain rounded-xl drop-shadow-[0_0_10px_rgba(0,240,255,0.6)] group-hover:scale-110 transition-transform" />
+          <span className="text-[10px] font-mono font-bold text-white mt-1">
+            Dev<span className="text-[#00F0FF]">Hub</span>
+          </span>
         </motion.div>
 
-        {/* 2. MAIN CENTERPIECE: LINKEDIN-STYLE HIGH FIDELITY POST CARD */}
-        <div 
-          style={{ transform: "translateZ(20px)" }}
-          className="bg-[#101017] border border-white/10 rounded-2xl p-5 sm:p-6 shadow-[0_20px_50px_rgba(0,0,0,0.8)] relative z-20 mt-4"
-        >
-          {/* Post Author Header */}
-          <div className="flex items-start justify-between mb-4">
-            <div className="flex items-center gap-3">
+        {/* ===================================================
+            OUTER NODES: VERIFIED PEERS & CREATOR CARDS
+           =================================================== */}
+        {NODES.map((node) => (
+          <motion.div
+            key={node.id}
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ 
+              opacity: 1, 
+              scale: 1,
+              y: [0, -6, 0]
+            }}
+            transition={{ 
+              opacity: { delay: node.delay, duration: 0.5 },
+              scale: { delay: node.delay, duration: 0.5 },
+              y: { duration: 3.5 + node.delay, repeat: Infinity, ease: "easeInOut", delay: node.delay }
+            }}
+            style={{ 
+              transform: `translate3d(${node.x}px, ${node.y}px, 40px)`
+            }}
+            onMouseEnter={() => setHoveredNode(node.id)}
+            onMouseLeave={() => setHoveredNode(null)}
+            onClick={onActionClick}
+            className="absolute z-30 cursor-pointer group"
+          >
+            <div className="p-2.5 rounded-2xl bg-[#0E0E14]/95 border border-white/10 shadow-2xl backdrop-blur-xl flex items-center gap-3 hover:border-white/25 transition-all group-hover:scale-105">
               <div className="relative">
                 <img 
-                  src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80" 
-                  alt="Sarah Jenkins"
-                  className="w-11 h-11 rounded-full object-cover ring-2 ring-[#00F0FF]/40 shadow-sm" 
+                  src={node.avatar} 
+                  alt={node.name} 
+                  className="w-9 h-9 rounded-xl object-cover ring-1 ring-white/20"
                 />
-                <div className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-[#0A66C2] flex items-center justify-center text-[10px] text-white font-bold">
-                  ✓
-                </div>
+                <div 
+                  className="absolute -bottom-1 -right-1 w-3 h-3 rounded-full border-2 border-[#0E0E14]"
+                  style={{ backgroundColor: node.color }}
+                />
               </div>
-              <div>
+
+              <div className="min-w-0 pr-1">
                 <div className="flex items-center gap-1.5">
-                  <h4 className="text-sm sm:text-base font-bold text-white tracking-tight">Sarah Jenkins</h4>
-                  <span className="text-[10px] font-mono font-semibold px-1.5 py-0.5 rounded bg-[#00F0FF]/10 text-[#00F0FF] border border-[#00F0FF]/25">
-                    Lead Architect
+                  <span className="text-xs font-bold text-white truncate max-w-[100px]">{node.name}</span>
+                  <span className="text-[9px] font-mono px-1 py-0.2 rounded bg-white/5 text-zinc-300 border border-white/10">
+                    ✓
                   </span>
                 </div>
-                <p className="text-xs text-zinc-400 leading-tight">Head of Product at Horizon AI • 1st</p>
-                <p className="text-[10px] text-zinc-500 flex items-center gap-1 mt-0.5">
-                  <span>2h ago</span> • <span>🌐 Public</span>
-                </p>
+                <p className="text-[10px] text-zinc-400 font-medium truncate max-w-[110px]">{node.role}</p>
+                <p className="text-[9px] text-zinc-500 font-mono truncate">{node.company}</p>
               </div>
             </div>
+          </motion.div>
+        ))}
 
-            <button 
-              type="button"
-              onClick={onActionClick}
-              className="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-white text-zinc-950 hover:bg-zinc-200 flex items-center gap-1.5 transition-all shadow-sm cursor-pointer"
-            >
-              <UserPlus size={13} />
-              <span>Connect</span>
-            </button>
-          </div>
-
-          {/* Post Content */}
-          <p className="text-xs sm:text-sm text-zinc-200 leading-relaxed mb-4">
-            Thrilled to announce that our open-source neural design system reached <strong className="text-white">10,000+ contributors</strong> today! 🚀 Collaborating with top engineers and product leaders globally has never been this seamless.
-          </p>
-
-          {/* Embedded Project Showcase Box */}
-          <div className="rounded-xl bg-[#0A0A0F] border border-white/10 p-3.5 mb-4 relative overflow-hidden group">
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-2">
-                <div className="w-6 h-6 rounded-lg bg-[#00F0FF]/15 flex items-center justify-center text-[#00F0FF]">
-                  <Code2 size={14} />
-                </div>
-                <span className="text-xs font-bold text-white">horizon-core / v2.4</span>
-              </div>
-              <span className="text-[10px] font-mono text-emerald-400 bg-emerald-950/60 border border-emerald-500/30 px-2 py-0.5 rounded-full">
-                Verified Repo
-              </span>
-            </div>
-            <p className="text-[11px] text-zinc-400 font-mono line-clamp-2">
-              {`export const useGlobalNetwork = () => { return { status: "optimal", latency: "0.4ms" }; }`}
-            </p>
-          </div>
-
-          {/* Post Reactions Stats */}
-          <div className="flex items-center justify-between pb-3 border-b border-zinc-800 text-[11px] text-zinc-400">
-            <div className="flex items-center gap-1.5">
-              <div className="flex -space-x-1">
-                <span className="w-4 h-4 rounded-full bg-[#0A66C2] flex items-center justify-center text-[8px] text-white">👍</span>
-                <span className="w-4 h-4 rounded-full bg-[#818CF8] flex items-center justify-center text-[8px] text-white">💡</span>
-                <span className="w-4 h-4 rounded-full bg-emerald-500 flex items-center justify-center text-[8px] text-white">❤️</span>
-              </div>
-              <span className="font-semibold text-zinc-300">1,428</span>
-            </div>
-            <div className="flex items-center gap-3">
-              <span>245 comments</span>
-              <span>•</span>
-              <span>88 reposts</span>
-            </div>
-          </div>
-
-          {/* Post Action Buttons (Clicking prompts sign in / join) */}
-          <div className="grid grid-cols-4 gap-1 pt-2">
-            <button 
-              type="button"
-              onClick={onActionClick}
-              className="flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-semibold text-zinc-400 hover:bg-zinc-800 hover:text-white transition-colors cursor-pointer"
-            >
-              <ThumbsUp size={14} />
-              <span>Like</span>
-            </button>
-            <button 
-              type="button"
-              onClick={onActionClick}
-              className="flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-semibold text-zinc-400 hover:bg-zinc-800 hover:text-white transition-colors cursor-pointer"
-            >
-              <MessageSquare size={14} />
-              <span>Comment</span>
-            </button>
-            <button 
-              type="button"
-              onClick={onActionClick}
-              className="flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-semibold text-zinc-400 hover:bg-zinc-800 hover:text-white transition-colors cursor-pointer"
-            >
-              <Repeat2 size={14} />
-              <span>Repost</span>
-            </button>
-            <button 
-              type="button"
-              onClick={onActionClick}
-              className="flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-semibold text-zinc-400 hover:bg-zinc-800 hover:text-white transition-colors cursor-pointer"
-            >
-              <Send size={14} />
-              <span>Send</span>
-            </button>
-          </div>
-        </div>
-
-        {/* 3. FLOATING BOTTOM OPPORTUNITY & CHAT CARD */}
-        <motion.div 
-          initial={{ y: 15, opacity: 0 }}
+        {/* ===================================================
+            BOTTOM TELEMETRY PILL (Global Connectivity Live Proof)
+           =================================================== */}
+        <motion.div
+          initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.4, duration: 0.5 }}
+          transition={{ delay: 0.6, duration: 0.6 }}
           style={{ transform: "translateZ(50px)" }}
-          className="absolute -bottom-6 -right-2 sm:-right-6 z-30 p-4 rounded-2xl bg-[#0E0E14]/95 border border-white/10 shadow-2xl max-w-[280px] hidden sm:block"
+          onClick={onActionClick}
+          className="absolute -bottom-6 z-30 px-4 py-2 rounded-2xl bg-[#0E0E14]/90 border border-white/10 shadow-2xl flex items-center gap-2.5 backdrop-blur-xl cursor-pointer hover:border-zinc-700 transition-colors"
         >
-          <div className="flex items-center gap-3 mb-2">
-            <div className="relative">
-              <img 
-                src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80" 
-                alt="David Kim"
-                className="w-8 h-8 rounded-full object-cover ring-1 ring-blue-400/40" 
-              />
-              <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-400 border-2 border-[#0E0E14]" />
-            </div>
-            <div>
-              <p className="text-xs font-bold text-white">David Kim</p>
-              <p className="text-[10px] text-blue-400 font-semibold">Venture Partner • Horizon</p>
-            </div>
-          </div>
-          <p className="text-[11px] text-zinc-300 leading-snug bg-white/[0.04] p-2.5 rounded-xl border border-white/5">
-            "Loved your scalable systems post! Would you be open to collaborating on our new tech incubator?"
-          </p>
+          <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+          <span className="text-xs text-zinc-300 font-medium">
+            <strong className="text-white font-semibold">4,820 live connections</strong> active across 140 countries
+          </span>
+          <span className="text-xs text-[#00F0FF] font-bold ml-1">Connect →</span>
         </motion.div>
       </motion.div>
     </div>
