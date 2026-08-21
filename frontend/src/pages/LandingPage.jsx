@@ -1,4 +1,5 @@
-import React, { useState, useEffect, lazy, Suspense } from 'react';
+import React, { useState, useEffect } from 'react';
+import ThreeDNetwork from '../components/ui/ThreeDNetwork';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { 
@@ -21,8 +22,6 @@ import Navbar from '../components/layout/Navbar';
 import AuthModal from '../components/auth/AuthModal';
 import axios from 'axios';
 
-// Lazy load the Hero Showcase component
-const ThreeDNetwork = lazy(() => import('../components/ui/ThreeDNetwork'));
 
 const ICON_MAP = {
   Users: Users,
@@ -179,13 +178,7 @@ const LandingPage = () => {
             transition={{ duration: 1.0, delay: 0.2 }}
             className="w-full lg:w-1/2 min-h-[440px] sm:min-h-[520px] relative flex items-center justify-center"
           >
-            <Suspense fallback={
-              <div className="w-full h-full flex items-center justify-center py-20">
-                <div className="w-8 h-8 border-2 border-zinc-700 border-t-[#00F0FF] rounded-full animate-spin" />
-              </div>
-            }>
-              <ThreeDNetwork />
-            </Suspense>
+            <ThreeDNetwork />
           </motion.div>
         </div>
       </section>
