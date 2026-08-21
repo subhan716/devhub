@@ -1004,7 +1004,7 @@ const ProfilePage = () => {
                   <h3 className="text-slate-900 dark:text-white font-bold mb-4">Skills</h3>
                   <div className="flex flex-wrap gap-2">
                     {profile.skills.map(skill => (
-                      <span key={skill} className="px-3 py-1 bg-white/5 border border-slate-200 dark:border-white/10 rounded-full text-xs text-slate-700 dark:text-gray-300">
+                      <span key={skill} className="px-3 py-1 bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-full text-xs font-semibold text-slate-800 dark:text-gray-300 shadow-xs">
                         {skill}
                       </span>
                     ))}
@@ -1054,7 +1054,7 @@ const ProfilePage = () => {
                     </div>
                   </div>
                   {profile.resume?.url ? (
-                    <a href={profile.resume.url} target="_blank" rel="noreferrer" className="flex items-center justify-center gap-2 w-full py-2.5 bg-white/5 hover:bg-white/10 border border-slate-200 dark:border-white/10 rounded-xl text-sm font-medium text-white transition-colors">
+                    <a href={profile.resume.url} target="_blank" rel="noreferrer" className="flex items-center justify-center gap-2 w-full py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 border border-slate-200 dark:border-white/10 rounded-xl text-sm font-semibold text-slate-800 dark:text-white transition-colors shadow-xs">
                       View {profile.resume.originalName || 'Resume'}
                     </a>
                   ) : (
@@ -1096,7 +1096,7 @@ const ProfilePage = () => {
                           <div className="flex justify-between items-start">
                             <div>
                               <h4 className="text-slate-900 dark:text-white font-semibold">{exp.title}</h4>
-                              <p className="text-gray-400 text-sm">{exp.company}</p>
+                              <p className="text-slate-700 dark:text-gray-300 text-sm font-medium">{exp.company}</p>
                               <p className="text-xs text-gray-500 mt-1">
                                 {new Date(exp.from).toLocaleDateString()} - {exp.current ? 'Present' : (exp.to ? new Date(exp.to).toLocaleDateString() : '')}
                               </p>
@@ -1154,8 +1154,8 @@ const ProfilePage = () => {
                           <div className="absolute w-3 h-3 bg-white dark:bg-[#111] border-2 border-[#8A2BE2] rounded-full -left-[7px] top-1.5"></div>
                           <div className="flex justify-between items-start">
                             <div>
-                              <h4 className="text-white font-semibold">{edu.school}</h4>
-                              <p className="text-gray-400 text-sm">{edu.degree} in {edu.fieldOfStudy}</p>
+                              <h4 className="text-slate-900 dark:text-white font-semibold">{edu.school}</h4>
+                              <p className="text-slate-700 dark:text-gray-300 text-sm font-medium">{edu.degree} in {edu.fieldOfStudy}</p>
                               <p className="text-xs text-gray-500 mt-1">
                                 {new Date(edu.from).toLocaleDateString()} - {edu.current ? 'Present' : (edu.to ? new Date(edu.to).toLocaleDateString() : '')}
                               </p>
@@ -1212,8 +1212,8 @@ const ProfilePage = () => {
                           <div className="absolute w-3 h-3 bg-white dark:bg-[#111] border-2 border-[#00F0FF] rounded-full -left-[7px] top-1.5"></div>
                           <div className="flex justify-between items-start">
                             <div>
-                              <h4 className="text-white font-semibold">{cert.title}</h4>
-                              <p className="text-gray-400 text-sm">{cert.issuingOrganization}</p>
+                              <h4 className="text-slate-900 dark:text-white font-semibold">{cert.title}</h4>
+                              <p className="text-slate-700 dark:text-gray-300 text-sm font-medium">{cert.issuingOrganization}</p>
                               <p className="text-xs text-gray-500 mt-1">
                                 Issued {new Date(cert.issueDate).toLocaleDateString()}
                               </p>

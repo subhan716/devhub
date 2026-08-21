@@ -72,14 +72,14 @@ const AddCertificationInline = ({ setProfile, onClose }) => {
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.95, opacity: 0 }}
         transition={{ duration: 0.2 }}
-        className="bg-[#1a1a1a] border border-slate-200 dark:border-white/10 rounded-xl w-full max-w-2xl max-h-[90vh] sm:max-h-[85vh] overflow-y-auto relative shadow-2xl my-auto"
+        className="bg-white dark:bg-[#1a1a1a] border border-slate-200 dark:border-white/10 rounded-2xl w-full max-w-2xl max-h-[90vh] sm:max-h-[85vh] overflow-y-auto relative shadow-2xl my-auto"
       >
-        <button onClick={onClose} type="button" className="absolute top-4 right-4 text-slate-600 dark:text-gray-400 hover:text-white bg-white/5 hover:bg-white/10 rounded-full p-1.5 sm:p-2 transition-colors z-[100]">
+        <button onClick={onClose} type="button" className="absolute top-4 right-4 text-slate-500 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 rounded-full p-1.5 sm:p-2 transition-colors z-[100]">
           <X size={20} />
         </button>
 
         <div className="p-4 sm:p-6 md:p-8">
-          <h3 className="text-xl sm:text-2xl font-bold text-white mb-6">Add Certification</h3>
+          <h3 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white mb-6">Add Certification</h3>
 
         <form onSubmit={onSubmit} className="space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -90,7 +90,7 @@ const AddCertificationInline = ({ setProfile, onClose }) => {
                 name="title"
                 value={title}
                 onChange={onChange}
-                className="w-full bg-slate-50 dark:bg-[#0a0a0a] border border-slate-200 dark:border-white/10 rounded-lg py-2 px-3 text-white focus:border-[#00F0FF]/50 outline-none text-sm"
+                className="w-full bg-slate-50 dark:bg-[#0a0a0a] border border-slate-300 dark:border-white/10 rounded-xl py-2 px-3 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-gray-500 focus:border-[#0A66C2] dark:focus:border-[#00F0FF]/50 outline-none text-sm"
                 placeholder="e.g. AWS Certified Solutions Architect"
                 required
               />
@@ -105,19 +105,19 @@ const AddCertificationInline = ({ setProfile, onClose }) => {
                 onChange={onChange}
                 onFocus={() => setIsCompanyFocused(true)}
                 onBlur={() => setTimeout(() => setIsCompanyFocused(false), 200)}
-                className="w-full bg-slate-50 dark:bg-[#0a0a0a] border border-slate-200 dark:border-white/10 rounded-lg py-2 px-3 text-white focus:border-[#00F0FF]/50 outline-none text-sm"
+                className="w-full bg-slate-50 dark:bg-[#0a0a0a] border border-slate-300 dark:border-white/10 rounded-xl py-2 px-3 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-gray-500 focus:border-[#0A66C2] dark:focus:border-[#00F0FF]/50 outline-none text-sm"
                 placeholder="e.g. Amazon"
                 required
               />
               {isCompanyFocused && (issuingOrganization.length >= 2) && (
-                <div className="absolute z-10 w-full mt-1 bg-[#1a1a1a] border border-slate-200 dark:border-white/10 rounded-xl shadow-2xl overflow-hidden max-h-48 overflow-y-auto overscroll-contain">
+                <div className="absolute z-10 w-full mt-1 bg-white dark:bg-[#1a1a1a] border border-slate-200 dark:border-white/10 rounded-xl shadow-2xl overflow-hidden max-h-48 overflow-y-auto overscroll-contain">
                   {isSearchingCompany ? (
                     <div className="px-4 py-3 text-xs text-slate-600 dark:text-gray-400">Searching...</div>
                   ) : companySuggestions.length > 0 ? (
                     companySuggestions.map((company, idx) => (
                       <div 
                         key={idx} 
-                        className="px-4 py-2.5 flex items-center gap-3 hover:bg-[#00F0FF]/10 hover:text-white cursor-pointer transition-colors"
+                        className="px-4 py-2.5 flex items-center gap-3 hover:bg-slate-100 dark:hover:bg-[#00F0FF]/10 hover:text-[#0A66C2] dark:hover:text-white cursor-pointer transition-colors"
                         onClick={() => {
                           setFormData({ ...formData, issuingOrganization: company.name });
                           setIsCompanyFocused(false);
@@ -166,7 +166,7 @@ const AddCertificationInline = ({ setProfile, onClose }) => {
                 name="issueDate"
                 value={issueDate}
                 onChange={onChange}
-                className="w-full bg-slate-50 dark:bg-[#0a0a0a] border border-slate-200 dark:border-white/10 rounded-lg py-2 px-3 text-white focus:border-[#00F0FF]/50 outline-none text-sm [color-scheme:dark]"
+                className="w-full bg-slate-50 dark:bg-[#0a0a0a] border border-slate-300 dark:border-white/10 rounded-xl py-2 px-3 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-gray-500 focus:border-[#0A66C2] dark:focus:border-[#00F0FF]/50 outline-none text-sm [color-scheme:dark]"
                 required
               />
             </div>
@@ -178,7 +178,7 @@ const AddCertificationInline = ({ setProfile, onClose }) => {
                 name="credentialUrl"
                 value={credentialUrl}
                 onChange={onChange}
-                className="w-full bg-slate-50 dark:bg-[#0a0a0a] border border-slate-200 dark:border-white/10 rounded-lg py-2 px-3 text-white focus:border-[#00F0FF]/50 outline-none text-sm"
+                className="w-full bg-slate-50 dark:bg-[#0a0a0a] border border-slate-300 dark:border-white/10 rounded-xl py-2 px-3 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-gray-500 focus:border-[#0A66C2] dark:focus:border-[#00F0FF]/50 outline-none text-sm"
                 placeholder="https://..."
               />
             </div>
