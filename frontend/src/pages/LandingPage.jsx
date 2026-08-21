@@ -185,7 +185,7 @@ const LandingPage = () => {
             transition={{ duration: 1.0, delay: 0.2 }}
             className="w-full lg:w-1/2 min-h-[440px] sm:min-h-[520px] relative flex items-center justify-center"
           >
-            <ThreeDNetwork />
+            <ThreeDNetwork onActionClick={() => openAuth('register')} />
           </motion.div>
         </div>
       </section>

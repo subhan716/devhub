@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { motion, useMotionValue, useTransform, useSpring } from 'framer-motion';
 import { 
   ThumbsUp, 
@@ -10,11 +10,7 @@ import {
   Code2
 } from 'lucide-react';
 
-const ThreeDNetwork = () => {
-  const [liked, setLiked] = useState(true);
-  const [likeCount, setLikeCount] = useState(1428);
-  const [connected, setConnected] = useState(false);
-
+const ThreeDNetwork = ({ onActionClick }) => {
   // Mouse Parallax 3D Spring Physics
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
@@ -34,16 +30,6 @@ const ThreeDNetwork = () => {
   const handleMouseLeave = () => {
     mouseX.set(0);
     mouseY.set(0);
-  };
-
-  const handleLikeToggle = () => {
-    if (liked) {
-      setLiked(false);
-      setLikeCount((prev) => prev - 1);
-    } else {
-      setLiked(true);
-      setLikeCount((prev) => prev + 1);
-    }
   };
 
   return (
@@ -113,15 +99,12 @@ const ThreeDNetwork = () => {
             </div>
 
             <button 
-              onClick={() => setConnected(!connected)}
-              className={`px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
-                connected 
-                  ? 'bg-zinc-800 text-zinc-300 border border-zinc-700' 
-                  : 'bg-white text-zinc-950 font-bold hover:bg-zinc-200 shadow-sm'
-              }`}
+              type="button"
+              onClick={onActionClick}
+              className="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-white text-zinc-950 hover:bg-zinc-200 flex items-center gap-1.5 transition-all shadow-sm cursor-pointer"
             >
               <UserPlus size={13} />
-              <span>{connected ? 'Connected' : 'Connect'}</span>
+              <span>Connect</span>
             </button>
           </div>
 
@@ -156,7 +139,7 @@ const ThreeDNetwork = () => {
                 <span className="w-4 h-4 rounded-full bg-[#818CF8] flex items-center justify-center text-[8px] text-white">💡</span>
                 <span className="w-4 h-4 rounded-full bg-emerald-500 flex items-center justify-center text-[8px] text-white">❤️</span>
               </div>
-              <span className="font-semibold text-zinc-300">{likeCount.toLocaleString()}</span>
+              <span className="font-semibold text-zinc-300">1,428</span>
             </div>
             <div className="flex items-center gap-3">
               <span>245 comments</span>
@@ -165,26 +148,37 @@ const ThreeDNetwork = () => {
             </div>
           </div>
 
-          {/* Post Action Buttons */}
+          {/* Post Action Buttons (Clicking prompts sign in / join) */}
           <div className="grid grid-cols-4 gap-1 pt-2">
             <button 
-              onClick={handleLikeToggle}
-              className={`flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-semibold transition-colors cursor-pointer ${
-                liked ? 'text-[#00F0FF] bg-[#00F0FF]/10' : 'text-zinc-400 hover:bg-zinc-800 hover:text-white'
-              }`}
+              type="button"
+              onClick={onActionClick}
+              className="flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-semibold text-zinc-400 hover:bg-zinc-800 hover:text-white transition-colors cursor-pointer"
             >
               <ThumbsUp size={14} />
               <span>Like</span>
             </button>
-            <button className="flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-semibold text-zinc-400 hover:bg-zinc-800 hover:text-white transition-colors cursor-pointer">
+            <button 
+              type="button"
+              onClick={onActionClick}
+              className="flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-semibold text-zinc-400 hover:bg-zinc-800 hover:text-white transition-colors cursor-pointer"
+            >
               <MessageSquare size={14} />
               <span>Comment</span>
             </button>
-            <button className="flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-semibold text-zinc-400 hover:bg-zinc-800 hover:text-white transition-colors cursor-pointer">
+            <button 
+              type="button"
+              onClick={onActionClick}
+              className="flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-semibold text-zinc-400 hover:bg-zinc-800 hover:text-white transition-colors cursor-pointer"
+            >
               <Repeat2 size={14} />
               <span>Repost</span>
             </button>
-            <button className="flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-semibold text-zinc-400 hover:bg-zinc-800 hover:text-white transition-colors cursor-pointer">
+            <button 
+              type="button"
+              onClick={onActionClick}
+              className="flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-semibold text-zinc-400 hover:bg-zinc-800 hover:text-white transition-colors cursor-pointer"
+            >
               <Send size={14} />
               <span>Send</span>
             </button>
