@@ -1253,7 +1253,7 @@ const MessagesPage = () => {
             </div>
 
             {/* Chat Messages Area */}
-            <div ref={scrollContainerRef} data-lenis-prevent="true" className="flex-1 overflow-y-auto custom-scrollbar min-h-0 flex flex-col relative bg-[#131317] bg-[url('/grid.svg')] bg-[length:40px_40px] px-8 py-6">
+            <div ref={scrollContainerRef} data-lenis-prevent="true" className={`flex-1 overflow-y-auto custom-scrollbar min-h-0 flex flex-col relative ${isDark ? "bg-[#131317] bg-[url('/grid.svg')] text-white" : "bg-slate-50 text-slate-900"} bg-[length:40px_40px] px-8 py-6`}>
               {isLoadingMessages ? (
                 <div className="flex-1 flex flex-col justify-end w-full space-y-1">
                   <MessageSkeleton isOwn={false} />
@@ -1319,14 +1319,14 @@ const MessagesPage = () => {
                         {showTime && (
                           <div className="flex items-center justify-center my-4">
                             <div className="h-px bg-white/5 flex-1 mx-4"></div>
-                            <span className="text-[10px] text-gray-500 uppercase tracking-widest font-semibold bg-slate-50 dark:bg-[#0a0a0a] px-3 py-1 rounded-full border border-slate-200 dark:border-white/5">
+                            <span className={`text-[10px] uppercase tracking-widest font-semibold ${isDark ? "bg-[#0a0a0a] text-gray-500 border-white/5" : "bg-white text-slate-600 border-slate-200 shadow-xs"} px-3 py-1 rounded-full border`}>
                               {format(new Date(msg.createdAt), 'MMM d, h:mm a')}
                             </span>
                             <div className="h-px bg-white/5 flex-1 mx-4"></div>
                           </div>
                         )}
 
-                        <div className={`relative flex gap-4 group hover:bg-white/[0.02] px-4 -mx-4 rounded-lg transition-colors ${isGrouped ? 'py-0.5' : 'py-2'}`}>
+                        <div className={`relative flex gap-4 group ${isDark ? "hover:bg-white/[0.02]" : "hover:bg-slate-100/70"} px-4 -mx-4 rounded-lg transition-colors ${isGrouped ? "py-0.5" : "py-2"}`}>
                           {/* Avatar (or a spacer + hover timestamp when grouped) */}
                           {isGrouped ? (
                             <div className="w-10 flex-shrink-0 flex items-start justify-center pt-1">
@@ -1856,7 +1856,7 @@ const MessagesPage = () => {
                       }
                     }}
                     placeholder="Write a message..."
-                    className="flex-1 bg-transparent border-0 border-none outline-none focus:outline-none focus:ring-0 focus:border-none text-white placeholder-gray-500 px-2 py-2 text-[15px] resize-none max-h-32 custom-scrollbar min-h-[44px] shadow-none outline-none focus:shadow-none focus:ring-transparent focus:ring-offset-0 focus:outline-transparent"
+                    className={`flex-1 bg-transparent border-0 border-none outline-none focus:outline-none focus:ring-0 focus:border-none ${isDark ? "text-white placeholder-gray-500" : "text-slate-900 placeholder-slate-400"} px-2 py-2 text-[15px] resize-none max-h-32 custom-scrollbar min-h-[44px] shadow-none`}
                     style={{ border: 'none', outline: 'none', boxShadow: 'none' }}
                     rows={1}
                   />

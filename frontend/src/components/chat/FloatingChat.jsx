@@ -6,6 +6,7 @@ import { useSocket } from '../../context/SocketContext';
 import { useLocation } from 'react-router-dom';
 import { useTheme } from '../../context/ThemeContext';
 import EmojiPicker from 'emoji-picker-react';
+import { ChatListSkeleton } from '../common/Skeletons';
 
 const FloatingChat = ({ currentUser }) => {
   const { socket, onlineUsers } = useSocket() || {};
@@ -15,6 +16,7 @@ const FloatingChat = ({ currentUser }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [isVisible, setIsVisible] = useState(true);
   const [isOptionsOpen, setIsOptionsOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [conversations, setConversations] = useState([]);
   const [connections, setConnections] = useState([]);
   
@@ -39,8 +41,9 @@ const FloatingChat = ({ currentUser }) => {
   }, []);
 
   useEffect(() => {
-    if (isOpen && conversations.length === 0) {
+    if (isOpen && conversations.length === 0 && !isLoading) {
       const fetchConversations = async () => {
+        setIsLoading(true);
         try {
           const [convosRes, connsRes] = await Promise.all([
             axios.get(`${import.meta.env.VITE_API_URL}/api/messages/conversations`, { withCredentials: true }),
@@ -52,7 +55,7 @@ const FloatingChat = ({ currentUser }) => {
           console.error('Failed to fetch data', error);
         }
       };
-      fetchConversations();
+      fetchConversations().finally(() => setIsLoading(false));
     }
   }, [isOpen]);
 
@@ -169,7 +172,7 @@ const FloatingChat = ({ currentUser }) => {
         {/* Drawer Header */}
         <div 
           onClick={() => setIsOpen(!isOpen)}
-          className="px-4 py-3 bg-slate-100 dark:bg-[#1a1a1a] border-b border-slate-200 dark:border-white/10 flex justify-between items-center cursor-pointer rounded-t-xl hover:bg-white/5 transition-colors"
+          className={`px-4 py-3 ${isDark ? "bg-[#1a1a1a] text-white border-white/10" : "bg-white text-slate-900 border-slate-200 shadow-sm"} border-b flex justify-between items-center cursor-pointer rounded-t-xl transition-colors`}
         >
           <div className="flex items-center gap-2">
             <img 
@@ -177,7 +180,7 @@ const FloatingChat = ({ currentUser }) => {
               className="w-7 h-7 rounded-full border border-white/20" 
               alt="me"
             />
-            <span className="font-semibold text-[15px] text-white">Messaging</span>
+            <span className={`font-semibold text-[15px] ${isDark ? "text-white" : "text-slate-900"}`}>Messaging</span>
           </div>
           <div className="flex items-center gap-1 text-gray-400 relative" ref={optionsRef}>
             <button 
@@ -278,7 +281,7 @@ const FloatingChat = ({ currentUser }) => {
                     placeholder="Search messages" 
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full bg-white/5 border border-slate-200 dark:border-white/10 rounded-lg py-1.5 pl-9 pr-3 text-sm text-white focus:outline-none focus:border-[#00F0FF] transition-colors"
+                    className={`w-full ${isDark ? "bg-white/5 text-white border-white/10 placeholder:text-gray-500 focus:border-[#00F0FF]" : "bg-slate-100 text-slate-900 border-slate-200 placeholder:text-slate-400 focus:border-[#0A66C2]"} border rounded-lg py-1.5 pl-9 pr-3 text-sm focus:outline-none transition-colors`}
                   />
                 </div>
                 <div className="flex gap-6 px-1">
@@ -298,7 +301,13 @@ const FloatingChat = ({ currentUser }) => {
               </div>
 
               {/* Conversations & Connections List */}
-              {(() => {
+              {isLoading ? (
+                <div className="flex flex-col p-2">
+                  <ChatListSkeleton />
+                  <ChatListSkeleton />
+                  <ChatListSkeleton />
+                </div>
+              ) : (() => {
                 const query = searchQuery.trim().toLowerCase();
                 
                 // Filter conversations
@@ -383,6 +392,7 @@ const FloatingChat = ({ currentUser }) => {
 
 // Sub-component for individual chat window
 const ChatWindow = ({ chat, messages, onClose, currentUser, socket, onlineUsers, setChatMessages, setConversations }) => {
+  const { isDark } = useTheme();
   const [isMinimized, setIsMinimized] = useState(false);
   const [text, setText] = useState('');
   
@@ -527,7 +537,7 @@ const ChatWindow = ({ chat, messages, onClose, currentUser, socket, onlineUsers,
       {/* Chat Header */}
       <div 
         onClick={() => setIsMinimized(!isMinimized)}
-        className="px-3 py-2 bg-slate-100 dark:bg-[#1a1a1a] text-white border-b border-slate-200 dark:border-white/10 flex justify-between items-center cursor-pointer rounded-t-xl hover:bg-white/5 transition-colors"
+        className={`px-3 py-2 ${isDark ? "bg-[#1a1a1a] text-white border-white/10" : "bg-white text-slate-900 border-slate-200 shadow-sm"} border-b flex justify-between items-center cursor-pointer rounded-t-xl transition-colors`}
       >
         <div className="flex items-center gap-2">
           <div className="relative">
@@ -550,7 +560,7 @@ const ChatWindow = ({ chat, messages, onClose, currentUser, socket, onlineUsers,
 
       {/* Chat Body */}
       {!isMinimized && (
-        <div className="h-[450px] flex flex-col bg-[#050505]">
+        <div className={`h-[450px] flex flex-col ${isDark ? "bg-[#050505]" : "bg-slate-50"}`}>
           <div data-lenis-prevent="true" className="flex-1 overflow-y-auto p-4 custom-scrollbar flex flex-col gap-3 min-h-0">
             {messages.map(msg => {
               const isMe = msg.sender === currentUser?._id || msg.sender?._id === currentUser?._id;
@@ -568,7 +578,7 @@ const ChatWindow = ({ chat, messages, onClose, currentUser, socket, onlineUsers,
                     </div>
                   ) : (
                   <div className={`max-w-[80%] px-3 py-2 rounded-2xl text-[13px] flex flex-col gap-1.5 ${
-                    isMe ? 'bg-slate-100 dark:bg-[#1a1a1a] text-gray-200 border border-slate-200 dark:border-white/10 rounded-br-sm' : 'bg-white/5 text-gray-200 border border-slate-200 dark:border-white/5 rounded-bl-sm'
+                    isMe ? (isDark ? "bg-[#00F0FF] text-black rounded-br-sm font-medium shadow-sm" : "bg-[#0A66C2] text-white rounded-br-sm font-medium shadow-sm") : (isDark ? "bg-[#1a1a1a] text-gray-200 border border-white/10 rounded-bl-sm" : "bg-white text-slate-900 border border-slate-200 rounded-bl-sm shadow-xs")
                   }`}>
                     {msg.attachment && (
                       <div>
@@ -638,7 +648,7 @@ const ChatWindow = ({ chat, messages, onClose, currentUser, socket, onlineUsers,
                 onChange={(e) => setText(e.target.value)}
                 data-lenis-prevent="true"
                 placeholder="Write a message..."
-                className="w-full bg-slate-100 dark:bg-[#1a1a1a] border border-slate-200 dark:border-white/10 rounded-xl px-4 py-3 text-[14px] text-white focus:outline-none focus:border-white/20 resize-none h-[60px] custom-scrollbar"
+                className={`w-full ${isDark ? "bg-[#1a1a1a] text-white border-white/10 placeholder:text-gray-500" : "bg-slate-100 text-slate-900 border-slate-200 placeholder:text-slate-400"} border rounded-xl px-4 py-3 text-[14px] focus:outline-none resize-none h-[60px] custom-scrollbar`}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' && !e.shiftKey) {
                     e.preventDefault();
