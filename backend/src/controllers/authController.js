@@ -808,6 +808,32 @@ const revokeAllSessions = async (req, res) => {
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
+    // Send Session Revocation Security Alert Email
+    try {
+      await sendEmail({
+        to: user.email,
+        subject: 'Security Alert: Active DevHub Sessions Signed Out',
+        html: `
+          <div style="font-family: Arial, sans-serif; background-color: #0A0A0A; color: #FFFFFF; padding: 30px; border-radius: 12px; max-width: 520px; margin: auto; border: 1px solid #222;">
+            <h2 style="color: #00F0FF; margin-top: 0;">Active Sessions Revoked</h2>
+            <p style="color: #CCC; font-size: 14px; line-height: 1.6;">Hello ${user.name},</p>
+            <p style="color: #CCC; font-size: 14px; line-height: 1.6;">
+              A request was made to sign out of all other active browsers and mobile devices on your DevHub account.
+            </p>
+            <div style="background-color: #111116; border: 1px solid #222; border-radius: 8px; padding: 14px; margin: 18px 0; font-size: 12px; color: #AAA;">
+              <div style="margin-bottom: 6px;"><strong style="color: #FFF;">Device:</strong> ${getDeviceString(req)}</div>
+              <div><strong style="color: #FFF;">Time:</strong> ${new Date().toUTCString()}</div>
+            </div>
+            <p style="font-size: 12px; color: #888; line-height: 1.5;">
+              All other active sessions have been cryptographically invalidated.
+            </p>
+          </div>
+        `,
+      });
+    } catch (e) {
+      // ignore network email error in background
+    }
+
     res.status(200).json({
       message: 'All other active device sessions have been revoked successfully.',
       tokenVersion: user.tokenVersion,
@@ -820,6 +846,26 @@ const revokeAllSessions = async (req, res) => {
 };
 
 
+
+
+// Helper to parse device info for security emails
+const getDeviceString = (req) => {
+  const ua = req.headers['user-agent'] || 'Unknown Device';
+  let browser = 'Web Browser';
+  let os = 'Unknown OS';
+  if (ua.includes('Chrome')) browser = 'Google Chrome';
+  else if (ua.includes('Firefox')) browser = 'Mozilla Firefox';
+  else if (ua.includes('Safari') && !ua.includes('Chrome')) browser = 'Apple Safari';
+  else if (ua.includes('Edg')) browser = 'Microsoft Edge';
+
+  if (ua.includes('Windows')) os = 'Windows PC';
+  else if (ua.includes('Macintosh') || ua.includes('Mac OS')) os = 'macOS';
+  else if (ua.includes('Linux')) os = 'Linux';
+  else if (ua.includes('Android')) os = 'Android Phone';
+  else if (ua.includes('iPhone') || ua.includes('iPad')) os = 'iOS Device';
+
+  return `${browser} on ${os}`;
+};
 
 // Helper to mask email (e.g. s***@gmail.com)
 const maskEmail = (email) => {
@@ -976,10 +1022,15 @@ const verifyPasswordOtp = async (req, res) => {
             <h2 style="color: #00F0FF; margin-top: 0;">Password Successfully Updated</h2>
             <p style="color: #CCC; font-size: 14px; line-height: 1.6;">Hello ${user.name},</p>
             <p style="color: #CCC; font-size: 14px; line-height: 1.6;">
-              The password for your DevHub account (${user.email}) was successfully changed on ${new Date().toUTCString()}.
+              The password for your DevHub account (<strong>${user.email}</strong>) was successfully changed.
             </p>
-            <p style="color: #888; font-size: 12px; line-height: 1.5;">
-              All other active sessions on other browsers and devices have been automatically signed out for your protection.
+            <div style="background-color: #111116; border: 1px solid #222; border-radius: 8px; padding: 14px; margin: 18px 0; font-size: 12px; color: #AAA;">
+              <div style="margin-bottom: 6px;"><strong style="color: #FFF;">Device:</strong> ${getDeviceString(req)}</div>
+              <div style="margin-bottom: 6px;"><strong style="color: #FFF;">Time:</strong> ${new Date().toUTCString()}</div>
+              <div><strong style="color: #FFF;">Status:</strong> All other active device sessions signed out</div>
+            </div>
+            <p style="font-size: 12px; color: #888; line-height: 1.5;">
+              If you made this change, no further action is required. If you did <strong>NOT</strong> authorize this change, please recover your account immediately.
             </p>
           </div>
         `,
@@ -1037,6 +1088,67 @@ const resendPasswordOtp = async (req, res) => {
 };
 
 
+
+// @desc    Initiate In-Session Password Reset (Meta/Instagram Style: User is logged in but forgot old password)
+// @route   POST /api/auth/in-session-forgot-password
+// @access  Private
+const inSessionForgotPassword = async (req, res) => {
+  try {
+    const userId = req.user.id || req.user._id;
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const otpExpire = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+
+    user.passwordChangeOtp = otp;
+    user.passwordChangeOtpExpire = otpExpire;
+    await user.save();
+
+    console.log(`[DEVELOPMENT OTP LOG] In-Session Forgot Password OTP for ${user.email} is: ${otp}`);
+
+    // Send Security Reset Code Email
+    try {
+      await sendEmail({
+        to: user.email,
+        subject: `DevHub Security Code: ${otp} (Password Reset Request)`,
+        html: `
+          <div style="font-family: Arial, sans-serif; background-color: #0A0A0A; color: #FFFFFF; padding: 30px; border-radius: 12px; max-width: 520px; margin: auto; border: 1px solid #222;">
+            <div style="text-align: center; margin-bottom: 24px;">
+              <h1 style="color: #00F0FF; font-size: 24px; margin: 0; letter-spacing: -0.5px;">DevHub Security</h1>
+              <p style="color: #888; font-size: 12px; margin-top: 4px;">In-Session Password Reset Verification</p>
+            </div>
+            <p style="font-size: 14px; color: #CCC; line-height: 1.6;">Hello <strong>${user.name}</strong>,</p>
+            <p style="font-size: 14px; color: #CCC; line-height: 1.6;">
+              You requested to reset your password from your active session. Use the 6-digit verification code below to authorize this reset:
+            </p>
+            <div style="background-color: #111116; border: 1px solid #00F0FF; border-radius: 8px; text-align: center; padding: 18px; margin: 24px 0;">
+              <span style="font-size: 32px; font-weight: bold; letter-spacing: 6px; color: #00F0FF; font-family: monospace;">${otp}</span>
+            </div>
+            <p style="font-size: 12px; color: #888; line-height: 1.5;">
+              This code is valid for <strong>10 minutes</strong>. If you did not make this request, someone may be tampering with your active session.
+            </p>
+          </div>
+        `,
+      });
+    } catch (e) {
+      console.warn('Could not dispatch in-session forgot email, relying on console:', e.message);
+    }
+
+    res.status(200).json({
+      success: true,
+      message: `Reset verification code sent to ${maskEmail(user.email)}`,
+      emailMasked: maskEmail(user.email),
+    });
+  } catch (error) {
+    console.error('Error in inSessionForgotPassword:', error);
+    res.status(500).json({ message: 'Failed to dispatch reset code: ' + error.message });
+  }
+};
+
+
 module.exports = {
   registerUser,
   loginUser,
@@ -1053,6 +1165,7 @@ module.exports = {
   requestPasswordOtp,
   verifyPasswordOtp,
   resendPasswordOtp,
+  inSessionForgotPassword,
   getSecurityForensics,
   revokeAllSessions,
 };

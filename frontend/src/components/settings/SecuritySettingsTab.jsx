@@ -13,7 +13,8 @@ import {
   Info,
   Trash2,
   MailCheck,
-  RotateCw
+  RotateCw,
+  HelpCircle
 } from 'lucide-react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
@@ -27,6 +28,7 @@ const SecuritySettingsTab = () => {
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [logoutOtherDevices, setLogoutOtherDevices] = useState(true);
   const [isRequestingOtp, setIsRequestingOtp] = useState(false);
 
   // Show/Hide Password Visibility Toggles
@@ -41,6 +43,7 @@ const SecuritySettingsTab = () => {
   const [isVerifyingOtp, setIsVerifyingOtp] = useState(false);
   const [resendCountdown, setResendCountdown] = useState(60);
   const [isResending, setIsResending] = useState(false);
+  const [isInSessionForgotMode, setIsInSessionForgotMode] = useState(false);
 
   // Session & Account Modals
   const [isRevokeModalOpen, setIsRevokeModalOpen] = useState(false);
@@ -110,7 +113,7 @@ const SecuritySettingsTab = () => {
   const handlePasswordFormSubmit = async (e) => {
     e.preventDefault();
 
-    if (forensics?.hasPasswordSet && !currentPassword) {
+    if (forensics?.hasPasswordSet && !currentPassword && !isInSessionForgotMode) {
       toast.error('Please enter your current password');
       return;
     }
@@ -129,16 +132,38 @@ const SecuritySettingsTab = () => {
     try {
       const { data } = await axios.post(
         `${import.meta.env.VITE_API_URL}/api/auth/request-password-otp`,
-        { currentPassword, newPassword },
+        { currentPassword, newPassword, logoutOtherDevices },
         { withCredentials: true }
       );
       setMaskedEmail(data.emailMasked || 'your email');
       setIsOtpModalOpen(true);
       setResendCountdown(60);
       setOtp('');
-      toast.success(data.message || 'Security code sent to your email!');
+      toast.success(data.message || 'Security verification code sent to your email!');
     } catch (err) {
       toast.error(err.response?.data?.message || 'Failed to request security verification code');
+    } finally {
+      setIsRequestingOtp(false);
+    }
+  };
+
+  // 1-Click "Forgot Current Password?" In-Session Reset (Instagram Style)
+  const handleInSessionForgotPassword = async () => {
+    setIsRequestingOtp(true);
+    try {
+      const { data } = await axios.post(
+        `${import.meta.env.VITE_API_URL}/api/auth/in-session-forgot-password`,
+        {},
+        { withCredentials: true }
+      );
+      setMaskedEmail(data.emailMasked || 'your email');
+      setIsInSessionForgotMode(true);
+      setIsOtpModalOpen(true);
+      setResendCountdown(60);
+      setOtp('');
+      toast.success('Password reset code sent to your registered email!');
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to dispatch reset code');
     } finally {
       setIsRequestingOtp(false);
     }
@@ -161,6 +186,7 @@ const SecuritySettingsTab = () => {
       );
       toast.success(data.message || 'Password updated successfully!');
       setIsOtpModalOpen(false);
+      setIsInSessionForgotMode(false);
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
@@ -178,11 +204,11 @@ const SecuritySettingsTab = () => {
     if (resendCountdown > 0 || isResending) return;
     setIsResending(true);
     try {
-      const { data } = await axios.post(
-        `${import.meta.env.VITE_API_URL}/api/auth/resend-password-otp`,
-        {},
-        { withCredentials: true }
-      );
+      const endpoint = isInSessionForgotMode
+        ? `${import.meta.env.VITE_API_URL}/api/auth/in-session-forgot-password`
+        : `${import.meta.env.VITE_API_URL}/api/auth/resend-password-otp`;
+
+      const { data } = await axios.post(endpoint, {}, { withCredentials: true });
       toast.success(data.message || 'New verification code sent!');
       setResendCountdown(60);
       setOtp('');
@@ -231,16 +257,16 @@ const SecuritySettingsTab = () => {
             <span>Change Password</span>
           </div>
           <span className="text-[10px] text-gray-500 font-mono">
-            Requires Email OTP Verification
+            Email Verification Challenge
           </span>
         </div>
 
-        {forensics && !forensics.hasPasswordSet && (
+        {forensics && forensics.isOAuthUser && (
           <div className="p-4 rounded-xl bg-cyan-950/20 border border-cyan-500/20 flex items-start gap-3 text-xs text-gray-300 leading-relaxed">
             <Info size={16} className="text-[#00F0FF] flex-shrink-0 mt-0.5" />
             <div>
               <span className="font-bold text-white block mb-0.5">Google / GitHub Account</span>
-              You signed up using social login. You can set a password below to log in directly with your email and password.
+              You signed in with social login. You can set a dedicated password below. A 6-digit verification code will be sent to your email to confirm.
             </div>
           </div>
         )}
@@ -248,7 +274,16 @@ const SecuritySettingsTab = () => {
         <form onSubmit={handlePasswordFormSubmit} className="space-y-4 max-w-lg">
           {forensics?.hasPasswordSet && (
             <div className="space-y-1.5">
-              <label className="text-xs font-medium text-gray-300">Current Password</label>
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-medium text-gray-300">Current Password</label>
+                <button
+                  type="button"
+                  onClick={handleInSessionForgotPassword}
+                  className="text-[11px] text-[#00F0FF] hover:underline cursor-pointer font-medium"
+                >
+                  Forgot your password?
+                </button>
+              </div>
               <div className="relative">
                 <input
                   type={showCurrent ? 'text' : 'password'}
@@ -256,7 +291,7 @@ const SecuritySettingsTab = () => {
                   onChange={(e) => setCurrentPassword(e.target.value)}
                   className="w-full bg-[#050508] border border-white/10 rounded-xl py-2.5 pl-3.5 pr-10 text-xs text-white focus:border-[#00F0FF]/50 outline-none transition-colors"
                   placeholder="Enter your current password"
-                  required
+                  required={!isInSessionForgotMode}
                 />
                 <button
                   type="button"
@@ -353,6 +388,19 @@ const SecuritySettingsTab = () => {
             )}
           </div>
 
+          {/* Instagram/Meta Style Checkbox */}
+          <div className="pt-2">
+            <label className="flex items-center gap-2 text-xs text-gray-300 cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={logoutOtherDevices}
+                onChange={(e) => setLogoutOtherDevices(e.target.checked)}
+                className="w-4 h-4 rounded border-white/20 bg-[#050508] text-[#00F0FF] focus:ring-0 cursor-pointer"
+              />
+              <span>Sign out of all other browsers and mobile devices after updating</span>
+            </label>
+          </div>
+
           <div className="pt-2">
             <button
               type="submit"
@@ -421,7 +469,10 @@ const SecuritySettingsTab = () => {
           <div className="bg-[#111] border border-white/10 rounded-2xl max-w-md w-full p-6 sm:p-7 space-y-6 shadow-2xl relative">
             {/* Close Button */}
             <button
-              onClick={() => setIsOtpModalOpen(false)}
+              onClick={() => {
+                setIsOtpModalOpen(false);
+                setIsInSessionForgotMode(false);
+              }}
               className="absolute top-4 right-4 text-gray-500 hover:text-white transition-colors cursor-pointer"
             >
               <X size={18} />
@@ -432,9 +483,11 @@ const SecuritySettingsTab = () => {
               <div className="w-12 h-12 rounded-2xl bg-[#00F0FF]/10 text-[#00F0FF] border border-[#00F0FF]/20 flex items-center justify-center mx-auto">
                 <MailCheck size={24} />
               </div>
-              <h3 className="text-base font-bold text-white tracking-tight">Security Verification</h3>
+              <h3 className="text-base font-bold text-white tracking-tight">
+                {isInSessionForgotMode ? 'Password Reset Verification' : 'Security Verification'}
+              </h3>
               <p className="text-xs text-gray-400 leading-relaxed">
-                We sent a 6-digit verification code to <strong className="text-white">{maskedEmail}</strong>. Enter it below to authorize this password change.
+                We sent a 6-digit verification code to <strong className="text-white">{maskedEmail}</strong>. Enter it below to authorize this change.
               </p>
             </div>
 
@@ -479,7 +532,10 @@ const SecuritySettingsTab = () => {
               <div className="flex items-center justify-end gap-3 pt-2">
                 <button
                   type="button"
-                  onClick={() => setIsOtpModalOpen(false)}
+                  onClick={() => {
+                    setIsOtpModalOpen(false);
+                    setIsInSessionForgotMode(false);
+                  }}
                   className="px-4 py-2 bg-white/5 hover:bg-white/10 text-gray-300 rounded-xl border border-white/10 text-xs font-medium transition-colors cursor-pointer"
                 >
                   Cancel
