@@ -1882,10 +1882,10 @@ const MessagesPage = () => {
                   animate={{ width: window.innerWidth < 1024 ? '100%' : 340, opacity: 1 }}
                   exit={{ width: 0, opacity: 0 }}
                   transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-                  className="w-full lg:w-[340px] flex-shrink-0 bg-[#0e0e11] flex flex-col overflow-y-auto custom-scrollbar shadow-[-4px_0_24px_rgba(0,0,0,0.3)] z-20"
+                  className={`w-full lg:w-[340px] flex-shrink-0 ${isDark ? "bg-[#0e0e11] border-l border-white/5 shadow-[-4px_0_24px_rgba(0,0,0,0.3)]" : "bg-white border-l border-slate-200 shadow-sm"} flex flex-col overflow-y-auto custom-scrollbar z-20`}
                 >
                   {/* Header */}
-                  <div className="h-[73px] flex items-center px-6 sticky top-0 bg-[#0e0e11]/90 backdrop-blur-md z-10 gap-3 shadow-[0_4px_30px_rgba(0,0,0,0.15)]">
+                  <div className={`h-[73px] flex items-center px-6 sticky top-0 ${isDark ? "bg-[#0e0e11]/90 border-b border-white/5" : "bg-white border-b border-slate-200"} backdrop-blur-md z-10 gap-3`}>
                     <button onClick={() => setShowChatDetails(false)} className="p-2 -ml-2 text-gray-400 hover:text-white rounded-lg transition-colors">
                       <X size={20} />
                     </button>
@@ -1900,7 +1900,7 @@ const MessagesPage = () => {
                       className="w-32 h-32 rounded-full object-cover border-4 border-[#111] shadow-2xl mb-4 cursor-zoom-in"
                       onClick={() => selectedChat.avatar?.url && setPreviewFile({ url: selectedChat.avatar.url, name: `${selectedChat.name}'s Profile Picture.jpg`, type: 'image' })}
                     />
-                    <h3 className="text-xl font-bold text-white text-center">{selectedChat.name}</h3>
+                    <h3 className={`text-xl font-bold ${isDark ? "text-white" : "text-slate-900"} text-center`}>{selectedChat.name}</h3>
                     {selectedChat.email && (
                       <p className="text-gray-400 text-sm mt-1">{selectedChat.email}</p>
                     )}
@@ -1912,7 +1912,7 @@ const MessagesPage = () => {
                     <a
                       href={`/profile/${selectedChat._id}`}
                       target="_blank" rel="noopener noreferrer"
-                      className="mt-5 w-full py-2.5 bg-white/5 hover:bg-white/10 border border-slate-200 dark:border-white/10 rounded-xl text-white text-sm font-semibold flex justify-center items-center gap-2 transition-colors"
+                      className={`mt-5 w-full py-2.5 ${isDark ? "bg-white/5 hover:bg-white/10 text-white border-white/10" : "bg-slate-100 hover:bg-slate-200 text-slate-900 border-slate-300 shadow-xs"} border rounded-xl text-sm font-semibold flex justify-center items-center gap-2 transition-colors`}
                     >
                       <Info size={16} /> View Profile
                     </a>
@@ -1975,133 +1975,146 @@ const MessagesPage = () => {
       </div>
     </div>
 
-    {/* Slack-style Unified File/Media Preview Modal */}
+    {/* Discord-Style Immersive Media Lightbox */}
     <AnimatePresence>
       {previewFile && (
-        <div className="fixed inset-0 z-[999] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.95 }}
-            className={`w-full max-w-5xl h-[85vh] ${isDark ? "bg-[#0c0c0c] border-white/10" : "bg-white border-slate-200 shadow-2xl"} border rounded-2xl flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200`}
-          >
-            {/* Header */}
-            <div className={`px-6 py-4 border-b ${isDark ? "bg-[#111] border-white/5" : "bg-slate-50 border-slate-200"} flex justify-between items-center`}>
-              <div className="min-w-0 flex-1 flex items-center gap-3">
-                <FileText className="text-[#00F0FF] flex-shrink-0" size={20} />
-                <h3 className={`text-sm font-semibold truncate max-w-[50vw] ${isDark ? "text-white" : "text-slate-900"}`}>{previewFile.name}</h3>
-              </div>
-              <div className="flex items-center gap-3">
-                <button
-                  type="button"
-                  onClick={() => handleDownloadFile(previewFile.url, previewFile.name)}
-                  className={`px-4 py-2 text-xs font-semibold rounded-xl border flex items-center gap-1.5 transition-colors ${isDark ? "bg-white/5 hover:bg-white/10 text-white border-white/10" : "bg-[#0A66C2] hover:bg-[#004182] text-white border-[#0A66C2] shadow-sm"}`}
-                >
-                  <Download size={14} /> Download
-                </button>
-                <button 
-                  type="button"
-                  onClick={() => setPreviewFile(null)}
-                  className={`p-2 rounded-lg transition-colors ${isDark ? "text-gray-400 hover:text-white hover:bg-white/5" : "text-slate-500 hover:text-slate-900 hover:bg-slate-200"}`}
-                >
-                  <X size={20} />
-                </button>
-              </div>
-            </div>
+        <motion.div 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          onClick={() => setPreviewFile(null)}
+          className="fixed inset-0 z-[9999] flex flex-col items-center justify-center p-4 sm:p-6 bg-black/90 backdrop-blur-md"
+        >
+          {/* Top Bar (Discord Style Close + Title) */}
+          <div className="absolute top-4 right-4 z-20 flex items-center gap-3" onClick={(e) => e.stopPropagation()}>
+            <button
+              type="button"
+              onClick={() => handleDownloadFile(previewFile.url, previewFile.name)}
+              className="bg-white/10 hover:bg-white/20 text-white rounded-full p-2.5 transition-colors border border-white/10 shadow-lg cursor-pointer"
+              title="Download File"
+            >
+              <Download size={18} />
+            </button>
+            <button 
+              type="button"
+              onClick={() => setPreviewFile(null)}
+              className="bg-white/10 hover:bg-white/20 text-white rounded-full p-2.5 transition-colors border border-white/10 shadow-lg cursor-pointer"
+              title="Close Preview (Esc)"
+            >
+              <X size={18} />
+            </button>
+          </div>
 
-            {/* Content Area */}
-            <div className={`flex-1 ${isDark ? "bg-[#050505]" : "bg-slate-100/70"} p-6 flex items-center justify-center overflow-hidden relative`}>
-              {(() => {
-                const ext = getFileExtension(previewFile.name);
-                
-                // 1. Image formats
-                if (previewFile.type === 'image' || ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'].includes(ext)) {
-                  return (
+          {/* Media Content Container */}
+          <motion.div
+            initial={{ scale: 0.92, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.92, opacity: 0 }}
+            transition={{ type: "spring", stiffness: 300, damping: 25 }}
+            onClick={(e) => e.stopPropagation()}
+            className="relative max-w-full max-h-[85vh] flex flex-col items-center justify-center"
+          >
+            {(() => {
+              const ext = getFileExtension(previewFile.name);
+              
+              // 1. Image formats (Discord Pure Fullscreen Lightbox)
+              if (previewFile.type === 'image' || ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'].includes(ext)) {
+                return (
+                  <div className="flex flex-col items-center gap-3">
                     <img 
                       src={previewFile.url} 
                       alt={previewFile.name} 
-                      className="max-w-full max-h-[70vh] rounded-xl object-contain shadow-2xl border border-slate-200 dark:border-white/5"
+                      className="max-w-full max-h-[80vh] rounded-2xl object-contain shadow-2xl border border-white/10"
                     />
-                  );
-                }
+                    {/* Discord Floating Info Pill */}
+                    <div className="flex items-center gap-3 px-4 py-2 bg-black/60 backdrop-blur-md rounded-full border border-white/10 text-xs text-gray-300 shadow-xl">
+                      <span className="font-medium truncate max-w-[200px] sm:max-w-xs">{previewFile.name}</span>
+                      <span className="text-gray-500">•</span>
+                      <a 
+                        href={previewFile.url} 
+                        target="_blank" 
+                        rel="noopener noreferrer" 
+                        className="text-[#00F0FF] hover:underline font-semibold flex items-center gap-1"
+                      >
+                        Open original <Link2 size={12} />
+                      </a>
+                    </div>
+                  </div>
+                );
+              }
 
-                // 2. Video formats
-                if (previewFile.type === 'video' || ['mp4', 'webm', 'ogg', 'mov'].includes(ext)) {
-                  return (
+              // 2. Video formats
+              if (previewFile.type === 'video' || ['mp4', 'webm', 'ogg', 'mov'].includes(ext)) {
+                return (
+                  <div className="flex flex-col items-center gap-3">
                     <video 
                       src={previewFile.url} 
                       controls 
-                      className="max-w-full max-h-[70vh] rounded-xl object-contain border border-slate-200 dark:border-white/5"
+                      autoPlay
+                      className="max-w-full max-h-[80vh] rounded-2xl object-contain shadow-2xl border border-white/10"
                     />
-                  );
-                }
-
-                // 3. Audio formats
-                if (previewFile.type === 'audio' || ['mp3', 'wav', 'ogg', 'm4a'].includes(ext)) {
-                  return (
-                    <div className="bg-white dark:bg-[#111] p-6 rounded-2xl border border-slate-200 dark:border-white/5 w-full max-w-md flex flex-col items-center gap-4 text-center">
-                      <div className="p-4 bg-[#00F0FF]/10 rounded-full border border-[#00F0FF]/20">
-                        <FileText className="text-[#00F0FF]" size={36} />
-                      </div>
-                      <span className="text-sm text-slate-800 dark:text-gray-200 font-semibold truncate w-full">{previewFile.name}</span>
-                      <audio src={previewFile.url} controls className="w-full mt-2 accent-[#00F0FF]" />
+                    <div className="flex items-center gap-3 px-4 py-2 bg-black/60 backdrop-blur-md rounded-full border border-white/10 text-xs text-gray-300 shadow-xl">
+                      <span className="font-medium truncate max-w-xs">{previewFile.name}</span>
                     </div>
-                  );
-                }
-
-                // 4. PDFs and MS Office files (Word, Excel, PowerPoint)
-                if (['pdf', 'docx', 'doc', 'xlsx', 'xls', 'pptx', 'ppt'].includes(ext)) {
-                  const secureUrl = previewFile.url.replace('http://', 'https://');
-                  const viewerUrl = `https://docs.google.com/gview?url=${encodeURIComponent(secureUrl)}&embedded=true`;
-                  return (
-                    <iframe 
-                      src={viewerUrl} 
-                      className="w-full h-full rounded-xl border border-slate-200 dark:border-white/5 bg-white dark:bg-[#111]" 
-                      title="Document Preview"
-                    />
-                  );
-                }
-
-                // 6. Text Files
-                const textExtensions = ['txt', 'json', 'md', 'js', 'css', 'html', 'xml'];
-                if (textExtensions.includes(ext)) {
-                  return isLoadingTextPreview ? (
-                    <div className="flex flex-col items-center gap-3">
-                      <Loader2 size={36} className="animate-spin text-[#00F0FF]" />
-                      <span className="text-xs text-gray-500">Fetching preview content...</span>
-                    </div>
-                  ) : (
-                    <pre className="w-full h-full p-6 overflow-auto bg-[#050505] border border-slate-200 dark:border-white/5 rounded-xl text-slate-700 dark:text-gray-300 font-mono text-sm whitespace-pre-wrap text-left custom-scrollbar">
-                      {textPreviewContent}
-                    </pre>
-                  );
-                }
-
-                // 7. Fallback: No preview available
-                return (
-                  <div className="bg-white dark:bg-[#111] p-8 rounded-2xl border border-slate-200 dark:border-white/5 w-full max-w-md flex flex-col items-center gap-5 text-center shadow-2xl">
-                    <div className="p-5 bg-white/5 rounded-full border border-slate-200 dark:border-white/10">
-                      <FileText className="text-gray-400" size={40} />
-                    </div>
-                    <div className="flex flex-col gap-1.5 w-full">
-                      <span className="text-sm font-bold text-white truncate px-2">{previewFile.name}</span>
-                      <span className="text-xs text-gray-500 uppercase tracking-wider font-semibold">{ext || 'unknown'} file</span>
-                    </div>
-                    <p className="text-xs text-gray-400 max-w-[280px]">
-                      This file format cannot be previewed directly in the browser. Please download the file to view its contents.
-                    </p>
-                    <button
-                      onClick={() => handleDownloadFile(previewFile.url, previewFile.name)}
-                      className="w-full py-2.5 bg-[#00F0FF] hover:bg-[#00D0DF] text-black font-bold rounded-xl text-xs flex items-center justify-center gap-2 transition-all shadow-[0_0_15px_rgba(0,240,255,0.25)]"
-                    >
-                      <Download size={14} /> Download File
-                    </button>
                   </div>
                 );
-              })()}
-            </div>
+              }
+
+              // 3. Audio formats
+              if (previewFile.type === 'audio' || ['mp3', 'wav', 'ogg', 'm4a'].includes(ext)) {
+                return (
+                  <div className="bg-[#111] p-8 rounded-3xl border border-white/10 w-full max-w-md flex flex-col items-center gap-4 text-center shadow-2xl">
+                    <div className="p-4 bg-[#00F0FF]/10 rounded-full border border-[#00F0FF]/20 text-[#00F0FF]">
+                      <FileText size={40} />
+                    </div>
+                    <span className="text-sm text-white font-semibold truncate w-full">{previewFile.name}</span>
+                    <audio src={previewFile.url} controls autoPlay className="w-full mt-2 accent-[#00F0FF]" />
+                  </div>
+                );
+              }
+
+              // 4. PDFs and Documents
+              if (['pdf', 'docx', 'doc', 'xlsx', 'xls', 'pptx', 'ppt'].includes(ext)) {
+                const secureUrl = previewFile.url.replace('http://', 'https://');
+                const viewerUrl = `https://docs.google.com/gview?url=${encodeURIComponent(secureUrl)}&embedded=true`;
+                return (
+                  <div className="w-[90vw] max-w-5xl h-[80vh] rounded-2xl overflow-hidden shadow-2xl border border-white/10 flex flex-col bg-[#111]">
+                    <div className="px-5 py-3 bg-[#181820] border-b border-white/10 flex items-center justify-between">
+                      <span className="text-white text-xs font-semibold truncate">{previewFile.name}</span>
+                      <a href={previewFile.url} target="_blank" rel="noopener noreferrer" className="text-xs text-[#00F0FF] hover:underline flex items-center gap-1">
+                        Open <Link2 size={12} />
+                      </a>
+                    </div>
+                    <iframe 
+                      src={viewerUrl} 
+                      className="w-full flex-1 bg-white" 
+                      title="Document Preview"
+                    />
+                  </div>
+                );
+              }
+
+              // 5. Fallback File card
+              return (
+                <div className="bg-[#111] p-8 rounded-3xl border border-white/10 w-full max-w-md flex flex-col items-center gap-5 text-center shadow-2xl">
+                  <div className="p-5 bg-white/5 rounded-full border border-white/10 text-gray-400">
+                    <FileText size={44} />
+                  </div>
+                  <div className="flex flex-col gap-1 w-full">
+                    <span className="text-base font-bold text-white truncate">{previewFile.name}</span>
+                    <span className="text-xs text-gray-500 uppercase tracking-wider font-semibold">{ext || 'file'}</span>
+                  </div>
+                  <button
+                    onClick={() => handleDownloadFile(previewFile.url, previewFile.name)}
+                    className="w-full py-3 bg-[#00F0FF] hover:bg-[#00D0DF] text-black font-bold rounded-xl text-xs flex items-center justify-center gap-2 transition-all shadow-[0_0_20px_rgba(0,240,255,0.25)]"
+                  >
+                    <Download size={16} /> Download File
+                  </button>
+                </div>
+              );
+            })()}
           </motion.div>
-        </div>
+        </motion.div>
       )}
     </AnimatePresence>
 
