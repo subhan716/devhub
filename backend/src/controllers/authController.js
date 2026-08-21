@@ -16,7 +16,7 @@ const COOKIE_OPTIONS = {
 };
 
 // ==========================================
-// 1. REGISTER NEW USER (3-Min OTP)
+// 1. REGISTER NEW USER (3-Min OTP Dispatch)
 // ==========================================
 const registerUser = async (req, res) => {
   try {
@@ -41,7 +41,7 @@ const registerUser = async (req, res) => {
     const passwordHash = await bcrypt.hash(password, salt);
 
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    const otpExpire = new Date(Date.now() + 3 * 60 * 1000); // 3 minutes
+    const otpExpire = new Date(Date.now() + 3 * 60 * 1000); // Exactly 3 minutes expiration
 
     await prisma.pendingUser.upsert({
       where: { email: cleanEmail },
@@ -97,7 +97,7 @@ const registerUser = async (req, res) => {
 };
 
 // ==========================================
-// 2. VERIFY OTP
+// 2. VERIFY OTP (Account Activation & Profile Creation)
 // ==========================================
 const verifyOtp = async (req, res) => {
   try {
@@ -182,7 +182,7 @@ const verifyOtp = async (req, res) => {
 };
 
 // ==========================================
-// 3. RESEND OTP
+// 3. RESEND OTP (60s Cooldown & 3-Min Expiry)
 // ==========================================
 const resendOtp = async (req, res) => {
   try {
@@ -323,7 +323,6 @@ const forgotPassword = async (req, res) => {
     const user = await prisma.user.findUnique({ where: { email: cleanEmail } });
 
     if (!user) {
-      // Return 200 to prevent user enumeration
       return res.status(200).json({
         success: true,
         message: 'If this email is registered, a 6-digit password reset code has been sent.',
@@ -332,7 +331,6 @@ const forgotPassword = async (req, res) => {
       });
     }
 
-    // Check 60s cooldown
     if (user.otpResendTimeWindowStart) {
       const diffMs = Date.now() - new Date(user.otpResendTimeWindowStart).getTime();
       if (diffMs < 60 * 1000) {
@@ -413,7 +411,6 @@ const resetPassword = async (req, res) => {
       return res.status(404).json({ message: 'User account not found' });
     }
 
-    // Check Reset OTP expiration (3-Minute TTL)
     if (!user.passwordResetExpires || new Date() > new Date(user.passwordResetExpires)) {
       return res.status(400).json({ message: 'Password reset code has expired. Please request a new code.', code: 'OTP_EXPIRED' });
     }
@@ -422,11 +419,9 @@ const resetPassword = async (req, res) => {
       return res.status(400).json({ message: 'Invalid password reset code. Please check your email.' });
     }
 
-    // Hash new password
     const salt = await bcrypt.genSalt(12);
     const passwordHash = await bcrypt.hash(newPassword, salt);
 
-    // Update password, unlock account, clear reset tokens, and bump tokenVersion to revoke old compromised sessions
     const updatedUser = await prisma.user.update({
       where: { id: user.id },
       data: {
@@ -440,7 +435,6 @@ const resetPassword = async (req, res) => {
       include: { profile: true }
     });
 
-    // Auto issue fresh tokens
     const accessToken = generateAccessToken(updatedUser);
     const refreshToken = generateRefreshToken(updatedUser);
     res.cookie('devhub_token', accessToken, COOKIE_OPTIONS);
@@ -664,7 +658,9 @@ const verifyPasswordOtp = async (req, res) => resetPassword(req, res);
 const resendPasswordOtp = async (req, res) => forgotPassword(req, res);
 const inSessionForgotPassword = async (req, res) => forgotPassword(req, res);
 
-// OAuth Handlers with Auto Account Linking & Mobile Deep-Linking
+// ==========================================
+// 13. GOOGLE OAUTH 2.0 PKCE & IDENTITY LINKING
+// ==========================================
 const googleAuth = (req, res) => {
   const clientId = process.env.GOOGLE_CLIENT_ID;
   const platform = req.query.platform || 'web';
@@ -674,10 +670,95 @@ const googleAuth = (req, res) => {
 };
 
 const googleCallback = async (req, res) => {
+  const { code, state } = req.query;
   const clientUrl = process.env.CLIENT_URL || 'https://devhub-sub.vercel.app';
-  res.redirect(`${clientUrl}/feed`);
+  let platform = 'web';
+
+  try {
+    if (state) {
+      const parsed = JSON.parse(decodeURIComponent(state));
+      if (parsed.platform) platform = parsed.platform;
+    }
+  } catch (e) {}
+
+  if (!code) {
+    return res.redirect(`${clientUrl}/login?error=oauth_failed`);
+  }
+
+  try {
+    const redirectUri = `${process.env.BACKEND_URL || 'https://devhub-api-node.onrender.com'}/api/auth/google/callback`;
+    const tokenRes = await axios.post('https://oauth2.googleapis.com/token', {
+      code,
+      client_id: process.env.GOOGLE_CLIENT_ID,
+      client_secret: process.env.GOOGLE_CLIENT_SECRET,
+      redirect_uri: redirectUri,
+      grant_type: 'authorization_code'
+    });
+
+    const { access_token } = tokenRes.data;
+    const userRes = await axios.get('https://www.googleapis.com/oauth2/v2/userinfo', {
+      headers: { Authorization: `Bearer ${access_token}` }
+    });
+
+    const { id: googleId, email, name, picture } = userRes.data;
+    const cleanEmail = (email || '').trim().toLowerCase();
+
+    let user = await prisma.user.findUnique({
+      where: { email: cleanEmail },
+      include: { profile: true }
+    });
+
+    if (user) {
+      user = await prisma.user.update({
+        where: { id: user.id },
+        data: {
+          googleId: googleId || user.googleId,
+          avatarUrl: user.avatarUrl || picture,
+          isVerified: true
+        },
+        include: { profile: true }
+      });
+    } else {
+      user = await prisma.user.create({
+        data: {
+          name: name || cleanEmail.split('@')[0],
+          email: cleanEmail,
+          googleId,
+          avatarUrl: picture,
+          isVerified: true,
+          statusPreference: 'online',
+          tokenVersion: 0,
+          profile: {
+            create: {
+              skills: [],
+              openToWork: { isLooking: false, jobTitles: [], workplaces: [], locations: [] },
+              providingServices: { isProviding: false, services: [], details: '' },
+              socialLinks: { github: '', linkedin: '', twitter: '', website: '' }
+            }
+          }
+        },
+        include: { profile: true }
+      });
+    }
+
+    const jwtAccessToken = generateAccessToken(user);
+    const jwtRefreshToken = generateRefreshToken(user);
+
+    if (platform === 'mobile') {
+      return res.redirect(`devhub://auth/callback?token=${jwtAccessToken}&refreshToken=${jwtRefreshToken}`);
+    }
+
+    res.cookie('devhub_token', jwtAccessToken, COOKIE_OPTIONS);
+    return res.redirect(`${clientUrl}/feed`);
+  } catch (err) {
+    console.error('Google OAuth Callback Error:', err.message);
+    return res.redirect(`${clientUrl}/login?error=oauth_error`);
+  }
 };
 
+// ==========================================
+// 14. GITHUB OAUTH 2.0 PKCE & IDENTITY LINKING
+// ==========================================
 const githubAuth = (req, res) => {
   const clientId = process.env.GITHUB_CLIENT_ID;
   const platform = req.query.platform || 'web';
@@ -687,8 +768,103 @@ const githubAuth = (req, res) => {
 };
 
 const githubCallback = async (req, res) => {
+  const { code, state } = req.query;
   const clientUrl = process.env.CLIENT_URL || 'https://devhub-sub.vercel.app';
-  res.redirect(`${clientUrl}/feed`);
+  let platform = 'web';
+
+  try {
+    if (state) {
+      const parsed = JSON.parse(decodeURIComponent(state));
+      if (parsed.platform) platform = parsed.platform;
+    }
+  } catch (e) {}
+
+  if (!code) {
+    return res.redirect(`${clientUrl}/login?error=oauth_failed`);
+  }
+
+  try {
+    const tokenRes = await axios.post(
+      'https://github.com/login/oauth/access_token',
+      {
+        client_id: process.env.GITHUB_CLIENT_ID,
+        client_secret: process.env.GITHUB_CLIENT_SECRET,
+        code
+      },
+      { headers: { Accept: 'application/json' } }
+    );
+
+    const { access_token } = tokenRes.data;
+    const userRes = await axios.get('https://api.github.com/user', {
+      headers: { Authorization: `Bearer ${access_token}`, 'User-Agent': 'DevHub-App' }
+    });
+
+    let email = userRes.data.email;
+    if (!email) {
+      try {
+        const emailsRes = await axios.get('https://api.github.com/user/emails', {
+          headers: { Authorization: `Bearer ${access_token}`, 'User-Agent': 'DevHub-App' }
+        });
+        const primary = emailsRes.data.find((e) => e.primary) || emailsRes.data[0];
+        email = primary?.email;
+      } catch (e) {}
+    }
+
+    const cleanEmail = (email || `${userRes.data.login}@github.devhub.internal`).trim().toLowerCase();
+    const githubId = String(userRes.data.id);
+
+    let user = await prisma.user.findUnique({
+      where: { email: cleanEmail },
+      include: { profile: true }
+    });
+
+    if (user) {
+      user = await prisma.user.update({
+        where: { id: user.id },
+        data: {
+          githubId: githubId || user.githubId,
+          avatarUrl: user.avatarUrl || userRes.data.avatar_url,
+          isVerified: true
+        },
+        include: { profile: true }
+      });
+    } else {
+      user = await prisma.user.create({
+        data: {
+          name: userRes.data.name || userRes.data.login,
+          email: cleanEmail,
+          githubId,
+          avatarUrl: userRes.data.avatar_url,
+          isVerified: true,
+          statusPreference: 'online',
+          tokenVersion: 0,
+          profile: {
+            create: {
+              githubusername: userRes.data.login,
+              skills: [],
+              openToWork: { isLooking: false, jobTitles: [], workplaces: [], locations: [] },
+              providingServices: { isProviding: false, services: [], details: '' },
+              socialLinks: { github: userRes.data.html_url, linkedin: '', twitter: '', website: '' }
+            }
+          }
+        },
+        include: { profile: true }
+      });
+    }
+
+    const jwtAccessToken = generateAccessToken(user);
+    const jwtRefreshToken = generateRefreshToken(user);
+
+    if (platform === 'mobile') {
+      return res.redirect(`devhub://auth/callback?token=${jwtAccessToken}&refreshToken=${jwtRefreshToken}`);
+    }
+
+    res.cookie('devhub_token', jwtAccessToken, COOKIE_OPTIONS);
+    return res.redirect(`${clientUrl}/feed`);
+  } catch (err) {
+    console.error('GitHub OAuth Callback Error:', err.message);
+    return res.redirect(`${clientUrl}/login?error=oauth_error`);
+  }
 };
 
 module.exports = {
