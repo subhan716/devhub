@@ -63,8 +63,8 @@ const SearchPage = () => {
       
       {/* Search Header */}
       <div className="bg-white dark:bg-[#111] border border-slate-200 dark:border-white/5 rounded-2xl p-6 shadow-lg">
-        <h1 className="text-2xl font-bold text-white flex items-center gap-3">
-          <SearchIcon className="text-[#00F0FF]" />
+        <h1 className="text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-3">
+          <SearchIcon className="text-[#0A66C2] dark:text-[#00F0FF]" />
           Search Results for "{searchQuery}"
         </h1>
         
@@ -76,19 +76,19 @@ const SearchPage = () => {
               onClick={() => setActiveTab(tab.id)}
               className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-medium transition-all whitespace-nowrap ${
                 activeTab === tab.id 
-                  ? 'bg-white/10 text-white shadow-md border border-slate-200 dark:border-white/10' 
-                  : 'text-gray-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5'
+                  ? 'bg-[#0A66C2] text-white dark:bg-white/10 dark:text-white shadow-sm border border-transparent dark:border-white/10 font-bold' 
+                  : 'text-slate-600 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5 border border-transparent'
               }`}
             >
               {tab.icon}
               {tab.label}
               {tab.id === 'people' && profiles.length > 0 && (
-                <span className="ml-2 bg-[#00F0FF]/20 text-[#00F0FF] py-0.5 px-2 rounded-full text-xs">
+                <span className="ml-2 bg-white/20 text-white dark:bg-[#00F0FF]/20 dark:text-[#00F0FF] py-0.5 px-2 rounded-full text-xs">
                   {profiles.length}
                 </span>
               )}
               {tab.id === 'posts' && posts.length > 0 && (
-                <span className="ml-2 bg-[#00F0FF]/20 text-[#00F0FF] py-0.5 px-2 rounded-full text-xs">
+                <span className="ml-2 bg-white/20 text-white dark:bg-[#00F0FF]/20 dark:text-[#00F0FF] py-0.5 px-2 rounded-full text-xs">
                   {posts.length}
                 </span>
               )}
@@ -100,7 +100,7 @@ const SearchPage = () => {
       {/* Loading State */}
       {isLoading && (
         <div className="flex justify-center py-20">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#00F0FF]"></div>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#0A66C2] dark:border-[#00F0FF]"></div>
         </div>
       )}
 
@@ -136,7 +136,7 @@ const SearchPage = () => {
                         <Link to={`/profile/${profile.user._id}`} className="text-slate-900 dark:text-white font-bold text-lg hover:text-[#00F0FF] transition-colors line-clamp-1">
                           {profile.user?.name}
                         </Link>
-                        <p className="text-sm text-gray-400 line-clamp-1 mt-0.5">{profile.status || 'Developer'}</p>
+                        <p className="text-sm text-slate-600 dark:text-gray-400 line-clamp-1 mt-0.5">{profile.status || 'Developer'}</p>
                         {profile.location && (
                           <div className="flex items-center gap-1 text-xs text-gray-500 mt-1">
                             <MapPin size={12} />
@@ -146,7 +146,7 @@ const SearchPage = () => {
                       </div>
                       <Link 
                         to={`/profile/${profile.user._id}`}
-                        className="px-4 py-2 border border-[#00F0FF]/30 text-[#00F0FF] rounded-full text-xs font-bold hover:bg-[#00F0FF]/10 transition-colors"
+                        className="px-4 py-2 border border-[#0A66C2] text-[#0A66C2] hover:bg-[#0A66C2] hover:text-white dark:border-[#00F0FF]/30 dark:text-[#00F0FF] dark:hover:bg-[#00F0FF]/10 rounded-full text-xs font-bold transition-all shadow-xs cursor-pointer"
                       >
                         View
                       </Link>

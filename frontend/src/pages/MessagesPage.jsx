@@ -1014,8 +1014,8 @@ const MessagesPage = () => {
                     onClick={() => setSelectedChat(chat.user)}
                     className={`mx-2 my-0.5 px-3 py-2.5 flex items-start gap-3 cursor-pointer transition-all rounded-xl group ${
                       selectedChat?._id === chat.user._id 
-                        ? 'bg-white/5 text-white shadow-sm' 
-                        : 'text-gray-400 hover:bg-white/[0.03] hover:text-slate-800 dark:text-gray-200'
+                        ? (isDark ? 'bg-white/10 text-white shadow-sm' : 'bg-blue-50 text-slate-900 border-l-4 border-[#0A66C2] shadow-xs') 
+                        : (isDark ? 'text-gray-400 hover:bg-white/[0.03] hover:text-white' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900')
                     }`}
                   >
                     <div className="relative flex-shrink-0">
@@ -1031,11 +1031,11 @@ const MessagesPage = () => {
                     
                     <div className="flex-1 min-w-0">
                       <div className="flex justify-between items-baseline mb-0.5">
-                        <h3 className="font-semibold text-sm text-gray-100 truncate">
+                        <h3 className="font-semibold text-sm text-slate-900 dark:text-gray-100 truncate">
                           {chat.user.name}
                         </h3>
                         {chat.latestMessage && (
-                          <span className="text-xs text-gray-400 whitespace-nowrap ml-2">
+                          <span className="text-xs text-slate-500 dark:text-gray-400 whitespace-nowrap ml-2">
                             {format(new Date(chat.latestMessage.createdAt), 'MMM d')}
                           </span>
                         )}
@@ -1043,7 +1043,7 @@ const MessagesPage = () => {
                       <p className={`text-sm truncate ${
                         chat.latestMessage?.receiver === currentUser?._id && !chat.latestMessage?.read 
                           ? 'text-slate-900 dark:text-white font-semibold' 
-                          : 'text-gray-400'
+                          : 'text-slate-500 dark:text-gray-400'
                       }`}>
                         {(chat.latestMessage?.sender === currentUser?._id || chat.latestMessage?.sender?._id === currentUser?._id) ? 'You: ' : ''}
                         {chat.latestMessage ? (
@@ -1143,8 +1143,8 @@ const MessagesPage = () => {
                     onClick={() => setSelectedChat(conn.user)}
                     className={`mx-2 my-0.5 px-3 py-2.5 flex items-start gap-3 cursor-pointer transition-all rounded-xl group ${
                       selectedChat?._id === conn.user._id 
-                        ? 'bg-white/5 text-white shadow-sm' 
-                        : 'text-gray-400 hover:bg-white/[0.03] hover:text-slate-800 dark:text-gray-200'
+                        ? (isDark ? 'bg-white/10 text-white shadow-sm' : 'bg-blue-50 text-slate-900 border-l-4 border-[#0A66C2] shadow-xs') 
+                        : (isDark ? 'text-gray-400 hover:bg-white/[0.03] hover:text-white' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900')
                     }`}
                   >
                     <div className="relative flex-shrink-0">
@@ -1159,10 +1159,10 @@ const MessagesPage = () => {
                     </div>
                     
                     <div className="flex-1 min-w-0 flex flex-col justify-center h-12">
-                      <h3 className="font-semibold text-sm text-gray-100 truncate">
+                      <h3 className="font-semibold text-sm text-slate-900 dark:text-gray-100 truncate">
                         {conn.user?.name}
                       </h3>
-                      <p className="text-sm text-gray-500 italic truncate mt-0.5">
+                      <p className="text-sm text-slate-500 dark:text-gray-500 italic truncate mt-0.5">
                         Start a conversation
                       </p>
                     </div>
@@ -1380,12 +1380,12 @@ const MessagesPage = () => {
 
                             {/* Quote Reply Block */}
                             {msg.replyTo && (
-                              <div className="mb-2 pl-3 border-l-2 border-[#00F0FF]/50 bg-white/5 rounded-r-lg p-2 max-w-[400px] flex items-center justify-between text-xs text-gray-400 gap-3">
+                              <div className={`mb-2 pl-3 border-l-2 ${isDark ? "border-[#00F0FF]/50 bg-white/5 text-gray-400" : "border-[#0A66C2] bg-slate-100 text-slate-700"} rounded-r-lg p-2 max-w-[400px] flex items-center justify-between text-xs gap-3`}>
                                 <div className="min-w-0 flex-1">
-                                  <div className="font-semibold text-[11px] text-white truncate">
+                                  <div className={`font-semibold text-[11px] ${isDark ? "text-white" : "text-slate-900"} truncate`}>
                                     {msg.replyTo.sender?._id === currentUser?._id ? 'You' : msg.replyTo.sender?.name}
                                   </div>
-                                  <div className="truncate mt-0.5 text-slate-700 dark:text-gray-300">
+                                  <div className={`truncate mt-0.5 ${isDark ? "text-gray-300" : "text-slate-700"}`}>
                                     {msg.replyTo.text ? (
                                       msg.replyTo.text
                                     ) : msg.replyTo.attachment ? (
@@ -1683,17 +1683,17 @@ const MessagesPage = () => {
               
               {/* Quote Reply Banner */}
               {replyingToMessage && (
-                <div className="mx-2 p-3 bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl flex items-center justify-between gap-4 animate-in fade-in slide-in-from-bottom-2 duration-200">
+                <div className={`mx-2 p-3 ${isDark ? "bg-white/5 border-white/10" : "bg-slate-100 border-slate-200"} border rounded-xl flex items-center justify-between gap-4 animate-in fade-in slide-in-from-bottom-2 duration-200`}>
                   <div className="min-w-0 flex-1 flex items-center justify-between gap-3">
                     <div className="min-w-0">
-                      <div className="flex items-center gap-1.5 text-xs text-gray-400 font-medium">
-                        <CornerUpLeft size={12} className="text-[#00F0FF]" />
+                      <div className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-gray-400 font-medium">
+                        <CornerUpLeft size={12} className="text-[#0A66C2] dark:text-[#00F0FF]" />
                         <span>Replying to </span>
-                        <span className="font-bold text-white">
+                        <span className={`font-bold ${isDark ? "text-white" : "text-slate-900"}`}>
                           {replyingToMessage.sender?._id === currentUser?._id ? 'yourself' : replyingToMessage.sender?.name}
                         </span>
                       </div>
-                      <div className="text-sm text-slate-700 dark:text-gray-300 truncate mt-0.5">
+                      <div className="text-sm text-slate-800 dark:text-gray-300 truncate mt-0.5">
                         {replyingToMessage.text ? (
                           replyingToMessage.text
                         ) : replyingToMessage.attachment ? (

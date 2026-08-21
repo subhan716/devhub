@@ -342,7 +342,7 @@ const FloatingChat = ({ currentUser }) => {
                     <div 
                       key={conv.user._id}
                       onClick={() => openChatHead(conv.user)}
-                      className="px-4 py-3 flex items-start gap-3 hover:bg-white/5 cursor-pointer border-b border-slate-200 dark:border-white/5 transition-colors animate-fadeIn"
+                      className="px-4 py-3 flex items-start gap-3 hover:bg-slate-50 dark:hover:bg-white/5 cursor-pointer border-b border-slate-200 dark:border-white/5 transition-colors animate-fadeIn"
                     >
                       <div className="relative flex-shrink-0">
                         <img src={conv.user.avatar?.url || 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y'} className="w-12 h-12 rounded-full object-cover" alt="" />
@@ -352,7 +352,7 @@ const FloatingChat = ({ currentUser }) => {
                       </div>
                       <div className="flex-1 min-w-0">
                         <h4 className="font-semibold text-sm text-slate-900 dark:text-gray-100 truncate mb-0.5">{conv.user.name}</h4>
-                        <p className="text-sm text-gray-400 truncate">{conv.latestMessage?.text}</p>
+                        <p className="text-sm text-slate-500 dark:text-gray-400 truncate">{conv.latestMessage?.text}</p>
                       </div>
                     </div>
                   ));
@@ -369,7 +369,7 @@ const FloatingChat = ({ currentUser }) => {
                     <div 
                       key={`conn-${conn.user._id}`}
                       onClick={() => openChatHead(conn.user)}
-                      className="px-4 py-3 flex items-start gap-3 hover:bg-white/5 cursor-pointer border-b border-slate-200 dark:border-white/5 transition-colors animate-fadeIn"
+                      className="px-4 py-3 flex items-start gap-3 hover:bg-slate-50 dark:hover:bg-white/5 cursor-pointer border-b border-slate-200 dark:border-white/5 transition-colors animate-fadeIn"
                     >
                       <div className="relative flex-shrink-0">
                         <img src={conn.user?.avatar?.url || 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y'} className="w-12 h-12 rounded-full object-cover" alt="" />
