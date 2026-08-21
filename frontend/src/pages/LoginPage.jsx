@@ -96,7 +96,7 @@ const LoginPage = () => {
         {/* Center Card */}
         <div className="max-w-md w-full mx-auto my-12">
           <div className="mb-8">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#00F0FF]/10 border border-[#00F0FF]/20 text-[#00F0FF] text-xs font-semibold mb-3">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-zinc-900 border border-zinc-800 text-zinc-300 text-xs font-medium mb-3">
               <Sparkles size={13} />
               <span>Universal Professional Identity</span>
             </div>
@@ -188,7 +188,7 @@ const LoginPage = () => {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full py-3.5 rounded-xl bg-gradient-to-r from-[#00F0FF] to-[#0A66C2] text-black font-extrabold text-sm flex items-center justify-center gap-2 hover:opacity-95 transition-all shadow-[0_0_25px_rgba(0,240,255,0.35)] cursor-pointer disabled:opacity-50 mt-2"
+              className="w-full py-3 rounded-xl bg-white hover:bg-zinc-200 text-zinc-950 font-bold text-sm flex items-center justify-center gap-2 transition-colors cursor-pointer disabled:opacity-50 mt-3 shadow-sm"
             >
               {isLoading ? (
                 <>

@@ -99,7 +99,7 @@ const RegisterPage = () => {
         {/* Center Card */}
         <div className="max-w-md w-full mx-auto my-10">
           <div className="mb-6">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-400 text-xs font-semibold mb-3">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-zinc-900 border border-zinc-800 text-zinc-300 text-xs font-medium mb-3">
               <Sparkles size={13} />
               <span>Join the Global Fleet</span>
             </div>
@@ -218,7 +218,7 @@ const RegisterPage = () => {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full py-3.5 rounded-xl bg-gradient-to-r from-purple-500 to-[#FF0055] text-white font-extrabold text-xs flex items-center justify-center gap-2 hover:opacity-95 transition-all shadow-[0_0_25px_rgba(255,0,85,0.35)] cursor-pointer disabled:opacity-50 mt-2"
+              className="w-full py-3 rounded-xl bg-white hover:bg-zinc-200 text-zinc-950 font-bold text-sm flex items-center justify-center gap-2 transition-colors cursor-pointer disabled:opacity-50 mt-3 shadow-sm"
             >
               {isLoading ? (
                 <>
