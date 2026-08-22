@@ -1,9 +1,60 @@
-const Policy = require('../models/Policy');
-const AuditLog = require('../models/AuditLog');
+const prisma = require('../config/prisma');
 
-// @desc    Get active policy by slug (Public endpoint for Web + Flutter App)
-// @route   GET /api/policies/:slug
-// @access  Public
+const defaultPolicies = {
+  guidelines: {
+    slug: 'guidelines',
+    title: 'DevHub Community Guidelines',
+    version: '2.0.0',
+    content: `# DevHub Community Guidelines
+Welcome to DevHub! We are a global network of software developers, engineers, and tech innovators committed to open collaboration, knowledge sharing, and mutual respect.
+
+### 1. Professional Conduct
+- Treat all developers with respect, empathy, and professionalism regardless of skill level, background, or identity.
+- No harassment, hate speech, trolling, discrimination, or personal attacks will be tolerated under any circumstances.
+
+### 2. Code Quality & Originality
+- Share clean, helpful code snippets with proper documentation and clear licensing context.
+- Do not post malicious scripts, exploits, copyrighted intellectual property without authorization, or spam.
+
+### 3. Safety & Governance
+- Any content violating these standards is subject to immediate moderation, shadow-filtering, or permanent account suspension by our Trust & Safety Desk.`
+  },
+  terms: {
+    slug: 'terms',
+    title: 'Terms of Service',
+    version: '2.0.0',
+    content: `# DevHub Terms of Service
+**Effective Date:** January 1, 2026
+
+### 1. Acceptance of Terms
+By creating an account or accessing the DevHub platform (Web or Mobile), you agree to be bound by these Terms of Service.
+
+### 2. Account Security & Responsibilities
+- You are responsible for safeguarding your authentication credentials (including 2FA secrets and API keys).
+- You agree to notify DevHub Security immediately of any unauthorized access to your account.
+
+### 3. Service Level & Infrastructure
+DevHub provides high-performance developer networking tools powered by an enterprise-grade cloud architecture. We reserve the right to modify, suspend, or terminate services in compliance with our Platform Security Specifications.`
+  },
+  privacy: {
+    slug: 'privacy',
+    title: 'Privacy Policy (GDPR & CCPA Compliant)',
+    version: '2.0.0',
+    content: `# DevHub Privacy Policy
+**Effective Date:** January 1, 2026
+
+### 1. Data Collection & Processing
+We collect only the information necessary to provide our developer networking services, including your name, email, avatar, professional headline, and code posts.
+
+### 2. Zero Unsolicited Tracking
+- We never sell your personal or professional data to third parties.
+- All stored authentication secrets and passwords are encrypted using multi-round adaptive bcrypt hashes.
+
+### 3. Your Data Rights (GDPR)
+You retain full ownership of your data. You may request a complete export or permanent deletion of your profile and data at any time via Settings & Privacy.`
+  }
+};
+
 const getPolicyBySlug = async (req, res) => {
   try {
     const { slug } = req.params;
@@ -12,150 +63,93 @@ const getPolicyBySlug = async (req, res) => {
       return res.status(400).json({ message: 'Invalid policy slug. Expected guidelines, terms, or privacy.' });
     }
 
-    // Auto-seed if empty
-    await Policy.seedDefaultPoliciesIfEmpty();
-
-    const policy = await Policy.findOne({ slug, isPublished: true });
+    let policy = await prisma.policy.findUnique({ where: { slug } });
     if (!policy) {
-      return res.status(404).json({ message: `Policy '${slug}' not found.` });
+      const def = defaultPolicies[slug];
+      policy = await prisma.policy.create({
+        data: {
+          slug: def.slug,
+          title: def.title,
+          version: def.version,
+          content: def.content,
+          isPublished: true
+        }
+      });
     }
 
-    res.status(200).json({
-      slug: policy.slug,
-      title: policy.title,
-      version: policy.version,
-      content: policy.content,
-      effectiveDate: policy.effectiveDate,
-      updatedAt: policy.updatedAt,
-      changelog: policy.changelog,
-    });
+    res.status(200).json(policy);
   } catch (error) {
     console.error('Error in getPolicyBySlug:', error);
     res.status(500).json({ message: 'Failed to retrieve policy: ' + error.message });
   }
 };
 
-// @desc    Get all active policies list & metadata (Public)
-// @route   GET /api/policies
-// @access  Public
 const getAllPolicies = async (req, res) => {
   try {
-    await Policy.seedDefaultPoliciesIfEmpty();
+    for (const slug of Object.keys(defaultPolicies)) {
+      const exists = await prisma.policy.findUnique({ where: { slug } });
+      if (!exists) {
+        const def = defaultPolicies[slug];
+        await prisma.policy.create({
+          data: {
+            slug: def.slug,
+            title: def.title,
+            version: def.version,
+            content: def.content,
+            isPublished: true
+          }
+        });
+      }
+    }
 
-    const policies = await Policy.find({ isPublished: true }).select('slug title version effectiveDate updatedAt');
+    const policies = await prisma.policy.findMany({
+      where: { isPublished: true },
+      select: { slug: true, title: true, version: true, updatedAt: true }
+    });
+
     res.status(200).json({ policies });
   } catch (error) {
     console.error('Error in getAllPolicies:', error);
-    res.status(500).json({ message: 'Failed to retrieve policies list: ' + error.message });
+    res.status(500).json({ message: 'Failed to retrieve policies: ' + error.message });
   }
 };
 
-// @desc    Update policy content & version (Super Admin only)
-// @route   PUT /api/admin/policies/:slug
-// @access  Private / Super Admin
 const updatePolicy = async (req, res) => {
   try {
     const { slug } = req.params;
-    const { title, content, version, changeSummary } = req.body;
+    const { title, content, version } = req.body;
 
-    if (!content || !content.trim()) {
-      return res.status(400).json({ message: 'Policy content cannot be empty.' });
-    }
-
-    let policy = await Policy.findOne({ slug });
-    if (!policy) {
-      await Policy.seedDefaultPoliciesIfEmpty();
-      policy = await Policy.findOne({ slug });
-    }
-
-    if (!policy) {
-      return res.status(404).json({ message: `Policy '${slug}' not found.` });
-    }
-
-    const previousVersion = policy.version;
-    const newVersion = version && version.trim() ? version.trim() : incrementSemanticVersion(previousVersion);
-
-    policy.title = title || policy.title;
-    policy.content = content;
-    policy.version = newVersion;
-    policy.lastUpdatedBy = {
-      adminId: req.adminUser?._id,
-      email: req.adminUser?.email || 'admin@devhub.internal',
-      name: req.adminUser?.name || 'Super Admin',
-    };
-
-    policy.changelog.unshift({
-      version: newVersion,
-      changeSummary: changeSummary || 'Policy updated by Super Admin',
-      updatedAt: new Date(),
-      updatedByEmail: req.adminUser?.email || 'admin@devhub.internal',
+    const updated = await prisma.policy.upsert({
+      where: { slug },
+      update: { title, content, version },
+      create: { slug, title, content, version, isPublished: true }
     });
 
-    await policy.save();
-
-    // Immutable WORM Audit Log Recording
-    try {
-      await AuditLog.create({
-        action: 'POLICY_UPDATED',
-        actor: {
-          id: req.adminUser?._id,
-          role: req.adminUser?.role || 'super_admin',
-          email: req.adminUser?.email || 'admin@devhub.internal',
-          ipAddress: req.ip || req.connection?.remoteAddress || '',
-          userAgent: req.headers['user-agent'] || '',
-        },
-        target: {
-          entityType: 'Policy',
-          entityId: policy._id.toString(),
-          identifier: policy.slug,
-        },
-        justification: changeSummary || `Updated policy ${policy.slug} to ${newVersion}`,
-        diff: {
-          previousVersion,
-          newVersion,
-          title: policy.title,
-        },
-        securityClassification: 'L4_AUDIT',
-        status: 'SUCCESS',
-      });
-    } catch (auditErr) {
-      console.error('AuditLog warning in updatePolicy:', auditErr.message);
-    }
-
-    // Real-Time Socket.IO Live Broadcast to connected Web & Mobile clients
-    const io = req.app.get('io');
-    if (io) {
-      io.emit('policy_updated', {
-        slug: policy.slug,
-        title: policy.title,
-        version: policy.version,
-        updatedAt: policy.updatedAt,
-      });
-    }
-
-    res.status(200).json({
-      message: `Policy '${policy.slug}' updated and published successfully (v${newVersion})`,
-      policy,
-    });
-  } catch (error) {
-    console.error('Error in updatePolicy:', error);
-    res.status(500).json({ message: 'Failed to update policy: ' + error.message });
+    res.status(200).json(updated);
+  } catch (e) {
+    res.status(500).json({ message: e.message });
   }
 };
 
-// Helper: Increments semantic version patch (e.g. 1.0.0 -> 1.0.1)
-function incrementSemanticVersion(v) {
-  if (!v || typeof v !== 'string') return '1.0.1';
-  const parts = v.split('.').map(Number);
-  if (parts.length === 3 && parts.every((n) => !isNaN(n))) {
-    parts[2] += 1;
-    return parts.join('.');
+const seedPolicies = async (req, res) => {
+  try {
+    for (const slug of Object.keys(defaultPolicies)) {
+      const def = defaultPolicies[slug];
+      await prisma.policy.upsert({
+        where: { slug },
+        update: { title: def.title, content: def.content, version: def.version },
+        create: { slug: def.slug, title: def.title, content: def.content, version: def.version, isPublished: true }
+      });
+    }
+    res.status(200).json({ message: 'Policies seeded successfully' });
+  } catch (e) {
+    res.status(500).json({ message: e.message });
   }
-  return v + '.1';
-}
+};
 
 module.exports = {
   getPolicyBySlug,
   getAllPolicies,
   updatePolicy,
+  seedPolicies
 };

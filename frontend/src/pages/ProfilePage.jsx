@@ -126,8 +126,13 @@ const ProfilePage = () => {
     onConfirm: () => {}
   });
 
-  const isOwner = !id || (currentUserProfile && currentUserProfile.user._id === id);
-  const isFollowing = profile && currentUserProfile && profile.followers.includes(currentUserProfile.user._id);
+  const isOwner = !id || (currentUserProfile && (currentUserProfile.user?._id === id || currentUserProfile.user?.id === id));
+  const isFollowing = Boolean(
+    profile &&
+    currentUserProfile &&
+    Array.isArray(profile.followers) &&
+    profile.followers.includes(currentUserProfile.user?._id || currentUserProfile.user?.id)
+  );
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -458,7 +463,7 @@ const ProfilePage = () => {
                   <div className="flex flex-col items-center gap-3 mb-8 p-5 bg-slate-50 dark:bg-[#1a1a1a] rounded-2xl border border-slate-200 dark:border-white/10">
                     <div className="relative">
                       <img
-                        src={profile.user?.avatar?.url || 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y'}
+                        src={profile.user?.avatar?.url || profile.user?.avatarUrl || profile.avatarUrl || (typeof profile.user?.avatar === 'string' ? profile.user?.avatar : 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png')}
                         alt="Profile"
                         className="w-24 h-24 rounded-full object-cover border-4 border-white dark:border-[#1a1a1a] shadow-md"
                       />
@@ -511,7 +516,7 @@ const ProfilePage = () => {
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.8, opacity: 0 }}
               transition={{ type: "spring", damping: 25, stiffness: 300 }}
-              src={profile.user?.avatar?.url || 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y'}
+              src={profile.user?.avatar?.url || profile.user?.avatarUrl || profile.avatarUrl || (typeof profile.user?.avatar === 'string' ? profile.user?.avatar : 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png')}
               alt="Profile Preview"
               className="w-80 h-80 sm:w-96 sm:h-96 object-cover rounded-full shadow-[0_0_50px_rgba(0,0,0,0.5)] border-4 border-slate-200 dark:border-white/10"
               onClick={(e) => e.stopPropagation()}
@@ -566,7 +571,7 @@ const ProfilePage = () => {
             <div className="relative" style={{ width: '152px', height: '152px', flexShrink: 0 }}>
               {/* Avatar Image */}
               <img
-                src={profile.user?.avatar?.url || 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y'}
+                src={profile.user?.avatar?.url || profile.user?.avatarUrl || profile.avatarUrl || (typeof profile.user?.avatar === 'string' ? profile.user?.avatar : 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png')}
                 alt="Profile"
                 className="w-[152px] h-[152px] rounded-full border-[4px] border-white dark:border-[#111] object-cover bg-white dark:bg-[#111] cursor-pointer hover:opacity-80 transition-opacity shadow-lg relative z-10"
                 onClick={() => setIsPreviewOpen(true)}

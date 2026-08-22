@@ -1,3 +1,36 @@
+const formatProfileForClient = async (profile) => {
+  if (!profile) return null;
+  const avatarUrl = profile.avatarUrl || profile.user?.avatarUrl || 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png';
+  
+  const [followersCount, followingCount, connectionCount] = await Promise.all([
+    prisma.follow.count({ where: { followingId: profile.userId } }).catch(() => 0),
+    prisma.follow.count({ where: { followerId: profile.userId } }).catch(() => 0),
+    prisma.connection.count({
+      where: {
+        status: 'accepted',
+        OR: [{ requesterId: profile.userId }, { recipientId: profile.userId }]
+      }
+    }).catch(() => 0)
+  ]);
+
+  return {
+    ...profile,
+    _id: profile.id,
+    avatar: { url: avatarUrl },
+    avatarUrl: avatarUrl,
+    followers: [],
+    following: [],
+    followersCount,
+    followingCount,
+    connectionCount,
+    user: profile.user ? {
+      ...profile.user,
+      _id: profile.user.id,
+      avatar: { url: profile.user.avatarUrl || avatarUrl },
+      avatarUrl: profile.user.avatarUrl || avatarUrl
+    } : undefined
+  };
+};
 const prisma = require('../config/prisma');
 
 // @desc    Get current user's profile
@@ -6,7 +39,6 @@ const prisma = require('../config/prisma');
 const getCurrentProfile = async (req, res) => {
   try {
     const userId = req.user.id;
-
     let profile = await prisma.profile.findUnique({
       where: { userId },
       include: {
@@ -26,7 +58,6 @@ const getCurrentProfile = async (req, res) => {
     });
 
     if (!profile) {
-      // Auto-create default profile if missing
       profile = await prisma.profile.create({
         data: {
           userId,
@@ -52,20 +83,13 @@ const getCurrentProfile = async (req, res) => {
       });
     }
 
-    const avatarUrl = profile.avatarUrl || profile.user?.avatarUrl || 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png';
-    res.status(200).json({
-      ...profile,
-      _id: profile.id,
-      avatar: { url: avatarUrl },
-      avatarUrl: avatarUrl,
-      user: profile.user ? {
-        ...profile.user,
-        _id: profile.user.id,
-        avatar: { url: profile.user.avatarUrl || avatarUrl },
-        avatarUrl: profile.user.avatarUrl || avatarUrl
-      } : undefined
-    });
+    const formatted = await formatProfileForClient(profile);
+    res.status(200).json(formatted);
   } catch (error) {
+    console.error('Error in getCurrentProfile:', error);
+    res.status(500).json({ message: error.message || 'Server error' });
+  }
+} catch (error) {
     console.error('Error in getCurrentProfile:', error);
     res.status(500).json({ message: error.message || 'Server error' });
   }
