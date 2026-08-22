@@ -89,15 +89,8 @@ const getCurrentProfile = async (req, res) => {
     console.error('Error in getCurrentProfile:', error);
     res.status(500).json({ message: error.message || 'Server error' });
   }
-} catch (error) {
-    console.error('Error in getCurrentProfile:', error);
-    res.status(500).json({ message: error.message || 'Server error' });
-  }
 };
 
-// @desc    Create or update user profile (Onboarding Wizard & Settings)
-// @route   POST /api/profile
-// @access  Private
 const createOrUpdateProfile = async (req, res) => {
   const { 
     name, 
