@@ -85,13 +85,14 @@ const createPost = async (req, res) => {
   }
 };
 
+// Keyset Cursor-Based & Offset Hybrid Pagination
 const getPosts = async (req, res) => {
   try {
-    const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
-    const skip = (page - 1) * limit;
+    const cursor = req.query.cursor;
+    const page = parseInt(req.query.page) || 1;
 
-    const posts = await prisma.post.findMany({
+    let queryArgs = {
       where: { isReported: false },
       include: {
         author: {
@@ -116,12 +117,34 @@ const getPosts = async (req, res) => {
           }
         }
       },
-      orderBy: { createdAt: 'desc' },
-      skip,
-      take: limit
-    });
+      orderBy: { createdAt: 'desc' }
+    };
 
-    res.json(posts.map(formatPostForClient));
+    if (cursor) {
+      queryArgs.take = limit + 1;
+      queryArgs.cursor = { id: cursor };
+      queryArgs.skip = 1;
+    } else {
+      queryArgs.take = limit;
+      queryArgs.skip = (page - 1) * limit;
+    }
+
+    const rawPosts = await prisma.post.findMany(queryArgs);
+    let nextCursor = null;
+
+    if (cursor && rawPosts.length > limit) {
+      const nextItem = rawPosts.pop();
+      nextCursor = nextItem.id;
+    }
+
+    const formatted = rawPosts.map(formatPostForClient);
+
+    // If client requested cursor pagination, return object with nextCursor, else array
+    if (cursor !== undefined) {
+      res.json({ posts: formatted, nextCursor, hasMore: Boolean(nextCursor) });
+    } else {
+      res.json(formatted);
+    }
   } catch (err) {
     console.error('Error in getPosts:', err);
     res.status(500).json({ message: 'Server Error fetching feed' });
@@ -233,97 +256,101 @@ const deletePost = async (req, res) => {
   }
 };
 
+// Atomic Transaction for Like / Unlike
 const likePost = async (req, res) => {
   try {
-    const post = await prisma.post.findUnique({ where: { id: req.params.id } });
-    if (!post) return res.status(404).json({ message: 'Post not found' });
-
     const userId = req.user.id;
-    let likes = post.likes || [];
-    const isLiked = likes.includes(userId);
+    const postId = req.params.id;
 
-    if (isLiked) {
-      likes = likes.filter(id => id !== userId);
-    } else {
-      likes.push(userId);
-      
-      // Auto-dispatch Notification to Post Author
-      if (post.authorId !== userId) {
-        try {
-          const notif = await prisma.notification.create({
+    const result = await prisma.$transaction(async (tx) => {
+      const post = await tx.post.findUnique({ where: { id: postId } });
+      if (!post) throw new Error('Post not found');
+
+      let likes = post.likes || [];
+      const isLiked = likes.includes(userId);
+
+      if (isLiked) {
+        likes = likes.filter(id => id !== userId);
+      } else {
+        likes.push(userId);
+
+        // Auto-dispatch Notification in transaction
+        if (post.authorId !== userId) {
+          await tx.notification.create({
             data: {
               recipientId: post.authorId,
               senderId: userId,
               type: 'like',
               relatedPostId: post.id,
               message: 'liked your post'
-            },
-            include: {
-              sender: { select: { id: true, name: true, avatarUrl: true } }
             }
           });
-
-          const io = getIo();
-          if (io) {
-            io.to(post.authorId).emit('newNotification', {
-              ...notif,
-              _id: notif.id,
-              sender: {
-                ...notif.sender,
-                _id: notif.sender.id,
-                avatar: { url: notif.sender.avatarUrl || 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png' }
-              }
-            });
-          }
-        } catch (nErr) {
-          console.error('Notification dispatch error:', nErr.message);
         }
+      }
+
+      const updated = await tx.post.update({
+        where: { id: postId },
+        data: { likes, likesCount: likes.length }
+      });
+
+      return { likes: updated.likes, authorId: post.authorId, isLiked: !isLiked };
+    });
+
+    // Real-time socket broadcast outside transaction
+    if (result.isLiked && result.authorId !== userId) {
+      const io = getIo();
+      if (io) {
+        io.to(result.authorId).emit('newNotification', {
+          recipientId: result.authorId,
+          type: 'like',
+          message: 'liked your post',
+          sender: {
+            id: req.user.id,
+            _id: req.user.id,
+            name: req.user.name,
+            avatar: { url: req.user.avatarUrl },
+            avatarUrl: req.user.avatarUrl
+          }
+        });
       }
     }
 
-    const updated = await prisma.post.update({
-      where: { id: req.params.id },
-      data: {
-        likes,
-        likesCount: likes.length
-      }
-    });
-
-    res.json(updated.likes);
+    res.json(result.likes);
   } catch (err) {
-    res.status(500).json({ message: 'Server Error' });
+    res.status(500).json({ message: err.message || 'Server Error' });
   }
 };
 
 const repostPost = async (req, res) => {
   try {
-    const original = await prisma.post.findUnique({ where: { id: req.params.id } });
-    if (!original) return res.status(404).json({ message: 'Post not found' });
-
     const userId = req.user.id;
-    let reposts = original.reposts || [];
-    const isReposted = reposts.includes(userId);
+    const postId = req.params.id;
 
-    if (isReposted) {
-      reposts = reposts.filter(id => id !== userId);
-      await prisma.post.deleteMany({
-        where: { authorId: userId, originalPostId: original.id }
-      });
-    } else {
-      reposts.push(userId);
-      await prisma.post.create({
-        data: {
-          authorId: userId,
-          isRepost: true,
-          originalPostId: original.id,
-          content: original.content
-        }
-      });
+    const result = await prisma.$transaction(async (tx) => {
+      const original = await tx.post.findUnique({ where: { id: postId } });
+      if (!original) throw new Error('Post not found');
 
-      // Notification to original author
-      if (original.authorId !== userId) {
-        try {
-          await prisma.notification.create({
+      let reposts = original.reposts || [];
+      const isReposted = reposts.includes(userId);
+
+      if (isReposted) {
+        reposts = reposts.filter(id => id !== userId);
+        await tx.post.deleteMany({
+          where: { authorId: userId, originalPostId: original.id }
+        });
+      } else {
+        reposts.push(userId);
+        await tx.post.create({
+          data: {
+            authorId: userId,
+            isRepost: true,
+            originalPostId: original.id,
+            content: original.content
+          }
+        });
+
+        if (original.authorId !== userId) {
+          await tx.notification.create({
             data: {
               recipientId: original.authorId,
               senderId: userId,
@@ -332,18 +359,20 @@ const repostPost = async (req, res) => {
               message: 'reposted your update'
             }
           });
-        } catch (e) {}
+        }
       }
-    }
 
-    const updated = await prisma.post.update({
-      where: { id: req.params.id },
-      data: { reposts, repostsCount: reposts.length }
+      const updated = await tx.post.update({
+        where: { id: postId },
+        data: { reposts, repostsCount: reposts.length }
+      });
+
+      return updated.reposts;
     });
 
-    res.json(updated.reposts);
+    res.json(result);
   } catch (err) {
-    res.status(500).json({ message: 'Server Error' });
+    res.status(500).json({ message: err.message || 'Server Error' });
   }
 };
 

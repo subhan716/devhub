@@ -25,7 +25,6 @@ const sendConnectionRequest = async (req, res) => {
       }
     });
 
-    // Auto-dispatch connection_request notification
     try {
       const notif = await prisma.notification.create({
         data: {
@@ -70,7 +69,6 @@ const acceptConnectionRequest = async (req, res) => {
       data: { status: 'accepted' }
     });
 
-    // Auto-dispatch connection_accepted notification to requester
     try {
       const notif = await prisma.notification.create({
         data: {
@@ -240,9 +238,18 @@ const getUserConnections = async (req, res) => {
   }
 };
 
+// Smart Pre-Computed Social Graph Caching (SuggestionCache)
 const getSuggestions = async (req, res) => {
   try {
     const userId = req.user.id;
+
+    // 1. Check existing unexpired SuggestionCache
+    const cached = await prisma.suggestionCache.findUnique({ where: { userId } }).catch(() => null);
+    if (cached && new Date(cached.expiresAt) > new Date() && Array.isArray(cached.suggestions) && cached.suggestions.length > 0) {
+      return res.json(cached.suggestions);
+    }
+
+    // 2. Fast DB fallback and pre-computation
     const users = await prisma.user.findMany({
       where: {
         id: { not: userId },
@@ -259,7 +266,7 @@ const getSuggestions = async (req, res) => {
       take: 10
     });
 
-    res.json(users.map(u => {
+    const suggestions = users.map(u => {
       const avatarUrl = u.avatarUrl || 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png';
       return {
         _id: u.id,
@@ -272,7 +279,17 @@ const getSuggestions = async (req, res) => {
         role: u.profile?.status || 'Developer',
         profile: u.profile
       };
-    }));
+    });
+
+    // 3. Asynchronously persist to SuggestionCache (TTL: 2 Hours)
+    const expiresAt = new Date(Date.now() + 2 * 60 * 60 * 1000);
+    prisma.suggestionCache.upsert({
+      where: { userId },
+      update: { suggestions, expiresAt, lastCalculatedAt: new Date() },
+      create: { userId, suggestions, expiresAt }
+    }).catch(e => console.error('SuggestionCache save error:', e.message));
+
+    res.json(suggestions);
   } catch (e) {
     res.status(500).json({ message: e.message });
   }
