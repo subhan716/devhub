@@ -47,21 +47,28 @@ const FeedPage = () => {
   const fileInputRef = useRef(null);
   const videoInputRef = useRef(null);
 
-  // Initial Load (Stale-While-Revalidate pattern)
+  // Initial Load with AbortController for zero memory leakage
   useEffect(() => {
+    const controller = new AbortController();
     const fetchPosts = async () => {
       try {
         if (!isInitialized) setIsLoading(true);
-        const { data } = await axios.get(`${import.meta.env.VITE_API_URL}/api/posts?page=1&limit=20`, { withCredentials: true });
+        const { data } = await axios.get(`${import.meta.env.VITE_API_URL}/api/posts?page=1&limit=20`, {
+          withCredentials: true,
+          signal: controller.signal
+        });
         setPosts(data);
         if (data.length < 20) setHasMore(false);
       } catch (error) {
-        toast.error('Failed to load feed');
+        if (!axios.isCancel(error)) {
+          toast.error('Failed to load feed');
+        }
       } finally {
         setIsLoading(false);
       }
     };
     fetchPosts();
+    return () => controller.abort();
   }, [isInitialized, setPosts, setHasMore]);
 
   // Fetch More (Infinite Scroll)

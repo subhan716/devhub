@@ -1,7 +1,9 @@
 const prisma = require('../config/prisma');
+const { invalidateFeedCache } = require('./postController');
 const { getIo } = require('../socket');
 
 const addComment = async (req, res) => {
+    invalidateFeedCache();
   try {
     const postId = req.params.postId || req.params.post_id;
     const { text, content } = req.body;
@@ -120,6 +122,7 @@ const getComments = async (req, res) => {
 };
 
 const deleteComment = async (req, res) => {
+    invalidateFeedCache();
   try {
     const commentId = req.params.commentId || req.params.comment_id;
     const comment = await prisma.comment.findUnique({ where: { id: commentId } });

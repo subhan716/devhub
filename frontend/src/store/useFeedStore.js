@@ -11,7 +11,10 @@ const useFeedStore = create((set) => ({
   appendPosts: (newPosts) => set((state) => {
     const existingIds = new Set(state.posts.map(p => p._id || p.id));
     const uniqueNew = newPosts.filter(p => !existingIds.has(p._id || p.id));
-    return { posts: [...state.posts, ...uniqueNew] };
+    const combined = [...state.posts, ...uniqueNew];
+    // Keep max 100 posts in memory to guarantee zero browser heap bloat
+    const bounded = combined.length > 100 ? combined.slice(combined.length - 100) : combined;
+    return { posts: bounded };
   }),
   
   incrementPage: () => set((state) => ({ page: state.page + 1 })),
