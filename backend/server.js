@@ -1,16 +1,28 @@
 require('dotenv').config();
 const app = require('./src/app');
+const connectDB = require('./src/config/db');
 const { initSocket } = require('./src/socket');
+
+// Connect to MongoDB (for Posts, Messages, Comments, Notifications)
+connectDB();
 
 const PORT = process.env.PORT || 5000;
 
 const server = app.listen(PORT, () => {
   console.log(`🚀 DevHub Server running in ${process.env.NODE_ENV || 'development'} mode on port ${PORT}`);
-  console.log('⚡ Primary Database: Supabase PostgreSQL (Prisma ORM)');
 });
+
+const { startSuggestionCronJob } = require('./src/services/suggestionService');
 
 // Initialize Socket.io
 initSocket(server);
+
+// Initialize Background Jobs
+try {
+  startSuggestionCronJob();
+} catch (e) {
+  console.warn('Suggestion cron job skipped');
+}
 
 // --- SELF-PING MECHANISM FOR RENDER FREE TIER ---
 // Ping the server every 14 minutes to prevent it from going to sleep
