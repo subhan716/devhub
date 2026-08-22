@@ -7,6 +7,29 @@ import { ThemeProvider } from './context/ThemeContext';
 
 axios.defaults.withCredentials = true;
 
+// ⚡ 0. SYNCHRONOUS OAUTH TOKEN CAPTURE BEFORE ANY COMPONENT RENDERS
+if (typeof window !== 'undefined') {
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const tokenParam = params.get('token');
+    const refreshParam = params.get('refreshToken');
+    const isOAuth = params.get('oauth') === 'success' || !!tokenParam;
+
+    if (isOAuth && tokenParam) {
+      localStorage.setItem('accessToken', tokenParam);
+      localStorage.setItem('token', tokenParam);
+      if (refreshParam) {
+        localStorage.setItem('refreshToken', refreshParam);
+      }
+      localStorage.setItem('isAuthenticated', 'true');
+      axios.defaults.headers.common['Authorization'] = `Bearer ${tokenParam}`;
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+  } catch (e) {
+    console.warn('OAuth sync init error:', e);
+  }
+}
+
 // 1. Request Interceptor: Attach Bearer Token to all outgoing requests
 axios.interceptors.request.use(
   (config) => {

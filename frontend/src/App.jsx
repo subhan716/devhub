@@ -29,9 +29,33 @@ const PostPage = lazy(() => import('./pages/PostPage'));
 const LegalCenterPage = lazy(() => import('./pages/LegalCenterPage'));
 import { PageSkeleton } from './components/common/Skeletons';
 
+// Helper to check authentication synchronously
+const checkIsAuthenticated = () => {
+  if (typeof window === 'undefined') return false;
+
+  // Immediate check if URL has OAuth tokens
+  if (window.location.search.includes('token=')) {
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get('token');
+    const refresh = params.get('refreshToken');
+    if (token) {
+      localStorage.setItem('accessToken', token);
+      localStorage.setItem('token', token);
+      if (refresh) localStorage.setItem('refreshToken', refresh);
+      localStorage.setItem('isAuthenticated', 'true');
+      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+      return true;
+    }
+  }
+
+  const isAuth = localStorage.getItem('isAuthenticated') === 'true';
+  const hasToken = !!localStorage.getItem('accessToken') || !!localStorage.getItem('token');
+  return isAuth && hasToken;
+};
+
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
-  const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
+  const isAuthenticated = checkIsAuthenticated();
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
   }
@@ -40,7 +64,7 @@ const ProtectedRoute = ({ children }) => {
 
 // Guest Route Component (Redirects to feed if logged in)
 const GuestRoute = ({ children }) => {
-  const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
+  const isAuthenticated = checkIsAuthenticated();
   if (isAuthenticated) {
     return <Navigate to="/feed" replace />;
   }
@@ -53,27 +77,6 @@ if (typeof window !== 'undefined' && 'scrollRestoration' in window.history) {
 
 function App() {
   const [appConfig, setAppConfig] = useState(null);
-
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const params = new URLSearchParams(window.location.search);
-      const oauthSuccess = params.get('oauth') === 'success' || params.has('token');
-      const tokenParam = params.get('token');
-      const refreshParam = params.get('refreshToken');
-
-      if (oauthSuccess) {
-        if (tokenParam) {
-          localStorage.setItem('accessToken', tokenParam);
-          localStorage.setItem('token', tokenParam);
-        }
-        if (refreshParam) {
-          localStorage.setItem('refreshToken', refreshParam);
-        }
-        localStorage.setItem('isAuthenticated', 'true');
-        window.history.replaceState({}, document.title, window.location.pathname);
-      }
-    }
-  }, []);
 
   const fetchAppConfig = async () => {
     try {
@@ -100,7 +103,6 @@ function App() {
       touchMultiplier: 2,
     });
 
-    // Expose lenis globally so any component can stop/start it
     window.lenis = lenis;
 
     function raf(time) {
