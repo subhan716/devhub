@@ -19,7 +19,6 @@ import {
   Zap
 } from 'lucide-react';
 import Navbar from '../components/layout/Navbar';
-import AuthModal from '../components/auth/AuthModal';
 import axios from 'axios';
 
 
@@ -81,9 +80,6 @@ const DEFAULT_CONFIG = {
 
 const LandingPage = () => {
   const [config, setConfig] = useState(DEFAULT_CONFIG);
-  const [authModal, setAuthModal] = useState({ isOpen: false, mode: 'login' });
-  const openAuth = (mode = 'login') => setAuthModal({ isOpen: true, mode });
-  const closeAuth = () => setAuthModal({ isOpen: false, mode: 'login' });
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -112,7 +108,7 @@ const LandingPage = () => {
 
   return (
     <main className="min-h-screen bg-[#08080A] text-white overflow-x-hidden font-sans selection:bg-[#00F0FF]/20">
-      <Navbar onOpenAuth={openAuth} />
+      <Navbar />
 
       {/* 1. Hero Section */}
       <section className="relative pt-32 pb-20 lg:pt-40 lg:pb-28 overflow-hidden">
@@ -363,12 +359,7 @@ const LandingPage = () => {
         </div>
       </footer>
 
-      {/* Interactive In-Context Auth Modal */}
-      <AuthModal
-        isOpen={authModal.isOpen}
-        onClose={closeAuth}
-        initialMode={authModal.mode}
-      />
+      
     </main>
   );
 };
