@@ -1036,20 +1036,14 @@ const googleCallback = async (req, res) => {
     const picture = userRes.data.picture || null;
     const cleanEmail = (email && email.trim()) ? email.trim().toLowerCase() : (googleId ? `${googleId}@google.devhub.internal` : `user_${Date.now()}@google.devhub.internal`);
 
+    const orConditions = [];
+    if (googleId) orConditions.push({ googleId });
+    if (cleanEmail) orConditions.push({ email: cleanEmail });
+
     let user = null;
-    if (googleId) {
+    if (orConditions.length > 0) {
       user = await prisma.user.findFirst({
-        where: {
-          OR: [
-            { googleId },
-            { email: cleanEmail }
-          ]
-        },
-        include: { profile: true }
-      });
-    } else {
-      user = await prisma.user.findFirst({
-        where: { email: cleanEmail },
+        where: { OR: orConditions },
         include: { profile: true }
       });
     }
@@ -1080,8 +1074,8 @@ const googleCallback = async (req, res) => {
         data: {
           name: name || cleanEmail.split('@')[0],
           email: cleanEmail,
-          googleId,
-          avatarUrl: picture,
+          googleId: googleId || null,
+          avatarUrl: picture || 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png',
           isVerified: true,
           statusPreference: 'online',
           tokenVersion: 0,
@@ -1176,20 +1170,14 @@ const githubCallback = async (req, res) => {
     const githubId = userRes.data.id ? String(userRes.data.id) : null;
     const cleanEmail = (email && email.trim()) ? email.trim().toLowerCase() : (githubId ? `${userRes.data.login || githubId}@github.devhub.internal` : `user_${Date.now()}@github.devhub.internal`);
 
+    const orConditions = [];
+    if (githubId) orConditions.push({ githubId });
+    if (cleanEmail) orConditions.push({ email: cleanEmail });
+
     let user = null;
-    if (githubId) {
+    if (orConditions.length > 0) {
       user = await prisma.user.findFirst({
-        where: {
-          OR: [
-            { githubId },
-            { email: cleanEmail }
-          ]
-        },
-        include: { profile: true }
-      });
-    } else {
-      user = await prisma.user.findFirst({
-        where: { email: cleanEmail },
+        where: { OR: orConditions },
         include: { profile: true }
       });
     }
@@ -1221,8 +1209,8 @@ const githubCallback = async (req, res) => {
         data: {
           name: userRes.data.name || userRes.data.login,
           email: cleanEmail,
-          githubId,
-          avatarUrl: userRes.data.avatar_url,
+          githubId: githubId || null,
+          avatarUrl: userRes.data.avatar_url || 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png',
           isVerified: true,
           statusPreference: 'online',
           tokenVersion: 0,
