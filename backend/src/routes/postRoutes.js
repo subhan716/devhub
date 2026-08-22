@@ -1,6 +1,18 @@
 const express = require('express');
 const router = express.Router();
-const { createPost, getPosts, getPostById, getUserPosts, searchPosts, updatePost, deletePost, likePost, repostPost } = require('../controllers/postController');
+const { 
+  createPost, 
+  getPosts, 
+  getPostById, 
+  getUserPosts, 
+  searchPosts, 
+  updatePost, 
+  deletePost, 
+  likePost, 
+  repostPost,
+  toggleSavePost,
+  getSavedPosts
+} = require('../controllers/postController');
 const { protect } = require('../middleware/authMiddleware');
 
 // @route   POST /api/posts
@@ -12,6 +24,11 @@ router.post('/', protect, createPost);
 // @desc    Get all posts
 // @access  Private
 router.get('/', protect, getPosts);
+
+// @route   GET /api/posts/saved
+// @desc    Get user's saved posts / bookmarks
+// @access  Private
+router.get('/saved', protect, getSavedPosts);
 
 // @route   GET /api/posts/search
 // @desc    Search posts
@@ -32,6 +49,11 @@ router.put('/like/:id', protect, likePost);
 // @desc    Repost a post
 // @access  Private
 router.put('/repost/:id', protect, repostPost);
+
+// @route   PUT /api/posts/save/:id
+// @desc    Save / Unsave a post (Bookmark)
+// @access  Private
+router.put('/save/:id', protect, toggleSavePost);
 
 // @route   GET /api/posts/:id
 // @desc    Get a single post

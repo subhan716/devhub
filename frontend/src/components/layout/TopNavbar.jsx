@@ -1,5 +1,4 @@
-import { 
-  Bell, 
+import { Bell, LayoutDashboard, Users, Briefcase, 
   Mail, 
   LogOut, 
   User as UserIcon, 
@@ -29,6 +28,12 @@ import { formatDistanceToNow } from 'date-fns';
 const notificationSound = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
 
 const TopNavbar = ({ setIsMobileMenuOpen, currentUser, isMessagesPage }) => {
+  const navTabs = [
+    { name: 'Feed', path: '/feed', icon: <LayoutDashboard size={19} /> },
+    { name: 'My Networks', path: '/network', icon: <Users size={19} /> },
+    { name: 'Jobs', path: '/jobs', icon: <Briefcase size={19} /> },
+    { name: 'Messaging', path: '/messages', icon: <MessageSquare size={19} /> },
+  ];
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isNotifOpen, setIsNotifOpen] = useState(false);
   const [notifications, setNotifications] = useState([]);

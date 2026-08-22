@@ -25,6 +25,7 @@ const SearchPage = lazy(() => import('./pages/SearchPage'));
 const NetworkPage = lazy(() => import('./pages/NetworkPage'));
 const MessagesPage = lazy(() => import('./pages/MessagesPage'));
 const UserPostsPage = lazy(() => import('./pages/UserPostsPage'));
+const SavedPostsPage = lazy(() => import('./pages/SavedPostsPage'));
 const PostPage = lazy(() => import('./pages/PostPage'));
 const LegalCenterPage = lazy(() => import('./pages/LegalCenterPage'));
 import { PageSkeleton } from './components/common/Skeletons';
@@ -260,6 +261,8 @@ function App() {
           <Route path="/search" element={<Suspense fallback={<PageSkeleton />}><SearchPage /></Suspense>} />
           <Route path="/network" element={<Suspense fallback={<PageSkeleton />}><NetworkPage /></Suspense>} />
           <Route path="/messages" element={<Suspense fallback={<PageSkeleton />}><MessagesPage /></Suspense>} />
+          <Route path="/saved-posts" element={<Suspense fallback={<PageSkeleton />}><SavedPostsPage /></Suspense>} />
+          <Route path="/bookmarks" element={<Suspense fallback={<PageSkeleton />}><SavedPostsPage /></Suspense>} />
           <Route path="/user-posts" element={<Suspense fallback={<PageSkeleton />}><UserPostsPage /></Suspense>} />
           <Route path="/posts/:id" element={<Suspense fallback={<PageSkeleton />}><PostPage /></Suspense>} />
         </Route>

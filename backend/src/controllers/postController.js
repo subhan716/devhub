@@ -481,6 +481,85 @@ const repostPost = async (req, res) => {
   }
 };
 
+const toggleSavePost = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const postId = req.params.id;
+
+    const post = await prisma.post.findUnique({ where: { id: postId } });
+    if (!post) return res.status(404).json({ message: 'Post not found' });
+
+    const existing = await prisma.$queryRaw`
+      SELECT id FROM "SavedPost" WHERE "userId" = ${userId} AND "postId" = ${postId} LIMIT 1
+    `;
+
+    let isSaved = false;
+    if (existing && existing.length > 0) {
+      await prisma.$executeRaw`
+        DELETE FROM "SavedPost" WHERE "userId" = ${userId} AND "postId" = ${postId}
+      `;
+      isSaved = false;
+    } else {
+      const newId = require('crypto').randomUUID();
+      await prisma.$executeRaw`
+        INSERT INTO "SavedPost" ("id", "userId", "postId", "createdAt")
+        VALUES (${newId}, ${userId}, ${postId}, NOW())
+        ON CONFLICT ("userId", "postId") DO NOTHING
+      `;
+      isSaved = true;
+    }
+
+    res.json({ _id: postId, id: postId, isSaved });
+  } catch (err) {
+    console.error('Error in toggleSavePost:', err);
+    res.status(500).json({ message: 'Server Error' });
+  }
+};
+
+const getSavedPosts = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const savedRecords = await prisma.$queryRaw`
+      SELECT s."postId", s."createdAt" as "savedAt"
+      FROM "SavedPost" s
+      WHERE s."userId" = ${userId}
+      ORDER BY s."createdAt" DESC
+      LIMIT 100
+    `;
+
+    if (!savedRecords || savedRecords.length === 0) {
+      return res.json([]);
+    }
+
+    const postIds = savedRecords.map(r => r.postId);
+    const posts = await prisma.post.findMany({
+      where: { id: { in: postIds }, isReported: false },
+      include: {
+        author: { include: { profile: true } },
+        comments: { include: { user: true } },
+        originalPost: { include: { author: { include: { profile: true } } } }
+      }
+    });
+
+    const postMap = new Map(posts.map(p => [p.id, p]));
+    const formatted = [];
+    for (const r of savedRecords) {
+      const p = postMap.get(r.postId);
+      if (p) {
+        const f = formatPostForClient(p);
+        f.isSaved = true;
+        f.savedAt = r.savedAt;
+        formatted.push(f);
+      }
+    }
+
+    res.json(formatted);
+  } catch (err) {
+    console.error('Error in getSavedPosts:', err);
+    res.status(500).json({ message: 'Server Error' });
+  }
+};
+
 module.exports = {
   invalidateFeedCache,
   createPost,
@@ -492,5 +571,7 @@ module.exports = {
   deletePost,
   likePost,
   repostPost,
+  toggleSavePost,
+  getSavedPosts,
   formatPostForClient
 };
