@@ -1030,13 +1030,29 @@ const googleCallback = async (req, res) => {
       headers: { Authorization: `Bearer ${access_token}` }
     });
 
-    const { id: googleId, email, name, picture } = userRes.data;
-    const cleanEmail = (email || '').trim().toLowerCase();
+    const googleId = userRes.data.id ? String(userRes.data.id) : null;
+    const email = userRes.data.email;
+    const name = userRes.data.name || userRes.data.given_name || 'Developer';
+    const picture = userRes.data.picture || null;
+    const cleanEmail = (email && email.trim()) ? email.trim().toLowerCase() : (googleId ? `${googleId}@google.devhub.internal` : `user_${Date.now()}@google.devhub.internal`);
 
-    let user = await prisma.user.findUnique({
-      where: { email: cleanEmail },
-      include: { profile: true }
-    });
+    let user = null;
+    if (googleId) {
+      user = await prisma.user.findFirst({
+        where: {
+          OR: [
+            { googleId },
+            { email: cleanEmail }
+          ]
+        },
+        include: { profile: true }
+      });
+    } else {
+      user = await prisma.user.findFirst({
+        where: { email: cleanEmail },
+        include: { profile: true }
+      });
+    }
 
     if (user) {
       user = await prisma.user.update({
@@ -1157,13 +1173,26 @@ const githubCallback = async (req, res) => {
       } catch (e) {}
     }
 
-    const cleanEmail = (email || `${userRes.data.login}@github.devhub.internal`).trim().toLowerCase();
-    const githubId = String(userRes.data.id);
+    const githubId = userRes.data.id ? String(userRes.data.id) : null;
+    const cleanEmail = (email && email.trim()) ? email.trim().toLowerCase() : (githubId ? `${userRes.data.login || githubId}@github.devhub.internal` : `user_${Date.now()}@github.devhub.internal`);
 
-    let user = await prisma.user.findUnique({
-      where: { email: cleanEmail },
-      include: { profile: true }
-    });
+    let user = null;
+    if (githubId) {
+      user = await prisma.user.findFirst({
+        where: {
+          OR: [
+            { githubId },
+            { email: cleanEmail }
+          ]
+        },
+        include: { profile: true }
+      });
+    } else {
+      user = await prisma.user.findFirst({
+        where: { email: cleanEmail },
+        include: { profile: true }
+      });
+    }
 
     if (user) {
       user = await prisma.user.update({
