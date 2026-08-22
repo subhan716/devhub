@@ -65,7 +65,7 @@ const RightSidebar = ({ currentUser }) => {
                   onClick={() => navigate(`/profile/${user._id}`)}
                 >
                   <img 
-                    src={user.avatar?.url || 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y'} 
+                    src={user.avatar?.url || user.avatarUrl || (typeof user.avatar === 'string' ? user.avatar : 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png')} 
                     alt={user.name} 
                     className="w-10 h-10 rounded-full object-cover border border-slate-200 dark:border-white/10 group-hover:border-[#0A66C2] dark:group-hover:border-[#00F0FF]/50 transition-colors flex-shrink-0" 
                   />

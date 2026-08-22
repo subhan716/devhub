@@ -83,7 +83,7 @@ const CommentItem = ({ comment, postId, onReply, onDelete, depth = 0, isTarget, 
 
   return (
     <div ref={commentRef} className={`flex gap-3 mb-5 transition-colors duration-1000 ${isTarget ? 'bg-[#00F0FF]/10 -mx-2 px-2 py-1 rounded-lg' : ''}`}>
-      <img src={comment.user?.avatar?.url || 'https://www.gravatar.com/avatar/0?d=mp'} alt={comment.user?.name} className="w-9 h-9 rounded-full object-cover mt-0.5 border border-white/5" />
+      <img src={comment.user?.avatar?.url || comment.user?.avatarUrl || (typeof comment.user?.avatar === 'string' ? comment.user?.avatar : 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png')} alt={comment.user?.name} className="w-9 h-9 rounded-full object-cover mt-0.5 border border-white/5" />
       <div className="flex-1">
         <div className="relative group">
           <div className="flex items-center gap-2 mb-0.5">
@@ -344,7 +344,7 @@ const CommentsList = ({ postId, targetCommentId, onUpdateCount, currentUser }) =
             </div>
           )}
           <div className="flex gap-3 items-start">
-            <img src={currentUser?.avatar?.url || 'https://www.gravatar.com/avatar/0?d=mp'} alt="Me" className="w-9 h-9 rounded-full object-cover border border-white/10" />
+            <img src={currentUser?.avatar?.url || currentUser?.avatarUrl || (typeof currentUser?.avatar === 'string' ? currentUser?.avatar : 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png')} alt="Me" className="w-9 h-9 rounded-full object-cover border border-white/10" />
             <div className="flex-1 bg-[#1a1a1a] border border-white/5 rounded-2xl overflow-hidden focus-within:border-white/20 transition-colors">
               <textarea
                 placeholder={replyTo ? 'Write a reply...' : 'Add a comment...'}

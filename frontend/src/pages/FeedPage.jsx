@@ -357,7 +357,7 @@ const FeedPage = () => {
       <div className="bg-white dark:bg-[#111] border border-slate-200 dark:border-white/5 rounded-2xl p-4 shadow-sm dark:shadow-lg flex flex-col gap-3 transition-colors">
         <div className="flex items-center gap-3">
           <img 
-            src={currentUser?.avatar?.url || 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y'} 
+            src={currentUser?.avatar?.url || currentUser?.avatarUrl || (typeof currentUser?.avatar === 'string' ? currentUser?.avatar : 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png')} 
             alt={currentUser?.name || 'Profile'} 
             className="w-12 h-12 rounded-full object-cover border border-white/10"
           />
@@ -503,7 +503,7 @@ const FeedPage = () => {
                 {/* Author Info */}
                 <div className="flex items-center gap-3">
                   <img 
-                    src={currentUser?.avatar?.url || 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y'} 
+                    src={currentUser?.avatar?.url || currentUser?.avatarUrl || (typeof currentUser?.avatar === 'string' ? currentUser?.avatar : 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png')} 
                     alt={currentUser?.name} 
                     className="w-11 h-11 rounded-full object-cover border border-slate-200 dark:border-white/10"
                   />

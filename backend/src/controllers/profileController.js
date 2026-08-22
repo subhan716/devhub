@@ -52,7 +52,19 @@ const getCurrentProfile = async (req, res) => {
       });
     }
 
-    res.status(200).json(profile);
+    const avatarUrl = profile.avatarUrl || profile.user?.avatarUrl || 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png';
+    res.status(200).json({
+      ...profile,
+      _id: profile.id,
+      avatar: { url: avatarUrl },
+      avatarUrl: avatarUrl,
+      user: profile.user ? {
+        ...profile.user,
+        _id: profile.user.id,
+        avatar: { url: profile.user.avatarUrl || avatarUrl },
+        avatarUrl: profile.user.avatarUrl || avatarUrl
+      } : undefined
+    });
   } catch (error) {
     console.error('Error in getCurrentProfile:', error);
     res.status(500).json({ message: error.message || 'Server error' });
@@ -174,7 +186,19 @@ const createOrUpdateProfile = async (req, res) => {
       }
     });
 
-    res.status(200).json(profile);
+    const avatarUrl = profile.avatarUrl || profile.user?.avatarUrl || 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png';
+    res.status(200).json({
+      ...profile,
+      _id: profile.id,
+      avatar: { url: avatarUrl },
+      avatarUrl: avatarUrl,
+      user: profile.user ? {
+        ...profile.user,
+        _id: profile.user.id,
+        avatar: { url: profile.user.avatarUrl || avatarUrl },
+        avatarUrl: profile.user.avatarUrl || avatarUrl
+      } : undefined
+    });
   } catch (error) {
     console.error('Error in createOrUpdateProfile:', error);
     res.status(500).json({ message: error.message || 'Server error' });
@@ -236,7 +260,19 @@ const getProfileByUserId = async (req, res) => {
       return res.status(404).json({ message: 'Profile not found' });
     }
 
-    res.status(200).json(profile);
+    const avatarUrl = profile.avatarUrl || profile.user?.avatarUrl || 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png';
+    res.status(200).json({
+      ...profile,
+      _id: profile.id,
+      avatar: { url: avatarUrl },
+      avatarUrl: avatarUrl,
+      user: profile.user ? {
+        ...profile.user,
+        _id: profile.user.id,
+        avatar: { url: profile.user.avatarUrl || avatarUrl },
+        avatarUrl: profile.user.avatarUrl || avatarUrl
+      } : undefined
+    });
   } catch (error) {
     console.error('Error in getProfileByUserId:', error);
     res.status(500).json({ message: error.message });

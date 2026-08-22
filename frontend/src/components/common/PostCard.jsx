@@ -280,7 +280,7 @@ const PostCard = ({ post: rootPost, idx = 0, currentUser, onDelete, onEdit, auto
       {isRepost && (
         <div className="flex justify-between items-start mb-1">
           <div className="flex gap-3 items-center">
-            <img src={reposter?.avatar?.url || 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y'} className="w-8 h-8 rounded-full object-cover border border-white/10" />
+            <img src={reposter?.avatar?.url || reposter?.avatarUrl || (typeof reposter?.avatar === 'string' ? reposter?.avatar : 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png')} className="w-8 h-8 rounded-full object-cover border border-white/10" />
             <div className="flex flex-col leading-tight">
               <div className="text-gray-300 font-medium text-sm flex items-center gap-1.5">
                  {reposter?.name || 'Unknown User'} 
@@ -311,7 +311,7 @@ const PostCard = ({ post: rootPost, idx = 0, currentUser, onDelete, onEdit, auto
           <div className="flex justify-between items-start">
             <div className="flex gap-3">
               <img 
-                src={post?.author?.avatar?.url || 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y'} 
+                src={post?.author?.avatar?.url || post?.author?.avatarUrl || (typeof post?.author?.avatar === 'string' ? post?.author?.avatar : 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png')} 
                 alt={post?.author?.name || 'Unknown User'} 
                 className="w-10 h-10 rounded-full object-cover border border-white/10 cursor-pointer" 
               />

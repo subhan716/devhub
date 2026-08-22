@@ -618,7 +618,13 @@ const getMe = async (req, res) => {
     const user = await prisma.user.findUnique({ where: { id: req.user.id }, include: { profile: true } });
     if (!user) return res.status(404).json({ message: 'User not found' });
     const { passwordHash, ...safeUser } = user;
-    res.status(200).json(safeUser);
+    const avatarUrl = user.avatarUrl || user.profile?.avatarUrl || 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png';
+    res.status(200).json({
+      ...safeUser,
+      _id: user.id,
+      avatar: { url: avatarUrl },
+      avatarUrl: avatarUrl
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

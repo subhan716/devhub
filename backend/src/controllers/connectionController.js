@@ -138,17 +138,24 @@ const getSuggestions = async (req, res) => {
         id: { not: userId },
         isSuspended: false
       },
-      select: {
-        id: true,
-        name: true,
-        avatarUrl: true,
-        isVerifiedBadge: true,
-        badgeType: true,
-        profile: true
-      },
+      include: { profile: true },
       take: 10
     });
-    res.json(users);
+    
+    res.json(users.map(u => {
+      const avatarUrl = u.avatarUrl || u.profile?.avatarUrl || 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png';
+      return {
+        _id: u.id,
+        id: u.id,
+        name: u.name,
+        avatar: { url: avatarUrl },
+        avatarUrl: avatarUrl,
+        isVerifiedBadge: u.isVerifiedBadge,
+        badgeType: u.badgeType,
+        role: u.profile?.status || u.role || 'Developer',
+        profile: u.profile
+      };
+    }));
   } catch (e) {
     res.status(500).json({ message: e.message });
   }

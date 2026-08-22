@@ -269,7 +269,7 @@ const TopNavbar = ({ setIsMobileMenuOpen, currentUser, isMessagesPage }) => {
             </span>
             <div className="relative">
               <img 
-                src={currentUser?.avatar?.url || 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y'} 
+                src={currentUser?.avatar?.url || currentUser?.avatarUrl || (typeof currentUser?.avatar === 'string' ? currentUser?.avatar : 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png')} 
                 alt="Profile" 
                 className="w-8 h-8 sm:w-9 sm:h-9 rounded-full object-cover border border-slate-200 dark:border-white/10 group-hover:border-[#0A66C2] dark:group-hover:border-[#00F0FF]/50 transition-colors bg-slate-100 dark:bg-[#111]"
               />
@@ -291,7 +291,7 @@ const TopNavbar = ({ setIsMobileMenuOpen, currentUser, isMessagesPage }) => {
                   <div className="flex items-center gap-3 mb-3">
                     <div className="relative flex-shrink-0">
                       <img 
-                        src={currentUser?.avatar?.url || 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y'} 
+                        src={currentUser?.avatar?.url || currentUser?.avatarUrl || (typeof currentUser?.avatar === 'string' ? currentUser?.avatar : 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png')} 
                         alt={currentUser?.name}
                         className="w-12 h-12 rounded-full object-cover border-2 border-white dark:border-[#111] shadow-xs bg-slate-100 dark:bg-[#1a1a1a]"
                       />

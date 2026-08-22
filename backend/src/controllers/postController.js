@@ -3,7 +3,7 @@ const prisma = require('../config/prisma');
 const formatPostForClient = (post) => {
   if (!post) return null;
   const authorName = post.author?.name || 'Developer';
-  const authorAvatar = post.author?.avatarUrl || 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png';
+  const authorAvatar = post.author?.avatarUrl || post.author?.profile?.avatarUrl || 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png';
   
   return {
     _id: post.id,
@@ -12,7 +12,7 @@ const formatPostForClient = (post) => {
       _id: post.authorId,
       id: post.authorId,
       name: authorName,
-      avatar: authorAvatar,
+      avatar: { url: authorAvatar },
       avatarUrl: authorAvatar,
       isVerifiedBadge: post.author?.isVerifiedBadge || false,
       badgeType: post.author?.badgeType || 'none'
@@ -29,21 +29,24 @@ const formatPostForClient = (post) => {
     likes: post.likes || [],
     likesCount: post.likesCount || (post.likes ? post.likes.length : 0),
     commentsCount: post.commentsCount || (post.comments ? post.comments.length : 0),
-    comments: (post.comments || []).map(c => ({
-      _id: c.id,
-      id: c.id,
-      user: {
-        _id: c.userId,
-        id: c.userId,
-        name: c.user?.name || 'Developer',
-        avatar: c.user?.avatarUrl || 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png',
-        avatarUrl: c.user?.avatarUrl
-      },
-      text: c.text || '',
-      likes: c.likes || [],
-      likesCount: c.likesCount || 0,
-      createdAt: c.createdAt
-    })),
+    comments: (post.comments || []).map(c => {
+      const cAvatar = c.user?.avatarUrl || c.user?.profile?.avatarUrl || 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png';
+      return {
+        _id: c.id,
+        id: c.id,
+        user: {
+          _id: c.userId,
+          id: c.userId,
+          name: c.user?.name || 'Developer',
+          avatar: { url: cAvatar },
+          avatarUrl: cAvatar
+        },
+        text: c.text || '',
+        likes: c.likes || [],
+        likesCount: c.likesCount || 0,
+        createdAt: c.createdAt
+      };
+    }),
     isRepost: post.isRepost || false,
     originalPost: post.originalPost ? formatPostForClient(post.originalPost) : null,
     createdAt: post.createdAt,
