@@ -412,8 +412,8 @@ const MessagesPage = () => {
       isPrependingRef.current = false;
       try {
         const { data } = await axios.get(`${import.meta.env.VITE_API_URL}/api/messages/${selectedChat._id}`, { withCredentials: true });
-        setMessages(data.messages);
-        setHasMore(data.hasMore);
+        setMessages(Array.isArray(data) ? data : (data?.messages || []));
+        setHasMore(Boolean(data?.hasMore));
         // Mark as read
         await axios.put(`${import.meta.env.VITE_API_URL}/api/messages/${selectedChat._id}/read`, {}, { withCredentials: true });
       } catch (error) {
@@ -438,8 +438,8 @@ const MessagesPage = () => {
         `${import.meta.env.VITE_API_URL}/api/messages/${selectedChat._id}?before=${encodeURIComponent(oldest.createdAt)}`,
         { withCredentials: true }
       );
-      setMessages(prev => [...data.messages, ...prev]);
-      setHasMore(data.hasMore);
+      setMessages(prev => [...(Array.isArray(data) ? data : (data?.messages || [])), ...prev]);
+      setHasMore(Boolean(data?.hasMore));
     } catch (error) {
       console.error('Failed to load older messages', error);
       isPrependingRef.current = false;

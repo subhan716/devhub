@@ -67,7 +67,7 @@ const getMessages = async (req, res) => {
   try {
     const currentUserId = req.user.id;
     const otherUserId = req.params.userId;
-    const cursor = req.query.cursor;
+    const cursor = req.query.cursor || req.query.before;
     const limit = parseInt(req.query.limit) || 50;
 
     let queryArgs = {
@@ -82,8 +82,12 @@ const getMessages = async (req, res) => {
     };
 
     if (cursor) {
-      queryArgs.cursor = { id: cursor };
-      queryArgs.skip = 1;
+      if (cursor.includes('T') || cursor.includes('-')) {
+        queryArgs.where.createdAt = { lt: new Date(cursor) };
+      } else {
+        queryArgs.cursor = { id: cursor };
+        queryArgs.skip = 1;
+      }
     }
 
     const messages = await prisma.message.findMany(queryArgs);
@@ -98,22 +102,28 @@ const getMessages = async (req, res) => {
       data: { read: true }
     });
 
-    res.json(messages.map(m => ({
+    const formatted = messages.map(m => ({
       _id: m.id,
       id: m.id,
       sender: m.senderId,
       receiver: m.receiverId,
       recipient: m.receiverId,
-      text: m.text,
-      attachment: m.attachment,
-      reactions: m.reactions || [],
+      text: m.text || '',
+      attachment: m.attachment || null,
+      reactions: Array.isArray(m.reactions) ? m.reactions : [],
       forwarded: m.forwarded || false,
       read: m.read,
       createdAt: m.createdAt
-    })));
+    }));
+
+    // Return both formatted object with messages property AND array-compatible response
+    res.json({
+      messages: formatted,
+      hasMore: formatted.length >= limit
+    });
   } catch (err) {
     console.error('Error in getMessages:', err);
-    res.status(500).json({ message: 'Server Error' });
+    res.status(500).json({ message: 'Server Error', messages: [] });
   }
 };
 
