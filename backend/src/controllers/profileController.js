@@ -1,3 +1,5 @@
+const prisma = require('../config/prisma');
+
 const formatProfileForClient = async (profile) => {
   if (!profile) return null;
   const avatarUrl = profile.avatarUrl || profile.user?.avatarUrl || 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png';
@@ -42,6 +44,9 @@ const formatProfileForClient = async (profile) => {
   };
 };
 
+// @desc    Get current user's profile
+// @route   GET /api/profile/me
+// @access  Private
 const getCurrentProfile = async (req, res) => {
   try {
     const userId = req.user.id;
@@ -54,10 +59,8 @@ const getCurrentProfile = async (req, res) => {
             name: true,
             email: true,
             avatarUrl: true,
-            role: true,
             isVerifiedBadge: true,
-            badgeType: true,
-            statusPreference: true
+            badgeType: true
           }
         }
       }
@@ -67,10 +70,8 @@ const getCurrentProfile = async (req, res) => {
       profile = await prisma.profile.create({
         data: {
           userId,
-          skills: [],
-          openToWork: { isLooking: false, jobTitles: [], workplaces: [], locations: [] },
-          providingServices: { isProviding: false, services: [], details: '' },
-          socialLinks: { github: '', linkedin: '', twitter: '', website: '' }
+          status: 'Developer',
+          skills: []
         },
         include: {
           user: {
@@ -79,10 +80,8 @@ const getCurrentProfile = async (req, res) => {
               name: true,
               email: true,
               avatarUrl: true,
-              role: true,
               isVerifiedBadge: true,
-              badgeType: true,
-              statusPreference: true
+              badgeType: true
             }
           }
         }
@@ -93,107 +92,55 @@ const getCurrentProfile = async (req, res) => {
     res.status(200).json(formatted);
   } catch (error) {
     console.error('Error in getCurrentProfile:', error);
-    res.status(500).json({ message: error.message || 'Server error' });
+    res.status(500).json({ message: error.message });
   }
 };
 
+// @desc    Create or update profile
+// @route   POST /api/profile
+// @access  Private
 const createOrUpdateProfile = async (req, res) => {
-  const { 
-    name, 
-    company, 
-    website, 
-    location, 
-    bio, 
-    about, 
-    status, 
-    githubusername, 
-    skills, 
-    youtube, 
-    facebook, 
-    twitter, 
-    instagram, 
-    linkedin, 
-    openToWork, 
-    providingServices,
-    avatarUrl,
-    coverImageUrl,
-    experience,
-    education,
-    certifications
-  } = req.body;
-
   try {
     const userId = req.user.id;
+    const {
+      company,
+      location,
+      bio,
+      about,
+      status,
+      githubusername,
+      skills,
+      socialLinks,
+      openToWork,
+      providingServices,
+      experience,
+      education,
+      certifications,
+      coverImageUrl
+    } = req.body;
 
-    // 1. Update User basic info (Name, Avatar)
-    const userUpdates = {};
-    if (name && name.trim()) userUpdates.name = name.trim();
-    if (avatarUrl) userUpdates.avatarUrl = avatarUrl;
-
-    if (Object.keys(userUpdates).length > 0) {
-      await prisma.user.update({
-        where: { id: userId },
-        data: userUpdates
-      });
+    const dataObj = {};
+    if (company !== undefined) dataObj.company = company;
+    if (location !== undefined) dataObj.location = location;
+    if (bio !== undefined) dataObj.bio = bio;
+    if (about !== undefined) dataObj.about = about;
+    if (status !== undefined) dataObj.status = status;
+    if (githubusername !== undefined) dataObj.githubusername = githubusername;
+    if (skills !== undefined) {
+      dataObj.skills = Array.isArray(skills) ? skills : (typeof skills === 'string' ? skills.split(',').map(s => s.trim()).filter(Boolean) : []);
     }
+    if (socialLinks !== undefined) dataObj.socialLinks = socialLinks;
+    if (openToWork !== undefined) dataObj.openToWork = openToWork;
+    if (providingServices !== undefined) dataObj.providingServices = providingServices;
+    if (experience !== undefined) dataObj.experience = experience;
+    if (education !== undefined) dataObj.education = education;
+    if (certifications !== undefined) dataObj.certifications = certifications;
+    if (coverImageUrl !== undefined) dataObj.coverImageUrl = coverImageUrl;
 
-    // 2. Format Social Links
-    const socialLinks = {
-      github: githubusername || '',
-      linkedin: linkedin || '',
-      twitter: twitter || '',
-      website: website || '',
-      youtube: youtube || '',
-      facebook: facebook || '',
-      instagram: instagram || ''
-    };
-
-    // 3. Format Skills array
-    let skillsArray = [];
-    if (skills) {
-      skillsArray = Array.isArray(skills) 
-        ? skills.map(s => s.trim()).filter(Boolean)
-        : skills.split(',').map(s => s.trim()).filter(Boolean);
-    }
-
-    // 4. Upsert Profile on Supabase PostgreSQL
     const profile = await prisma.profile.upsert({
       where: { userId },
-      update: {
-        company: company !== undefined ? company : undefined,
-        location: location !== undefined ? location : undefined,
-        bio: bio !== undefined ? bio : undefined,
-        about: about !== undefined ? about : undefined,
-        status: status !== undefined ? status : undefined,
-        githubusername: githubusername !== undefined ? githubusername : undefined,
-        avatarUrl: avatarUrl || undefined,
-        coverImageUrl: coverImageUrl || undefined,
-        skills: skillsArray.length > 0 ? skillsArray : undefined,
-        openToWork: openToWork || undefined,
-        providingServices: providingServices || undefined,
-        socialLinks: socialLinks || undefined,
-        experience: experience || undefined,
-        education: education || undefined,
-        certifications: certifications || undefined
-      },
-      create: {
-        userId,
-        company: company || '',
-        location: location || '',
-        bio: bio || '',
-        about: about || '',
-        status: status || '',
-        githubusername: githubusername || '',
-        avatarUrl: avatarUrl || undefined,
-        coverImageUrl: coverImageUrl || undefined,
-        skills: skillsArray,
-        openToWork: openToWork || { isLooking: false, jobTitles: [], workplaces: [], locations: [] },
-        providingServices: providingServices || { isProviding: false, services: [], details: '' },
-        socialLinks: socialLinks,
-        experience: experience || [],
-        education: education || [],
-        certifications: certifications || []
-      },
+      update: dataObj,
+      create: { userId, ...dataObj },
       include: {
         user: {
           select: {
@@ -201,7 +148,6 @@ const createOrUpdateProfile = async (req, res) => {
             name: true,
             email: true,
             avatarUrl: true,
-            role: true,
             isVerifiedBadge: true,
             badgeType: true
           }
@@ -209,22 +155,11 @@ const createOrUpdateProfile = async (req, res) => {
       }
     });
 
-    const avatarUrl = profile.avatarUrl || profile.user?.avatarUrl || 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png';
-    res.status(200).json({
-      ...profile,
-      _id: profile.id,
-      avatar: { url: avatarUrl },
-      avatarUrl: avatarUrl,
-      user: profile.user ? {
-        ...profile.user,
-        _id: profile.user.id,
-        avatar: { url: profile.user.avatarUrl || avatarUrl },
-        avatarUrl: profile.user.avatarUrl || avatarUrl
-      } : undefined
-    });
+    const formatted = await formatProfileForClient(profile);
+    res.status(200).json(formatted);
   } catch (error) {
     console.error('Error in createOrUpdateProfile:', error);
-    res.status(500).json({ message: error.message || 'Server error' });
+    res.status(500).json({ message: error.message });
   }
 };
 
@@ -245,25 +180,26 @@ const getAllProfiles = async (req, res) => {
             badgeType: true
           }
         }
-      },
-      take: 50,
-      orderBy: { createdAt: 'desc' }
+      }
     });
 
-    res.status(200).json(profiles);
+    const formatted = await Promise.all(profiles.map(p => formatProfileForClient(p)));
+    res.status(200).json(formatted);
   } catch (error) {
     console.error('Error in getAllProfiles:', error);
     res.status(500).json({ message: error.message });
   }
 };
 
-// @desc    Get profile by User ID
+// @desc    Get profile by user ID
 // @route   GET /api/profile/user/:user_id
-// @access  Public
+// @access  Public (Optional auth)
 const getProfileByUserId = async (req, res) => {
   try {
-    const profile = await prisma.profile.findUnique({
-      where: { userId: req.params.user_id },
+    const targetUserId = req.params.user_id || req.params.id;
+
+    let profile = await prisma.profile.findUnique({
+      where: { userId: targetUserId },
       include: {
         user: {
           select: {
@@ -272,92 +208,56 @@ const getProfileByUserId = async (req, res) => {
             email: true,
             avatarUrl: true,
             isVerifiedBadge: true,
-            badgeType: true,
-            statusPreference: true
+            badgeType: true
           }
         }
       }
     });
 
     if (!profile) {
-      return res.status(404).json({ message: 'Profile not found' });
+      const user = await prisma.user.findUnique({
+        where: { id: targetUserId },
+        select: { id: true, name: true, email: true, avatarUrl: true, isVerifiedBadge: true, badgeType: true }
+      });
+
+      if (!user) return res.status(404).json({ message: 'Profile not found' });
+
+      profile = await prisma.profile.create({
+        data: { userId: targetUserId, status: 'Developer', skills: [] },
+        include: { user: { select: { id: true, name: true, email: true, avatarUrl: true, isVerifiedBadge: true, badgeType: true } } }
+      });
     }
 
-    const avatarUrl = profile.avatarUrl || profile.user?.avatarUrl || 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png';
-    res.status(200).json({
-      ...profile,
-      _id: profile.id,
-      avatar: { url: avatarUrl },
-      avatarUrl: avatarUrl,
-      user: profile.user ? {
-        ...profile.user,
-        _id: profile.user.id,
-        avatar: { url: profile.user.avatarUrl || avatarUrl },
-        avatarUrl: profile.user.avatarUrl || avatarUrl
-      } : undefined
-    });
+    // Increment views if viewer is different
+    if (req.user?.id && req.user.id !== targetUserId) {
+      await prisma.profile.update({
+        where: { userId: targetUserId },
+        data: { views: { increment: 1 } }
+      }).catch(() => {});
+    }
+
+    const formatted = await formatProfileForClient(profile);
+    res.status(200).json(formatted);
   } catch (error) {
     console.error('Error in getProfileByUserId:', error);
     res.status(500).json({ message: error.message });
   }
 };
 
-// @desc    Get Onboarding Suggestions (Top Verified Creators & Innovators)
-// @route   GET /api/profile/suggestions/onboarding
-// @access  Private
-const getOnboardingSuggestions = async (req, res) => {
-  try {
-    const currentUserId = req.user.id;
-
-    const suggestions = await prisma.user.findMany({
-      where: {
-        id: { not: currentUserId },
-        isSuspended: false
-      },
-      select: {
-        id: true,
-        name: true,
-        avatarUrl: true,
-        isVerifiedBadge: true,
-        badgeType: true,
-        profile: {
-          select: {
-            status: true,
-            company: true,
-            location: true,
-            skills: true
-          }
-        }
-      },
-      take: 6,
-      orderBy: { createdAt: 'desc' }
-    });
-
-    res.status(200).json({
-      success: true,
-      suggestions
-    });
-  } catch (error) {
-    console.error('Error in getOnboardingSuggestions:', error);
-    res.status(500).json({ success: false, suggestions: [] });
-  }
-};
-
-// @desc    Delete profile & user account
+// @desc    Delete user and profile
 // @route   DELETE /api/profile
 // @access  Private
 const deleteProfile = async (req, res) => {
   try {
-    const userId = req.user.id;
-    await prisma.user.delete({ where: { id: userId } });
-    res.status(200).json({ message: 'User account and profile deleted successfully' });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
+    await prisma.user.delete({ where: { id: req.user.id } });
+    res.status(200).json({ message: 'User deleted' });
+  } catch (e) {
+    res.status(500).json({ message: e.message });
   }
 };
 
-// @desc    Follow a user
-// @route   POST /api/profile/follow/:id
+// @desc    Follow user
+// @route   POST /api/profile/follow/:user_id
 // @access  Private
 const followUser = async (req, res) => {
   try {
@@ -365,30 +265,23 @@ const followUser = async (req, res) => {
     const currentUserId = req.user.id;
 
     if (targetUserId === currentUserId) {
-      return res.status(400).json({ message: 'You cannot follow yourself' });
+      return res.status(400).json({ message: 'Cannot follow yourself' });
     }
 
-    const existingFollow = await prisma.follow.findUnique({
+    await prisma.follow.upsert({
       where: {
         followerId_followingId: {
           followerId: currentUserId,
           followingId: targetUserId
         }
-      }
-    });
-
-    if (existingFollow) {
-      return res.status(400).json({ message: 'You are already following this user' });
-    }
-
-    await prisma.follow.create({
-      data: {
+      },
+      update: {},
+      create: {
         followerId: currentUserId,
         followingId: targetUserId
       }
     });
 
-    // Create Notification
     try {
       await prisma.notification.create({
         data: {
@@ -400,42 +293,37 @@ const followUser = async (req, res) => {
       });
     } catch (nErr) {}
 
-    res.status(200).json({ success: true, message: 'Successfully followed user' });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(200).json({ success: true });
+  } catch (e) {
+    res.status(500).json({ message: e.message });
   }
 };
 
-// @desc    Unfollow a user
-// @route   DELETE /api/profile/follow/:id
+// @desc    Unfollow user
+// @route   POST /api/profile/unfollow/:user_id
 // @access  Private
 const unfollowUser = async (req, res) => {
   try {
     const targetUserId = req.params.user_id || req.params.id;
-    const currentUserId = req.user.id;
-
     await prisma.follow.deleteMany({
       where: {
-        followerId: currentUserId,
+        followerId: req.user.id,
         followingId: targetUserId
       }
     });
-
-    res.status(200).json({ success: true, message: 'Successfully unfollowed user' });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(200).json({ success: true });
+  } catch (e) {
+    res.status(500).json({ message: e.message });
   }
 };
 
-// Helpers for Experience & Education
 const addExperience = async (req, res) => {
   try {
     const profile = await prisma.profile.findUnique({ where: { userId: req.user.id } });
     const exp = profile?.experience || [];
-    const updatedExp = [req.body, ...exp];
     const updated = await prisma.profile.update({
       where: { userId: req.user.id },
-      data: { experience: updatedExp }
+      data: { experience: [req.body, ...exp] }
     });
     res.status(200).json(updated);
   } catch (e) {
@@ -461,10 +349,9 @@ const addEducation = async (req, res) => {
   try {
     const profile = await prisma.profile.findUnique({ where: { userId: req.user.id } });
     const edu = profile?.education || [];
-    const updatedEdu = [req.body, ...edu];
     const updated = await prisma.profile.update({
       where: { userId: req.user.id },
-      data: { education: updatedEdu }
+      data: { education: [req.body, ...edu] }
     });
     res.status(200).json(updated);
   } catch (e) {
@@ -490,10 +377,9 @@ const addCertification = async (req, res) => {
   try {
     const profile = await prisma.profile.findUnique({ where: { userId: req.user.id } });
     const certs = profile?.certifications || [];
-    const updatedCerts = [req.body, ...certs];
     const updated = await prisma.profile.update({
       where: { userId: req.user.id },
-      data: { certifications: updatedCerts }
+      data: { certifications: [req.body, ...certs] }
     });
     res.status(200).json(updated);
   } catch (e) {
@@ -515,8 +401,6 @@ const deleteCertification = async (req, res) => {
   }
 };
 
-
-// Additional Profile Operations for Parity
 const getProfileAnalytics = async (req, res) => {
   try {
     const profile = await prisma.profile.findUnique({ where: { userId: req.user.id } });
@@ -552,7 +436,68 @@ const searchProfiles = async (req, res) => {
 };
 
 const getNetworkSuggestions = async (req, res) => {
-  return getOnboardingSuggestions(req, res);
+  try {
+    const currentUserId = req.user?.id;
+    const users = await prisma.user.findMany({
+      where: {
+        id: currentUserId ? { not: currentUserId } : undefined,
+        isSuspended: false
+      },
+      select: {
+        id: true,
+        name: true,
+        avatarUrl: true,
+        isVerifiedBadge: true,
+        badgeType: true,
+        profile: {
+          select: {
+            id: true,
+            status: true,
+            company: true,
+            location: true,
+            bio: true,
+            skills: true,
+            githubusername: true
+          }
+        }
+      },
+      take: 15
+    });
+
+    const formatted = users.map(u => {
+      const avatarUrl = u.avatarUrl || 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png';
+      return {
+        _id: u.id,
+        id: u.id,
+        name: u.name,
+        avatar: { url: avatarUrl },
+        avatarUrl: avatarUrl,
+        isVerifiedBadge: u.isVerifiedBadge,
+        badgeType: u.badgeType,
+        headline: u.profile?.status || 'Developer',
+        bio: u.profile?.bio || '',
+        company: u.profile?.company || '',
+        location: u.profile?.location || '',
+        profile: u.profile,
+        user: {
+          _id: u.id,
+          id: u.id,
+          name: u.name,
+          avatar: { url: avatarUrl },
+          avatarUrl: avatarUrl
+        }
+      };
+    });
+
+    res.status(200).json(formatted);
+  } catch (e) {
+    console.error('Error in getNetworkSuggestions:', e);
+    res.status(500).json([]);
+  }
+};
+
+const getOnboardingSuggestions = async (req, res) => {
+  return getNetworkSuggestions(req, res);
 };
 
 const getFollowers = async (req, res) => {
@@ -561,7 +506,16 @@ const getFollowers = async (req, res) => {
       where: { followingId: req.user.id },
       include: { follower: { include: { profile: true } } }
     });
-    res.status(200).json(followers.map(f => f.follower));
+    res.status(200).json(followers.map(f => {
+      const u = f.follower;
+      const avatarUrl = u.avatarUrl || 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png';
+      return {
+        ...u,
+        _id: u.id,
+        avatar: { url: avatarUrl },
+        avatarUrl
+      };
+    }));
   } catch (e) {
     res.status(500).json([]);
   }
@@ -573,7 +527,16 @@ const getFollowing = async (req, res) => {
       where: { followerId: req.user.id },
       include: { following: { include: { profile: true } } }
     });
-    res.status(200).json(following.map(f => f.following));
+    res.status(200).json(following.map(f => {
+      const u = f.following;
+      const avatarUrl = u.avatarUrl || 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png';
+      return {
+        ...u,
+        _id: u.id,
+        avatar: { url: avatarUrl },
+        avatarUrl
+      };
+    }));
   } catch (e) {
     res.status(500).json([]);
   }
@@ -592,17 +555,10 @@ const exportSelfData = async (req, res) => {
 };
 
 module.exports = {
-  getProfileAnalytics,
-  searchProfiles,
-  getNetworkSuggestions,
-  getFollowers,
-  getFollowing,
-  exportSelfData,
   getCurrentProfile,
   createOrUpdateProfile,
   getAllProfiles,
   getProfileByUserId,
-  getOnboardingSuggestions,
   deleteProfile,
   followUser,
   unfollowUser,
@@ -611,5 +567,12 @@ module.exports = {
   addEducation,
   deleteEducation,
   addCertification,
-  deleteCertification
+  deleteCertification,
+  getProfileAnalytics,
+  searchProfiles,
+  getNetworkSuggestions,
+  getOnboardingSuggestions,
+  getFollowers,
+  getFollowing,
+  exportSelfData
 };
