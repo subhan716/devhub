@@ -1,0 +1,27 @@
+# Dependencies — regenerated INSIDE the image during `npm install`.
+# Never copy the host's node_modules: it contains a platform-specific Prisma
+# client/engine (built for Windows) that breaks on Alpine Linux and may be
+# generated from an older schema. This is what caused the production
+# "Invalid prisma.user.findFirst() invocation" error.
+node_modules
+npm-debug.log*
+yarn-error.log*
+
+# Secrets / local env — production injects env vars via the host, not a file.
+.env
+.env.*
+
+# VCS
+.git
+.gitignore
+
+# Docker
+Dockerfile
+.dockerignore
+
+# Tooling / editor / OS cruft
+.claude
+.vscode
+.idea
+.DS_Store
+*.log
