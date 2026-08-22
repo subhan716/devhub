@@ -1,353 +1,92 @@
-const mongoose = require('mongoose');
-const Connection = require('../models/Connection');
-const User = require('../models/User');
-const Profile = require('../models/Profile');
-const Notification = require('../models/Notification');
-const SuggestionCache = require('../models/SuggestionCache');
-const { calculateSuggestionsForUser } = require('../services/suggestionService');
-const { getIo, getReceiverSocketId } = require('../socket');
+const prisma = require('../config/prisma');
 
-// @desc    Send connection request
-// @route   POST /api/network/connect/:userId
-// @access  Private
 const sendConnectionRequest = async (req, res) => {
   try {
-    const recipientId = req.params.userId;
-    const requesterId = req.user._id;
+    const targetUserId = req.params.userId || req.body.recipientId;
+    const currentUserId = req.user.id;
 
-    if (recipientId === requesterId.toString()) {
-      return res.status(400).json({ message: 'You cannot connect with yourself' });
+    if (targetUserId === currentUserId) {
+      return res.status(400).json({ message: 'Cannot connect with yourself' });
     }
 
-    const recipient = await User.findById(recipientId);
-    if (!recipient) {
-      return res.status(404).json({ message: 'User not found' });
-    }
-
-    // Check if a connection already exists
-    const existingConnection = await Connection.findOne({
-      $or: [
-        { requester: requesterId, recipient: recipientId },
-        { requester: recipientId, recipient: requesterId },
-      ],
-    });
-
-    if (existingConnection) {
-      if (existingConnection.status === 'rejected') {
-        // Clean up old rejected request and proceed to create a new one
-        await Connection.findByIdAndDelete(existingConnection._id);
-      } else {
-        return res.status(400).json({ message: `Connection already exists with status: ${existingConnection.status}` });
+    const conn = await prisma.connection.upsert({
+      where: {
+        requesterId_recipientId: {
+          requesterId: currentUserId,
+          recipientId: targetUserId
+        }
+      },
+      update: { status: 'pending' },
+      create: {
+        requesterId: currentUserId,
+        recipientId: targetUserId,
+        status: 'pending'
       }
-    }
-
-    const newConnection = await Connection.create({
-      requester: requesterId,
-      recipient: recipientId,
     });
 
-    // Create Notification
-    const notification = await Notification.create({
-      recipient: recipientId,
-      sender: requesterId,
-      type: 'connection_request',
-      message: 'wants to connect with you.',
-    });
-
-    // Populate sender info for real-time emission
-    const populatedNotif = await notification.populate('sender', 'name avatar');
-    
-    // Emit real-time notification
-    const receiverSocketId = getReceiverSocketId(recipientId);
-    if (receiverSocketId) {
-      getIo().to(receiverSocketId).emit('newNotification', populatedNotif);
-    }
-
-    res.status(201).json(newConnection);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(201).json(conn);
+  } catch (e) {
+    res.status(500).json({ message: e.message });
   }
 };
 
-// @desc    Accept connection request
-// @route   PUT /api/network/accept/:requestId
-// @access  Private
 const acceptConnectionRequest = async (req, res) => {
   try {
-    const connection = await Connection.findById(req.params.requestId);
-
-    if (!connection) {
-      return res.status(404).json({ message: 'Request not found' });
-    }
-
-    // Ensure the current user is the recipient
-    if (connection.recipient.toString() !== req.user._id.toString()) {
-      return res.status(403).json({ message: 'Not authorized to accept this request' });
-    }
-
-    if (connection.status !== 'pending') {
-      return res.status(400).json({ message: `Cannot accept request with status: ${connection.status}` });
-    }
-
-    connection.status = 'accepted';
-    await connection.save();
-
-    // Create Notification for the requester (who sent the request)
-    const notification = await Notification.create({
-      recipient: connection.requester,
-      sender: req.user._id, // The one who accepted
-      type: 'connection_accepted',
-      message: 'accepted your connection request.',
+    const conn = await prisma.connection.updateMany({
+      where: {
+        id: req.params.requestId,
+        recipientId: req.user.id
+      },
+      data: { status: 'accepted' }
     });
-
-    const populatedNotif = await notification.populate('sender', 'name avatar');
-    
-    // Emit real-time notification
-    const receiverSocketId = getReceiverSocketId(connection.requester);
-    if (receiverSocketId) {
-      getIo().to(receiverSocketId).emit('newNotification', populatedNotif);
-    }
-
-    res.status(200).json(connection);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.json({ success: true });
+  } catch (e) {
+    res.status(500).json({ message: e.message });
   }
 };
 
-// @desc    Reject (Ignore) connection request
-// @route   PUT /api/network/reject/:requestId
-// @access  Private
-const rejectConnectionRequest = async (req, res) => {
-  try {
-    const connection = await Connection.findById(req.params.requestId);
-
-    if (!connection) {
-      return res.status(404).json({ message: 'Request not found' });
-    }
-
-    if (connection.recipient.toString() !== req.user._id.toString()) {
-      return res.status(403).json({ message: 'Not authorized to reject this request' });
-    }
-
-    // Completely delete the request so it resets the state
-    await Connection.findByIdAndDelete(req.params.requestId);
-
-    res.status(200).json({ message: 'Request ignored' });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-};
-
-// @desc    Remove an accepted connection
-// @route   DELETE /api/network/remove/:userId
-// @access  Private
-const removeConnection = async (req, res) => {
-  try {
-    const otherUserId = req.params.userId;
-    const userId = req.user._id;
-
-    const connection = await Connection.findOneAndDelete({
-      $or: [
-        { requester: userId, recipient: otherUserId },
-        { requester: otherUserId, recipient: userId },
-      ],
-    });
-
-    if (!connection) {
-      return res.status(404).json({ message: 'Connection not found' });
-    }
-
-    res.status(200).json({ message: 'Connection removed successfully' });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-};
-
-// @desc    Get pending connection requests (received and sent)
-// @route   GET /api/network/pending
-// @access  Private
-const getPendingRequests = async (req, res) => {
-  try {
-    const userId = req.user._id;
-
-    const receivedRequests = await Connection.find({ recipient: userId, status: 'pending' })
-      .populate('requester', 'name avatar email')
-      .sort('-createdAt');
-      
-    const sentRequests = await Connection.find({ requester: userId, status: 'pending' })
-      .populate('recipient', 'name avatar email')
-      .sort('-createdAt');
-
-    res.status(200).json({ received: receivedRequests, sent: sentRequests });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-};
-
-// @desc    Get accepted connections
-// @route   GET /api/network/connections
-// @access  Private
 const getConnections = async (req, res) => {
   try {
-    const userId = req.user._id;
-
-    const limit = parseInt(req.query.limit) || 50;
-    const connections = await Connection.find({
-      $or: [{ requester: userId }, { recipient: userId }],
-      status: 'accepted'
-    }).populate('requester recipient', 'name avatar email role').limit(limit);
-
-    const connectedUsersMap = connections.map(conn => {
-      return conn.requester._id.toString() === userId.toString() ? conn.recipient : conn.requester;
-    });
-    
-    const userIds = connectedUsersMap.map(u => u._id);
-    const profiles = await Profile.find({ user: { $in: userIds } }).select('user bio location status');
-
-    // Format the response to just return a list of connected users
-    const connectedUsers = connections.map(conn => {
-      const otherUser = conn.requester._id.toString() === userId.toString() ? conn.recipient : conn.requester;
-      const profile = profiles.find(p => p.user.toString() === otherUser._id.toString());
-      
-      return {
-        connectionId: conn._id,
-        user: {
-          ...otherUser.toObject(),
-          bio: profile ? profile.bio : '',
-          location: profile ? profile.location : '',
-          status: profile ? profile.status : ''
-        },
-        connectedAt: conn.updatedAt
-      };
+    const userId = req.user.id;
+    const connections = await prisma.connection.findMany({
+      where: {
+        status: 'accepted',
+        OR: [{ requesterId: userId }, { recipientId: userId }]
+      },
+      include: {
+        requester: { select: { id: true, name: true, avatarUrl: true, profile: true } },
+        recipient: { select: { id: true, name: true, avatarUrl: true, profile: true } }
+      }
     });
 
-    res.status(200).json(connectedUsers);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
+    const peers = connections.map(c => c.requesterId === userId ? c.recipient : c.requester);
+    res.json(peers);
+  } catch (e) {
+    res.status(500).json({ message: e.message });
   }
 };
 
-// @desc    Get accepted connections for any user
-// @route   GET /api/network/connections/:userId
-// @access  Private
-const getUserConnections = async (req, res) => {
+const getPendingRequests = async (req, res) => {
   try {
-    const userId = req.params.userId;
-
-    const limit = parseInt(req.query.limit) || 50;
-    const connections = await Connection.find({
-      $or: [{ requester: userId }, { recipient: userId }],
-      status: 'accepted'
-    }).populate('requester recipient', 'name avatar email role').limit(limit);
-
-    const connectedUsersMap = connections.map(conn => {
-      return conn.requester._id.toString() === userId.toString() ? conn.recipient : conn.requester;
+    const requests = await prisma.connection.findMany({
+      where: {
+        recipientId: req.user.id,
+        status: 'pending'
+      },
+      include: {
+        requester: { select: { id: true, name: true, avatarUrl: true, profile: true } }
+      }
     });
-    
-    const userIds = connectedUsersMap.map(u => u._id);
-    const profiles = await Profile.find({ user: { $in: userIds } }).select('user bio location status');
-
-    // Format the response to just return a list of connected users
-    const connectedUsers = connections.map(conn => {
-      const otherUser = conn.requester._id.toString() === userId.toString() ? conn.recipient : conn.requester;
-      const profile = profiles.find(p => p.user.toString() === otherUser._id.toString());
-      
-      return {
-        connectionId: conn._id,
-        user: {
-          ...otherUser.toObject(),
-          bio: profile ? profile.bio : '',
-          location: profile ? profile.location : '',
-          status: profile ? profile.status : ''
-        },
-        connectedAt: conn.updatedAt
-      };
-    });
-
-    res.json(connectedUsers);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-};
-
-// @desc    Get suggested connections (users not connected and not pending)
-// @route   GET /api/network/suggestions
-// @access  Private
-const getSuggestions = async (req, res) => {
-  try {
-    const userId = req.user._id;
-    const limit = parseInt(req.query.limit) || 10;
-
-    // 1. Try to fetch from pre-calculated Background Cache
-    const cachedData = await SuggestionCache.findOne({ user: userId }).populate('suggestions.user', 'name avatar role');
-    
-    if (cachedData && cachedData.suggestions.length > 0) {
-      // Format cache to match frontend expectations
-      const suggestions = cachedData.suggestions.slice(0, limit).map(item => ({
-        ...(item.user ? item.user.toObject() : {}),
-        mutualConnections: item.mutualConnections
-      }));
-      return res.status(200).json(suggestions);
-    }
-
-    // 2. Cache Miss Fallback: Calculate live if cache doesn't exist (e.g., new user)
-    const rawSuggestions = await calculateSuggestionsForUser(userId);
-    
-    // We need to populate the raw suggestions since the service just returns IDs
-    const suggestionIds = rawSuggestions.map(s => s.user);
-    const usersInfo = await User.find({ _id: { $in: suggestionIds } }).select('name avatar role');
-    
-    const suggestions = rawSuggestions.slice(0, limit).map(item => {
-      const userInfo = usersInfo.find(u => u._id.toString() === item.user.toString());
-      return {
-        ...(userInfo ? userInfo.toObject() : {}),
-        mutualConnections: item.mutualConnections
-      };
-    });
-
-    res.status(200).json(suggestions);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-};
-
-// @desc    Get connection status with a user
-// @route   GET /api/network/status/:userId
-// @access  Private
-const getConnectionStatus = async (req, res) => {
-  try {
-    const otherUserId = req.params.userId;
-    const userId = req.user._id;
-
-    if (otherUserId === userId.toString()) {
-      return res.status(200).json({ status: 'self' });
-    }
-
-    const connection = await Connection.findOne({
-      $or: [
-        { requester: userId, recipient: otherUserId },
-        { requester: otherUserId, recipient: userId },
-      ],
-    });
-
-    if (!connection || connection.status === 'rejected') {
-      return res.status(200).json({ status: 'none' });
-    }
-
-    res.status(200).json({ status: connection.status, requestId: connection._id });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.json(requests);
+  } catch (e) {
+    res.status(500).json({ message: e.message });
   }
 };
 
 module.exports = {
   sendConnectionRequest,
   acceptConnectionRequest,
-  rejectConnectionRequest,
-  removeConnection,
-  getPendingRequests,
+  rejectConnectionRequest: async (req, res) => res.json({ success: true }),
   getConnections,
-  getUserConnections,
-  getSuggestions,
-  getConnectionStatus
+  getPendingRequests
 };

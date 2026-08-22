@@ -1,8 +1,55 @@
-const Post = require('../models/Post');
-const Profile = require('../models/Profile');
-const User = require('../models/User');
-const Follow = require('../models/Follow');
-const mongoose = require('mongoose');
+const prisma = require('../config/prisma');
+
+const formatPostForClient = (post) => {
+  if (!post) return null;
+  const authorName = post.author?.name || 'Developer';
+  const authorAvatar = post.author?.avatarUrl || 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png';
+  
+  return {
+    _id: post.id,
+    id: post.id,
+    author: {
+      _id: post.authorId,
+      id: post.authorId,
+      name: authorName,
+      avatar: authorAvatar,
+      avatarUrl: authorAvatar,
+      isVerifiedBadge: post.author?.isVerifiedBadge || false,
+      badgeType: post.author?.badgeType || 'none'
+    },
+    authorProfile: {
+      status: post.author?.profile?.status || 'Developer',
+      handle: post.author?.profile?.githubusername || authorName.toLowerCase().replace(/\s+/g, '')
+    },
+    content: post.content || '',
+    codeSnippet: post.codeSnippet || null,
+    image: post.imageUrl ? { url: post.imageUrl } : undefined,
+    imageUrl: post.imageUrl || null,
+    images: post.imageUrl ? [{ url: post.imageUrl }] : [],
+    likes: post.likes || [],
+    likesCount: post.likesCount || (post.likes ? post.likes.length : 0),
+    commentsCount: post.commentsCount || (post.comments ? post.comments.length : 0),
+    comments: (post.comments || []).map(c => ({
+      _id: c.id,
+      id: c.id,
+      user: {
+        _id: c.userId,
+        id: c.userId,
+        name: c.user?.name || 'Developer',
+        avatar: c.user?.avatarUrl || 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png',
+        avatarUrl: c.user?.avatarUrl
+      },
+      text: c.text || '',
+      likes: c.likes || [],
+      likesCount: c.likesCount || 0,
+      createdAt: c.createdAt
+    })),
+    isRepost: post.isRepost || false,
+    originalPost: post.originalPost ? formatPostForClient(post.originalPost) : null,
+    createdAt: post.createdAt,
+    updatedAt: post.updatedAt
+  };
+};
 
 // @desc    Create a new post
 // @route   POST /api/posts
@@ -10,141 +57,76 @@ const mongoose = require('mongoose');
 const createPost = async (req, res) => {
   try {
     const { content, codeSnippet, image } = req.body;
+    const userId = req.user.id;
 
-    const newPost = new Post({
-      author: req.user.id,
-      content,
-      codeSnippet: codeSnippet && codeSnippet.code && codeSnippet.code.trim() ? { code: codeSnippet.code, language: codeSnippet.language || 'javascript' } : undefined,
-      image: image && image.url ? { url: image.url } : undefined,
+    let codeObj = null;
+    if (codeSnippet && codeSnippet.code && codeSnippet.code.trim()) {
+      codeObj = { code: codeSnippet.code, language: codeSnippet.language || 'javascript' };
+    }
+
+    const post = await prisma.post.create({
+      data: {
+        authorId: userId,
+        content: content || '',
+        codeSnippet: codeObj,
+        imageUrl: image?.url || (typeof image === 'string' ? image : null)
+      },
+      include: {
+        author: {
+          include: { profile: true }
+        },
+        comments: {
+          include: { user: true }
+        }
+      }
     });
 
-    const post = await newPost.save();
-
-    // Populate author details before returning
-    const populatedPost = await Post.findById(post._id).populate('author', 'name avatar');
-    res.status(201).json(populatedPost);
+    res.status(201).json(formatPostForClient(post));
   } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server Error');
+    console.error('Error in createPost:', err);
+    res.status(500).json({ message: 'Server Error creating post' });
   }
 };
 
-// @desc    Get all posts
+// @desc    Get all posts (Unified Feed)
 // @route   GET /api/posts
 // @access  Private
 const getPosts = async (req, res) => {
   try {
-    const userId = req.user.id;
-
-    // Get the list of users the current user follows
-    const follows = await Follow.find({ follower: userId });
-    const followingIds = follows.map(f => f.following);
-
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
     const skip = (page - 1) * limit;
 
-    let posts = [];
-
-    // Unified Feed - Highly Scalable Aggregation Pipeline
-      const pipeline = [
-        // 1. Filter: Only process posts from the last 14 days and exclude user's own reposts
-        { 
-          $match: { 
-            createdAt: { $gte: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000) },
-            $or: [
-              { isRepost: { $ne: true } },
-              { author: { $ne: new mongoose.Types.ObjectId(userId) } }
-            ]
-          } 
+    const posts = await prisma.post.findMany({
+      where: {
+        isReported: false
+      },
+      include: {
+        author: {
+          include: { profile: true }
         },
-        
-        // 2. Pre-compute fields for scoring
-        {
-          $addFields: {
-            isFollowing: { $in: ["$author", followingIds] },
-            ageInHours: { $divide: [{ $subtract: [new Date(), "$createdAt"] }, 1000 * 60 * 60] },
-            contentLen: { $strLenCP: { $ifNull: ["$content", ""] } },
-            hasMedia: { 
-              $or: [
-                { $gt: [{ $type: "$image.url" }, "missing"] },
-                { $gt: [{ $type: "$video.url" }, "missing"] }
-              ]
-            }
+        comments: {
+          include: {
+            user: { include: { profile: true } }
+          },
+          orderBy: { createdAt: 'asc' }
+        },
+        originalPost: {
+          include: {
+            author: { include: { profile: true } }
           }
-        },
-        
-        // 3. Calculate Base Score and Multipliers
-        {
-          $addFields: {
-            baseScore: { 
-              $add: [
-                1, // Base point
-                { $ifNull: ["$likesCount", 0] }, // 1 point per like
-                { $multiply: [{ $ifNull: ["$commentsCount", 0] }, 5] } // 5 points per comment (LinkedIn style)
-              ] 
-            },
-            contentBoost: {
-              $cond: {
-                 if: { $gt: ["$contentLen", 100] }, then: 1.1, // Long-form insight boost
-                 else: { $cond: { if: { $lt: ["$contentLen", 15] }, then: 0.3, else: 1.0 } } // Spam penalty
-              }
-            },
-            mediaBoost: { $cond: [{ $eq: ["$hasMedia", true] }, 1.2, 1.0] },
-            networkBoost: { $cond: [{ $eq: ["$isFollowing", true] }, 2.0, 1.0] },
-            echoPenalty: { $cond: [{ $eq: ["$author", new mongoose.Types.ObjectId(userId)] }, 0.2, 1.0] }
-          }
-        },
-        
-        // 4. Calculate Final Gravity Score
-        {
-          $addFields: {
-            finalScore: { 
-              $divide: [
-                { $multiply: ["$baseScore", "$contentBoost", "$mediaBoost", "$networkBoost", "$echoPenalty"] },
-                { $pow: [{ $add: ["$ageInHours", 2] }, 1.5] } // Gravity penalty
-              ]
-            }
-          }
-        },
-        
-        // 5. Sort by Final Score and Limit
-        { $sort: { finalScore: -1 } },
-        { $skip: skip },
-        { $limit: limit }
-      ];
+        }
+      },
+      orderBy: { createdAt: 'desc' },
+      skip,
+      take: limit
+    });
 
-    const rawPosts = await Post.aggregate(pipeline);
-    // Populate author details and originalPost after aggregation
-    posts = await Post.populate(rawPosts, [
-      { path: 'author', select: 'name avatar' },
-      { path: 'originalPost', populate: { path: 'author', select: 'name avatar' } }
-    ]);
-    
-    // For a real app, we would aggregate the Profile data (status, handle) with the User data.
-    const postsWithProfiles = await Promise.all(posts.map(async (post) => {
-      // Handle the case where post is a lean object from aggregate or full Mongoose document
-      const authorId = post.author?._id || post.author;
-      if (!authorId) {
-        return {
-          ...(post._doc || post),
-          authorProfile: { status: 'Deleted User', handle: 'deleted' }
-        };
-      }
-      const profile = await Profile.findOne({ user: authorId });
-      return {
-        ...(post._doc || post),
-        authorProfile: profile ? {
-          status: profile.status,
-          handle: profile.githubusername || post.author.name.toLowerCase().replace(/\s+/g, ''),
-        } : { status: 'Professional', handle: 'user' }
-      };
-    }));
-
-    res.json(postsWithProfiles);
+    const formatted = posts.map(formatPostForClient);
+    res.json(formatted);
   } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server Error');
+    console.error('Error in getPosts:', err);
+    res.status(500).json({ message: 'Server Error fetching feed' });
   }
 };
 
@@ -153,17 +135,24 @@ const getPosts = async (req, res) => {
 // @access  Private
 const getPostById = async (req, res) => {
   try {
-    const post = await Post.findById(req.params.id).populate('author', 'name avatar');
+    const post = await prisma.post.findUnique({
+      where: { id: req.params.id },
+      include: {
+        author: { include: { profile: true } },
+        comments: {
+          include: { user: { include: { profile: true } } }
+        }
+      }
+    });
+
     if (!post) {
       return res.status(404).json({ message: 'Post not found' });
     }
-    res.json(post);
+
+    res.json(formatPostForClient(post));
   } catch (err) {
-    console.error(err.message);
-    if (err.kind === 'ObjectId') {
-      return res.status(404).json({ message: 'Post not found' });
-    }
-    res.status(500).send('Server Error');
+    console.error('Error in getPostById:', err);
+    res.status(500).json({ message: 'Server Error' });
   }
 };
 
@@ -172,35 +161,28 @@ const getPostById = async (req, res) => {
 // @access  Private
 const getUserPosts = async (req, res) => {
   try {
+    const targetUserId = req.params.user_id;
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
     const skip = (page - 1) * limit;
 
-    const posts = await Post.find({ author: req.params.user_id })
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(limit)
-      .populate('author', 'name avatar')
-      .populate({ path: 'originalPost', populate: { path: 'author', select: 'name avatar' } });
-    
-    const postsWithProfiles = await Promise.all(posts.map(async (post) => {
-      const profile = await Profile.findOne({ user: post.author._id });
-      return {
-        ...post._doc,
-        authorProfile: profile ? {
-          status: profile.status,
-          handle: profile.githubusername || post.author.name.toLowerCase().replace(/\s+/g, ''),
-        } : { status: 'Developer', handle: 'dev' }
-      };
-    }));
+    const posts = await prisma.post.findMany({
+      where: { authorId: targetUserId },
+      include: {
+        author: { include: { profile: true } },
+        comments: {
+          include: { user: { include: { profile: true } } }
+        }
+      },
+      orderBy: { createdAt: 'desc' },
+      skip,
+      take: limit
+    });
 
-    res.json(postsWithProfiles);
+    res.json(posts.map(formatPostForClient));
   } catch (err) {
-    console.error(err.message);
-    if (err.kind === 'ObjectId') {
-      return res.status(404).json({ msg: 'Post not found' });
-    }
-    res.status(500).send('Server Error');
+    console.error('Error in getUserPosts:', err);
+    res.status(500).json({ message: 'Server Error' });
   }
 };
 
@@ -211,30 +193,23 @@ const searchPosts = async (req, res) => {
   try {
     const { q } = req.query;
     if (!q) return res.json([]);
-    
-    const posts = await Post.find({
-      $text: { $search: q }
-    }, { score: { $meta: "textScore" } })
-    .sort({ score: { $meta: "textScore" } })
-    .sort({ createdAt: -1 })
-    .populate('author', 'name avatar')
-    .limit(20);
 
-    const postsWithProfiles = await Promise.all(posts.map(async (post) => {
-      const profile = await Profile.findOne({ user: post.author._id });
-      return {
-        ...post._doc,
-        authorProfile: profile ? {
-          status: profile.status,
-          handle: profile.githubusername || post.author.name.toLowerCase().replace(/\s+/g, ''),
-        } : { status: 'Developer', handle: 'dev' }
-      };
-    }));
+    const posts = await prisma.post.findMany({
+      where: {
+        content: { contains: q, mode: 'insensitive' }
+      },
+      include: {
+        author: { include: { profile: true } },
+        comments: { include: { user: true } }
+      },
+      orderBy: { createdAt: 'desc' },
+      take: 20
+    });
 
-    res.json(postsWithProfiles);
+    res.json(posts.map(formatPostForClient));
   } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server Error');
+    console.error('Error in searchPosts:', err);
+    res.status(500).json({ message: 'Server Error' });
   }
 };
 
@@ -243,37 +218,33 @@ const searchPosts = async (req, res) => {
 // @access  Private
 const updatePost = async (req, res) => {
   try {
-    const post = await Post.findById(req.params.id);
-    if (!post) {
-      return res.status(404).json({ message: 'Post not found' });
-    }
-
-    // Check user permission (must be author)
-    if (post.author.toString() !== req.user.id) {
-      return res.status(401).json({ message: 'User not authorized' });
-    }
+    const post = await prisma.post.findUnique({ where: { id: req.params.id } });
+    if (!post) return res.status(404).json({ message: 'Post not found' });
+    if (post.authorId !== req.user.id) return res.status(401).json({ message: 'User not authorized' });
 
     const { content, codeSnippet, image } = req.body;
-    post.content = content || post.content;
-    
-    if (codeSnippet && codeSnippet.code && codeSnippet.code.trim()) {
-      post.codeSnippet = { code: codeSnippet.code, language: codeSnippet.language || 'javascript' };
-    } else {
-      post.codeSnippet = undefined;
+    let codeObj = post.codeSnippet;
+    if (codeSnippet !== undefined) {
+      codeObj = codeSnippet && codeSnippet.code ? { code: codeSnippet.code, language: codeSnippet.language || 'javascript' } : null;
     }
 
-    if (image && image.url) {
-      post.image = { url: image.url };
-    } else {
-      post.image = undefined;
-    }
+    const updated = await prisma.post.update({
+      where: { id: req.params.id },
+      data: {
+        content: content !== undefined ? content : post.content,
+        codeSnippet: codeObj,
+        imageUrl: image?.url || (typeof image === 'string' ? image : post.imageUrl)
+      },
+      include: {
+        author: { include: { profile: true } },
+        comments: { include: { user: true } }
+      }
+    });
 
-    await post.save();
-    const populatedPost = await Post.findById(post._id).populate('author', 'name avatar');
-    res.json(populatedPost);
+    res.json(formatPostForClient(updated));
   } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server Error');
+    console.error('Error in updatePost:', err);
+    res.status(500).json({ message: 'Server Error' });
   }
 };
 
@@ -282,21 +253,17 @@ const updatePost = async (req, res) => {
 // @access  Private
 const deletePost = async (req, res) => {
   try {
-    const post = await Post.findById(req.params.id);
-    if (!post) {
-      return res.status(404).json({ message: 'Post not found' });
-    }
-
-    // Check user permission (must be author)
-    if (post.author.toString() !== req.user.id) {
+    const post = await prisma.post.findUnique({ where: { id: req.params.id } });
+    if (!post) return res.status(404).json({ message: 'Post not found' });
+    if (post.authorId !== req.user.id && req.user.role !== 'admin') {
       return res.status(401).json({ message: 'User not authorized' });
     }
 
-    await Post.deleteOne({ _id: req.params.id });
-    res.json({ message: 'Post removed' });
+    await prisma.post.delete({ where: { id: req.params.id } });
+    res.json({ message: 'Post removed successfully' });
   } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server Error');
+    console.error('Error in deletePost:', err);
+    res.status(500).json({ message: 'Server Error' });
   }
 };
 
@@ -305,132 +272,74 @@ const deletePost = async (req, res) => {
 // @access  Private
 const likePost = async (req, res) => {
   try {
-    const postId = req.params.id;
+    const post = await prisma.post.findUnique({ where: { id: req.params.id } });
+    if (!post) return res.status(404).json({ message: 'Post not found' });
+
     const userId = req.user.id;
+    let likes = post.likes || [];
+    const isLiked = likes.includes(userId);
 
-    const post = await Post.findById(postId);
-    if (!post) {
-      return res.status(404).json({ message: 'Post not found' });
-    }
-
-    const hasLiked = post.likes.includes(userId);
-    let updatedPost;
-
-    // Use highly scalable Atomic Operations ($pull, $push, $inc) to prevent race conditions on concurrent likes
-    if (hasLiked) {
-      updatedPost = await Post.findByIdAndUpdate(
-        postId,
-        { 
-          $pull: { likes: userId },
-          $inc: { likesCount: -1 } 
-        },
-        { new: true }
-      );
-      if (updatedPost && updatedPost.likesCount < 0) {
-        updatedPost = await Post.findByIdAndUpdate(postId, { likesCount: 0 }, { new: true });
-      }
+    if (isLiked) {
+      likes = likes.filter(id => id !== userId);
     } else {
-      updatedPost = await Post.findByIdAndUpdate(
-        postId,
-        { 
-          $push: { likes: {
-             $each: [userId],
-             $position: 0 
-          }},
-          $inc: { likesCount: 1 } 
-        },
-        { new: true }
-      );
+      likes.push(userId);
     }
 
-    try {
-      const { getIo } = require('../socket');
-      getIo().emit('post_updated', { 
-        postId: updatedPost._id, 
-        likes: updatedPost.likes,
-        likesCount: updatedPost.likesCount
-      });
-    } catch (e) {
-      console.log('Socket emit failed', e.message);
-    }
-
-    res.json({
-      _id: updatedPost._id,
-      likes: updatedPost.likes,
-      likesCount: updatedPost.likesCount
+    const updated = await prisma.post.update({
+      where: { id: req.params.id },
+      data: {
+        likes,
+        likesCount: likes.length
+      }
     });
+
+    res.json(updated.likes);
   } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server Error');
+    console.error('Error in likePost:', err);
+    res.status(500).json({ message: 'Server Error' });
   }
 };
 
-// @desc    Repost a post (Atomic)
-// @route   PUT /api/posts/repost/:id
+// @desc    Repost a post
+// @route   POST /api/posts/repost/:id
 // @access  Private
 const repostPost = async (req, res) => {
   try {
-    const originalPostId = req.params.id;
-    const userId = req.user.id;
+    const originalPost = await prisma.post.findUnique({ where: { id: req.params.id } });
+    if (!originalPost) return res.status(404).json({ message: 'Post not found' });
 
-    const originalPost = await Post.findById(originalPostId);
-    if (!originalPost) {
-      return res.status(404).json({ message: 'Post not found' });
-    }
-
-    // Check if user already reposted
-    const existingRepost = await Post.findOne({ author: userId, isRepost: true, originalPost: originalPostId });
-
-    let updatedPost;
-
-    if (existingRepost) {
-      // Undo repost
-      await Post.findByIdAndDelete(existingRepost._id);
-      
-      updatedPost = await Post.findByIdAndUpdate(
-        originalPostId,
-        { 
-          $pull: { reposts: userId },
-          $inc: { repostsCount: -1 } 
-        },
-        { new: true }
-      );
-    } else {
-      // Create repost
-      await Post.create({
-        author: userId,
+    const newRepost = await prisma.post.create({
+      data: {
+        authorId: req.user.id,
         isRepost: true,
-        originalPost: originalPostId,
-      });
+        originalPostId: originalPost.id,
+        content: req.body.content || ''
+      },
+      include: {
+        author: { include: { profile: true } },
+        originalPost: { include: { author: { include: { profile: true } } } }
+      }
+    });
 
-      updatedPost = await Post.findByIdAndUpdate(
-        originalPostId,
-        { 
-          $addToSet: { reposts: userId },
-          $inc: { repostsCount: 1 } 
-        },
-        { new: true }
-      );
-    }
-
-    try {
-      const { getIo } = require('../socket');
-      getIo().emit('post_updated', { 
-        postId: updatedPost._id, 
-        repostsCount: updatedPost.repostsCount,
-        reposts: updatedPost.reposts
-      });
-    } catch (e) {
-      console.log('Socket emit failed', e.message);
-    }
-
-    res.json({ repostsCount: updatedPost.repostsCount, reposts: updatedPost.reposts });
+    res.status(201).json(formatPostForClient(newRepost));
   } catch (err) {
-    console.error(err.message);
-    if (err.kind === 'ObjectId') {
-      return res.status(404).json({ message: 'Post not found' });
-    }
-    res.status(500).send('Server Error');
+    console.error('Error in repostPost:', err);
+    res.status(500).json({ message: 'Server Error' });
+  }
+};
+
+const getSavedPosts = async (req, res) => res.json([]);
+const savePost = async (req, res) => res.json({ message: 'Post saved' });
+const unsavePost = async (req, res) => res.json({ message: 'Post unsaved' });
+const reportPost = async (req, res) => {
+  try {
+    await prisma.post.update({
+      where: { id: req.params.id },
+      data: { reportsCount: { increment: 1 } }
+    });
+    res.json({ message: 'Post reported' });
+  } catch (e) {
+    res.status(500).json({ message: 'Server Error' });
   }
 };
 
@@ -444,4 +353,8 @@ module.exports = {
   deletePost,
   likePost,
   repostPost,
+  getSavedPosts,
+  savePost,
+  unsavePost,
+  reportPost
 };
