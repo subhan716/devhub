@@ -142,7 +142,10 @@ const PostCard = ({ post: rootPost, idx = 0, currentUser, onDelete, onEdit, auto
       try {
         const { data } = await axios.get(`${import.meta.env.VITE_API_URL}/api/profile/following`, { withCredentials: true });
         const safeAuthorId = String(authorId);
-        const isAlreadyFollowing = data.some(p => String(p.user?._id) === safeAuthorId || String(p.user) === safeAuthorId);
+        const isAlreadyFollowing = data.some(p => {
+          const uid = String(p.user?._id || p.user?.id || p._id || p.id || p.user);
+          return uid === safeAuthorId;
+        });
         setIsFollowing(isAlreadyFollowing);
       } catch {
         // silently ignore

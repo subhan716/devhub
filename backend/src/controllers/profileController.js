@@ -396,6 +396,90 @@ const getOnboardingSuggestions = async (req, res) => {
   return getNetworkSuggestions(req, res);
 };
 
+// @desc    Follow a user
+// @route   POST /api/profile/follow/:user_id
+// @access  Private
+const followUser = async (req, res) => {
+  try {
+    const followerId = req.user.id;
+    const followingId = req.params.user_id || req.params.id;
+
+    if (!followingId) {
+      return res.status(400).json({ message: 'Target user ID is required' });
+    }
+
+    if (followerId === followingId) {
+      return res.status(400).json({ message: 'You cannot follow yourself' });
+    }
+
+    const targetUser = await prisma.user.findUnique({ where: { id: followingId } });
+    if (!targetUser) return res.status(404).json({ message: 'User not found' });
+
+    await prisma.follow.upsert({
+      where: {
+        followerId_followingId: {
+          followerId,
+          followingId
+        }
+      },
+      update: {},
+      create: {
+        followerId,
+        followingId
+      }
+    });
+
+    // Auto-create notification
+    try {
+      await prisma.notification.create({
+        data: {
+          recipientId: followingId,
+          senderId: followerId,
+          type: 'follow',
+          message: `${req.user.name || 'A developer'} started following you.`
+        }
+      });
+    } catch (notifErr) {}
+
+    invalidateUserSuggestions(followerId);
+    invalidateUserSuggestions(followingId);
+
+    res.status(200).json({ success: true, message: 'Followed user successfully' });
+  } catch (error) {
+    console.error('Error in followUser:', error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc    Unfollow a user
+// @route   POST /api/profile/unfollow/:user_id
+// @access  Private
+const unfollowUser = async (req, res) => {
+  try {
+    const followerId = req.user.id;
+    const followingId = req.params.user_id || req.params.id;
+
+    if (!followingId) {
+      return res.status(400).json({ message: 'Target user ID is required' });
+    }
+
+    await prisma.follow.deleteMany({
+      where: {
+        followerId,
+        followingId
+      }
+    });
+
+    invalidateUserSuggestions(followerId);
+    invalidateUserSuggestions(followingId);
+
+    res.status(200).json({ success: true, message: 'Unfollowed user successfully' });
+  } catch (error) {
+    console.error('Error in unfollowUser:', error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
 const getFollowers = async (req, res) => {
   try {
     const followers = await prisma.follow.findMany({
@@ -408,8 +492,17 @@ const getFollowers = async (req, res) => {
       return {
         ...u,
         _id: u.id,
+        id: u.id,
         avatar: { url: avatarUrl },
-        avatarUrl
+        avatarUrl,
+        user: {
+          ...u,
+          _id: u.id,
+          id: u.id,
+          name: u.name,
+          avatar: { url: avatarUrl },
+          avatarUrl
+        }
       };
     }));
   } catch (e) {
@@ -429,12 +522,31 @@ const getFollowing = async (req, res) => {
       return {
         ...u,
         _id: u.id,
+        id: u.id,
         avatar: { url: avatarUrl },
-        avatarUrl
+        avatarUrl,
+        user: {
+          ...u,
+          _id: u.id,
+          id: u.id,
+          name: u.name,
+          avatar: { url: avatarUrl },
+          avatarUrl
+        }
       };
     }));
   } catch (e) {
     res.status(500).json([]);
+  }
+};
+
+const deleteProfile = async (req, res) => {
+  try {
+    await prisma.profile.deleteMany({ where: { userId: req.user.id } });
+    await prisma.user.delete({ where: { id: req.user.id } });
+    res.status(200).json({ message: 'User account and profile deleted successfully' });
+  } catch (e) {
+    res.status(500).json({ message: e.message });
   }
 };
 

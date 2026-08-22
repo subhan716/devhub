@@ -131,7 +131,13 @@ const ProfilePage = () => {
     profile &&
     currentUserProfile &&
     Array.isArray(profile.followers) &&
-    profile.followers.includes(currentUserProfile.user?._id || currentUserProfile.user?.id)
+    (
+      profile.followers.includes(currentUserProfile.user?._id) ||
+      profile.followers.includes(currentUserProfile.user?.id) ||
+      profile.followers.includes(currentUserProfile._id) ||
+      profile.followers.includes(currentUserProfile.id) ||
+      profile.followers.includes(currentUserProfile.userId)
+    )
   );
 
   useEffect(() => {
@@ -205,21 +211,27 @@ const ProfilePage = () => {
   }, [id, currentUserProfile]);
 
   const handleFollowToggle = async () => {
-    if (!profile || !profile.user) return;
+    const targetId = profile?.user?._id || profile?.user?.id || profile?.userId;
+    if (!profile || !targetId) return;
     
     const action = isFollowing ? 'unfollow' : 'follow';
+    const currentMyId = currentUserProfile?.user?._id || currentUserProfile?.user?.id || currentUserProfile?.userId || currentUserProfile?.id;
     try {
-      await axios.post(`${import.meta.env.VITE_API_URL}/api/profile/${action}/${profile.user._id}`, {}, { withCredentials: true });
+      await axios.post(`${import.meta.env.VITE_API_URL}/api/profile/${action}/${targetId}`, {}, { withCredentials: true });
       
       // Optimistic UI Update
       setProfile(prev => {
+        const prevFollowers = Array.isArray(prev.followers) ? prev.followers : [];
         const newFollowers = isFollowing 
-          ? prev.followers.filter(followerId => followerId !== currentUserProfile.user._id)
-          : [...prev.followers, currentUserProfile.user._id];
-        return { ...prev, followers: newFollowers };
+          ? prevFollowers.filter(followerId => followerId !== currentMyId)
+          : [...prevFollowers, currentMyId];
+        const newCount = isFollowing ? Math.max(0, (prev.followersCount || 1) - 1) : (prev.followersCount || 0) + 1;
+        return { ...prev, followers: newFollowers, followersCount: newCount };
       });
       
       toast.success(isFollowing ? 'Unfollowed user' : 'Following user');
+      window.dispatchEvent(new CustomEvent('followStatusChanged', { detail: { authorId: targetId, isFollowing: !isFollowing } }));
+      window.dispatchEvent(new Event('network-update'));
     } catch (error) {
       toast.error(error.response?.data?.message || `Failed to ${action} user`);
     }
