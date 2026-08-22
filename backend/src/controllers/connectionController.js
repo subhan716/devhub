@@ -32,7 +32,7 @@ const sendConnectionRequest = async (req, res) => {
           recipientId: targetUserId,
           senderId: currentUserId,
           type: 'connection_request',
-          message: `${req.user.name || 'A developer'} sent you a connection request`
+          message: 'sent you a connection request'
         },
         include: {
           sender: { select: { id: true, name: true, avatarUrl: true } }
@@ -77,7 +77,7 @@ const acceptConnectionRequest = async (req, res) => {
           recipientId: conn.requesterId,
           senderId: req.user.id,
           type: 'connection_accepted',
-          message: `${req.user.name || 'A developer'} accepted your connection request`
+          message: 'accepted your connection request'
         },
         include: {
           sender: { select: { id: true, name: true, avatarUrl: true } }

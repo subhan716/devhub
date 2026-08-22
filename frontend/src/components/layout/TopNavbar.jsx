@@ -230,7 +230,7 @@ const TopNavbar = ({ setIsMobileMenuOpen, currentUser, isMessagesPage }) => {
                         />
                         <div className="flex-1 min-w-0">
                           <p className={`text-xs ${!notif.read ? 'text-slate-900 dark:text-white font-medium' : 'text-gray-600 dark:text-gray-300'}`}>
-                            <strong className="font-bold text-slate-900 dark:text-white">{notif.sender?.name}</strong> {notif.message}
+                            <strong className="font-bold text-slate-900 dark:text-white">{notif.sender?.name}</strong> {notif.message.startsWith(notif.sender?.name) ? notif.message.substring(notif.sender.name.length).trim() : notif.message}
                           </p>
                           <span className="text-[10px] text-gray-400 dark:text-gray-500 mt-1 block">
                             {formatDistanceToNow(new Date(notif.createdAt), { addSuffix: true })}

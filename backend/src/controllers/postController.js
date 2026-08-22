@@ -256,7 +256,7 @@ const likePost = async (req, res) => {
               senderId: userId,
               type: 'like',
               relatedPostId: post.id,
-              message: `${req.user.name || 'A developer'} liked your post`
+              message: 'liked your post'
             },
             include: {
               sender: { select: { id: true, name: true, avatarUrl: true } }
@@ -329,7 +329,7 @@ const repostPost = async (req, res) => {
               senderId: userId,
               type: 'system',
               relatedPostId: original.id,
-              message: `${req.user.name || 'A developer'} reposted your update`
+              message: 'reposted your update'
             }
           });
         } catch (e) {}

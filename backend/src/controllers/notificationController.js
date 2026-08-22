@@ -22,13 +22,28 @@ const getNotifications = async (req, res) => {
 
     res.json(notifications.map(n => {
       const sAvatar = n.sender?.avatarUrl || 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png';
+      let cleanMsg = n.message || 'interacted with your profile';
+      if (n.sender?.name && cleanMsg.startsWith(n.sender.name)) {
+        cleanMsg = cleanMsg.substring(n.sender.name.length).trim();
+      }
+
+      const postObj = n.relatedPost ? {
+        _id: n.relatedPost.id,
+        id: n.relatedPost.id,
+        title: n.relatedPost.content ? n.relatedPost.content.substring(0, 50) : 'A post',
+        content: n.relatedPost.content
+      } : null;
+
       return {
         _id: n.id,
         id: n.id,
         type: n.type,
-        message: n.message,
+        message: cleanMsg,
         read: n.read,
         createdAt: n.createdAt,
+        relatedComment: n.relatedCommentId,
+        relatedPost: postObj,
+        post: postObj,
         sender: n.sender ? {
           _id: n.sender.id,
           id: n.sender.id,
@@ -37,8 +52,7 @@ const getNotifications = async (req, res) => {
           avatarUrl: sAvatar,
           isVerifiedBadge: n.sender.isVerifiedBadge,
           badgeType: n.sender.badgeType
-        } : null,
-        post: n.relatedPost ? { _id: n.relatedPost.id, id: n.relatedPost.id, content: n.relatedPost.content } : null
+        } : null
       };
     }));
   } catch (err) {

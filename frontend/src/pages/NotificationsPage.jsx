@@ -103,10 +103,7 @@ const NotificationsPage = () => {
                   />
                   <div className="flex-1">
                     <p className={`text-base ${!notif.read ? 'text-slate-900 dark:text-white font-medium' : 'text-slate-700 dark:text-gray-300'}`}>
-                      <span className="font-bold text-slate-900 dark:text-white hover:text-[#0A66C2] dark:hover:text-[#00F0FF] cursor-pointer transition-colors">
-                        {notif.sender?.name}
-                      </span>{' '}
-                      {notif.message}
+                      <span className="font-bold text-slate-900 dark:text-white hover:text-[#0A66C2] dark:hover:text-[#00F0FF] cursor-pointer transition-colors">{notif.sender?.name}</span>{' '}{notif.message.startsWith(notif.sender?.name) ? notif.message.substring(notif.sender.name.length).trim() : notif.message}
                     </p>
                     {notif.relatedPost && (
                       <p className="text-sm text-gray-500 mt-1 line-clamp-1 italic">
