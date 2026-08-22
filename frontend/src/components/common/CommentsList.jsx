@@ -217,24 +217,31 @@ const CommentsList = ({ postId, targetCommentId, onUpdateCount, currentUser }) =
     fetchComments();
   }, [postId, sort]);
 
-  useEffect(() => {
+    useEffect(() => {
     if (!socket) return;
     
-    const handleCommentChange = (data) => {
-      if (data.postId === postId) {
-        // Silent refresh so the UI doesn't flicker with loaders
-        fetchComments(true);
+    const handleCommentAdded = (data) => {
+      if (data.postId === postId && data.comment) {
+        setComments(prev => {
+          const exists = prev.some(c => (c._id || c.id) === (data.comment._id || data.comment.id));
+          if (exists) return prev;
+          return [data.comment, ...prev];
+        });
       }
     };
 
-    socket.on('comment_added', handleCommentChange);
-    socket.on('comment_deleted', handleCommentChange);
-    socket.on('comment_updated', handleCommentChange);
+    const handleCommentDeleted = (data) => {
+      if (data.postId === postId && data.commentId) {
+        setComments(prev => prev.filter(c => (c._id || c.id) !== data.commentId));
+      }
+    };
+
+    socket.on('comment_added', handleCommentAdded);
+    socket.on('comment_deleted', handleCommentDeleted);
     
     return () => {
-      socket.off('comment_added', handleCommentChange);
-      socket.off('comment_deleted', handleCommentChange);
-      socket.off('comment_updated', handleCommentChange);
+      socket.off('comment_added', handleCommentAdded);
+      socket.off('comment_deleted', handleCommentDeleted);
     };
   }, [socket, postId]);
 
@@ -269,17 +276,30 @@ const CommentsList = ({ postId, targetCommentId, onUpdateCount, currentUser }) =
     e.preventDefault();
     if (!text.trim()) return;
 
-    try {
-      const payload = { text };
-      if (replyTo) payload.parentCommentId = replyTo._id;
+    const commentText = text.trim();
+    setText('');
+    setReplyTo(null);
 
-      await axios.post(`${import.meta.env.VITE_API_URL}/api/comments/${postId}`, payload, { withCredentials: true });
-      setText('');
-      setReplyTo(null);
-      // Let the socket event trigger the silent fetch
+    try {
+      const payload = { text: commentText };
+      if (replyTo) payload.parentCommentId = replyTo._id || replyTo.id;
+
+      const { data: newComment } = await axios.post(`${import.meta.env.VITE_API_URL}/api/comments/${postId}`, payload, { withCredentials: true });
+      
+      // Instantly append to local comments list (0ms UI latency)
+      if (newComment) {
+        setComments(prev => {
+          const exists = prev.some(c => (c._id || c.id) === (newComment._id || newComment.id));
+          if (exists) return prev;
+          return [newComment, ...prev];
+        });
+      }
+
       if (onUpdateCount) onUpdateCount(1);
+      toast.success('Comment posted');
     } catch (err) {
       toast.error('Failed to post comment');
+      fetchComments(true);
     }
   };
 

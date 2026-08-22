@@ -3,10 +3,10 @@ const { invalidateFeedCache } = require('./postController');
 const { getIo } = require('../socket');
 
 const addComment = async (req, res) => {
-    invalidateFeedCache();
+  invalidateFeedCache();
   try {
     const postId = req.params.postId || req.params.post_id;
-    const { text, content } = req.body;
+    const { text, content, parentCommentId } = req.body;
     const commentText = text || content;
     if (!commentText || !commentText.trim()) {
       return res.status(400).json({ message: 'Comment text is required' });
@@ -26,10 +26,40 @@ const addComment = async (req, res) => {
       }
     });
 
-    await prisma.post.update({
+    const updatedPost = await prisma.post.update({
       where: { id: postId },
-      data: { commentsCount: { increment: 1 } }
+      data: { commentsCount: { increment: 1 } },
+      select: { id: true, commentsCount: true, authorId: true }
     });
+
+    const cAvatar = comment.user?.avatarUrl || 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png';
+    const formattedComment = {
+      _id: comment.id,
+      id: comment.id,
+      postId: postId,
+      parentComment: parentCommentId || null,
+      user: {
+        _id: comment.userId,
+        id: comment.userId,
+        name: comment.user?.name || 'Developer',
+        avatar: { url: cAvatar },
+        avatarUrl: cAvatar,
+        isVerifiedBadge: comment.user?.isVerifiedBadge || false,
+        badgeType: comment.user?.badgeType || 'none'
+      },
+      text: comment.text,
+      likes: comment.likes || [],
+      likesCount: comment.likesCount || 0,
+      replies: [],
+      createdAt: comment.createdAt
+    };
+
+    // Broadcast Real-Time Events via Socket.IO
+    const io = getIo();
+    if (io) {
+      io.emit('comment_added', { postId, comment: formattedComment });
+      io.emit('post_updated', { postId, commentsCount: updatedPost.commentsCount });
+    }
 
     // Auto-dispatch Notification to Post Author
     if (post.authorId !== req.user.id) {
@@ -48,7 +78,6 @@ const addComment = async (req, res) => {
           }
         });
 
-        const io = getIo();
         if (io) {
           io.to(post.authorId).emit('newNotification', {
             ...notif,
@@ -65,22 +94,7 @@ const addComment = async (req, res) => {
       }
     }
 
-    const cAvatar = comment.user?.avatarUrl || 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png';
-    res.status(201).json({
-      _id: comment.id,
-      id: comment.id,
-      user: {
-        _id: comment.userId,
-        id: comment.userId,
-        name: comment.user?.name || 'Developer',
-        avatar: { url: cAvatar },
-        avatarUrl: cAvatar
-      },
-      text: comment.text,
-      likes: comment.likes || [],
-      likesCount: comment.likesCount || 0,
-      createdAt: comment.createdAt
-    });
+    res.status(201).json(formattedComment);
   } catch (err) {
     console.error('Error in addComment:', err);
     res.status(500).json({ message: 'Server Error' });
@@ -122,7 +136,7 @@ const getComments = async (req, res) => {
 };
 
 const deleteComment = async (req, res) => {
-    invalidateFeedCache();
+  invalidateFeedCache();
   try {
     const commentId = req.params.commentId || req.params.comment_id;
     const comment = await prisma.comment.findUnique({ where: { id: commentId } });
@@ -133,10 +147,17 @@ const deleteComment = async (req, res) => {
     }
 
     await prisma.comment.delete({ where: { id: commentId } });
-    await prisma.post.update({
+    const updatedPost = await prisma.post.update({
       where: { id: comment.postId },
-      data: { commentsCount: { decrement: 1 } }
+      data: { commentsCount: { decrement: 1 } },
+      select: { id: true, commentsCount: true }
     });
+
+    const io = getIo();
+    if (io) {
+      io.emit('comment_deleted', { postId: comment.postId, commentId });
+      io.emit('post_updated', { postId: comment.postId, commentsCount: updatedPost.commentsCount });
+    }
 
     res.json({ message: 'Comment removed successfully' });
   } catch (err) {
