@@ -1,8 +1,6 @@
 const prisma = require('../config/prisma');
+const { getIo } = require('../socket');
 
-// @desc    Add comment to a post
-// @route   POST /api/comments/:postId
-// @access  Private
 const addComment = async (req, res) => {
   try {
     const postId = req.params.postId || req.params.post_id;
@@ -31,6 +29,41 @@ const addComment = async (req, res) => {
       data: { commentsCount: { increment: 1 } }
     });
 
+    // Auto-dispatch Notification to Post Author
+    if (post.authorId !== req.user.id) {
+      try {
+        const notif = await prisma.notification.create({
+          data: {
+            recipientId: post.authorId,
+            senderId: req.user.id,
+            type: 'comment',
+            relatedPostId: post.id,
+            relatedCommentId: comment.id,
+            message: `${req.user.name || 'A developer'} commented on your post: "${commentText.substring(0, 40)}..."`
+          },
+          include: {
+            sender: { select: { id: true, name: true, avatarUrl: true } }
+          }
+        });
+
+        const io = getIo();
+        if (io) {
+          io.to(post.authorId).emit('newNotification', {
+            ...notif,
+            _id: notif.id,
+            sender: {
+              ...notif.sender,
+              _id: notif.sender.id,
+              avatar: { url: notif.sender.avatarUrl || 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png' }
+            }
+          });
+        }
+      } catch (nErr) {
+        console.error('Comment notification error:', nErr.message);
+      }
+    }
+
+    const cAvatar = comment.user?.avatarUrl || 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png';
     res.status(201).json({
       _id: comment.id,
       id: comment.id,
@@ -38,8 +71,8 @@ const addComment = async (req, res) => {
         _id: comment.userId,
         id: comment.userId,
         name: comment.user?.name || 'Developer',
-        avatar: comment.user?.avatarUrl || 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png',
-        avatarUrl: comment.user?.avatarUrl
+        avatar: { url: cAvatar },
+        avatarUrl: cAvatar
       },
       text: comment.text,
       likes: comment.likes || [],
@@ -52,9 +85,6 @@ const addComment = async (req, res) => {
   }
 };
 
-// @desc    Get comments for a post
-// @route   GET /api/comments/:postId
-// @access  Private
 const getComments = async (req, res) => {
   try {
     const postId = req.params.postId || req.params.post_id;
@@ -66,30 +96,29 @@ const getComments = async (req, res) => {
       orderBy: { createdAt: 'asc' }
     });
 
-    res.json(comments.map(c => ({
-      _id: c.id,
-      id: c.id,
-      user: {
-        _id: c.userId,
-        id: c.userId,
-        name: c.user?.name || 'Developer',
-        avatar: c.user?.avatarUrl || 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png',
-        avatarUrl: c.user?.avatarUrl
-      },
-      text: c.text,
-      likes: c.likes || [],
-      likesCount: c.likesCount || 0,
-      createdAt: c.createdAt
-    })));
+    res.json(comments.map(c => {
+      const cAvatar = c.user?.avatarUrl || 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png';
+      return {
+        _id: c.id,
+        id: c.id,
+        user: {
+          _id: c.userId,
+          id: c.userId,
+          name: c.user?.name || 'Developer',
+          avatar: { url: cAvatar },
+          avatarUrl: cAvatar
+        },
+        text: c.text,
+        likes: c.likes || [],
+        likesCount: c.likesCount || 0,
+        createdAt: c.createdAt
+      };
+    }));
   } catch (err) {
-    console.error('Error in getComments:', err);
     res.status(500).json({ message: 'Server Error' });
   }
 };
 
-// @desc    Delete comment
-// @route   DELETE /api/comments/:commentId
-// @access  Private
 const deleteComment = async (req, res) => {
   try {
     const commentId = req.params.commentId || req.params.comment_id;
@@ -108,14 +137,10 @@ const deleteComment = async (req, res) => {
 
     res.json({ message: 'Comment removed successfully' });
   } catch (err) {
-    console.error('Error in deleteComment:', err);
     res.status(500).json({ message: 'Server Error' });
   }
 };
 
-// @desc    Edit comment
-// @route   PUT /api/comments/:commentId
-// @access  Private
 const editComment = async (req, res) => {
   try {
     const commentId = req.params.commentId || req.params.comment_id;
@@ -137,9 +162,6 @@ const editComment = async (req, res) => {
   }
 };
 
-// @desc    Like / Unlike comment
-// @route   PUT /api/comments/like/:commentId
-// @access  Private
 const likeComment = async (req, res) => {
   try {
     const commentId = req.params.commentId || req.params.comment_id;

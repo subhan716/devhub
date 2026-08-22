@@ -258,7 +258,7 @@ const NetworkPage = () => {
                         <div key={req._id} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-slate-50 dark:bg-white/[0.02] rounded-xl border border-slate-200 dark:border-white/5 gap-4">
                           <div className="flex items-center gap-4 cursor-pointer">
                             <img 
-                              src={req.requester.avatar?.url || 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y'} 
+                              src={req.requester.avatarUrl || req.requester.avatar?.url || (typeof req.requester.avatar === 'string' ? req.requester.avatar : 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png')} 
                               alt={req.requester.name} 
                               className="w-12 h-12 rounded-full object-cover border border-slate-200 dark:border-white/10"
                             />
@@ -305,7 +305,7 @@ const NetworkPage = () => {
                         <div key={req._id} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-slate-50 dark:bg-white/[0.02] rounded-xl border border-slate-200 dark:border-white/5 gap-4">
                           <div className="flex items-center gap-4 cursor-pointer">
                             <img 
-                              src={req.recipient.avatar?.url || 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y'} 
+                              src={req.recipient.avatarUrl || req.recipient.avatar?.url || (typeof req.recipient.avatar === 'string' ? req.recipient.avatar : 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png')} 
                               alt={req.recipient.name} 
                               className="w-12 h-12 rounded-full object-cover border border-slate-200 dark:border-white/10"
                             />
@@ -350,7 +350,7 @@ const NetworkPage = () => {
                   }).map((user) => (
                     <div key={user._id} className="bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/5 rounded-xl p-5 flex flex-col items-center text-center shadow-xs">
                       <img 
-                        src={user.avatar?.url || 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y'} 
+                        src={user.avatarUrl || user.avatar?.url || (typeof user.avatar === 'string' ? user.avatar : 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png')} 
                         alt={user.name} 
                         className="w-20 h-20 rounded-full object-cover border-2 border-white dark:border-[#111] shadow-md mb-4"
                       />
@@ -396,7 +396,7 @@ const NetworkPage = () => {
                     <div key={conn.connectionId} className="flex flex-col sm:flex-row sm:items-start justify-between py-5 border-b border-slate-200 dark:border-white/5 gap-4 hover:bg-slate-50 dark:hover:bg-white/[0.02] transition-colors -mx-6 px-6">
                       <div className="flex gap-4 items-start w-full sm:w-2/3">
                         <img 
-                          src={conn.user.avatar?.url || 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y'} 
+                          src={conn.user?.avatarUrl || conn.user?.avatar?.url || (typeof conn.user?.avatar === 'string' ? conn.user?.avatar : 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png')} 
                           alt={conn.user.name} 
                           className="w-16 h-16 rounded-full object-cover flex-shrink-0 border border-slate-200 dark:border-white/10"
                         />

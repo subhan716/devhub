@@ -1,4 +1,5 @@
 const prisma = require('../config/prisma');
+const { getOrSetCache, invalidateCache } = require('../utils/cache');
 
 const defaultPolicies = {
   guidelines: {
@@ -63,19 +64,22 @@ const getPolicyBySlug = async (req, res) => {
       return res.status(400).json({ message: 'Invalid policy slug. Expected guidelines, terms, or privacy.' });
     }
 
-    let policy = await prisma.policy.findUnique({ where: { slug } });
-    if (!policy) {
-      const def = defaultPolicies[slug];
-      policy = await prisma.policy.create({
-        data: {
-          slug: def.slug,
-          title: def.title,
-          version: def.version,
-          content: def.content,
-          isPublished: true
-        }
-      });
-    }
+    const policy = await getOrSetCache(`policy_${slug}`, 120, async () => {
+      let doc = await prisma.policy.findUnique({ where: { slug } });
+      if (!doc) {
+        const def = defaultPolicies[slug];
+        doc = await prisma.policy.create({
+          data: {
+            slug: def.slug,
+            title: def.title,
+            version: def.version,
+            content: def.content,
+            isPublished: true
+          }
+        });
+      }
+      return doc;
+    });
 
     res.status(200).json(policy);
   } catch (error) {
@@ -86,30 +90,31 @@ const getPolicyBySlug = async (req, res) => {
 
 const getAllPolicies = async (req, res) => {
   try {
-    for (const slug of Object.keys(defaultPolicies)) {
-      const exists = await prisma.policy.findUnique({ where: { slug } });
-      if (!exists) {
-        const def = defaultPolicies[slug];
-        await prisma.policy.create({
-          data: {
-            slug: def.slug,
-            title: def.title,
-            version: def.version,
-            content: def.content,
-            isPublished: true
-          }
-        });
+    const policies = await getOrSetCache('all_policies', 120, async () => {
+      for (const slug of Object.keys(defaultPolicies)) {
+        const exists = await prisma.policy.findUnique({ where: { slug } });
+        if (!exists) {
+          const def = defaultPolicies[slug];
+          await prisma.policy.create({
+            data: {
+              slug: def.slug,
+              title: def.title,
+              version: def.version,
+              content: def.content,
+              isPublished: true
+            }
+          });
+        }
       }
-    }
 
-    const policies = await prisma.policy.findMany({
-      where: { isPublished: true },
-      select: { slug: true, title: true, version: true, updatedAt: true }
+      return await prisma.policy.findMany({
+        where: { isPublished: true },
+        select: { slug: true, title: true, version: true, updatedAt: true }
+      });
     });
 
     res.status(200).json({ policies });
   } catch (error) {
-    console.error('Error in getAllPolicies:', error);
     res.status(500).json({ message: 'Failed to retrieve policies: ' + error.message });
   }
 };
@@ -125,6 +130,7 @@ const updatePolicy = async (req, res) => {
       create: { slug, title, content, version, isPublished: true }
     });
 
+    invalidateCache('policy');
     res.status(200).json(updated);
   } catch (e) {
     res.status(500).json({ message: e.message });
@@ -141,6 +147,7 @@ const seedPolicies = async (req, res) => {
         create: { slug: def.slug, title: def.title, content: def.content, version: def.version, isPublished: true }
       });
     }
+    invalidateCache('policy');
     res.status(200).json({ message: 'Policies seeded successfully' });
   } catch (e) {
     res.status(500).json({ message: e.message });

@@ -1,4 +1,5 @@
 const prisma = require('../config/prisma');
+const { getIo } = require('../socket');
 
 const formatPostForClient = (post) => {
   if (!post) return null;
@@ -54,9 +55,6 @@ const formatPostForClient = (post) => {
   };
 };
 
-// @desc    Create a new post
-// @route   POST /api/posts
-// @access  Private
 const createPost = async (req, res) => {
   try {
     const { content, codeSnippet, image } = req.body;
@@ -75,12 +73,8 @@ const createPost = async (req, res) => {
         imageUrl: image?.url || (typeof image === 'string' ? image : null)
       },
       include: {
-        author: {
-          include: { profile: true }
-        },
-        comments: {
-          include: { user: true }
-        }
+        author: { include: { profile: true } },
+        comments: { include: { user: true } }
       }
     });
 
@@ -91,9 +85,6 @@ const createPost = async (req, res) => {
   }
 };
 
-// @desc    Get all posts (Unified Feed)
-// @route   GET /api/posts
-// @access  Private
 const getPosts = async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
@@ -101,80 +92,28 @@ const getPosts = async (req, res) => {
     const skip = (page - 1) * limit;
 
     const posts = await prisma.post.findMany({
-      where: {
-        isReported: false
-      },
+      where: { isReported: false },
       include: {
         author: {
-          include: { profile: true }
+          select: {
+            id: true,
+            name: true,
+            avatarUrl: true,
+            isVerifiedBadge: true,
+            badgeType: true,
+            profile: { select: { status: true, githubusername: true } }
+          }
         },
         comments: {
           include: {
-            user: { include: { profile: true } }
+            user: { select: { id: true, name: true, avatarUrl: true } }
           },
           orderBy: { createdAt: 'asc' }
         },
         originalPost: {
           include: {
-            author: { include: { profile: true } }
+            author: { select: { id: true, name: true, avatarUrl: true } }
           }
-        }
-      },
-      orderBy: { createdAt: 'desc' },
-      skip,
-      take: limit
-    });
-
-    const formatted = posts.map(formatPostForClient);
-    res.json(formatted);
-  } catch (err) {
-    console.error('Error in getPosts:', err);
-    res.status(500).json({ message: 'Server Error fetching feed' });
-  }
-};
-
-// @desc    Get a single post by ID
-// @route   GET /api/posts/:id
-// @access  Private
-const getPostById = async (req, res) => {
-  try {
-    const post = await prisma.post.findUnique({
-      where: { id: req.params.id },
-      include: {
-        author: { include: { profile: true } },
-        comments: {
-          include: { user: { include: { profile: true } } }
-        }
-      }
-    });
-
-    if (!post) {
-      return res.status(404).json({ message: 'Post not found' });
-    }
-
-    res.json(formatPostForClient(post));
-  } catch (err) {
-    console.error('Error in getPostById:', err);
-    res.status(500).json({ message: 'Server Error' });
-  }
-};
-
-// @desc    Get user posts
-// @route   GET /api/posts/user/:user_id
-// @access  Private
-const getUserPosts = async (req, res) => {
-  try {
-    const targetUserId = req.params.user_id;
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 10;
-    const skip = (page - 1) * limit;
-
-    const posts = await prisma.post.findMany({
-      where: { authorId: targetUserId },
-      include: {
-        author: { include: { profile: true } },
-        comments: {
-          include: { user: { include: { profile: true } } }
         }
       },
       orderBy: { createdAt: 'desc' },
@@ -184,14 +123,52 @@ const getUserPosts = async (req, res) => {
 
     res.json(posts.map(formatPostForClient));
   } catch (err) {
-    console.error('Error in getUserPosts:', err);
+    console.error('Error in getPosts:', err);
+    res.status(500).json({ message: 'Server Error fetching feed' });
+  }
+};
+
+const getPostById = async (req, res) => {
+  try {
+    const post = await prisma.post.findUnique({
+      where: { id: req.params.id },
+      include: {
+        author: { include: { profile: true } },
+        comments: {
+          include: { user: true },
+          orderBy: { createdAt: 'asc' }
+        },
+        originalPost: {
+          include: { author: { include: { profile: true } } }
+        }
+      }
+    });
+
+    if (!post) return res.status(404).json({ message: 'Post not found' });
+    res.json(formatPostForClient(post));
+  } catch (err) {
     res.status(500).json({ message: 'Server Error' });
   }
 };
 
-// @desc    Search posts
-// @route   GET /api/posts/search
-// @access  Private
+const getUserPosts = async (req, res) => {
+  try {
+    const posts = await prisma.post.findMany({
+      where: { authorId: req.params.user_id, isReported: false },
+      include: {
+        author: { include: { profile: true } },
+        comments: { include: { user: true } },
+        originalPost: { include: { author: { include: { profile: true } } } }
+      },
+      orderBy: { createdAt: 'desc' }
+    });
+
+    res.json(posts.map(formatPostForClient));
+  } catch (err) {
+    res.status(500).json({ message: 'Server Error' });
+  }
+};
+
 const searchPosts = async (req, res) => {
   try {
     const { q } = req.query;
@@ -199,6 +176,7 @@ const searchPosts = async (req, res) => {
 
     const posts = await prisma.post.findMany({
       where: {
+        isReported: false,
         content: { contains: q, mode: 'insensitive' }
       },
       include: {
@@ -211,32 +189,22 @@ const searchPosts = async (req, res) => {
 
     res.json(posts.map(formatPostForClient));
   } catch (err) {
-    console.error('Error in searchPosts:', err);
     res.status(500).json({ message: 'Server Error' });
   }
 };
 
-// @desc    Update a post
-// @route   PUT /api/posts/:id
-// @access  Private
 const updatePost = async (req, res) => {
   try {
+    const { content, codeSnippet } = req.body;
     const post = await prisma.post.findUnique({ where: { id: req.params.id } });
     if (!post) return res.status(404).json({ message: 'Post not found' });
     if (post.authorId !== req.user.id) return res.status(401).json({ message: 'User not authorized' });
-
-    const { content, codeSnippet, image } = req.body;
-    let codeObj = post.codeSnippet;
-    if (codeSnippet !== undefined) {
-      codeObj = codeSnippet && codeSnippet.code ? { code: codeSnippet.code, language: codeSnippet.language || 'javascript' } : null;
-    }
 
     const updated = await prisma.post.update({
       where: { id: req.params.id },
       data: {
         content: content !== undefined ? content : post.content,
-        codeSnippet: codeObj,
-        imageUrl: image?.url || (typeof image === 'string' ? image : post.imageUrl)
+        codeSnippet: codeSnippet !== undefined ? codeSnippet : post.codeSnippet
       },
       include: {
         author: { include: { profile: true } },
@@ -246,14 +214,10 @@ const updatePost = async (req, res) => {
 
     res.json(formatPostForClient(updated));
   } catch (err) {
-    console.error('Error in updatePost:', err);
     res.status(500).json({ message: 'Server Error' });
   }
 };
 
-// @desc    Delete a post
-// @route   DELETE /api/posts/:id
-// @access  Private
 const deletePost = async (req, res) => {
   try {
     const post = await prisma.post.findUnique({ where: { id: req.params.id } });
@@ -265,14 +229,10 @@ const deletePost = async (req, res) => {
     await prisma.post.delete({ where: { id: req.params.id } });
     res.json({ message: 'Post removed successfully' });
   } catch (err) {
-    console.error('Error in deletePost:', err);
     res.status(500).json({ message: 'Server Error' });
   }
 };
 
-// @desc    Like / Unlike a post
-// @route   PUT /api/posts/like/:id
-// @access  Private
 const likePost = async (req, res) => {
   try {
     const post = await prisma.post.findUnique({ where: { id: req.params.id } });
@@ -286,6 +246,39 @@ const likePost = async (req, res) => {
       likes = likes.filter(id => id !== userId);
     } else {
       likes.push(userId);
+      
+      // Auto-dispatch Notification to Post Author
+      if (post.authorId !== userId) {
+        try {
+          const notif = await prisma.notification.create({
+            data: {
+              recipientId: post.authorId,
+              senderId: userId,
+              type: 'like',
+              relatedPostId: post.id,
+              message: `${req.user.name || 'A developer'} liked your post`
+            },
+            include: {
+              sender: { select: { id: true, name: true, avatarUrl: true } }
+            }
+          });
+
+          const io = getIo();
+          if (io) {
+            io.to(post.authorId).emit('newNotification', {
+              ...notif,
+              _id: notif.id,
+              sender: {
+                ...notif.sender,
+                _id: notif.sender.id,
+                avatar: { url: notif.sender.avatarUrl || 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png' }
+              }
+            });
+          }
+        } catch (nErr) {
+          console.error('Notification dispatch error:', nErr.message);
+        }
+      }
     }
 
     const updated = await prisma.post.update({
@@ -298,50 +291,58 @@ const likePost = async (req, res) => {
 
     res.json(updated.likes);
   } catch (err) {
-    console.error('Error in likePost:', err);
     res.status(500).json({ message: 'Server Error' });
   }
 };
 
-// @desc    Repost a post
-// @route   POST /api/posts/repost/:id
-// @access  Private
 const repostPost = async (req, res) => {
   try {
-    const originalPost = await prisma.post.findUnique({ where: { id: req.params.id } });
-    if (!originalPost) return res.status(404).json({ message: 'Post not found' });
+    const original = await prisma.post.findUnique({ where: { id: req.params.id } });
+    if (!original) return res.status(404).json({ message: 'Post not found' });
 
-    const newRepost = await prisma.post.create({
-      data: {
-        authorId: req.user.id,
-        isRepost: true,
-        originalPostId: originalPost.id,
-        content: req.body.content || ''
-      },
-      include: {
-        author: { include: { profile: true } },
-        originalPost: { include: { author: { include: { profile: true } } } }
+    const userId = req.user.id;
+    let reposts = original.reposts || [];
+    const isReposted = reposts.includes(userId);
+
+    if (isReposted) {
+      reposts = reposts.filter(id => id !== userId);
+      await prisma.post.deleteMany({
+        where: { authorId: userId, originalPostId: original.id }
+      });
+    } else {
+      reposts.push(userId);
+      await prisma.post.create({
+        data: {
+          authorId: userId,
+          isRepost: true,
+          originalPostId: original.id,
+          content: original.content
+        }
+      });
+
+      // Notification to original author
+      if (original.authorId !== userId) {
+        try {
+          await prisma.notification.create({
+            data: {
+              recipientId: original.authorId,
+              senderId: userId,
+              type: 'system',
+              relatedPostId: original.id,
+              message: `${req.user.name || 'A developer'} reposted your update`
+            }
+          });
+        } catch (e) {}
       }
-    });
+    }
 
-    res.status(201).json(formatPostForClient(newRepost));
-  } catch (err) {
-    console.error('Error in repostPost:', err);
-    res.status(500).json({ message: 'Server Error' });
-  }
-};
-
-const getSavedPosts = async (req, res) => res.json([]);
-const savePost = async (req, res) => res.json({ message: 'Post saved' });
-const unsavePost = async (req, res) => res.json({ message: 'Post unsaved' });
-const reportPost = async (req, res) => {
-  try {
-    await prisma.post.update({
+    const updated = await prisma.post.update({
       where: { id: req.params.id },
-      data: { reportsCount: { increment: 1 } }
+      data: { reposts, repostsCount: reposts.length }
     });
-    res.json({ message: 'Post reported' });
-  } catch (e) {
+
+    res.json(updated.reposts);
+  } catch (err) {
     res.status(500).json({ message: 'Server Error' });
   }
 };
@@ -356,8 +357,5 @@ module.exports = {
   deletePost,
   likePost,
   repostPost,
-  getSavedPosts,
-  savePost,
-  unsavePost,
-  reportPost
+  formatPostForClient
 };

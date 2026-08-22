@@ -1,4 +1,5 @@
 const prisma = require('../config/prisma');
+const { getIo } = require('../socket');
 
 const sendConnectionRequest = async (req, res) => {
   try {
@@ -24,6 +25,34 @@ const sendConnectionRequest = async (req, res) => {
       }
     });
 
+    // Auto-dispatch connection_request notification
+    try {
+      const notif = await prisma.notification.create({
+        data: {
+          recipientId: targetUserId,
+          senderId: currentUserId,
+          type: 'connection_request',
+          message: `${req.user.name || 'A developer'} sent you a connection request`
+        },
+        include: {
+          sender: { select: { id: true, name: true, avatarUrl: true } }
+        }
+      });
+
+      const io = getIo();
+      if (io) {
+        io.to(targetUserId).emit('newNotification', {
+          ...notif,
+          _id: notif.id,
+          sender: {
+            ...notif.sender,
+            _id: notif.sender.id,
+            avatar: { url: notif.sender.avatarUrl || 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png' }
+          }
+        });
+      }
+    } catch (nErr) {}
+
     res.status(201).json(conn);
   } catch (e) {
     res.status(500).json({ message: e.message });
@@ -33,10 +62,42 @@ const sendConnectionRequest = async (req, res) => {
 const acceptConnectionRequest = async (req, res) => {
   try {
     const { requestId } = req.params;
-    await prisma.connection.updateMany({
-      where: { id: requestId, recipientId: req.user.id },
+    const conn = await prisma.connection.findUnique({ where: { id: requestId } });
+    if (!conn) return res.status(404).json({ message: 'Request not found' });
+
+    await prisma.connection.update({
+      where: { id: requestId },
       data: { status: 'accepted' }
     });
+
+    // Auto-dispatch connection_accepted notification to requester
+    try {
+      const notif = await prisma.notification.create({
+        data: {
+          recipientId: conn.requesterId,
+          senderId: req.user.id,
+          type: 'connection_accepted',
+          message: `${req.user.name || 'A developer'} accepted your connection request`
+        },
+        include: {
+          sender: { select: { id: true, name: true, avatarUrl: true } }
+        }
+      });
+
+      const io = getIo();
+      if (io) {
+        io.to(conn.requesterId).emit('newNotification', {
+          ...notif,
+          _id: notif.id,
+          sender: {
+            ...notif.sender,
+            _id: notif.sender.id,
+            avatar: { url: notif.sender.avatarUrl || 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png' }
+          }
+        });
+      }
+    } catch (nErr) {}
+
     res.json({ success: true });
   } catch (e) {
     res.status(500).json({ message: e.message });
@@ -79,10 +140,31 @@ const getPendingRequests = async (req, res) => {
     const requests = await prisma.connection.findMany({
       where: { recipientId: req.user.id, status: 'pending' },
       include: {
-        requester: { select: { id: true, name: true, avatarUrl: true, profile: true } }
-      }
+        requester: {
+          select: {
+            id: true,
+            name: true,
+            avatarUrl: true,
+            profile: { select: { status: true, company: true } }
+          }
+        }
+      },
+      orderBy: { createdAt: 'desc' }
     });
-    res.json(requests);
+
+    res.json(requests.map(r => {
+      const avatarUrl = r.requester.avatarUrl || 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png';
+      return {
+        ...r,
+        _id: r.id,
+        requester: {
+          ...r.requester,
+          _id: r.requester.id,
+          avatar: { url: avatarUrl },
+          avatarUrl: avatarUrl
+        }
+      };
+    }));
   } catch (e) {
     res.status(500).json({ message: e.message });
   }
@@ -99,10 +181,24 @@ const getConnections = async (req, res) => {
       include: {
         requester: { select: { id: true, name: true, avatarUrl: true, profile: true } },
         recipient: { select: { id: true, name: true, avatarUrl: true, profile: true } }
-      }
+      },
+      orderBy: { updatedAt: 'desc' }
     });
 
-    const peers = connections.map(c => c.requesterId === userId ? c.recipient : c.requester);
+    const peers = connections.map(c => {
+      const peer = c.requesterId === userId ? c.recipient : c.requester;
+      const avatarUrl = peer.avatarUrl || 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png';
+      return {
+        _id: peer.id,
+        id: peer.id,
+        name: peer.name,
+        avatar: { url: avatarUrl },
+        avatarUrl: avatarUrl,
+        role: peer.profile?.status || 'Developer',
+        profile: peer.profile
+      };
+    });
+
     res.json(peers);
   } catch (e) {
     res.status(500).json({ message: e.message });
@@ -120,10 +216,24 @@ const getUserConnections = async (req, res) => {
       include: {
         requester: { select: { id: true, name: true, avatarUrl: true, profile: true } },
         recipient: { select: { id: true, name: true, avatarUrl: true, profile: true } }
-      }
+      },
+      orderBy: { updatedAt: 'desc' }
     });
 
-    const peers = connections.map(c => c.requesterId === userId ? c.recipient : c.requester);
+    const peers = connections.map(c => {
+      const peer = c.requesterId === userId ? c.recipient : c.requester;
+      const avatarUrl = peer.avatarUrl || 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png';
+      return {
+        _id: peer.id,
+        id: peer.id,
+        name: peer.name,
+        avatar: { url: avatarUrl },
+        avatarUrl: avatarUrl,
+        role: peer.profile?.status || 'Developer',
+        profile: peer.profile
+      };
+    });
+
     res.json(peers);
   } catch (e) {
     res.status(500).json({ message: e.message });
@@ -138,12 +248,19 @@ const getSuggestions = async (req, res) => {
         id: { not: userId },
         isSuspended: false
       },
-      include: { profile: true },
+      select: {
+        id: true,
+        name: true,
+        avatarUrl: true,
+        isVerifiedBadge: true,
+        badgeType: true,
+        profile: { select: { status: true, company: true, githubusername: true } }
+      },
       take: 10
     });
-    
+
     res.json(users.map(u => {
-      const avatarUrl = u.avatarUrl || u.profile?.avatarUrl || 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png';
+      const avatarUrl = u.avatarUrl || 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png';
       return {
         _id: u.id,
         id: u.id,
@@ -152,7 +269,7 @@ const getSuggestions = async (req, res) => {
         avatarUrl: avatarUrl,
         isVerifiedBadge: u.isVerifiedBadge,
         badgeType: u.badgeType,
-        role: u.profile?.status || u.role || 'Developer',
+        role: u.profile?.status || 'Developer',
         profile: u.profile
       };
     }));
