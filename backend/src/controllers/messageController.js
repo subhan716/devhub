@@ -1,4 +1,5 @@
 const prisma = require('../config/prisma');
+const { getIo } = require('../socket');
 
 const getConversations = async (req, res) => {
   try {
@@ -8,8 +9,26 @@ const getConversations = async (req, res) => {
         OR: [{ senderId: userId }, { receiverId: userId }]
       },
       include: {
-        sender: { select: { id: true, name: true, avatarUrl: true } },
-        receiver: { select: { id: true, name: true, avatarUrl: true } }
+        sender: {
+          select: {
+            id: true,
+            name: true,
+            avatarUrl: true,
+            isVerifiedBadge: true,
+            badgeType: true,
+            profile: { select: { status: true } }
+          }
+        },
+        receiver: {
+          select: {
+            id: true,
+            name: true,
+            avatarUrl: true,
+            isVerifiedBadge: true,
+            badgeType: true,
+            profile: { select: { status: true } }
+          }
+        }
       },
       orderBy: { createdAt: 'desc' }
     });
@@ -18,10 +37,16 @@ const getConversations = async (req, res) => {
     for (const msg of messages) {
       const otherUser = msg.senderId === userId ? msg.receiver : msg.sender;
       if (otherUser && !userMap.has(otherUser.id)) {
+        const avatar = otherUser.avatarUrl || 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png';
         userMap.set(otherUser.id, {
           _id: otherUser.id,
           id: otherUser.id,
-          user: otherUser,
+          user: {
+            ...otherUser,
+            _id: otherUser.id,
+            avatar: { url: avatar },
+            avatarUrl: avatar
+          },
           lastMessage: {
             text: msg.text,
             createdAt: msg.createdAt,
@@ -42,15 +67,35 @@ const getMessages = async (req, res) => {
   try {
     const currentUserId = req.user.id;
     const otherUserId = req.params.userId;
+    const cursor = req.query.cursor;
+    const limit = parseInt(req.query.limit) || 50;
 
-    const messages = await prisma.message.findMany({
+    let queryArgs = {
       where: {
         OR: [
           { senderId: currentUserId, receiverId: otherUserId },
           { senderId: otherUserId, receiverId: currentUserId }
         ]
       },
-      orderBy: { createdAt: 'asc' }
+      orderBy: { createdAt: 'asc' },
+      take: limit
+    };
+
+    if (cursor) {
+      queryArgs.cursor = { id: cursor };
+      queryArgs.skip = 1;
+    }
+
+    const messages = await prisma.message.findMany(queryArgs);
+
+    // Auto mark received messages as read
+    await prisma.message.updateMany({
+      where: {
+        senderId: otherUserId,
+        receiverId: currentUserId,
+        read: false
+      },
+      data: { read: true }
     });
 
     res.json(messages.map(m => ({
@@ -60,6 +105,7 @@ const getMessages = async (req, res) => {
       receiver: m.receiverId,
       recipient: m.receiverId,
       text: m.text,
+      attachment: m.attachment,
       read: m.read,
       createdAt: m.createdAt
     })));
@@ -88,89 +134,88 @@ const sendMessage = async (req, res) => {
       }
     });
 
-    res.status(201).json({
+    const payload = {
       _id: message.id,
       id: message.id,
       sender: message.senderId,
       receiver: message.receiverId,
       recipient: message.receiverId,
       text: message.text,
+      attachment: message.attachment,
       read: message.read,
       createdAt: message.createdAt
-    });
+    };
+
+    // Emit live event to recipient room via Socket.io
+    try {
+      const io = getIo();
+      if (io) {
+        io.to(targetUserId).emit('messageReceived', payload);
+      }
+    } catch (sErr) {}
+
+    res.status(201).json(payload);
   } catch (err) {
     console.error('Error in sendMessage:', err);
     res.status(500).json({ message: 'Server Error' });
   }
 };
 
-const markAsRead = async (req, res) => {
-  try {
-    const currentUserId = req.user.id;
-    const senderId = req.params.userId;
-
-    await prisma.message.updateMany({
-      where: {
-        senderId: senderId,
-        receiverId: currentUserId,
-        read: false
-      },
-      data: { read: true }
-    });
-
-    res.json({ success: true });
-  } catch (e) {
-    res.status(500).json({ message: 'Server Error' });
-  }
-};
-
-const editMessage = async (req, res) => {
+const forwardMessage = async (req, res) => {
   try {
     const { messageId } = req.params;
-    const { text } = req.body;
-    const message = await prisma.message.update({
-      where: { id: messageId },
-      data: { text, edited: true }
-    });
-    res.json(message);
-  } catch (e) {
-    res.status(500).json({ message: 'Server Error' });
-  }
-};
+    const { recipientId } = req.body;
+    const original = await prisma.message.findUnique({ where: { id: messageId } });
+    if (!original) return res.status(404).json({ message: 'Original message not found' });
 
-const deleteMessage = async (req, res) => {
-  try {
-    const { messageId } = req.params;
-    await prisma.message.delete({ where: { id: messageId } });
-    res.json({ message: 'Message deleted' });
+    const forwarded = await prisma.message.create({
+      data: {
+        senderId: req.user.id,
+        receiverId: recipientId,
+        text: original.text,
+        forwarded: true,
+        attachment: original.attachment || undefined
+      }
+    });
+
+    res.status(201).json({
+      _id: forwarded.id,
+      id: forwarded.id,
+      sender: forwarded.senderId,
+      receiver: forwarded.receiverId,
+      text: forwarded.text,
+      forwarded: true,
+      createdAt: forwarded.createdAt
+    });
   } catch (e) {
-    res.status(500).json({ message: 'Server Error' });
+    res.status(500).json({ message: e.message });
   }
 };
 
 const toggleReaction = async (req, res) => {
-  res.json({ success: true });
-};
-
-const forwardMessage = async (req, res) => {
   try {
-    const { messageId, targetUserIds } = req.body;
+    const { messageId } = req.params;
+    const { emoji } = req.body;
     const msg = await prisma.message.findUnique({ where: { id: messageId } });
     if (!msg) return res.status(404).json({ message: 'Message not found' });
 
-    for (const uid of (targetUserIds || [])) {
-      await prisma.message.create({
-        data: {
-          senderId: req.user.id,
-          receiverId: uid,
-          text: msg.text,
-          forwarded: true
-        }
-      });
+    let reactions = Array.isArray(msg.reactions) ? msg.reactions : [];
+    const exists = reactions.find(r => r.userId === req.user.id && r.emoji === emoji);
+
+    if (exists) {
+      reactions = reactions.filter(r => !(r.userId === req.user.id && r.emoji === emoji));
+    } else {
+      reactions.push({ userId: req.user.id, emoji, createdAt: new Date() });
     }
-    res.json({ success: true });
+
+    const updated = await prisma.message.update({
+      where: { id: messageId },
+      data: { reactions }
+    });
+
+    res.json(updated);
   } catch (e) {
-    res.status(500).json({ message: 'Server Error' });
+    res.status(500).json({ message: e.message });
   }
 };
 
@@ -178,9 +223,6 @@ module.exports = {
   getConversations,
   getMessages,
   sendMessage,
-  markAsRead,
-  editMessage,
-  deleteMessage,
-  toggleReaction,
-  forwardMessage
+  forwardMessage,
+  toggleReaction
 };
