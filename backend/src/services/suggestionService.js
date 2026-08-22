@@ -1,11 +1,38 @@
 const prisma = require('../config/prisma');
 
 // ============================================================================
-// L1 HIGH-SPEED IN-MEMORY CACHE (Process RAM Level for Sub-Millisecond Speed)
+// L1 HIGH-SPEED IN-MEMORY CACHE (Server Process RAM Level with Strict LRU Bounds)
 // ============================================================================
 const memoryCache = new Map();
+const MAX_L1_ENTRIES = 500; // Strict limit: Maximum 500 active users (~500 KB total RAM footprint)
 const L1_TTL_MS = 60 * 1000; // 60 seconds L1 RAM cache
 const L2_TTL_MS = 2 * 60 * 60 * 1000; // 2 hours L2 PostgreSQL cache
+
+// Automatic background garbage collection for expired RAM cache keys (every 60s)
+setInterval(() => {
+  const now = Date.now();
+  for (const [key, value] of memoryCache.entries()) {
+    if (now >= value.expiresAt) {
+      memoryCache.delete(key);
+    }
+  }
+}, 60000).unref(); // .unref() ensures it does not hold the Node.js event loop open
+
+/**
+ * Safe LRU Set into Memory Cache (Guarantees max memory boundary)
+ */
+const safeMemoryCacheSet = (key, data, ttlMs = L1_TTL_MS) => {
+  if (!key) return;
+  // If cache exceeds limit, evict the oldest entry (LRU policy)
+  if (memoryCache.size >= MAX_L1_ENTRIES) {
+    const oldestKey = memoryCache.keys().next().value;
+    if (oldestKey) memoryCache.delete(oldestKey);
+  }
+  memoryCache.set(key, {
+    data,
+    expiresAt: Date.now() + ttlMs
+  });
+};
 
 /**
  * Invalidate recommendation cache across both L1 RAM and L2 Database
@@ -116,11 +143,8 @@ const getRankedSuggestions = async (userId, limit = 10) => {
       });
 
       if (cached && new Date(cached.expiresAt).getTime() > now && Array.isArray(cached.suggestions) && cached.suggestions.length > 0) {
-        // Hydrate L1 RAM cache
-        memoryCache.set(userId, {
-          data: cached.suggestions,
-          expiresAt: now + L1_TTL_MS
-        });
+        // Hydrate L1 RAM cache safely
+        safeMemoryCacheSet(userId, cached.suggestions, L1_TTL_MS);
         return cached.suggestions.slice(0, limit);
       }
     } catch (dbCacheErr) {
@@ -246,11 +270,8 @@ const getRankedSuggestions = async (userId, limit = 10) => {
   // 4. MATERIALIZE RESULTS TO L1 RAM & L2 DATABASE
   // =========================================================================
   if (userId) {
-    // Write to L1 RAM
-    memoryCache.set(userId, {
-      data: rankedResults,
-      expiresAt: now + L1_TTL_MS
-    });
+    // Write to L1 RAM with strict LRU bounds
+    safeMemoryCacheSet(userId, rankedResults, L1_TTL_MS);
 
     // Write to L2 Database
     const expiresAt = new Date(now + L2_TTL_MS);
