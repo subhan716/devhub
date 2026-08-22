@@ -56,6 +56,7 @@ const formatPostForClient = (post) => {
 };
 
 const createPost = async (req, res) => {
+    invalidateFeedCache();
   try {
     const { content, codeSnippet, image } = req.body;
     const userId = req.user.id;
@@ -85,16 +86,43 @@ const createPost = async (req, res) => {
   }
 };
 
-// Keyset Cursor-Based & Offset Hybrid Pagination
+// High-Speed In-Memory Feed Cache for sub-millisecond response times
+let feedCache = null;
+let feedCacheExpiry = 0;
+
+const invalidateFeedCache = () => {
+  feedCache = null;
+  feedCacheExpiry = 0;
+};
+
+// Keyset Cursor-Based & Offset Hybrid Pagination with Sub-Millisecond Cache
 const getPosts = async (req, res) => {
   try {
-    const limit = parseInt(req.query.limit) || 10;
+    const limit = Math.min(parseInt(req.query.limit) || 20, 50);
     const cursor = req.query.cursor;
     const page = parseInt(req.query.page) || 1;
 
+    // Fast-path for initial page feed
+    if (page === 1 && !cursor && feedCache && Date.now() < feedCacheExpiry) {
+      res.setHeader('X-Cache', 'HIT');
+      return res.json(feedCache);
+    }
+
     let queryArgs = {
       where: { isReported: false },
-      include: {
+      select: {
+        id: true,
+        content: true,
+        imageUrl: true,
+        codeSnippet: true,
+        likes: true,
+        likesCount: true,
+        commentsCount: true,
+        repostsCount: true,
+        isRepost: true,
+        createdAt: true,
+        updatedAt: true,
+        authorId: true,
         author: {
           select: {
             id: true,
@@ -106,13 +134,27 @@ const getPosts = async (req, res) => {
           }
         },
         comments: {
-          include: {
+          take: 2,
+          orderBy: { createdAt: 'desc' },
+          select: {
+            id: true,
+            text: true,
+            likes: true,
+            likesCount: true,
+            createdAt: true,
+            userId: true,
             user: { select: { id: true, name: true, avatarUrl: true } }
-          },
-          orderBy: { createdAt: 'asc' }
+          }
         },
         originalPost: {
-          include: {
+          select: {
+            id: true,
+            content: true,
+            imageUrl: true,
+            codeSnippet: true,
+            likes: true,
+            likesCount: true,
+            createdAt: true,
             author: { select: { id: true, name: true, avatarUrl: true } }
           }
         }
@@ -139,7 +181,13 @@ const getPosts = async (req, res) => {
 
     const formatted = rawPosts.map(formatPostForClient);
 
-    // If client requested cursor pagination, return object with nextCursor, else array
+    // Cache initial feed for 10 seconds
+    if (page === 1 && !cursor) {
+      feedCache = formatted;
+      feedCacheExpiry = Date.now() + 10000;
+      res.setHeader('X-Cache', 'MISS');
+    }
+
     if (cursor !== undefined) {
       res.json({ posts: formatted, nextCursor, hasMore: Boolean(nextCursor) });
     } else {
@@ -242,6 +290,7 @@ const updatePost = async (req, res) => {
 };
 
 const deletePost = async (req, res) => {
+    invalidateFeedCache();
   try {
     const post = await prisma.post.findUnique({ where: { id: req.params.id } });
     if (!post) return res.status(404).json({ message: 'Post not found' });

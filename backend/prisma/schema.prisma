@@ -180,6 +180,8 @@ model Post {
   notifications    Notification[]
 
   @@index([authorId, createdAt(sort: Desc)])
+  @@index([isReported, createdAt(sort: Desc)])
+  @@index([createdAt(sort: Desc)])
 }
 
 model Comment {

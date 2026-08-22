@@ -8,9 +8,11 @@ const useFeedStore = create((set) => ({
   
   setPosts: (newPosts) => set({ posts: newPosts, isInitialized: true }),
   
-  appendPosts: (newPosts) => set((state) => ({ 
-    posts: [...state.posts, ...newPosts] 
-  })),
+  appendPosts: (newPosts) => set((state) => {
+    const existingIds = new Set(state.posts.map(p => p._id || p.id));
+    const uniqueNew = newPosts.filter(p => !existingIds.has(p._id || p.id));
+    return { posts: [...state.posts, ...uniqueNew] };
+  }),
   
   incrementPage: () => set((state) => ({ page: state.page + 1 })),
   
