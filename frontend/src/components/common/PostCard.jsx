@@ -249,7 +249,7 @@ const PostCard = ({ post: rootPost, idx = 0, currentUser, onDelete, onEdit, auto
     }
   };
 
-  const handleRepostClick = async () => {
+    const handleRepostClick = async () => {
     if (!myUserId) {
       toast.error('Please log in to repost');
       return;
@@ -258,14 +258,19 @@ const PostCard = ({ post: rootPost, idx = 0, currentUser, onDelete, onEdit, auto
     
     const hasReposted = reposts.includes(myUserId);
     const newReposts = hasReposted ? reposts.filter(id => id !== myUserId) : [...reposts, myUserId];
-    const newRepostsCount = hasReposted ? Math.max(0, post.repostsCount - 1) : (post.repostsCount || 0) + 1;
+    const newRepostsCount = hasReposted ? Math.max(0, (post.repostsCount || 1) - 1) : (post.repostsCount || 0) + 1;
     updateLocalPost({ reposts: newReposts, repostsCount: newRepostsCount });
 
     try {
       const { data } = await axios.put(`${import.meta.env.VITE_API_URL}/api/posts/repost/${post._id}`, {}, { withCredentials: true });
-      updatePostInFeed({ _id: post._id, repostsCount: data.repostsCount, reposts: data.reposts });
-      updateLocalPost({ repostsCount: data.repostsCount, reposts: data.reposts });
-      toast.success(isRepostedByMe ? 'Repost removed' : 'Reposted successfully');
+      const safeReposts = data?.reposts || newReposts;
+      const safeCount = data?.repostsCount !== undefined ? data.repostsCount : newRepostsCount;
+      
+      updatePostInFeed({ _id: post._id, repostsCount: safeCount, reposts: safeReposts });
+      updateLocalPost({ repostsCount: safeCount, reposts: safeReposts });
+      
+      toast.success(hasReposted ? 'Repost removed' : 'Reposted successfully');
+      window.dispatchEvent(new Event('network-update'));
     } catch (err) {
       if (previousPostState) revertPostUpdate(previousPostState);
       updateLocalPost({ reposts, repostsCount: post.repostsCount });

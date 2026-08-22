@@ -397,56 +397,78 @@ const likePost = async (req, res) => {
 };
 
 const repostPost = async (req, res) => {
+  invalidateFeedCache();
   try {
     const userId = req.user.id;
     const postId = req.params.id;
 
-    const result = await prisma.$transaction(async (tx) => {
-      const original = await tx.post.findUnique({ where: { id: postId } });
-      if (!original) throw new Error('Post not found');
+    const original = await prisma.post.findUnique({ where: { id: postId } });
+    if (!original) return res.status(404).json({ message: 'Post not found' });
 
-      let reposts = original.reposts || [];
-      const isReposted = reposts.includes(userId);
+    let reposts = original.reposts || [];
+    const isReposted = reposts.includes(userId);
 
-      if (isReposted) {
-        reposts = reposts.filter(id => id !== userId);
-        await tx.post.deleteMany({
-          where: { authorId: userId, originalPostId: original.id }
-        });
-      } else {
-        reposts.push(userId);
-        await tx.post.create({
-          data: {
-            authorId: userId,
-            isRepost: true,
-            originalPostId: original.id,
-            content: original.content
-          }
-        });
+    if (isReposted) {
+      reposts = reposts.filter(id => id !== userId);
+      await prisma.post.deleteMany({
+        where: { authorId: userId, originalPostId: original.id }
+      });
+    } else {
+      reposts.push(userId);
+      await prisma.post.create({
+        data: {
+          authorId: userId,
+          isRepost: true,
+          originalPostId: original.id,
+          content: original.content || '',
+          imageUrl: original.imageUrl || null,
+          codeSnippet: original.codeSnippet || undefined
+        }
+      });
 
-        if (original.authorId !== userId) {
-          await tx.notification.create({
+      if (original.authorId !== userId) {
+        try {
+          await prisma.notification.create({
             data: {
               recipientId: original.authorId,
               senderId: userId,
               type: 'system',
               relatedPostId: original.id,
-              message: 'reposted your update'
+              message: `${req.user.name || 'A developer'} reposted your update.`
             }
           });
-        }
+        } catch (notifErr) {}
       }
+    }
 
-      const updated = await tx.post.update({
-        where: { id: postId },
-        data: { reposts, repostsCount: reposts.length }
-      });
-
-      return updated.reposts;
+    const updated = await prisma.post.update({
+      where: { id: postId },
+      data: { reposts, repostsCount: reposts.length }
     });
+
+    const result = {
+      _id: original.id,
+      id: original.id,
+      reposts: updated.reposts || [],
+      repostsCount: updated.repostsCount || 0,
+      isReposted: !isReposted
+    };
+
+    // Real-time broadcast to all connected clients
+    try {
+      const io = getIo();
+      if (io) {
+        io.emit('post_updated', {
+          postId: result.id,
+          reposts: result.reposts,
+          repostsCount: result.repostsCount
+        });
+      }
+    } catch (socketErr) {}
 
     res.json(result);
   } catch (err) {
+    console.error('Error in repostPost:', err);
     res.status(500).json({ message: err.message || 'Server Error' });
   }
 };
