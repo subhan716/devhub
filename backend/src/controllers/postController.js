@@ -28,8 +28,10 @@ const formatPostForClient = (post) => {
     imageUrl: post.imageUrl || null,
     images: post.imageUrl ? [{ url: post.imageUrl }] : [],
     likes: post.likes || [],
-    likesCount: post.likesCount || (post.likes ? post.likes.length : 0),
-    commentsCount: post.commentsCount || (post.comments ? post.comments.length : 0),
+    likesCount: post.likesCount !== undefined ? post.likesCount : (post.likes ? post.likes.length : 0),
+    reposts: post.reposts || [],
+    repostsCount: post.repostsCount !== undefined ? post.repostsCount : (post.reposts ? post.reposts.length : 0),
+    commentsCount: post.commentsCount !== undefined ? post.commentsCount : (post.comments ? post.comments.length : 0),
     comments: (post.comments || []).map(c => {
       const cAvatar = c.user?.avatarUrl || c.user?.profile?.avatarUrl || 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png';
       return {
@@ -152,8 +154,9 @@ const getPosts = async (req, res) => {
         codeSnippet: true,
         likes: true,
         likesCount: true,
-        commentsCount: true,
+        reposts: true,
         repostsCount: true,
+        commentsCount: true,
         isRepost: true,
         createdAt: true,
         updatedAt: true,
@@ -189,6 +192,8 @@ const getPosts = async (req, res) => {
             codeSnippet: true,
             likes: true,
             likesCount: true,
+            reposts: true,
+            repostsCount: true,
             createdAt: true,
             author: { select: { id: true, name: true, avatarUrl: true } }
           }
