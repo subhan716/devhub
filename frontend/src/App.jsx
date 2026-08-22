@@ -29,13 +29,30 @@ const PostPage = lazy(() => import('./pages/PostPage'));
 const LegalCenterPage = lazy(() => import('./pages/LegalCenterPage'));
 import { PageSkeleton } from './components/common/Skeletons';
 
+// Helper to check authentication synchronously
+const checkIsAuthenticated = () => {
+  if (typeof window === 'undefined') return false;
+
+  if (window.location.search.includes('oauth=success') || window.location.search.includes('token=')) {
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get('token');
+    const refresh = params.get('refreshToken');
+    if (token) {
+      localStorage.setItem('accessToken', token);
+      localStorage.setItem('token', token);
+      if (refresh) localStorage.setItem('refreshToken', refresh);
+      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+    }
+    localStorage.setItem('isAuthenticated', 'true');
+    return true;
+  }
+
+  return localStorage.getItem('isAuthenticated') === 'true';
+};
+
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
-  if (typeof window !== 'undefined' && window.location.search.includes('oauth=success')) {
-    localStorage.setItem('isAuthenticated', 'true');
-    return children;
-  }
-  const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
+  const isAuthenticated = checkIsAuthenticated();
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
   }
@@ -44,10 +61,7 @@ const ProtectedRoute = ({ children }) => {
 
 // Guest Route Component (Redirects to feed if logged in)
 const GuestRoute = ({ children }) => {
-  if (typeof window !== 'undefined' && window.location.search.includes('oauth=success')) {
-    return <Navigate to="/feed" replace />;
-  }
-  const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
+  const isAuthenticated = checkIsAuthenticated();
   if (isAuthenticated) {
     return <Navigate to="/feed" replace />;
   }
@@ -61,10 +75,21 @@ if (typeof window !== 'undefined' && 'scrollRestoration' in window.history) {
 function App() {
   const [appConfig, setAppConfig] = useState(null);
 
-  if (typeof window !== 'undefined' && window.location.search.includes('oauth=success')) {
-    localStorage.setItem('isAuthenticated', 'true');
-    window.history.replaceState({}, document.title, window.location.pathname);
-  }
+  useEffect(() => {
+    if (typeof window !== 'undefined' && (window.location.search.includes('token=') || window.location.search.includes('oauth=success'))) {
+      const params = new URLSearchParams(window.location.search);
+      const token = params.get('token');
+      const refresh = params.get('refreshToken');
+      if (token) {
+        localStorage.setItem('accessToken', token);
+        localStorage.setItem('token', token);
+        if (refresh) localStorage.setItem('refreshToken', refresh);
+        axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+      }
+      localStorage.setItem('isAuthenticated', 'true');
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+  }, []);
 
   const fetchAppConfig = async () => {
     try {
