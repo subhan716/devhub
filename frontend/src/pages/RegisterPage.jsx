@@ -139,13 +139,20 @@ const RegisterPage = () => {
     setIsLoading(true);
     try {
       const apiUrl = import.meta.env.VITE_API_URL || 'https://devhub-api-node.onrender.com';
-      await axios.post(`${apiUrl}/api/auth/verify-otp`, {
+      const { data } = await axios.post(`${apiUrl}/api/auth/verify-otp`, {
         email: formData.email,
         otp: fullOtp
       });
 
-      toast.success('Account verified! Welcome to DevHub.');
+      if (data?.accessToken) {
+        localStorage.setItem('accessToken', data.accessToken);
+        localStorage.setItem('token', data.accessToken);
+      }
+      if (data?.refreshToken) {
+        localStorage.setItem('refreshToken', data.refreshToken);
+      }
       localStorage.setItem('isAuthenticated', 'true');
+      toast.success('Account verified! Welcome to DevHub.');
       navigate('/setup-profile');
     } catch (error) {
       toast.error(error.response?.data?.message || 'Invalid or expired verification code');

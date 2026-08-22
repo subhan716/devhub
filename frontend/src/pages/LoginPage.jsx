@@ -110,13 +110,20 @@ const LoginPage = () => {
     setIsLoading(true);
     try {
       const apiUrl = import.meta.env.VITE_API_URL || 'https://devhub-api-node.onrender.com';
-      await axios.post(`${apiUrl}/api/auth/login`, {
+      const { data } = await axios.post(`${apiUrl}/api/auth/login`, {
         email: formData.email,
         password: formData.password
       });
 
-      toast.success('Welcome back to DevHub!');
+      if (data?.accessToken) {
+        localStorage.setItem('accessToken', data.accessToken);
+        localStorage.setItem('token', data.accessToken);
+      }
+      if (data?.refreshToken) {
+        localStorage.setItem('refreshToken', data.refreshToken);
+      }
       localStorage.setItem('isAuthenticated', 'true');
+      toast.success('Welcome back to DevHub!');
 
       try {
         await axios.get(`${apiUrl}/api/profile/me`);
@@ -197,15 +204,22 @@ const LoginPage = () => {
     setIsLoading(true);
     try {
       const apiUrl = import.meta.env.VITE_API_URL || 'https://devhub-api-node.onrender.com';
-      await axios.post(`${apiUrl}/api/auth/reset-password`, {
+      const { data } = await axios.post(`${apiUrl}/api/auth/reset-password`, {
         email: formData.email,
         otp: fullOtp,
         newPassword: formData.newPassword,
         logoutOtherDevices
       });
 
-      toast.success('Password updated successfully! Welcome back.');
+      if (data?.accessToken) {
+        localStorage.setItem('accessToken', data.accessToken);
+        localStorage.setItem('token', data.accessToken);
+      }
+      if (data?.refreshToken) {
+        localStorage.setItem('refreshToken', data.refreshToken);
+      }
       localStorage.setItem('isAuthenticated', 'true');
+      toast.success('Password updated successfully! Welcome back.');
       navigate('/feed');
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to reset password');

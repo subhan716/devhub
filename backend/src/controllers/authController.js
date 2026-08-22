@@ -1067,7 +1067,7 @@ const googleCallback = async (req, res) => {
     }
 
     res.cookie('devhub_token', jwtAccessToken, COOKIE_OPTIONS);
-    return res.redirect(`${clientUrl}/feed`);
+    return res.redirect(`${clientUrl}/feed?oauth=success&token=${jwtAccessToken}&refreshToken=${jwtRefreshToken}`);
   } catch (err) {
     console.error('Google OAuth Callback Error:', err.message);
     return res.redirect(`${clientUrl}/login?error=oauth_error`);
@@ -1178,7 +1178,7 @@ const githubCallback = async (req, res) => {
     }
 
     res.cookie('devhub_token', jwtAccessToken, COOKIE_OPTIONS);
-    return res.redirect(`${clientUrl}/feed`);
+    return res.redirect(`${clientUrl}/feed?oauth=success&token=${jwtAccessToken}&refreshToken=${jwtRefreshToken}`);
   } catch (err) {
     console.error('GitHub OAuth Callback Error:', err.message);
     return res.redirect(`${clientUrl}/login?error=oauth_error`);

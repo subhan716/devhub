@@ -54,11 +54,26 @@ if (typeof window !== 'undefined' && 'scrollRestoration' in window.history) {
 function App() {
   const [appConfig, setAppConfig] = useState(null);
 
-  if (typeof window !== 'undefined' && window.location.search.includes('oauth=success')) {
-    localStorage.setItem('isAuthenticated', 'true');
-    // Clean up the URL
-    window.history.replaceState({}, document.title, window.location.pathname);
-  }
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const oauthSuccess = params.get('oauth') === 'success' || params.has('token');
+      const tokenParam = params.get('token');
+      const refreshParam = params.get('refreshToken');
+
+      if (oauthSuccess) {
+        if (tokenParam) {
+          localStorage.setItem('accessToken', tokenParam);
+          localStorage.setItem('token', tokenParam);
+        }
+        if (refreshParam) {
+          localStorage.setItem('refreshToken', refreshParam);
+        }
+        localStorage.setItem('isAuthenticated', 'true');
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
+    }
+  }, []);
 
   const fetchAppConfig = async () => {
     try {
@@ -105,177 +120,136 @@ function App() {
   if (appConfig?.maintenanceMode?.enabled) {
     return (
       <MaintenanceScreen
-        title={appConfig.maintenanceMode?.title}
-        message={appConfig.maintenanceMode?.message}
-        onRetry={fetchAppConfig}
+        title={appConfig.maintenanceMode.title}
+        message={appConfig.maintenanceMode.message}
+        estimatedEndTime={appConfig.maintenanceMode.estimatedEndTime}
       />
     );
   }
 
   return (
-    <>
+    <Router>
+      <ScrollToTop />
       <Toaster 
-        position="bottom-right" 
-        toastOptions={{ 
-          style: { 
-            background: '#0a0a0a', 
-            color: '#fff',
-            border: '1px solid rgba(255, 255, 255, 0.1)',
-            boxShadow: '0 0 20px rgba(0, 0, 0, 0.5)',
-            borderRadius: '12px',
-            fontSize: '14px',
-            fontWeight: '500',
-            padding: '12px 20px'
-          },
-          success: {
-            iconTheme: {
-              primary: '#00F0FF',
-              secondary: '#0a0a0a',
-            },
-            style: {
-              border: '1px solid rgba(0, 240, 255, 0.3)',
-              boxShadow: '0 0 20px rgba(0, 240, 255, 0.2)',
-            }
-          },
-          error: {
-            iconTheme: {
-              primary: '#ff0055',
-              secondary: '#0a0a0a',
-            },
-            style: {
-              border: '1px solid rgba(255, 0, 85, 0.3)',
-              boxShadow: '0 0 20px rgba(255, 0, 85, 0.2)',
-            }
-          }
-        }} 
+        position="top-right" 
+        toastOptions={{
+          className: 'bg-white dark:bg-[#0E0E12] text-slate-800 dark:text-white border border-slate-200 dark:border-white/10 shadow-lg text-xs font-sans rounded-xl',
+          duration: 3500
+        }}
       />
-      <Router>
-        <ScrollToTop />
-        <Suspense fallback={<PageSkeleton />}>
-          <Routes>
-            {/* Public Routes */}
-            <Route path="/" element={<GuestRoute><LandingPage /></GuestRoute>} />
-            <Route path="/login" element={<GuestRoute><LoginPage /></GuestRoute>} />
-            <Route path="/register" element={<GuestRoute><RegisterPage /></GuestRoute>} />
-            <Route path="/verify-otp" element={<GuestRoute><VerifyOtpPage /></GuestRoute>} />
-            <Route path="/setup-profile" element={<SetupProfilePage />} />
+      <Routes>
+        {/* Public Landing Page */}
+        <Route 
+          path="/" 
+          element={
+            <GuestRoute>
+              <LandingPage />
+            </GuestRoute>
+          } 
+        />
+        
+        {/* Dedicated 50/50 Split-Screen Auth Pages */}
+        <Route 
+          path="/register" 
+          element={
+            <GuestRoute>
+              <Suspense fallback={<PageSkeleton />}>
+                <RegisterPage />
+              </Suspense>
+            </GuestRoute>
+          } 
+        />
+        <Route 
+          path="/login" 
+          element={
+            <GuestRoute>
+              <Suspense fallback={<PageSkeleton />}>
+                <LoginPage />
+              </Suspense>
+            </GuestRoute>
+          } 
+        />
+        <Route 
+          path="/verify-otp" 
+          element={
+            <GuestRoute>
+              <Suspense fallback={<PageSkeleton />}>
+                <VerifyOtpPage />
+              </Suspense>
+            </GuestRoute>
+          } 
+        />
 
-            {/* Public Legal & Governance Portal */}
-            <Route path="/terms" element={<LegalCenterPage initialTab="terms" />} />
-            <Route path="/privacy" element={<LegalCenterPage initialTab="privacy" />} />
-            <Route path="/guidelines" element={<LegalCenterPage initialTab="guidelines" />} />
-            <Route path="/legal" element={<LegalCenterPage initialTab="guidelines" />} />
+        {/* Dynamic Legal & Trust Center - In-App Public Access */}
+        <Route
+          path="/guidelines"
+          element={
+            <Suspense fallback={<PageSkeleton />}>
+              <LegalCenterPage />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/terms"
+          element={
+            <Suspense fallback={<PageSkeleton />}>
+              <LegalCenterPage />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/privacy"
+          element={
+            <Suspense fallback={<PageSkeleton />}>
+              <LegalCenterPage />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/policies/:slug"
+          element={
+            <Suspense fallback={<PageSkeleton />}>
+              <LegalCenterPage />
+            </Suspense>
+          }
+        />
 
-            {/* Protected Routes inside MainLayout */}
-            <Route
-              path="/feed"
-              element={
-                <ProtectedRoute>
-                  <MainLayout />
-                </ProtectedRoute>
-              }
-            >
-              <Route index element={<FeedPage />} />
-            </Route>
-            
-            <Route
-              path="/notifications"
-              element={
-                <ProtectedRoute>
-                  <MainLayout />
-                </ProtectedRoute>
-              }
-            >
-              <Route index element={<NotificationsPage />} />
-            </Route>
+        {/* Setup Profile Route (Post-Signup 4-Step Wizard) */}
+        <Route 
+          path="/setup-profile" 
+          element={
+            <ProtectedRoute>
+              <Suspense fallback={<PageSkeleton />}>
+                <SetupProfilePage />
+              </Suspense>
+            </ProtectedRoute>
+          } 
+        />
 
-            <Route
-              path="/profile"
-              element={
-                <ProtectedRoute>
-                  <MainLayout />
-                </ProtectedRoute>
-              }
-            >
-              <Route index element={<ProfilePage />} />
-              <Route path=":id" element={<ProfilePage />} />
-              <Route path=":id/connections" element={<ProfileConnectionsPage />} />
-              <Route path=":id/posts" element={<UserPostsPage />} />
-              <Route path="posts" element={<UserPostsPage />} />
-            </Route>
+        {/* Authenticated Application Routes (Wrapped in Social Layout) */}
+        <Route element={
+          <ProtectedRoute>
+            <MainLayout />
+          </ProtectedRoute>
+        }>
+          <Route path="/feed" element={<Suspense fallback={<PageSkeleton />}><FeedPage /></Suspense>} />
+          <Route path="/notifications" element={<Suspense fallback={<PageSkeleton />}><NotificationsPage /></Suspense>} />
+          <Route path="/profile" element={<Suspense fallback={<PageSkeleton />}><ProfilePage /></Suspense>} />
+          <Route path="/profile/:id" element={<Suspense fallback={<PageSkeleton />}><ProfilePage /></Suspense>} />
+          <Route path="/profile/:id/connections" element={<Suspense fallback={<PageSkeleton />}><ProfileConnectionsPage /></Suspense>} />
+          <Route path="/settings" element={<Suspense fallback={<PageSkeleton />}><SettingsPage /></Suspense>} />
+          <Route path="/jobs" element={<Suspense fallback={<PageSkeleton />}><JobsPage /></Suspense>} />
+          <Route path="/search" element={<Suspense fallback={<PageSkeleton />}><SearchPage /></Suspense>} />
+          <Route path="/network" element={<Suspense fallback={<PageSkeleton />}><NetworkPage /></Suspense>} />
+          <Route path="/messages" element={<Suspense fallback={<PageSkeleton />}><MessagesPage /></Suspense>} />
+          <Route path="/user-posts" element={<Suspense fallback={<PageSkeleton />}><UserPostsPage /></Suspense>} />
+          <Route path="/posts/:id" element={<Suspense fallback={<PageSkeleton />}><PostPage /></Suspense>} />
+        </Route>
 
-            <Route
-              path="/post"
-              element={
-                <ProtectedRoute>
-                  <MainLayout />
-                </ProtectedRoute>
-              }
-            >
-              <Route path=":postId" element={<PostPage />} />
-            </Route>
-
-            <Route
-              path="/jobs"
-              element={
-                <ProtectedRoute>
-                  <MainLayout />
-                </ProtectedRoute>
-              }
-            >
-              <Route index element={<JobsPage />} />
-            </Route>
-
-            <Route
-              path="/messages"
-              element={
-                <ProtectedRoute>
-                  <MainLayout />
-                </ProtectedRoute>
-              }
-            >
-              <Route index element={<MessagesPage />} />
-            </Route>
-
-            <Route
-              path="/search"
-              element={
-                <ProtectedRoute>
-                  <MainLayout />
-                </ProtectedRoute>
-              }
-            >
-              <Route index element={<SearchPage />} />
-            </Route>
-
-            <Route
-              path="/network"
-              element={
-                <ProtectedRoute>
-                  <MainLayout />
-                </ProtectedRoute>
-              }
-            >
-              <Route index element={<NetworkPage />} />
-            </Route>
-
-            <Route
-              path="/settings"
-              element={
-                <ProtectedRoute>
-                  <MainLayout />
-                </ProtectedRoute>
-              }
-            >
-              <Route index element={<SettingsPage />} />
-            </Route>
-
-            {/* 404 Route */}
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
-        </Suspense>
-      </Router>
-    </>
+        {/* Fallback */}
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </Router>
   );
 }
 
