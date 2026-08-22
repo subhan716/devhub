@@ -2,8 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { protect } = require('../middleware/authMiddleware');
 const { uploadImage, uploadDocument, uploadChatAttachment } = require('../config/cloudinary');
-const User = require('../models/User');
-const Profile = require('../models/Profile');
+const prisma = require('../config/prisma');
 
 router.get('/test-env', (req, res) => {
   res.json({
@@ -23,15 +22,22 @@ router.post('/avatar', protect, uploadImage.single('image'), async (req, res) =>
       return res.status(400).json({ message: 'No image uploaded' });
     }
 
-    const imageUrl = req.file.path; // Cloudinary returns URL in req.file.path
-    
-    // Update user model
-    const user = await User.findById(req.user.id);
-    user.avatar = { url: imageUrl };
-    await user.save();
+    const imageUrl = req.file.path;
 
-    res.json({ url: imageUrl });
+    await prisma.user.update({
+      where: { id: req.user.id },
+      data: { avatarUrl: imageUrl }
+    });
+
+    await prisma.profile.upsert({
+      where: { userId: req.user.id },
+      update: { avatarUrl: imageUrl },
+      create: { userId: req.user.id, avatarUrl: imageUrl }
+    });
+
+    res.json({ url: imageUrl, avatarUrl: imageUrl });
   } catch (error) {
+    console.error('Avatar upload error:', error);
     res.status(500).json({ message: error.message });
   }
 });
@@ -46,16 +52,16 @@ router.post('/cover', protect, uploadImage.single('image'), async (req, res) => 
     }
 
     const imageUrl = req.file.path;
-    
-    // Update profile model
-    const profile = await Profile.findOne({ user: req.user.id });
-    if (profile) {
-      profile.coverImage = { url: imageUrl };
-      await profile.save();
-    }
 
-    res.json({ url: imageUrl });
+    await prisma.profile.upsert({
+      where: { userId: req.user.id },
+      update: { coverImageUrl: imageUrl },
+      create: { userId: req.user.id, coverImageUrl: imageUrl }
+    });
+
+    res.json({ url: imageUrl, coverImageUrl: imageUrl, coverImage: { url: imageUrl } });
   } catch (error) {
+    console.error('Cover upload error:', error);
     res.status(500).json({ message: error.message });
   }
 });
@@ -70,24 +76,27 @@ router.post('/resume', protect, uploadDocument.single('document'), async (req, r
     }
 
     const documentUrl = req.file.path;
-    
-    // Update profile model
-    const profile = await Profile.findOne({ user: req.user.id });
-    if (profile) {
-      profile.resume = { url: documentUrl, originalName: req.file.originalname };
-      await profile.save();
-    }
+    const resumeObj = {
+      url: documentUrl,
+      name: req.file.originalname,
+      size: req.file.size || 0
+    };
 
-    res.json({ url: documentUrl, originalName: req.file.originalname });
+    await prisma.profile.upsert({
+      where: { userId: req.user.id },
+      update: { resume: resumeObj },
+      create: { userId: req.user.id, resume: resumeObj }
+    });
+
+    res.json({ url: documentUrl, originalName: req.file.originalname, resume: resumeObj });
   } catch (error) {
+    console.error('Resume upload error:', error);
     res.status(500).json({ message: error.message });
   }
 });
 
-
-
 // @route   POST /api/upload/chat-attachment
-// @desc    Upload chat attachment (image or document)
+// @desc    Upload chat attachment (image, video, audio, document)
 // @access  Private
 router.post('/chat-attachment', protect, uploadChatAttachment.single('attachment'), async (req, res) => {
   try {
@@ -96,7 +105,6 @@ router.post('/chat-attachment', protect, uploadChatAttachment.single('attachment
     }
 
     const url = req.file.path;
-    // Cloudinary automatically infers resource_type 'image', 'video' or 'raw' for 'auto'
     const isImage = req.file.mimetype.startsWith('image/');
     const isVideo = req.file.mimetype.startsWith('video/');
     const isAudio = req.file.mimetype.startsWith('audio/');
@@ -112,6 +120,7 @@ router.post('/chat-attachment', protect, uploadChatAttachment.single('attachment
       name: req.file.originalname
     });
   } catch (error) {
+    console.error('Chat attachment error:', error);
     res.status(500).json({ message: error.message });
   }
 });
