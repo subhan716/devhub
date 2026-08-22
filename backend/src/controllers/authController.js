@@ -979,17 +979,25 @@ const inSessionForgotPassword = async (req, res) => {
 // ==========================================
 // 13. GOOGLE OAUTH 2.0 PKCE & IDENTITY LINKING
 // ==========================================
+const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
+const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
+const GITHUB_CLIENT_ID = process.env.GITHUB_CLIENT_ID;
+const GITHUB_CLIENT_SECRET = process.env.GITHUB_CLIENT_SECRET;
+const BACKEND_URL = process.env.BACKEND_URL || 'https://devhub-api-node.onrender.com';
+const CLIENT_URL = process.env.CLIENT_URL || 'https://devhub-sub.vercel.app';
+
 const googleAuth = (req, res) => {
-  const clientId = process.env.GOOGLE_CLIENT_ID;
+  if (!GOOGLE_CLIENT_ID) {
+    return res.redirect(`${CLIENT_URL}/login?error=missing_oauth_config&provider=Google`);
+  }
   const platform = req.query.platform || 'web';
-  const redirectUri = encodeURIComponent(`${process.env.BACKEND_URL || 'https://devhub-api-node.onrender.com'}/api/auth/google/callback`);
+  const redirectUri = encodeURIComponent(`${BACKEND_URL}/api/auth/google/callback`);
   const state = encodeURIComponent(JSON.stringify({ platform }));
-  res.redirect(`https://accounts.google.com/o/oauth2/v2/auth?response_type=code&client_id=${clientId}&redirect_uri=${redirectUri}&scope=openid%20profile%20email&state=${state}`);
+  res.redirect(`https://accounts.google.com/o/oauth2/v2/auth?response_type=code&client_id=${GOOGLE_CLIENT_ID}&redirect_uri=${redirectUri}&scope=openid%20profile%20email&state=${state}`);
 };
 
 const googleCallback = async (req, res) => {
   const { code, state } = req.query;
-  const clientUrl = process.env.CLIENT_URL || 'https://devhub-sub.vercel.app';
   let platform = 'web';
 
   try {
@@ -1000,15 +1008,19 @@ const googleCallback = async (req, res) => {
   } catch (e) {}
 
   if (!code) {
-    return res.redirect(`${clientUrl}/login?error=oauth_failed`);
+    return res.redirect(`${CLIENT_URL}/login?error=oauth_failed`);
+  }
+
+  if (!GOOGLE_CLIENT_ID || !GOOGLE_CLIENT_SECRET) {
+    return res.redirect(`${CLIENT_URL}/login?error=missing_oauth_config&provider=Google`);
   }
 
   try {
-    const redirectUri = `${process.env.BACKEND_URL || 'https://devhub-api-node.onrender.com'}/api/auth/google/callback`;
+    const redirectUri = `${BACKEND_URL}/api/auth/google/callback`;
     const tokenRes = await axios.post('https://oauth2.googleapis.com/token', {
       code,
-      client_id: process.env.GOOGLE_CLIENT_ID,
-      client_secret: process.env.GOOGLE_CLIENT_SECRET,
+      client_id: GOOGLE_CLIENT_ID,
+      client_secret: GOOGLE_CLIENT_SECRET,
       redirect_uri: redirectUri,
       grant_type: 'authorization_code'
     });
@@ -1078,10 +1090,10 @@ const googleCallback = async (req, res) => {
     }
 
     res.cookie('devhub_token', jwtAccessToken, COOKIE_OPTIONS);
-    return res.redirect(`${clientUrl}/login?oauth=success&token=${jwtAccessToken}&refreshToken=${jwtRefreshToken}`);
+    return res.redirect(`${CLIENT_URL}/login?oauth=success&token=${jwtAccessToken}&refreshToken=${jwtRefreshToken}`);
   } catch (err) {
-    console.error('Google OAuth Callback Error:', err.message);
-    return res.redirect(`${clientUrl}/login?error=oauth_error`);
+    console.error('Google OAuth Callback Error:', err.response?.data || err.message);
+    return res.redirect(`${CLIENT_URL}/login?error=oauth_error&msg=${encodeURIComponent(err.message)}`);
   }
 };
 
@@ -1089,16 +1101,17 @@ const googleCallback = async (req, res) => {
 // 14. GITHUB OAUTH 2.0 PKCE & IDENTITY LINKING
 // ==========================================
 const githubAuth = (req, res) => {
-  const clientId = process.env.GITHUB_CLIENT_ID;
+  if (!GITHUB_CLIENT_ID) {
+    return res.redirect(`${CLIENT_URL}/login?error=missing_oauth_config&provider=GitHub`);
+  }
   const platform = req.query.platform || 'web';
-  const redirectUri = encodeURIComponent(`${process.env.BACKEND_URL || 'https://devhub-api-node.onrender.com'}/api/auth/github/callback`);
+  const redirectUri = encodeURIComponent(`${BACKEND_URL}/api/auth/github/callback`);
   const state = encodeURIComponent(JSON.stringify({ platform }));
-  res.redirect(`https://github.com/login/oauth/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&scope=read:user,user:email&state=${state}`);
+  res.redirect(`https://github.com/login/oauth/authorize?client_id=${GITHUB_CLIENT_ID}&redirect_uri=${redirectUri}&scope=read:user,user:email&state=${state}`);
 };
 
 const githubCallback = async (req, res) => {
   const { code, state } = req.query;
-  const clientUrl = process.env.CLIENT_URL || 'https://devhub-sub.vercel.app';
   let platform = 'web';
 
   try {
@@ -1109,15 +1122,19 @@ const githubCallback = async (req, res) => {
   } catch (e) {}
 
   if (!code) {
-    return res.redirect(`${clientUrl}/login?error=oauth_failed`);
+    return res.redirect(`${CLIENT_URL}/login?error=oauth_failed`);
+  }
+
+  if (!GITHUB_CLIENT_ID || !GITHUB_CLIENT_SECRET) {
+    return res.redirect(`${CLIENT_URL}/login?error=missing_oauth_config&provider=GitHub`);
   }
 
   try {
     const tokenRes = await axios.post(
       'https://github.com/login/oauth/access_token',
       {
-        client_id: process.env.GITHUB_CLIENT_ID,
-        client_secret: process.env.GITHUB_CLIENT_SECRET,
+        client_id: GITHUB_CLIENT_ID,
+        client_secret: GITHUB_CLIENT_SECRET,
         code
       },
       { headers: { Accept: 'application/json' } }
@@ -1157,6 +1174,18 @@ const githubCallback = async (req, res) => {
         },
         include: { profile: true }
       });
+      if (!user.profile) {
+        await prisma.profile.create({
+          data: {
+            userId: user.id,
+            githubusername: userRes.data.login,
+            skills: [],
+            openToWork: { isLooking: false, jobTitles: [], workplaces: [], locations: [] },
+            providingServices: { isProviding: false, services: [], details: '' },
+            socialLinks: { github: userRes.data.html_url, linkedin: '', twitter: '', website: '' }
+          }
+        });
+      }
     } else {
       user = await prisma.user.create({
         data: {
@@ -1189,10 +1218,10 @@ const githubCallback = async (req, res) => {
     }
 
     res.cookie('devhub_token', jwtAccessToken, COOKIE_OPTIONS);
-    return res.redirect(`${clientUrl}/login?oauth=success&token=${jwtAccessToken}&refreshToken=${jwtRefreshToken}`);
+    return res.redirect(`${CLIENT_URL}/login?oauth=success&token=${jwtAccessToken}&refreshToken=${jwtRefreshToken}`);
   } catch (err) {
-    console.error('GitHub OAuth Callback Error:', err.message);
-    return res.redirect(`${clientUrl}/login?error=oauth_error`);
+    console.error('GitHub OAuth Callback Error:', err.response?.data || err.message);
+    return res.redirect(`${CLIENT_URL}/login?error=oauth_error&msg=${encodeURIComponent(err.message)}`);
   }
 };
 
