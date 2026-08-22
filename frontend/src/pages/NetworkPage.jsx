@@ -80,7 +80,7 @@ const NetworkPage = () => {
       setFollowers(follRes.data);
       setFollowing(followingRes.data);
       
-      setPendingRequests(pendRes.data);
+      setPendingRequests(pendRes.data && typeof pendRes.data === 'object' && Array.isArray(pendRes.data.received) ? pendRes.data : { received: Array.isArray(pendRes.data) ? pendRes.data : [], sent: [] });
       // Filter out current user from suggestions as a safety net
       setConnectionSuggestions(connSuggRes.data);
       setConnections(connRes.data);
@@ -175,7 +175,7 @@ const NetworkPage = () => {
   };
 
   const tabs = [
-    { id: 'invitations', label: 'Invitations', icon: <Users size={16} />, count: pendingRequests.received.length },
+    { id: 'invitations', label: 'Invitations', icon: <Users size={16} />, count: (pendingRequests?.received || []).length },
     { id: 'connections', label: 'Connections', icon: <UserCheck size={16} />, count: connections.length },
     { id: 'following', label: 'Following', icon: <UserCheck size={16} />, count: following.length },
     { id: 'followers', label: 'Followers', icon: <UserPlus size={16} />, count: followers.length },
@@ -238,23 +238,23 @@ const NetworkPage = () => {
                   onClick={() => setInvitationTab('received')}
                   className={`pb-2 px-2 text-sm font-semibold transition-colors relative ${invitationTab === 'received' ? 'text-[#0A66C2] dark:text-white font-bold' : 'text-slate-500 dark:text-gray-400 hover:text-slate-900 dark:hover:text-gray-300'}`}
                 >
-                  Received ({pendingRequests.received.length})
+                  Received ({(pendingRequests?.received || []).length})
                   {invitationTab === 'received' && <div className="absolute bottom-0 left-0 w-full h-0.5 bg-[#0A66C2] dark:bg-[#00F0FF] rounded-t-full"></div>}
                 </button>
                 <button
                   onClick={() => setInvitationTab('sent')}
                   className={`pb-2 px-2 text-sm font-semibold transition-colors relative ${invitationTab === 'sent' ? 'text-[#0A66C2] dark:text-white font-bold' : 'text-slate-500 dark:text-gray-400 hover:text-slate-900 dark:hover:text-gray-300'}`}
                 >
-                  Sent ({pendingRequests.sent.length})
+                  Sent ({(pendingRequests?.sent || []).length})
                   {invitationTab === 'sent' && <div className="absolute bottom-0 left-0 w-full h-0.5 bg-[#0A66C2] dark:bg-[#00F0FF] rounded-t-full"></div>}
                 </button>
               </div>
 
               {invitationTab === 'received' && (
-                pendingRequests.received.length > 0 ? (
+                (pendingRequests?.received || []).length > 0 ? (
                   <section className="bg-white dark:bg-[#111] border border-slate-200 dark:border-white/5 rounded-2xl p-6">
                     <div className="space-y-4">
-                      {pendingRequests.received.map((req) => (
+                      {(pendingRequests?.received || []).map((req) => (
                         <div key={req._id} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-slate-50 dark:bg-white/[0.02] rounded-xl border border-slate-200 dark:border-white/5 gap-4">
                           <div className="flex items-center gap-4 cursor-pointer">
                             <img 
@@ -298,10 +298,10 @@ const NetworkPage = () => {
               )}
 
               {invitationTab === 'sent' && (
-                pendingRequests.sent.length > 0 ? (
+                (pendingRequests?.sent || []).length > 0 ? (
                   <section className="bg-white dark:bg-[#111] border border-slate-200 dark:border-white/5 rounded-2xl p-6">
                     <div className="space-y-4">
-                      {pendingRequests.sent.map((req) => (
+                      {(pendingRequests?.sent || []).map((req) => (
                         <div key={req._id} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-slate-50 dark:bg-white/[0.02] rounded-xl border border-slate-200 dark:border-white/5 gap-4">
                           <div className="flex items-center gap-4 cursor-pointer">
                             <img 

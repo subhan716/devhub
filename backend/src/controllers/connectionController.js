@@ -135,7 +135,7 @@ const removeConnection = async (req, res) => {
 
 const getPendingRequests = async (req, res) => {
   try {
-    const requests = await prisma.connection.findMany({
+    const received = await prisma.connection.findMany({
       where: { recipientId: req.user.id, status: 'pending' },
       include: {
         requester: {
@@ -150,21 +150,44 @@ const getPendingRequests = async (req, res) => {
       orderBy: { createdAt: 'desc' }
     });
 
-    res.json(requests.map(r => {
-      const avatarUrl = r.requester.avatarUrl || 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png';
+    const sent = await prisma.connection.findMany({
+      where: { requesterId: req.user.id, status: 'pending' },
+      include: {
+        recipient: {
+          select: {
+            id: true,
+            name: true,
+            avatarUrl: true,
+            profile: { select: { status: true, company: true } }
+          }
+        }
+      },
+      orderBy: { createdAt: 'desc' }
+    });
+
+    const formatReq = (r, userField) => {
+      const u = r[userField] || {};
+      const avatarUrl = u.avatarUrl || 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png';
       return {
         ...r,
         _id: r.id,
-        requester: {
-          ...r.requester,
-          _id: r.requester.id,
+        id: r.id,
+        [userField]: {
+          ...u,
+          _id: u.id,
+          id: u.id,
           avatar: { url: avatarUrl },
           avatarUrl: avatarUrl
         }
       };
-    }));
+    };
+
+    res.json({
+      received: received.map(r => formatReq(r, 'requester')),
+      sent: sent.map(r => formatReq(r, 'recipient'))
+    });
   } catch (e) {
-    res.status(500).json({ message: e.message });
+    res.status(500).json({ received: [], sent: [], message: e.message });
   }
 };
 

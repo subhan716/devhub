@@ -1,27 +1,45 @@
-import React, { createContext, useContext, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 
 const ThemeContext = createContext();
 
 export const ThemeProvider = ({ children }) => {
-  // Pure Dark Mode Only - Enforce dark mode across the entire platform
-  const theme = 'dark';
-  const isDark = true;
+  const [theme, setThemeState] = useState(() => {
+    try {
+      return localStorage.getItem('devhub_theme') || 'dark';
+    } catch (e) {
+      return 'dark';
+    }
+  });
+
+  const isDark = theme === 'dark';
 
   useEffect(() => {
     try {
       const root = document.documentElement;
-      root.classList.add('dark');
-      root.classList.remove('light');
-      root.setAttribute('data-theme', 'dark');
-      root.style.colorScheme = 'dark';
-      localStorage.setItem('devhub_theme', 'dark');
+      if (theme === 'dark') {
+        root.classList.add('dark');
+        root.classList.remove('light');
+        root.setAttribute('data-theme', 'dark');
+        root.style.colorScheme = 'dark';
+      } else {
+        root.classList.remove('dark');
+        root.classList.add('light');
+        root.setAttribute('data-theme', 'light');
+        root.style.colorScheme = 'light';
+      }
+      localStorage.setItem('devhub_theme', theme);
     } catch (e) {
-      console.warn('Theme init error:', e);
+      console.warn('Theme switch error:', e);
     }
-  }, []);
+  }, [theme]);
 
-  const toggleTheme = () => {};
-  const setTheme = () => {};
+  const toggleTheme = () => {
+    setThemeState(prev => (prev === 'dark' ? 'light' : 'dark'));
+  };
+
+  const setTheme = (newTheme) => {
+    setThemeState(newTheme);
+  };
 
   return (
     <ThemeContext.Provider value={{ theme, isDark, toggleTheme, setTheme }}>

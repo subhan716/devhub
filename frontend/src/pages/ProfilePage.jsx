@@ -551,8 +551,10 @@ const ProfilePage = () => {
         <div
           className="h-48 w-full relative"
           style={{
-            backgroundColor: profile.coverImage?.url ? 'transparent' : '#1a1a1a',
-            backgroundImage: profile.coverImage?.url ? `url(${profile.coverImage.url})` : 'none',
+            backgroundColor: 'transparent',
+            backgroundImage: (profile.coverImageUrl || profile.coverImage?.url) 
+              ? `url(${profile.coverImageUrl || profile.coverImage?.url})` 
+              : 'linear-gradient(135deg, #0A66C2 0%, #00F0FF 100%)',
             backgroundSize: 'cover',
             backgroundPosition: 'center'
           }}

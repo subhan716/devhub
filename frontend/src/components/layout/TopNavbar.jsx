@@ -349,7 +349,19 @@ const TopNavbar = ({ setIsMobileMenuOpen, currentUser, isMessagesPage }) => {
                     Preferences
                   </div>
 
-                  
+                  {/* Theme Toggle (Light / Dark Mode) */}
+                  <button
+                    onClick={toggleTheme}
+                    className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs text-slate-700 dark:text-gray-300 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white transition-colors text-left cursor-pointer mb-1"
+                  >
+                    <div className="flex items-center gap-2.5">
+                      {isDark ? <Moon size={15} className="text-[#00F0FF]" /> : <Sun size={15} className="text-amber-500" />}
+                      <span className="font-medium">{isDark ? 'Dark Theme' : 'Light Theme'}</span>
+                    </div>
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-gray-400">
+                      {isDark ? 'Dark' : 'Light'}
+                    </span>
+                  </button>
 
                   {/* Active / Invisible Status Toggle */}
                   {toggleStatusPref && (
