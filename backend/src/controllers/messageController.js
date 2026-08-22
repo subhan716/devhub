@@ -106,6 +106,8 @@ const getMessages = async (req, res) => {
       recipient: m.receiverId,
       text: m.text,
       attachment: m.attachment,
+      reactions: m.reactions || [],
+      forwarded: m.forwarded || false,
       read: m.read,
       createdAt: m.createdAt
     })));
@@ -146,7 +148,6 @@ const sendMessage = async (req, res) => {
       createdAt: message.createdAt
     };
 
-    // Emit live event to recipient room via Socket.io
     try {
       const io = getIo();
       if (io) {
@@ -158,6 +159,62 @@ const sendMessage = async (req, res) => {
   } catch (err) {
     console.error('Error in sendMessage:', err);
     res.status(500).json({ message: 'Server Error' });
+  }
+};
+
+const markAsRead = async (req, res) => {
+  try {
+    const currentUserId = req.user.id;
+    const senderId = req.params.userId;
+
+    await prisma.message.updateMany({
+      where: {
+        senderId: senderId,
+        receiverId: currentUserId,
+        read: false
+      },
+      data: { read: true }
+    });
+
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+const editMessage = async (req, res) => {
+  try {
+    const { messageId } = req.params;
+    const { text } = req.body;
+
+    const msg = await prisma.message.findUnique({ where: { id: messageId } });
+    if (!msg) return res.status(404).json({ message: 'Message not found' });
+    if (msg.senderId !== req.user.id) return res.status(401).json({ message: 'Not authorized' });
+
+    const updated = await prisma.message.update({
+      where: { id: messageId },
+      data: { text, edited: true }
+    });
+
+    res.json(updated);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+const deleteMessage = async (req, res) => {
+  try {
+    const { messageId } = req.params;
+    const msg = await prisma.message.findUnique({ where: { id: messageId } });
+    if (!msg) return res.status(404).json({ message: 'Message not found' });
+    if (msg.senderId !== req.user.id && req.user.role !== 'admin') {
+      return res.status(401).json({ message: 'Not authorized' });
+    }
+
+    await prisma.message.delete({ where: { id: messageId } });
+    res.json({ message: 'Message deleted successfully' });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
   }
 };
 
@@ -223,6 +280,9 @@ module.exports = {
   getConversations,
   getMessages,
   sendMessage,
+  markAsRead,
+  editMessage,
+  deleteMessage,
   forwardMessage,
   toggleReaction
 };

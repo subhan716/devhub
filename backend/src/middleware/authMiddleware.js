@@ -118,6 +118,56 @@ const protect = async (req, res, next) => {
   }
 };
 
+const protectOptional = async (req, res, next) => {
+  let token;
+
+  if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+    token = req.headers.authorization.split(' ')[1];
+  } else if (req.cookies && (req.cookies.devhub_token || req.cookies.jwt || req.cookies.token)) {
+    token = req.cookies.devhub_token || req.cookies.jwt || req.cookies.token;
+  }
+
+  if (!token) {
+    return next();
+  }
+
+  try {
+    const decoded = jwt.verify(token, ACCESS_SECRET);
+    let cached = sessionCache.get(decoded.id);
+    let user;
+
+    if (cached && Date.now() - cached.timestamp < SESSION_CACHE_TTL_MS) {
+      user = cached.user;
+    } else {
+      user = await prisma.user.findUnique({
+        where: { id: decoded.id },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          avatarUrl: true,
+          role: true,
+          isVerifiedBadge: true,
+          badgeType: true,
+          isSuspended: true,
+          statusPreference: true
+        }
+      });
+      if (user) {
+        sessionCache.set(decoded.id, { user, timestamp: Date.now() });
+      }
+    }
+
+    if (user && !user.isSuspended) {
+      req.user = { ...user, _id: user.id };
+    }
+  } catch (err) {
+    // Ignore invalid token for optional routes
+  }
+
+  next();
+};
+
 const protectAdmin = (req, res, next) => {
   if (!req.user) {
     return res.status(401).json({ message: 'Not authorized, admin authentication required.' });
@@ -133,6 +183,7 @@ const protectAdmin = (req, res, next) => {
 
 module.exports = {
   protect,
+  protectOptional,
   protectAdmin,
   invalidateUserSessionCache
 };
