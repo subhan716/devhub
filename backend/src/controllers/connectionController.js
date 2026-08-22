@@ -292,15 +292,29 @@ const getSuggestions = async (req, res) => {
   try {
     const userId = req.user.id;
 
-    const cached = await prisma.suggestionCache.findUnique({ where: { userId } }).catch(() => null);
-    if (cached && new Date(cached.expiresAt) > new Date() && Array.isArray(cached.suggestions) && cached.suggestions.length > 0) {
-      return res.json(cached.suggestions);
-    }
+    // 1. Get all user IDs that are already connected or pending
+    const existingConnections = await prisma.connection.findMany({
+      where: {
+        OR: [{ requesterId: userId }, { recipientId: userId }]
+      },
+      select: { requesterId: true, recipientId: true }
+    });
 
+    const excludedUserIds = new Set([userId]);
+    existingConnections.forEach(c => {
+      excludedUserIds.add(c.requesterId);
+      excludedUserIds.add(c.recipientId);
+    });
+
+    // 2. Query only real developer users (exclude admins, support, self, and existing connections)
     const users = await prisma.user.findMany({
       where: {
-        id: { not: userId },
-        isSuspended: false
+        id: { notIn: Array.from(excludedUserIds) },
+        isSuspended: false,
+        role: 'user',
+        email: {
+          not: { contains: 'support@' }
+        }
       },
       select: {
         id: true,
@@ -310,7 +324,8 @@ const getSuggestions = async (req, res) => {
         badgeType: true,
         profile: { select: { status: true, company: true, githubusername: true, bio: true, location: true } }
       },
-      take: 10
+      take: 10,
+      orderBy: { createdAt: 'desc' }
     });
 
     const suggestions = users.map(u => {
@@ -335,16 +350,10 @@ const getSuggestions = async (req, res) => {
       };
     });
 
-    const expiresAt = new Date(Date.now() + 2 * 60 * 60 * 1000);
-    prisma.suggestionCache.upsert({
-      where: { userId },
-      update: { suggestions, expiresAt, lastCalculatedAt: new Date() },
-      create: { userId, suggestions, expiresAt }
-    }).catch(e => console.error('SuggestionCache save error:', e.message));
-
     res.json(suggestions);
   } catch (e) {
-    res.status(500).json({ message: e.message });
+    console.error('Error in getSuggestions:', e);
+    res.status(500).json([]);
   }
 };
 

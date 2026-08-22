@@ -438,10 +438,29 @@ const searchProfiles = async (req, res) => {
 const getNetworkSuggestions = async (req, res) => {
   try {
     const currentUserId = req.user?.id;
+
+    // Get excluded connected / pending user IDs
+    let excludedUserIds = new Set();
+    if (currentUserId) {
+      excludedUserIds.add(currentUserId);
+      const existingConns = await prisma.connection.findMany({
+        where: {
+          OR: [{ requesterId: currentUserId }, { recipientId: currentUserId }]
+        },
+        select: { requesterId: true, recipientId: true }
+      });
+      existingConns.forEach(c => {
+        excludedUserIds.add(c.requesterId);
+        excludedUserIds.add(c.recipientId);
+      });
+    }
+
     const users = await prisma.user.findMany({
       where: {
-        id: currentUserId ? { not: currentUserId } : undefined,
-        isSuspended: false
+        id: { notIn: Array.from(excludedUserIds) },
+        isSuspended: false,
+        role: 'user',
+        email: { not: { contains: 'support@' } }
       },
       select: {
         id: true,
@@ -461,7 +480,8 @@ const getNetworkSuggestions = async (req, res) => {
           }
         }
       },
-      take: 15
+      take: 15,
+      orderBy: { createdAt: 'desc' }
     });
 
     const formatted = users.map(u => {
