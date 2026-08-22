@@ -1090,7 +1090,7 @@ const googleCallback = async (req, res) => {
     }
 
     res.cookie('devhub_token', jwtAccessToken, COOKIE_OPTIONS);
-    return res.redirect(`${CLIENT_URL}/login?oauth=success&token=${jwtAccessToken}&refreshToken=${jwtRefreshToken}`);
+    return res.redirect(`${CLIENT_URL}/feed?oauth=success`);
   } catch (err) {
     console.error('Google OAuth Callback Error:', err.response?.data || err.message);
     return res.redirect(`${CLIENT_URL}/login?error=oauth_error&msg=${encodeURIComponent(err.message)}`);
@@ -1218,7 +1218,7 @@ const githubCallback = async (req, res) => {
     }
 
     res.cookie('devhub_token', jwtAccessToken, COOKIE_OPTIONS);
-    return res.redirect(`${CLIENT_URL}/login?oauth=success&token=${jwtAccessToken}&refreshToken=${jwtRefreshToken}`);
+    return res.redirect(`${CLIENT_URL}/feed?oauth=success`);
   } catch (err) {
     console.error('GitHub OAuth Callback Error:', err.response?.data || err.message);
     return res.redirect(`${CLIENT_URL}/login?error=oauth_error&msg=${encodeURIComponent(err.message)}`);
