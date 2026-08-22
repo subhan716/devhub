@@ -28,6 +28,19 @@ import { formatDistanceToNow } from 'date-fns';
 const notificationSound = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
 
 const TopNavbar = ({ setIsMobileMenuOpen, currentUser, isMessagesPage }) => {
+  const getPageTitle = () => {
+    const path = location.pathname;
+    if (path === '/' || path === '/feed') return 'Feed';
+    if (path.startsWith('/network')) return 'My Networks';
+    if (path.startsWith('/jobs')) return 'Jobs';
+    if (path.startsWith('/messages')) return 'Messaging';
+    if (path.startsWith('/saved-posts') || path.startsWith('/bookmarks')) return 'Saved Posts';
+    if (path.startsWith('/settings')) return 'Settings';
+    if (path.startsWith('/notifications')) return 'Notifications';
+    if (path.startsWith('/profile')) return 'Profile';
+    if (path.startsWith('/search')) return 'Search';
+    return 'DevHub';
+  };
   const navTabs = [
     { name: 'Feed', path: '/feed', icon: <LayoutDashboard size={19} /> },
     { name: 'My Networks', path: '/network', icon: <Users size={19} /> },
@@ -159,9 +172,7 @@ const TopNavbar = ({ setIsMobileMenuOpen, currentUser, isMessagesPage }) => {
         <Link to="/feed" className="flex items-center gap-3 md:hidden group">
           <img src="/images/logo.png" alt="DevHub Logo" className="w-8 h-8 object-contain rounded-xl drop-shadow-[0_0_10px_rgba(0,240,255,0.3)]" />
         </Link>
-        <h1 className="text-xl font-bold text-slate-900 dark:text-white tracking-tight hidden md:block">
-          Feed
-        </h1>
+        <h1 className="text-xl font-bold text-slate-900 dark:text-white tracking-tight hidden md:block">{getPageTitle()}</h1>
       </div>
 
       {/* Center: Search Bar */}
