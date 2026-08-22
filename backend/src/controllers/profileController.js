@@ -2,7 +2,7 @@ const formatProfileForClient = async (profile) => {
   if (!profile) return null;
   const avatarUrl = profile.avatarUrl || profile.user?.avatarUrl || 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png';
   
-  const [followersCount, followingCount, connectionCount] = await Promise.all([
+  const [followersCount, followingCount, connectionCount, followerRows, followingRows] = await Promise.all([
     prisma.follow.count({ where: { followingId: profile.userId } }).catch(() => 0),
     prisma.follow.count({ where: { followerId: profile.userId } }).catch(() => 0),
     prisma.connection.count({
@@ -10,7 +10,15 @@ const formatProfileForClient = async (profile) => {
         status: 'accepted',
         OR: [{ requesterId: profile.userId }, { recipientId: profile.userId }]
       }
-    }).catch(() => 0)
+    }).catch(() => 0),
+    prisma.follow.findMany({
+      where: { followingId: profile.userId },
+      select: { followerId: true }
+    }).catch(() => []),
+    prisma.follow.findMany({
+      where: { followerId: profile.userId },
+      select: { followingId: true }
+    }).catch(() => [])
   ]);
 
   return {
@@ -18,8 +26,10 @@ const formatProfileForClient = async (profile) => {
     _id: profile.id,
     avatar: { url: avatarUrl },
     avatarUrl: avatarUrl,
-    followers: [],
-    following: [],
+    coverImageUrl: profile.coverImageUrl || null,
+    coverImage: profile.coverImageUrl ? { url: profile.coverImageUrl } : null,
+    followers: followerRows.map(f => f.followerId),
+    following: followingRows.map(f => f.followingId),
     followersCount,
     followingCount,
     connectionCount,
@@ -31,11 +41,7 @@ const formatProfileForClient = async (profile) => {
     } : undefined
   };
 };
-const prisma = require('../config/prisma');
 
-// @desc    Get current user's profile
-// @route   GET /api/profile/me
-// @access  Private
 const getCurrentProfile = async (req, res) => {
   try {
     const userId = req.user.id;
@@ -355,7 +361,7 @@ const deleteProfile = async (req, res) => {
 // @access  Private
 const followUser = async (req, res) => {
   try {
-    const targetUserId = req.params.id;
+    const targetUserId = req.params.user_id || req.params.id;
     const currentUserId = req.user.id;
 
     if (targetUserId === currentUserId) {
@@ -405,7 +411,7 @@ const followUser = async (req, res) => {
 // @access  Private
 const unfollowUser = async (req, res) => {
   try {
-    const targetUserId = req.params.id;
+    const targetUserId = req.params.user_id || req.params.id;
     const currentUserId = req.user.id;
 
     await prisma.follow.deleteMany({
