@@ -1092,8 +1092,9 @@ const googleCallback = async (req, res) => {
     res.cookie('devhub_token', jwtAccessToken, COOKIE_OPTIONS);
     return res.redirect(`${CLIENT_URL}/feed?oauth=success&token=${jwtAccessToken}&refreshToken=${jwtRefreshToken}`);
   } catch (err) {
-    console.error('Google OAuth Callback Error:', err.response?.data || err.message);
-    return res.redirect(`${CLIENT_URL}/login?error=oauth_error&msg=${encodeURIComponent(err.message)}`);
+    const errorDetail = err.response?.data ? JSON.stringify(err.response.data) : err.message;
+    console.error('Google OAuth Callback Error:', errorDetail);
+    return res.redirect(`${CLIENT_URL}/login?error=oauth_error&msg=${encodeURIComponent(errorDetail)}`);
   }
 };
 
@@ -1220,8 +1221,9 @@ const githubCallback = async (req, res) => {
     res.cookie('devhub_token', jwtAccessToken, COOKIE_OPTIONS);
     return res.redirect(`${CLIENT_URL}/feed?oauth=success&token=${jwtAccessToken}&refreshToken=${jwtRefreshToken}`);
   } catch (err) {
-    console.error('GitHub OAuth Callback Error:', err.response?.data || err.message);
-    return res.redirect(`${CLIENT_URL}/login?error=oauth_error&msg=${encodeURIComponent(err.message)}`);
+    const errorDetail = err.response?.data ? JSON.stringify(err.response.data) : err.message;
+    console.error('GitHub OAuth Callback Error:', errorDetail);
+    return res.redirect(`${CLIENT_URL}/login?error=oauth_error&msg=${encodeURIComponent(errorDetail)}`);
   }
 };
 

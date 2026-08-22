@@ -27,6 +27,7 @@ const LoginPage = () => {
     const token = params.get('token');
     const refreshToken = params.get('refreshToken');
     const error = params.get('error');
+    const msg = params.get('msg');
 
     if (token) {
       localStorage.setItem('accessToken', token);
@@ -40,7 +41,11 @@ const LoginPage = () => {
     }
 
     if (error) {
-      toast.error('Social authentication failed. Please try again or sign in with your password.');
+      if (msg) {
+        toast.error(`OAuth Error: ${decodeURIComponent(msg)}`, { duration: 8000 });
+      } else {
+        toast.error('Social authentication failed. Please try again or sign in with your password.');
+      }
       window.history.replaceState({}, document.title, window.location.pathname);
     }
   }, []);
