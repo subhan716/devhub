@@ -1227,7 +1227,22 @@ const githubCallback = async (req, res) => {
 
 const resendPasswordOtp = async (req, res) => inSessionForgotPassword(req, res);
 
+const debugEnv = (req, res) => {
+  res.status(200).json({
+    hasGoogleClientId: !!process.env.GOOGLE_CLIENT_ID,
+    googleClientIdPrefix: (process.env.GOOGLE_CLIENT_ID || '').slice(0, 10),
+    hasGoogleClientSecret: !!process.env.GOOGLE_CLIENT_SECRET,
+    googleClientSecretPrefix: (process.env.GOOGLE_CLIENT_SECRET || '').slice(0, 5),
+    hasGithubClientId: !!process.env.GITHUB_CLIENT_ID,
+    hasGithubClientSecret: !!process.env.GITHUB_CLIENT_SECRET,
+    clientUrl: process.env.CLIENT_URL || 'DEFAULT',
+    backendUrl: process.env.BACKEND_URL || 'DEFAULT',
+    nodeEnv: process.env.NODE_ENV
+  });
+};
+
 module.exports = {
+  debugEnv,
   registerUser,
   verifyOtp,
   resendOtp,

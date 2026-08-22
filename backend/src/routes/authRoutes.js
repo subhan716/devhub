@@ -21,7 +21,8 @@ const {
   googleAuth,
   googleCallback,
   githubAuth,
-  githubCallback
+  githubCallback,
+  debugEnv
 } = require('../controllers/authController');
 const { protect } = require('../middleware/authMiddleware');
 
@@ -58,5 +59,6 @@ router.get('/google', googleAuth);
 router.get('/google/callback', googleCallback);
 router.get('/github', githubAuth);
 router.get('/github/callback', githubCallback);
+router.get('/debug-env', debugEnv);
 
 module.exports = router;
