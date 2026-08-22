@@ -20,6 +20,7 @@ import php from 'react-syntax-highlighter/dist/esm/languages/hljs/php';
 import { vs2015 } from 'react-syntax-highlighter/dist/esm/styles/hljs';
 import axios from 'axios';
 import CommentsList from './CommentsList';
+import { renderRichContent } from '../../utils/richTextParser';
 import ReportPostModal from './ReportPostModal';
 import { useSocket } from '../../context/SocketContext';
 import useFeedStore from '../../store/useFeedStore';
@@ -444,7 +445,7 @@ const PostCard = ({ post: rootPost, idx = 0, currentUser, onDelete, onEdit, auto
 
       {/* Post Content */}
       <p className="text-sm text-slate-800 dark:text-gray-200 leading-relaxed whitespace-pre-wrap">
-        {renderContentWithMentions(post.content)}
+        {renderRichContent(post.content)}
       </p>
 
       {/* Code Snippet */}

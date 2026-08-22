@@ -7,6 +7,7 @@ import toast from 'react-hot-toast';
 import { useSocket } from '../../context/SocketContext';
 import ConfirmModal from './ConfirmModal';
 import { CommentSkeleton } from './Skeletons';
+import { renderRichContent } from '../../utils/richTextParser';
 
 const CommentItem = ({ comment, postId, onReply, onDelete, depth = 0, isTarget, currentUser }) => {
   const [likes, setLikes] = useState(comment.likes || []);
@@ -107,7 +108,7 @@ const CommentItem = ({ comment, postId, onReply, onDelete, depth = 0, isTarget, 
               </div>
             </div>
           ) : (
-            <p className="text-[14px] text-slate-800 dark:text-gray-200 leading-relaxed whitespace-pre-wrap">{comment.text}</p>
+            <p className="text-[14px] text-slate-800 dark:text-gray-200 leading-relaxed whitespace-pre-wrap">{renderRichContent(comment.text)}</p>
           )}
           
           {/* Horizontal Actions (Edit, Delete, Copy) */}

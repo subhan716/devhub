@@ -193,15 +193,24 @@ const getAllProfiles = async (req, res) => {
   }
 };
 
-// @desc    Get profile by user ID
+// @desc    Get profile by user ID or handle/username
 // @route   GET /api/profile/user/:user_id
 // @access  Public (Optional auth)
 const getProfileByUserId = async (req, res) => {
   try {
-    const targetUserId = req.params.user_id || req.params.id;
+    const rawTarget = req.params.user_id || req.params.id;
+    const targetUserId = rawTarget.startsWith('@') ? rawTarget.slice(1) : rawTarget;
 
-    let profile = await prisma.profile.findUnique({
-      where: { userId: targetUserId },
+    let profile = await prisma.profile.findFirst({
+      where: {
+        OR: [
+          { userId: targetUserId },
+          { user: { id: targetUserId } },
+          { user: { name: { equals: targetUserId, mode: 'insensitive' } } },
+          { user: { email: { startsWith: `${targetUserId}@`, mode: 'insensitive' } } },
+          { githubusername: { equals: targetUserId, mode: 'insensitive' } }
+        ]
+      },
       include: {
         user: {
           select: {
@@ -217,23 +226,31 @@ const getProfileByUserId = async (req, res) => {
     });
 
     if (!profile) {
-      const user = await prisma.user.findUnique({
-        where: { id: targetUserId },
+      const user = await prisma.user.findFirst({
+        where: {
+          OR: [
+            { id: targetUserId },
+            { name: { equals: targetUserId, mode: 'insensitive' } },
+            { email: { startsWith: `${targetUserId}@`, mode: 'insensitive' } }
+          ]
+        },
         select: { id: true, name: true, email: true, avatarUrl: true, isVerifiedBadge: true, badgeType: true }
       });
 
       if (!user) return res.status(404).json({ message: 'Profile not found' });
 
       profile = await prisma.profile.create({
-        data: { userId: targetUserId, status: 'Developer', skills: [] },
+        data: { userId: user.id, status: 'Developer', skills: [] },
         include: { user: { select: { id: true, name: true, email: true, avatarUrl: true, isVerifiedBadge: true, badgeType: true } } }
       });
     }
 
+    const resolvedUserId = profile.userId || profile.user?.id;
+
     // Increment views if viewer is different
-    if (req.user?.id && req.user.id !== targetUserId) {
+    if (req.user?.id && req.user.id !== resolvedUserId) {
       await prisma.profile.update({
-        where: { userId: targetUserId },
+        where: { userId: resolvedUserId },
         data: { views: { increment: 1 } }
       }).catch(() => {});
     }
@@ -243,79 +260,6 @@ const getProfileByUserId = async (req, res) => {
   } catch (error) {
     console.error('Error in getProfileByUserId:', error);
     res.status(500).json({ message: error.message });
-  }
-};
-
-// @desc    Delete user and profile
-// @route   DELETE /api/profile
-// @access  Private
-const deleteProfile = async (req, res) => {
-  try {
-    await prisma.user.delete({ where: { id: req.user.id } });
-    res.status(200).json({ message: 'User deleted' });
-  } catch (e) {
-    res.status(500).json({ message: e.message });
-  }
-};
-
-// @desc    Follow user
-// @route   POST /api/profile/follow/:user_id
-// @access  Private
-const followUser = async (req, res) => {
-  try {
-    const targetUserId = req.params.user_id || req.params.id;
-    const currentUserId = req.user.id;
-
-    if (targetUserId === currentUserId) {
-      return res.status(400).json({ message: 'Cannot follow yourself' });
-    }
-
-    await prisma.follow.upsert({
-      where: {
-        followerId_followingId: {
-          followerId: currentUserId,
-          followingId: targetUserId
-        }
-      },
-      update: {},
-      create: {
-        followerId: currentUserId,
-        followingId: targetUserId
-      }
-    });
-
-    try {
-      await prisma.notification.create({
-        data: {
-          recipientId: targetUserId,
-          senderId: currentUserId,
-          type: 'follow',
-          message: 'started following you.'
-        }
-      });
-    } catch (nErr) {}
-
-    res.status(200).json({ success: true });
-  } catch (e) {
-    res.status(500).json({ message: e.message });
-  }
-};
-
-// @desc    Unfollow user
-// @route   POST /api/profile/unfollow/:user_id
-// @access  Private
-const unfollowUser = async (req, res) => {
-  try {
-    const targetUserId = req.params.user_id || req.params.id;
-    await prisma.follow.deleteMany({
-      where: {
-        followerId: req.user.id,
-        followingId: targetUserId
-      }
-    });
-    res.status(200).json({ success: true });
-  } catch (e) {
-    res.status(500).json({ message: e.message });
   }
 };
 
