@@ -1102,8 +1102,15 @@ const googleCallback = async (req, res) => {
     res.cookie('devhub_token', jwtAccessToken, COOKIE_OPTIONS);
     return res.redirect(`${CLIENT_URL}/feed?oauth=success&token=${jwtAccessToken}&refreshToken=${jwtRefreshToken}`);
   } catch (err) {
-    const errorDetail = err.response?.data ? JSON.stringify(err.response.data) : err.message;
-    console.error('Google OAuth Callback Error:', errorDetail);
+    // Log the FULL error object server-side (message + stack + Prisma code/meta).
+    console.error('Google OAuth Callback Error:', err);
+    // Surface the Prisma code + meta FIRST so the frontend toast shows the real
+    // cause (e.g. "P2022 {"column":"User.googleId"}") instead of just the
+    // generic "Invalid `prisma...` invocation:" first line.
+    const prismaBits = [err?.code, err?.meta ? JSON.stringify(err.meta) : null].filter(Boolean).join(' ');
+    const errorDetail = err.response?.data
+      ? JSON.stringify(err.response.data)
+      : (prismaBits ? `${prismaBits} :: ${err.message}` : err.message);
     return res.redirect(`${CLIENT_URL}/login?error=oauth_error&msg=${encodeURIComponent(errorDetail)}`);
   }
 };
@@ -1238,8 +1245,15 @@ const githubCallback = async (req, res) => {
     res.cookie('devhub_token', jwtAccessToken, COOKIE_OPTIONS);
     return res.redirect(`${CLIENT_URL}/feed?oauth=success&token=${jwtAccessToken}&refreshToken=${jwtRefreshToken}`);
   } catch (err) {
-    const errorDetail = err.response?.data ? JSON.stringify(err.response.data) : err.message;
-    console.error('GitHub OAuth Callback Error:', errorDetail);
+    // Log the FULL error object server-side (message + stack + Prisma code/meta).
+    console.error('GitHub OAuth Callback Error:', err);
+    // Surface the Prisma code + meta FIRST so the frontend toast shows the real
+    // cause (e.g. "P2022 {"column":"User.githubId"}") instead of just the
+    // generic "Invalid `prisma...` invocation:" first line.
+    const prismaBits = [err?.code, err?.meta ? JSON.stringify(err.meta) : null].filter(Boolean).join(' ');
+    const errorDetail = err.response?.data
+      ? JSON.stringify(err.response.data)
+      : (prismaBits ? `${prismaBits} :: ${err.message}` : err.message);
     return res.redirect(`${CLIENT_URL}/login?error=oauth_error&msg=${encodeURIComponent(errorDetail)}`);
   }
 };
