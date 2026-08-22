@@ -177,8 +177,8 @@ const getConnections = async (req, res) => {
         OR: [{ requesterId: userId }, { recipientId: userId }]
       },
       include: {
-        requester: { select: { id: true, name: true, avatarUrl: true, profile: true } },
-        recipient: { select: { id: true, name: true, avatarUrl: true, profile: true } }
+        requester: { select: { id: true, name: true, avatarUrl: true, isVerifiedBadge: true, badgeType: true, profile: true } },
+        recipient: { select: { id: true, name: true, avatarUrl: true, isVerifiedBadge: true, badgeType: true, profile: true } }
       },
       orderBy: { updatedAt: 'desc' }
     });
@@ -186,14 +186,28 @@ const getConnections = async (req, res) => {
     const peers = connections.map(c => {
       const peer = c.requesterId === userId ? c.recipient : c.requester;
       const avatarUrl = peer.avatarUrl || 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png';
-      return {
+      const userObj = {
         _id: peer.id,
         id: peer.id,
         name: peer.name,
         avatar: { url: avatarUrl },
         avatarUrl: avatarUrl,
+        bio: peer.profile?.bio || '',
+        status: peer.profile?.status || 'Developer',
         role: peer.profile?.status || 'Developer',
+        location: peer.profile?.location || '',
+        isVerifiedBadge: peer.isVerifiedBadge || false,
+        badgeType: peer.badgeType || 'none',
         profile: peer.profile
+      };
+
+      return {
+        _id: c.id,
+        id: c.id,
+        connectionId: c.id,
+        user: userObj,
+        // Also provide top-level aliases so both conn.user.name and conn.name work cleanly
+        ...userObj
       };
     });
 
@@ -212,8 +226,8 @@ const getUserConnections = async (req, res) => {
         OR: [{ requesterId: userId }, { recipientId: userId }]
       },
       include: {
-        requester: { select: { id: true, name: true, avatarUrl: true, profile: true } },
-        recipient: { select: { id: true, name: true, avatarUrl: true, profile: true } }
+        requester: { select: { id: true, name: true, avatarUrl: true, isVerifiedBadge: true, badgeType: true, profile: true } },
+        recipient: { select: { id: true, name: true, avatarUrl: true, isVerifiedBadge: true, badgeType: true, profile: true } }
       },
       orderBy: { updatedAt: 'desc' }
     });
@@ -221,14 +235,27 @@ const getUserConnections = async (req, res) => {
     const peers = connections.map(c => {
       const peer = c.requesterId === userId ? c.recipient : c.requester;
       const avatarUrl = peer.avatarUrl || 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png';
-      return {
+      const userObj = {
         _id: peer.id,
         id: peer.id,
         name: peer.name,
         avatar: { url: avatarUrl },
         avatarUrl: avatarUrl,
+        bio: peer.profile?.bio || '',
+        status: peer.profile?.status || 'Developer',
         role: peer.profile?.status || 'Developer',
+        location: peer.profile?.location || '',
+        isVerifiedBadge: peer.isVerifiedBadge || false,
+        badgeType: peer.badgeType || 'none',
         profile: peer.profile
+      };
+
+      return {
+        _id: c.id,
+        id: c.id,
+        connectionId: c.id,
+        user: userObj,
+        ...userObj
       };
     });
 
@@ -238,18 +265,15 @@ const getUserConnections = async (req, res) => {
   }
 };
 
-// Smart Pre-Computed Social Graph Caching (SuggestionCache)
 const getSuggestions = async (req, res) => {
   try {
     const userId = req.user.id;
 
-    // 1. Check existing unexpired SuggestionCache
     const cached = await prisma.suggestionCache.findUnique({ where: { userId } }).catch(() => null);
     if (cached && new Date(cached.expiresAt) > new Date() && Array.isArray(cached.suggestions) && cached.suggestions.length > 0) {
       return res.json(cached.suggestions);
     }
 
-    // 2. Fast DB fallback and pre-computation
     const users = await prisma.user.findMany({
       where: {
         id: { not: userId },
@@ -261,14 +285,14 @@ const getSuggestions = async (req, res) => {
         avatarUrl: true,
         isVerifiedBadge: true,
         badgeType: true,
-        profile: { select: { status: true, company: true, githubusername: true } }
+        profile: { select: { status: true, company: true, githubusername: true, bio: true, location: true } }
       },
       take: 10
     });
 
     const suggestions = users.map(u => {
       const avatarUrl = u.avatarUrl || 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png';
-      return {
+      const userObj = {
         _id: u.id,
         id: u.id,
         name: u.name,
@@ -277,11 +301,17 @@ const getSuggestions = async (req, res) => {
         isVerifiedBadge: u.isVerifiedBadge,
         badgeType: u.badgeType,
         role: u.profile?.status || 'Developer',
+        bio: u.profile?.bio || '',
+        location: u.profile?.location || '',
         profile: u.profile
+      };
+
+      return {
+        ...userObj,
+        user: userObj
       };
     });
 
-    // 3. Asynchronously persist to SuggestionCache (TTL: 2 Hours)
     const expiresAt = new Date(Date.now() + 2 * 60 * 60 * 1000);
     prisma.suggestionCache.upsert({
       where: { userId },

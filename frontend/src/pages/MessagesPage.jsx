@@ -11,7 +11,7 @@ import EmojiPicker from 'emoji-picker-react';
 import { ChatListSkeleton, MessageSkeleton } from '../components/common/Skeletons';
 
 const MessagesPage = () => {
-  const { currentUser } = useOutletContext();
+  const { currentUser } = useOutletContext() || {};
   const { socket, onlineUsers } = useSocket() || {};
   const { isDark } = useTheme();
   
@@ -719,7 +719,7 @@ const MessagesPage = () => {
   // Connections you haven't chatted with yet only belong under "Focused"
   const visibleConnections = activeTab === 'Focused'
     ? connections.filter(conn =>
-        !conversations.some(conv => conv.user._id === conn.user._id) &&
+        !conversations.some(conv => conv.user._id === (conn.user?._id || conn._id)) &&
         matchesSearch(conn.user?.name)
       )
     : [];
@@ -889,18 +889,18 @@ const MessagesPage = () => {
 
   const forwardDisplayList = (() => {
     const eligibleConnections = connections.filter(conn => 
-      conn.user && (!activePartnerId || conn.user._id !== activePartnerId)
+      conn.user && (!activePartnerId || (conn.user?._id || conn._id) !== activePartnerId)
     );
     const query = searchForwardQuery.trim().toLowerCase();
     if (!query) {
       // Empty query: only return connections that have existing active conversations (Focused ones)
       return eligibleConnections
-        .filter(conn => conversedUserIds.has(conn.user._id))
+        .filter(conn => conversedUserIds.has((conn.user?._id || conn._id)))
         .slice(0, 15);
     } else {
       // Query present: search through all connections
       return eligibleConnections.filter(conn => 
-        conn.user.name?.toLowerCase().includes(query)
+        (conn.user?.name || conn.name)?.toLowerCase().includes(query)
       );
     }
   })();
@@ -927,8 +927,8 @@ const MessagesPage = () => {
     // 2. Add connections
     if (Array.isArray(connections)) {
       connections.forEach(conn => {
-        if (conn && conn.user && conn.user._id !== currentUser?._id && !seen.has(conn.user._id)) {
-          seen.add(conn.user._id);
+        if (conn && conn.user && (conn.user?._id || conn._id) !== currentUser?._id && !seen.has((conn.user?._id || conn._id))) {
+          seen.add((conn.user?._id || conn._id));
           list.push(conn.user);
         }
       });
@@ -1139,10 +1139,10 @@ const MessagesPage = () => {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: (conversations.length + idx) * 0.03 }}
-                    key={`conn-${conn.user._id}`}
+                    key={`conn-${(conn.user?._id || conn._id)}`}
                     onClick={() => setSelectedChat(conn.user)}
                     className={`mx-2 my-0.5 px-3 py-2.5 flex items-start gap-3 cursor-pointer transition-all rounded-xl group ${
-                      selectedChat?._id === conn.user._id 
+                      selectedChat?._id === (conn.user?._id || conn._id) 
                         ? (isDark ? 'bg-white/10 text-white shadow-sm' : 'bg-blue-50 text-slate-900 border-l-4 border-[#0A66C2] shadow-xs') 
                         : (isDark ? 'text-gray-400 hover:bg-white/[0.03] hover:text-white' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900')
                     }`}
@@ -1153,7 +1153,7 @@ const MessagesPage = () => {
                         alt={conn.user?.name} 
                         className="w-12 h-12 rounded-full object-cover"
                       />
-                      {isUserOnline(conn.user._id) && (
+                      {isUserOnline((conn.user?._id || conn._id)) && (
                         <div className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 border-2 border-white dark:border-[#111] rounded-full"></div>
                       )}
                     </div>
@@ -2170,28 +2170,28 @@ const MessagesPage = () => {
               {/* Contacts checklist list */}
               <div className={`max-h-36 overflow-y-auto custom-scrollbar border ${isDark ? "border-white/5 bg-[#161616]/30" : "border-slate-200 bg-slate-50"} rounded-xl p-2 flex flex-col gap-1.5`}>
                 {forwardDisplayList.map((conn) => {
-                  const isSelected = selectedForwardTargets.includes(conn.user._id);
+                  const isSelected = selectedForwardTargets.includes((conn.user?._id || conn._id));
                   return (
                     <label 
-                      key={conn.user._id} 
+                      key={(conn.user?._id || conn._id)} 
                       className="flex items-center justify-between p-2 rounded-lg hover:bg-white/5 cursor-pointer transition-colors"
                     >
                       <div className="flex items-center gap-3">
                         <img 
-                          src={conn.user.avatar?.url || 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y'} 
+                          src={(conn.user?.avatar || conn.avatar)?.url || 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y'} 
                           alt="" 
                           className="w-8 h-8 rounded-full object-cover border border-slate-200 dark:border-white/10"
                         />
-                        <span className={`text-sm font-medium ${isDark ? "text-white" : "text-slate-900"}`}>{conn.user.name}</span>
+                        <span className={`text-sm font-medium ${isDark ? "text-white" : "text-slate-900"}`}>{(conn.user?.name || conn.name)}</span>
                       </div>
                       <input 
                         type="checkbox"
                         checked={isSelected}
                         onChange={() => {
                           if (isSelected) {
-                            setSelectedForwardTargets(prev => prev.filter(id => id !== conn.user._id));
+                            setSelectedForwardTargets(prev => prev.filter(id => id !== (conn.user?._id || conn._id)));
                           } else {
-                            setSelectedForwardTargets(prev => [...prev, conn.user._id]);
+                            setSelectedForwardTargets(prev => [...prev, (conn.user?._id || conn._id)]);
                           }
                         }}
                         className="w-4 h-4 rounded border-gray-600 text-[#00F0FF] focus:ring-[#00F0FF]/50 bg-[#161616]"

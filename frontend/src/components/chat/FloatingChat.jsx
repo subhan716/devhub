@@ -321,10 +321,10 @@ const FloatingChat = ({ currentUser }) => {
 
                 // Filter connections not in conversations
                 const connectionsNotInConvos = connections.filter(conn => 
-                  !conversations.some(conv => conv.user._id === conn.user._id)
+                  !conversations.some(conv => conv.user._id === (conn.user?._id || conn._id))
                 );
                 const filteredConns = connectionsNotInConvos.filter(conn => 
-                  conn.user?.name?.toLowerCase().includes(query)
+                  (conn.user?.name || conn.name)?.toLowerCase().includes(query)
                 );
 
                 const hasFocusedData = filteredConvos.length > 0;
@@ -367,18 +367,18 @@ const FloatingChat = ({ currentUser }) => {
                   }
                   return filteredConns.map(conn => (
                     <div 
-                      key={`conn-${conn.user._id}`}
+                      key={`conn-${(conn.user?._id || conn._id)}`}
                       onClick={() => openChatHead(conn.user)}
                       className="px-4 py-3 flex items-start gap-3 hover:bg-slate-50 dark:hover:bg-white/5 cursor-pointer border-b border-slate-200 dark:border-white/5 transition-colors animate-fadeIn"
                     >
                       <div className="relative flex-shrink-0">
-                        <img src={conn.user?.avatar?.url || 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y'} className="w-12 h-12 rounded-full object-cover" alt="" />
-                        {onlineUsers?.includes(conn.user._id) && (
+                        <img src={(conn.user?.avatar || conn.avatar)?.url || 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y'} className="w-12 h-12 rounded-full object-cover" alt="" />
+                        {onlineUsers?.includes((conn.user?._id || conn._id)) && (
                           <div className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 border-2 border-[#111] rounded-full animate-pulse"></div>
                         )}
                       </div>
                       <div className="flex-1 min-w-0 flex flex-col justify-center h-12">
-                        <h4 className="font-semibold text-sm text-slate-900 dark:text-gray-100 truncate">{conn.user?.name}</h4>
+                        <h4 className="font-semibold text-sm text-slate-900 dark:text-gray-100 truncate">{(conn.user?.name || conn.name)}</h4>
                         <p className="text-sm text-gray-500 italic truncate mt-0.5">Start a conversation</p>
                       </div>
                     </div>

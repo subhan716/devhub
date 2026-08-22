@@ -153,19 +153,19 @@ const ProfileConnectionsPage = () => {
                 className="flex flex-col sm:flex-row sm:items-start justify-between py-5 border-b border-slate-200 dark:border-white/5 gap-4 hover:bg-white/[0.02] transition-colors -mx-6 px-6"
               >
                 <div className="flex gap-4 items-start w-full sm:w-2/3">
-                  <Link to={`/profile/${conn.user._id}`} className="flex-shrink-0">
+                  <Link to={`/profile/${(conn.user?._id || conn._id)}`} className="flex-shrink-0">
                     <img
-                      src={conn.user?.avatar?.url || 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y'}
-                      alt={conn.user?.name}
+                      src={(conn.user?.avatar || conn.avatar)?.url || 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y'}
+                      alt={(conn.user?.name || conn.name)}
                       className="w-16 h-16 min-w-[4rem] min-h-[4rem] rounded-full object-cover border border-slate-200 dark:border-white/10"
                     />
                   </Link>
                   <div className="flex flex-col overflow-hidden">
                     <Link
-                      to={`/profile/${conn.user._id}`}
+                      to={`/profile/${(conn.user?._id || conn._id)}`}
                       className="text-white font-semibold text-base hover:text-[#00F0FF] transition-colors truncate block"
                     >
-                      {conn.user?.name}
+                      {(conn.user?.name || conn.name)}
                     </Link>
                     {/* Headline — bio (headline field) → status → role */}
                     {(conn.user?.bio || conn.user?.status || conn.user?.role) && (
@@ -190,7 +190,7 @@ const ProfileConnectionsPage = () => {
 
                 <div className="flex items-center gap-3 sm:pl-4">
                   <Link
-                    to={`/messages?user=${conn.user._id}`}
+                    to={`/messages?user=${(conn.user?._id || conn._id)}`}
                     className="px-5 py-1.5 border border-white/20 text-white font-medium rounded-full hover:bg-white/10 hover:border-white/40 transition-all text-sm"
                   >
                     Message
@@ -218,12 +218,12 @@ const ProfileConnectionsPage = () => {
                             <button
                               onClick={() => {
                                 setActiveDropdown(null);
-                                handleRemoveConnection(conn.user._id, conn.user?.name);
+                                handleRemoveConnection((conn.user?._id || conn._id), (conn.user?.name || conn.name));
                               }}
-                              disabled={actionLoading === `remove-${conn.user._id}`}
+                              disabled={actionLoading === `remove-${(conn.user?._id || conn._id)}`}
                               className="w-full text-left px-4 py-2.5 text-sm text-gray-300 hover:text-red-400 hover:bg-white/5 transition-colors flex items-center gap-3"
                             >
-                              {actionLoading === `remove-${conn.user._id}`
+                              {actionLoading === `remove-${(conn.user?._id || conn._id)}`
                                 ? <Loader2 className="w-4 h-4 animate-spin" />
                                 : <UserMinus size={16} />
                               }
