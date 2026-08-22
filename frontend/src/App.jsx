@@ -252,6 +252,7 @@ function App() {
           <Route path="/profile" element={<Suspense fallback={<PageSkeleton />}><ProfilePage /></Suspense>} />
           <Route path="/profile/:id" element={<Suspense fallback={<PageSkeleton />}><ProfilePage /></Suspense>} />
           <Route path="/profile/:id/connections" element={<Suspense fallback={<PageSkeleton />}><ProfileConnectionsPage /></Suspense>} />
+          <Route path="/profile/posts" element={<Suspense fallback={<PageSkeleton />}><UserPostsPage /></Suspense>} />
           <Route path="/profile/:id/posts" element={<Suspense fallback={<PageSkeleton />}><UserPostsPage /></Suspense>} />
           <Route path="/user-posts/:id" element={<Suspense fallback={<PageSkeleton />}><UserPostsPage /></Suspense>} />
           <Route path="/settings" element={<Suspense fallback={<PageSkeleton />}><SettingsPage /></Suspense>} />

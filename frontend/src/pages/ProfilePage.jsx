@@ -1310,7 +1310,7 @@ const ProfilePage = () => {
                 {userPosts.length > 1 && (
                   <div className="flex justify-center mt-4">
                     <Link
-                      to={`/profile/${id || profile?.user?._id}/posts`}
+                      to={`/profile/${id || profile?.user?._id || profile?.user?.id || profile?.userId || currentUserProfile?.user?._id || currentUserProfile?.user?.id || 'me'}/posts`}
                       className="flex items-center gap-2 px-8 py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 text-slate-800 dark:text-white hover:text-[#0A66C2] dark:hover:text-[#00F0FF] font-medium rounded-full border border-slate-200 dark:border-white/10 hover:border-[#0A66C2]/40 dark:hover:border-[#00F0FF]/30 transition-all text-sm shadow-md"
                     >
                       Show All {userPosts.length} Posts

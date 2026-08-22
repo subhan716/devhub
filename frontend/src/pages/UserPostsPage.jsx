@@ -14,7 +14,7 @@ const UserPostsPage = () => {
   const [currentUser, setCurrentUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
+    useEffect(() => {
     const fetchData = async () => {
       try {
         setIsLoading(true);
@@ -22,13 +22,15 @@ const UserPostsPage = () => {
         const meRes = await axios.get(`${import.meta.env.VITE_API_URL}/api/auth/me`, { withCredentials: true });
         setCurrentUser(meRes.data);
 
-        // 2. Fetch profile info
-        const targetParam = id || meRes.data?._id || meRes.data?.id;
-        const profileRes = await axios.get(`${import.meta.env.VITE_API_URL}/api/profile/user/${targetParam}`, { withCredentials: true });
+        // 2. Determine target user ID / handle
+        const rawId = id && id !== 'undefined' && id !== 'me' ? id : (meRes.data?._id || meRes.data?.id);
+
+        // 3. Fetch profile info
+        const profileRes = await axios.get(`${import.meta.env.VITE_API_URL}/api/profile/user/${rawId}`, { withCredentials: true });
         setProfile(profileRes.data);
 
-        // 3. Fetch user's posts & reposts
-        const resolvedUserId = profileRes.data?.user?._id || profileRes.data?.user?.id || profileRes.data?.userId || targetParam;
+        // 4. Fetch user's posts & reposts
+        const resolvedUserId = profileRes.data?.user?._id || profileRes.data?.user?.id || profileRes.data?.userId || rawId;
         const postsRes = await axios.get(`${import.meta.env.VITE_API_URL}/api/posts/user/${resolvedUserId}`, { withCredentials: true });
         setPosts(postsRes.data || []);
       } catch (err) {
