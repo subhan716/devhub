@@ -10,8 +10,8 @@ const REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || 'devhub_refresh_secret_
 
 const COOKIE_OPTIONS = {
   httpOnly: true,
-  secure: process.env.NODE_ENV === 'production',
-  sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+  secure: true,
+  sameSite: 'none',
   maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
 };
 
@@ -1036,6 +1036,17 @@ const googleCallback = async (req, res) => {
         },
         include: { profile: true }
       });
+      if (!user.profile) {
+        await prisma.profile.create({
+          data: {
+            userId: user.id,
+            skills: [],
+            openToWork: { isLooking: false, jobTitles: [], workplaces: [], locations: [] },
+            providingServices: { isProviding: false, services: [], details: '' },
+            socialLinks: { github: '', linkedin: '', twitter: '', website: '' }
+          }
+        });
+      }
     } else {
       user = await prisma.user.create({
         data: {
@@ -1067,7 +1078,7 @@ const googleCallback = async (req, res) => {
     }
 
     res.cookie('devhub_token', jwtAccessToken, COOKIE_OPTIONS);
-    return res.redirect(`${clientUrl}/feed?oauth=success&token=${jwtAccessToken}&refreshToken=${jwtRefreshToken}`);
+    return res.redirect(`${clientUrl}/login?oauth=success&token=${jwtAccessToken}&refreshToken=${jwtRefreshToken}`);
   } catch (err) {
     console.error('Google OAuth Callback Error:', err.message);
     return res.redirect(`${clientUrl}/login?error=oauth_error`);
@@ -1178,7 +1189,7 @@ const githubCallback = async (req, res) => {
     }
 
     res.cookie('devhub_token', jwtAccessToken, COOKIE_OPTIONS);
-    return res.redirect(`${clientUrl}/feed?oauth=success&token=${jwtAccessToken}&refreshToken=${jwtRefreshToken}`);
+    return res.redirect(`${clientUrl}/login?oauth=success&token=${jwtAccessToken}&refreshToken=${jwtRefreshToken}`);
   } catch (err) {
     console.error('GitHub OAuth Callback Error:', err.message);
     return res.redirect(`${clientUrl}/login?error=oauth_error`);

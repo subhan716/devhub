@@ -21,6 +21,30 @@ import toast from 'react-hot-toast';
 import axios from 'axios';
 
 const LoginPage = () => {
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get('token');
+    const refreshToken = params.get('refreshToken');
+    const error = params.get('error');
+
+    if (token) {
+      localStorage.setItem('accessToken', token);
+      localStorage.setItem('token', token);
+      if (refreshToken) localStorage.setItem('refreshToken', refreshToken);
+      localStorage.setItem('isAuthenticated', 'true');
+      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+      toast.success('Signed in successfully!');
+      window.location.replace('/feed');
+      return;
+    }
+
+    if (error) {
+      toast.error('Social authentication failed. Please try again or sign in with your password.');
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+  }, []);
+
   const [mode, setMode] = useState('login'); // 'login' | 'forgot-email' | 'forgot-otp-reset'
   const [formData, setFormData] = useState({ email: '', password: '', newPassword: '' });
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
