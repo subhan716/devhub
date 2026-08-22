@@ -1,4 +1,5 @@
 const prisma = require('../config/prisma');
+const { getRankedSuggestions, invalidateUserSuggestions } = require('../services/suggestionService');
 
 const formatProfileForClient = async (profile) => {
   if (!profile) return null;
@@ -88,6 +89,7 @@ const getCurrentProfile = async (req, res) => {
       });
     }
 
+    invalidateUserSuggestions(userId);
     const formatted = await formatProfileForClient(profile);
     res.status(200).json(formatted);
   } catch (error) {
@@ -437,79 +439,9 @@ const searchProfiles = async (req, res) => {
 
 const getNetworkSuggestions = async (req, res) => {
   try {
-    const currentUserId = req.user?.id;
-
-    // Get excluded connected / pending user IDs
-    let excludedUserIds = new Set();
-    if (currentUserId) {
-      excludedUserIds.add(currentUserId);
-      const existingConns = await prisma.connection.findMany({
-        where: {
-          OR: [{ requesterId: currentUserId }, { recipientId: currentUserId }]
-        },
-        select: { requesterId: true, recipientId: true }
-      });
-      existingConns.forEach(c => {
-        excludedUserIds.add(c.requesterId);
-        excludedUserIds.add(c.recipientId);
-      });
-    }
-
-    const users = await prisma.user.findMany({
-      where: {
-        id: { notIn: Array.from(excludedUserIds) },
-        isSuspended: false,
-        role: 'user',
-        email: { not: { contains: 'support@' } }
-      },
-      select: {
-        id: true,
-        name: true,
-        avatarUrl: true,
-        isVerifiedBadge: true,
-        badgeType: true,
-        profile: {
-          select: {
-            id: true,
-            status: true,
-            company: true,
-            location: true,
-            bio: true,
-            skills: true,
-            githubusername: true
-          }
-        }
-      },
-      take: 15,
-      orderBy: { createdAt: 'desc' }
-    });
-
-    const formatted = users.map(u => {
-      const avatarUrl = u.avatarUrl || 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png';
-      return {
-        _id: u.id,
-        id: u.id,
-        name: u.name,
-        avatar: { url: avatarUrl },
-        avatarUrl: avatarUrl,
-        isVerifiedBadge: u.isVerifiedBadge,
-        badgeType: u.badgeType,
-        headline: u.profile?.status || 'Developer',
-        bio: u.profile?.bio || '',
-        company: u.profile?.company || '',
-        location: u.profile?.location || '',
-        profile: u.profile,
-        user: {
-          _id: u.id,
-          id: u.id,
-          name: u.name,
-          avatar: { url: avatarUrl },
-          avatarUrl: avatarUrl
-        }
-      };
-    });
-
-    res.status(200).json(formatted);
+    const limit = Math.min(parseInt(req.query.limit) || 15, 50);
+    const suggestions = await getRankedSuggestions(req.user?.id, limit);
+    res.status(200).json(suggestions);
   } catch (e) {
     console.error('Error in getNetworkSuggestions:', e);
     res.status(500).json([]);

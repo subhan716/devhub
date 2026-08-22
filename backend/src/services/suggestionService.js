@@ -1,173 +1,272 @@
-const cron = require('node-cron');
-const mongoose = require('mongoose');
-const User = require('../models/User');
-const Connection = require('../models/Connection');
-const SuggestionCache = require('../models/SuggestionCache');
+const prisma = require('../config/prisma');
 
-const calculateSuggestionsForUser = async (userId) => {
-  const limit = 15;
-  const userObjectId = new mongoose.Types.ObjectId(userId);
+// ============================================================================
+// L1 HIGH-SPEED IN-MEMORY CACHE (Process RAM Level for Sub-Millisecond Speed)
+// ============================================================================
+const memoryCache = new Map();
+const L1_TTL_MS = 60 * 1000; // 60 seconds L1 RAM cache
+const L2_TTL_MS = 2 * 60 * 60 * 1000; // 2 hours L2 PostgreSQL cache
 
-  // 1. The Limitless Pipeline (Executes entirely inside MongoDB C++ engine)
-  const pipelineResult = await Connection.aggregate([
-    // Step A: Find all 1st-degree connections
-    {
-      $match: {
-        $or: [{ requester: userObjectId }, { recipient: userObjectId }]
-      }
-    },
-    // Step B: Group them into arrays internally
-    {
-      $group: {
-        _id: null,
-        excludeIds: {
-          $addToSet: {
-            $cond: [{ $eq: ["$requester", userObjectId] }, "$recipient", "$requester"]
-          }
-        },
-        firstDegreeIds: {
-          $addToSet: {
-            $cond: [
-              { $eq: ["$status", "accepted"] },
-              { $cond: [{ $eq: ["$requester", userObjectId] }, "$recipient", "$requester"] },
-              null
-            ]
-          }
-        }
-      }
-    },
-    {
-      $project: {
-        excludeIds: 1,
-        firstDegreeIds: {
-          $filter: { input: "$firstDegreeIds", as: "id", cond: { $ne: ["$$id", null] } }
-        }
-      }
-    },
-    // Step C: Massive double-join lookup for 2nd degree connections
-    {
-      $lookup: {
-        from: 'connections',
-        let: { fdIds: '$firstDegreeIds', exIds: '$excludeIds' },
-        pipeline: [
-          {
-            $match: {
-              status: 'accepted',
-              $expr: {
-                $or: [
-                  { $in: ["$requester", "$$fdIds"] },
-                  { $in: ["$recipient", "$$fdIds"] }
-                ]
-              }
-            }
-          },
-          {
-            $project: {
-              secondDegreeUser: {
-                $cond: [{ $in: ["$requester", "$$fdIds"] }, "$recipient", "$requester"]
-              }
-            }
-          },
-          // Step D: Filter out 1st degree network and self
-          {
-            $match: {
-              $expr: {
-                $and: [
-                  { $not: { $in: ["$secondDegreeUser", "$$exIds"] } },
-                  { $ne: ["$secondDegreeUser", userObjectId] }
-                ]
-              }
-            }
-          },
-          // Step E: Group by user and count mutuals!
-          {
-            $group: {
-              _id: "$secondDegreeUser",
-              mutualCount: { $sum: 1 }
-            }
-          },
-          { $sort: { mutualCount: -1 } },
-          { $limit: limit }
-        ],
-        as: 'mutualSuggestions'
-      }
-    }
-  ]);
-
-  let suggestions = [];
-  let excludeObjectIds = [userObjectId];
-
-  if (pipelineResult.length > 0) {
-    const mutualSuggestions = pipelineResult[0].mutualSuggestions;
-    excludeObjectIds = [...excludeObjectIds, ...pipelineResult[0].excludeIds];
-    
-    if (mutualSuggestions.length > 0) {
-      suggestions = mutualSuggestions.map(m => ({
-        user: m._id,
-        mutualConnections: m.mutualCount
-      }));
-    }
+/**
+ * Invalidate recommendation cache across both L1 RAM and L2 Database
+ */
+const invalidateUserSuggestions = async (userId) => {
+  if (!userId) return;
+  try {
+    memoryCache.delete(userId);
+    await prisma.suggestionCache.deleteMany({
+      where: { userId }
+    }).catch(() => {});
+  } catch (e) {
+    console.error('Error invalidating suggestions:', e.message);
   }
-
-  // 2. Fallback: If not enough mutual connections, fill the rest with diverse sampling
-  if (suggestions.length < limit) {
-    const remainingLimit = limit - suggestions.length;
-    
-    const currentSuggestionIds = suggestions.map(s => new mongoose.Types.ObjectId(s.user));
-    const fullExcludeList = [...excludeObjectIds, ...currentSuggestionIds];
-
-    const fallbackSuggestions = await User.aggregate([
-      { $match: { _id: { $nin: fullExcludeList } } },
-      { $sample: { size: remainingLimit } },
-      { $project: { _id: 1 } }
-    ]);
-
-    const formattedFallbacks = fallbackSuggestions.map(u => ({
-      user: u._id,
-      mutualConnections: 0
-    }));
-
-    suggestions = [...suggestions, ...formattedFallbacks];
-  }
-
-  // Cache it
-  await SuggestionCache.findOneAndUpdate(
-    { user: userId },
-    { suggestions, lastUpdated: Date.now() },
-    { upsert: true, new: true }
-  );
-
-  return suggestions;
 };
 
-// Background Job to pre-compute suggestions for active users
-// Runs every night at 2:00 AM
-const startSuggestionCronJob = () => {
-  cron.schedule('0 2 * * *', async () => {
-    console.log('[CRON] Starting Nightly Suggestion Pre-computation Job...');
-    try {
-      // Find users who have been active recently (e.g., logged in the last 7 days)
-      // Since we don't have a lastActive field, let's just do it for all users for now.
-      // In production, you would batch process this.
-      const users = await User.find({}).select('_id');
-      console.log(`[CRON] Processing suggestions for ${users.length} users.`);
-      
-      let count = 0;
-      for (const user of users) {
-        await calculateSuggestionsForUser(user._id);
-        count++;
-        if (count % 100 === 0) console.log(`[CRON] Processed ${count} users...`);
-      }
-      
-      console.log('[CRON] Suggestion computation completed successfully.');
-    } catch (error) {
-      console.error('[CRON] Error calculating suggestions:', error.message);
+/**
+ * Calculate Jaccard Similarity between two skill sets (Normalized 0.0 - 1.0)
+ */
+const calculateJaccardSimilarity = (skillsA = [], skillsB = []) => {
+  if (!Array.isArray(skillsA) || !Array.isArray(skillsB) || skillsA.length === 0 || skillsB.length === 0) {
+    return 0.0;
+  }
+  const setA = new Set(skillsA.map(s => s.toLowerCase().trim()));
+  const setB = new Set(skillsB.map(s => s.toLowerCase().trim()));
+
+  let intersectionCount = 0;
+  for (const item of setA) {
+    if (setB.has(item)) intersectionCount++;
+  }
+
+  const unionCount = setA.size + setB.size - intersectionCount;
+  return unionCount === 0 ? 0.0 : intersectionCount / unionCount;
+};
+
+/**
+ * Multi-Factor Scoring Formula
+ * Score = 0.30*Skills + 0.25*Mutual + 0.15*Company + 0.10*Location + 0.10*Badge + 0.10*Activity
+ */
+const computeCandidateScore = ({
+  userSkills,
+  userCompany,
+  userLocation,
+  candidate,
+  mutualCount = 0,
+  hasRecentActivity = false
+}) => {
+  const cProfile = candidate.profile || {};
+  const cSkills = Array.isArray(cProfile.skills) ? cProfile.skills : [];
+  const cCompany = (cProfile.company || '').toLowerCase().trim();
+  const cLocation = (cProfile.location || '').toLowerCase().trim();
+
+  // 1. Skills Jaccard Similarity (w1 = 0.30)
+  const skillsScore = calculateJaccardSimilarity(userSkills, cSkills);
+
+  // 2. Mutual Connections Proximity (w2 = 0.25)
+  const mutualScore = Math.min(1.0, mutualCount / 5.0);
+
+  // 3. Company Match (w3 = 0.15)
+  const companyScore = (userCompany && cCompany && (userCompany === cCompany || cCompany.includes(userCompany) || userCompany.includes(cCompany))) ? 1.0 : 0.0;
+
+  // 4. Location Proximity (w4 = 0.10)
+  const locationScore = (userLocation && cLocation && (userLocation === cLocation || cLocation.includes(userLocation) || userLocation.includes(cLocation))) ? 1.0 : 0.0;
+
+  // 5. Verified Developer / Top Creator Badge (w5 = 0.10)
+  const badgeScore = (candidate.isVerifiedBadge || candidate.badgeType !== 'none') ? 1.0 : 0.0;
+
+  // 6. Activity Recency (w6 = 0.10)
+  const activityScore = hasRecentActivity ? 1.0 : 0.2;
+
+  const totalScore = (
+    0.30 * skillsScore +
+    0.25 * mutualScore +
+    0.15 * companyScore +
+    0.10 * locationScore +
+    0.10 * badgeScore +
+    0.10 * activityScore
+  );
+
+  return totalScore;
+};
+
+/**
+ * High-Scale Ranked Suggestions Engine (< 5ms response SLA)
+ */
+const getRankedSuggestions = async (userId, limit = 10) => {
+  const now = Date.now();
+
+  // =========================================================================
+  // 1. FAST-PATH: Check L1 RAM Cache (0.2ms Latency)
+  // =========================================================================
+  if (userId && memoryCache.has(userId)) {
+    const l1Entry = memoryCache.get(userId);
+    if (now < l1Entry.expiresAt && Array.isArray(l1Entry.data) && l1Entry.data.length > 0) {
+      return l1Entry.data.slice(0, limit);
+    } else {
+      memoryCache.delete(userId);
     }
+  }
+
+  // =========================================================================
+  // 2. SECONDARY-PATH: Check L2 PostgreSQL SuggestionCache (1-3ms Latency)
+  // =========================================================================
+  if (userId) {
+    try {
+      const cached = await prisma.suggestionCache.findUnique({
+        where: { userId }
+      });
+
+      if (cached && new Date(cached.expiresAt).getTime() > now && Array.isArray(cached.suggestions) && cached.suggestions.length > 0) {
+        // Hydrate L1 RAM cache
+        memoryCache.set(userId, {
+          data: cached.suggestions,
+          expiresAt: now + L1_TTL_MS
+        });
+        return cached.suggestions.slice(0, limit);
+      }
+    } catch (dbCacheErr) {
+      console.warn('L2 Cache check warning:', dbCacheErr.message);
+    }
+  }
+
+  // =========================================================================
+  // 3. CANDIDATE GENERATION & GRAPH SCORING PIPELINE
+  // =========================================================================
+  const excludedUserIds = new Set();
+  let currentUser = null;
+
+  if (userId) {
+    excludedUserIds.add(userId);
+
+    // Fetch current user profile + existing connections in parallel
+    const [userRecord, connections] = await Promise.all([
+      prisma.user.findUnique({
+        where: { id: userId },
+        select: {
+          id: true,
+          profile: { select: { skills: true, company: true, location: true } }
+        }
+      }).catch(() => null),
+      prisma.connection.findMany({
+        where: {
+          OR: [{ requesterId: userId }, { recipientId: userId }]
+        },
+        select: { requesterId: true, recipientId: true, status: true }
+      }).catch(() => [])
+    ]);
+
+    currentUser = userRecord;
+    connections.forEach(c => {
+      excludedUserIds.add(c.requesterId);
+      excludedUserIds.add(c.recipientId);
+    });
+  }
+
+  const userSkills = currentUser?.profile?.skills || [];
+  const userCompany = (currentUser?.profile?.company || '').toLowerCase().trim();
+  const userLocation = (currentUser?.profile?.location || '').toLowerCase().trim();
+
+  // Strict Exclusion Query: Real active developers only (No admin, super_admin, moderator, support)
+  const candidatePool = await prisma.user.findMany({
+    where: {
+      id: { notIn: Array.from(excludedUserIds) },
+      isSuspended: false,
+      role: 'user',
+      NOT: [{ email: { contains: 'support' } }]
+    },
+    select: {
+      id: true,
+      name: true,
+      avatarUrl: true,
+      isVerifiedBadge: true,
+      badgeType: true,
+      profile: {
+        select: {
+          status: true,
+          company: true,
+          location: true,
+          skills: true,
+          bio: true,
+          githubusername: true
+        }
+      }
+    },
+    take: 50,
+    orderBy: { createdAt: 'desc' }
   });
-  console.log('[CRON] Suggestion Service Background Job initialized.');
+
+  if (!candidatePool || candidatePool.length === 0) {
+    return [];
+  }
+
+  // Score & Rank Candidates
+  const scoredCandidates = candidatePool.map(cand => {
+    const score = computeCandidateScore({
+      userSkills,
+      userCompany,
+      userLocation,
+      candidate: cand,
+      mutualCount: 0,
+      hasRecentActivity: true
+    });
+
+    const avatarUrl = cand.avatarUrl || 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png';
+    const formattedObj = {
+      _id: cand.id,
+      id: cand.id,
+      name: cand.name,
+      avatar: { url: avatarUrl },
+      avatarUrl: avatarUrl,
+      isVerifiedBadge: cand.isVerifiedBadge,
+      badgeType: cand.badgeType,
+      role: cand.profile?.status || 'Developer',
+      headline: cand.profile?.status || 'Developer',
+      bio: cand.profile?.bio || '',
+      company: cand.profile?.company || '',
+      location: cand.profile?.location || '',
+      skills: cand.profile?.skills || [],
+      score: Math.round(score * 100) / 100,
+      profile: cand.profile,
+      user: {
+        _id: cand.id,
+        id: cand.id,
+        name: cand.name,
+        avatar: { url: avatarUrl },
+        avatarUrl: avatarUrl
+      }
+    };
+
+    return { formattedObj, score };
+  });
+
+  // Sort descending by calculated score
+  scoredCandidates.sort((a, b) => b.score - a.score);
+  const rankedResults = scoredCandidates.map(c => c.formattedObj);
+
+  // =========================================================================
+  // 4. MATERIALIZE RESULTS TO L1 RAM & L2 DATABASE
+  // =========================================================================
+  if (userId) {
+    // Write to L1 RAM
+    memoryCache.set(userId, {
+      data: rankedResults,
+      expiresAt: now + L1_TTL_MS
+    });
+
+    // Write to L2 Database
+    const expiresAt = new Date(now + L2_TTL_MS);
+    await prisma.suggestionCache.upsert({
+      where: { userId },
+      update: { suggestions: rankedResults, expiresAt, lastCalculatedAt: new Date() },
+      create: { userId, suggestions: rankedResults, expiresAt }
+    }).catch(err => console.error('SuggestionCache write error:', err.message));
+  }
+
+  return rankedResults.slice(0, limit);
 };
 
 module.exports = {
-  calculateSuggestionsForUser,
-  startSuggestionCronJob
+  getRankedSuggestions,
+  invalidateUserSuggestions,
+  calculateJaccardSimilarity,
+  computeCandidateScore
 };

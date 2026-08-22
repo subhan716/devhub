@@ -1,5 +1,6 @@
 const prisma = require('../config/prisma');
 const { getIo } = require('../socket');
+const { getRankedSuggestions, invalidateUserSuggestions } = require('../services/suggestionService');
 
 const sendConnectionRequest = async (req, res) => {
   try {
@@ -52,6 +53,8 @@ const sendConnectionRequest = async (req, res) => {
       }
     } catch (nErr) {}
 
+    invalidateUserSuggestions(currentUserId);
+    invalidateUserSuggestions(targetUserId);
     res.status(201).json(conn);
   } catch (e) {
     res.status(500).json({ message: e.message });
@@ -127,6 +130,8 @@ const removeConnection = async (req, res) => {
         ]
       }
     });
+    invalidateUserSuggestions(currentUserId);
+    invalidateUserSuggestions(targetUserId);
     res.json({ message: 'Connection removed' });
   } catch (e) {
     res.status(500).json({ message: e.message });
@@ -290,66 +295,8 @@ const getUserConnections = async (req, res) => {
 
 const getSuggestions = async (req, res) => {
   try {
-    const userId = req.user.id;
-
-    // 1. Get all user IDs that are already connected or pending
-    const existingConnections = await prisma.connection.findMany({
-      where: {
-        OR: [{ requesterId: userId }, { recipientId: userId }]
-      },
-      select: { requesterId: true, recipientId: true }
-    });
-
-    const excludedUserIds = new Set([userId]);
-    existingConnections.forEach(c => {
-      excludedUserIds.add(c.requesterId);
-      excludedUserIds.add(c.recipientId);
-    });
-
-    // 2. Query only real developer users (exclude admins, support, self, and existing connections)
-    const users = await prisma.user.findMany({
-      where: {
-        id: { notIn: Array.from(excludedUserIds) },
-        isSuspended: false,
-        role: 'user',
-        email: {
-          not: { contains: 'support@' }
-        }
-      },
-      select: {
-        id: true,
-        name: true,
-        avatarUrl: true,
-        isVerifiedBadge: true,
-        badgeType: true,
-        profile: { select: { status: true, company: true, githubusername: true, bio: true, location: true } }
-      },
-      take: 10,
-      orderBy: { createdAt: 'desc' }
-    });
-
-    const suggestions = users.map(u => {
-      const avatarUrl = u.avatarUrl || 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png';
-      const userObj = {
-        _id: u.id,
-        id: u.id,
-        name: u.name,
-        avatar: { url: avatarUrl },
-        avatarUrl: avatarUrl,
-        isVerifiedBadge: u.isVerifiedBadge,
-        badgeType: u.badgeType,
-        role: u.profile?.status || 'Developer',
-        bio: u.profile?.bio || '',
-        location: u.profile?.location || '',
-        profile: u.profile
-      };
-
-      return {
-        ...userObj,
-        user: userObj
-      };
-    });
-
+    const limit = Math.min(parseInt(req.query.limit) || 10, 50);
+    const suggestions = await getRankedSuggestions(req.user.id, limit);
     res.json(suggestions);
   } catch (e) {
     console.error('Error in getSuggestions:', e);
