@@ -141,7 +141,10 @@ const getPosts = async (req, res) => {
 
     // 2. SECONDARY-PATH: Supabase B-Tree Composite Index Scan Query
     let queryArgs = {
-      where: { isReported: false },
+      where: {
+        isReported: false,
+        ...(req.user?.id ? { NOT: [{ isRepost: true, authorId: req.user.id }] } : {})
+      },
       select: {
         id: true,
         content: true,
