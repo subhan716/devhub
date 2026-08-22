@@ -10,6 +10,7 @@ import MaintenanceScreen from './components/common/MaintenanceScreen';
 import ScrollToTop from './components/common/ScrollToTop';
 
 // Lazy loading all pages for Code Splitting (Performance Optimization)
+export const APP_BUILD_TIMESTAMP = '2026-08-22T16:10:00Z';
 import LandingPage from './pages/LandingPage';
 const RegisterPage = lazy(() => import('./pages/RegisterPage'));
 const LoginPage = lazy(() => import('./pages/LoginPage'));
